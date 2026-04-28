@@ -1,0 +1,22 @@
+import { Navigate, Route, Routes } from "react-router-dom";
+import { AppShell } from "../AppShell";
+import { appRoute, defaultAppRoute } from "../app-routes";
+import { ConsoleRoute } from "./ConsoleRoute";
+import { SettingsRoute } from "./SettingsRoute";
+import { TemplatesRoute } from "./TemplatesRoute";
+import { WorkspaceRoute } from "./WorkspaceRoute";
+
+export function AppRoutes() {
+  return (
+    <Routes>
+      <Route path={appRoute.root} element={<AppShell />}>
+        <Route index element={<Navigate to={defaultAppRoute} replace />} />
+        <Route path={appRoute.workspace.slice(1)} element={<WorkspaceRoute />} />
+        <Route path={appRoute.console.slice(1)} element={<ConsoleRoute />} />
+        <Route path={appRoute.templates.slice(1)} element={<TemplatesRoute />} />
+        <Route path={appRoute.settings.slice(1)} element={<SettingsRoute />} />
+        <Route path="*" element={<Navigate to={defaultAppRoute} replace />} />
+      </Route>
+    </Routes>
+  );
+}

@@ -1,0 +1,12 @@
+{
+  "id": "expo-default",
+  "label": "Expo Starter",
+  "description": "Create a new Expo application with a dependency pack that works well for React Native prototyping.",
+  "projectType": "expo",
+  "preferredPackageManager": "npm",
+  "createCommands": {
+    "npm": ["create", "expo-app@latest"],
+    "npx": ["create-expo-app@latest"]
+  },
+  "postInstallDependencies": ["expo-router", "react-native-safe-area-context"]
+}
