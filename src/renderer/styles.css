@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-:root,
+/* :root,
 :root[data-theme="dark"] {
   --color-bg: #06110c;
   --color-bg-soft: #0d1b14;
@@ -29,6 +29,43 @@
   --color-success: #047857;
   --color-warning: #b45309;
   --color-error: #be123c;
+} */
+
+:root,
+:root[data-theme="dark"] {
+  --color-bg: #0b1220; /* deeper base */
+  --color-bg-soft: #111827; /* raised layer (main content) */
+
+  --color-text: #e5e7eb; /* softer white */
+  --color-text-muted: #9ca3af;
+
+  --color-accent: #10b981; /* less neon */
+  --color-accent-hover: #059669;
+  --color-accent-soft: rgba(16, 185, 129, 0.1);
+
+  --color-border: rgba(255, 255, 255, 0.08); /* neutral border */
+
+  --color-success: #22c55e;
+  --color-warning: #f59e0b;
+  --color-error: #f43f5e;
+}
+
+:root[data-theme="light"] {
+  --color-bg: #f3f4f6; /* app background */
+  --color-bg-soft: #ffffff; /* main content */
+
+  --color-text: #111827;
+  --color-text-muted: #6b7280;
+
+  --color-accent: #047857;
+  --color-accent-hover: #065f46;
+  --color-accent-soft: rgba(4, 120, 87, 0.08);
+
+  --color-border: rgba(0, 0, 0, 0.08);
+
+  --color-success: #16a34a;
+  --color-warning: #d97706;
+  --color-error: #e11d48;
 }
 
 html,
@@ -40,22 +77,12 @@ body,
 body {
   margin: 0;
   font-family: "Google Sans", "Avenir Next", "Segoe UI", sans-serif;
-  background:
-    radial-gradient(circle at 15% 10%, rgba(52, 211, 153, 0.18), transparent 24%),
-    radial-gradient(circle at 88% 18%, rgba(16, 185, 129, 0.14), transparent 26%),
-    radial-gradient(circle at 50% 100%, rgba(5, 150, 105, 0.12), transparent 36%),
-    linear-gradient(180deg, rgba(6, 17, 12, 0.9), rgba(6, 17, 12, 0.98)),
-    var(--color-bg);
+  background: var(--color-bg);
   color: var(--color-text);
 }
 
 :root[data-theme="light"] body {
-  background:
-    radial-gradient(circle at 14% 8%, rgba(16, 185, 129, 0.12), transparent 25%),
-    radial-gradient(circle at 92% 16%, rgba(4, 120, 87, 0.1), transparent 24%),
-    radial-gradient(circle at 50% 100%, rgba(52, 211, 153, 0.08), transparent 30%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(239, 250, 244, 0.98)),
-    var(--color-bg);
+  background: var(--color-bg);
 }
 
 * {

@@ -1,3 +1,4 @@
+import clsx from "clsx";
 import type { EnvironmentSummary, WorkflowStatus } from "@renderer/shared/types/lazify";
 import UiIcon from "./icons/UiIcon";
 
@@ -22,7 +23,12 @@ export function StatusStrip({ environment, workflowStatus, statusMessage }: Stat
         : "border-border bg-soft text-muted";
 
   return (
-    <div className={`rounded-[24px] border px-4 py-3 shadow-[0_0_8px_rgba(0,0,0,0.4)] ${tone}`}>
+    <div
+      className={clsx(
+        "rounded-[24px] border px-4 py-3 shadow-panel",
+        tone
+      )}
+    >
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-start gap-3">
           <div className="mt-0.5 rounded-full border border-current/20 p-2">

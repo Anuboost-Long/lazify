@@ -1,9 +1,10 @@
+import clsx from "clsx";
 import type { AppPageId, AppPageLink } from "@renderer/app/app-sidebar.constant";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 
 interface MiniSidebarProps {
   pages: AppPageLink[];
-  activePage: AppPageId;
+  activePage: AppPageId | null;
   visible: boolean;
   onExpand: () => void;
   onNavigate: (path: string) => void;
@@ -18,14 +19,21 @@ export function MiniSidebar({
 }: MiniSidebarProps) {
   return (
     <aside
-      className={`flex h-[calc(100vh-3rem)] flex-col items-center rounded-shell border border-border bg-soft p-3 shadow-[0_0_8px_rgba(0,0,0,0.4)] transition-opacity duration-200 ${
+      className={clsx(
+        "flex h-full flex-col items-center",
+        "rounded-shell border border-border bg-soft p-3",
+        "shadow-panel transition-opacity duration-200",
         visible ? "opacity-100" : "pointer-events-none opacity-0"
-      }`}
+      )}
     >
       <button
         type="button"
         onClick={onExpand}
-        className="group flex h-11 w-11 items-center justify-center rounded-2xl border border-border bg-bg text-muted transition hover:border-accent hover:bg-accentSoft"
+        className={clsx(
+          "group flex h-11 w-11 items-center justify-center",
+          "rounded-2xl border border-border bg-bg",
+          "text-muted transition hover:border-accent hover:bg-accentSoft"
+        )}
         aria-label="Expand sidebar"
         title="Expand sidebar"
       >
@@ -41,15 +49,20 @@ export function MiniSidebar({
               key={page.id}
               type="button"
               onClick={() => onNavigate(page.path)}
-              className={`group flex h-11 w-11 items-center justify-center rounded-2xl transition ${
+              className={clsx(
+                "group flex h-11 w-11 items-center justify-center",
+                "rounded-2xl transition",
                 active ? "bg-accentSoft text-accent" : "text-muted hover:text-text"
-              }`}
+              )}
               aria-label={page.label}
               title={page.label}
             >
               <UiIcon
                 name={page.icon}
-                className={`h-5 w-5 ${active ? "text-accent" : "text-muted group-hover:text-accent"}`}
+                className={clsx(
+                  "h-5 w-5",
+                  active ? "text-accent" : "text-muted group-hover:text-accent"
+                )}
               />
             </button>
           );

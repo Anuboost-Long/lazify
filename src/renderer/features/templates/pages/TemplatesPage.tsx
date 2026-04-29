@@ -1,3 +1,4 @@
+import clsx from "clsx";
 import { getTechIconName } from "@renderer/shared/lib/icon-map";
 import { PageHeader } from "@renderer/shared/ui/PageHeader";
 import DevIcon from "@renderer/shared/ui/icons/DevIcon";
@@ -7,6 +8,24 @@ import type { TemplateOption } from "@renderer/shared/types/lazify";
 interface TemplatesPageProps {
   templateOptions: TemplateOption[];
   selectedTemplateId: string;
+}
+
+function getTemplateIconKey(label: string) {
+  const normalized = label.toLowerCase();
+
+  if (normalized.includes("expo")) {
+    return "expo";
+  }
+
+  if (normalized.includes("next")) {
+    return "next";
+  }
+
+  if (normalized.includes("vite")) {
+    return "vite";
+  }
+
+  return "react";
 }
 
 export function TemplatesPage({ templateOptions, selectedTemplateId }: TemplatesPageProps) {
@@ -22,16 +41,15 @@ export function TemplatesPage({ templateOptions, selectedTemplateId }: Templates
       <section className="grid gap-4 lg:grid-cols-2">
         {templateOptions.map((template) => {
           const active = template.id === selectedTemplateId;
-          const iconKey = template.label.toLowerCase().includes("expo") ? "expo" : "react";
+          const iconKey = getTemplateIconKey(template.label);
 
           return (
             <article
               key={template.id}
-              className={`rounded-shell border p-5 shadow-[0_0_8px_rgba(0,0,0,0.4)] ${
-                active
-                  ? "border-border bg-accentSoft"
-                  : "border-border bg-soft"
-              }`}
+              className={clsx(
+                "rounded-shell border p-5 shadow-panel",
+                active ? "border-border bg-accentSoft" : "border-border bg-soft"
+              )}
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="flex items-center gap-3">

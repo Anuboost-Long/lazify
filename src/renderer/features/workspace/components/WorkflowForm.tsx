@@ -1,7 +1,7 @@
-import { getTechIconName } from "@renderer/shared/lib/icon-map";
-import DevIcon from "@renderer/shared/ui/icons/DevIcon";
+import clsx from "clsx";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import type { TemplateOption } from "@renderer/shared/types/lazify";
+import { PackageSearchPicker } from "./PackageSearchPicker";
 
 interface WorkflowFormProps {
   projectName: string;
@@ -12,10 +12,8 @@ interface WorkflowFormProps {
   busy: boolean;
   onProjectNameChange: (value: string) => void;
   onPackageNameChange: (value: string) => void;
-  onTemplateChange: (value: string) => void;
   onBrowseDirectory: () => void;
-  onCreateExpoApp: () => void;
-  onInstallPackage: () => void;
+  onContinue: () => void;
 }
 
 export function WorkflowForm({
@@ -27,125 +25,145 @@ export function WorkflowForm({
   busy,
   onProjectNameChange,
   onPackageNameChange,
-  onTemplateChange,
   onBrowseDirectory,
-  onCreateExpoApp,
-  onInstallPackage
+  onContinue
 }: WorkflowFormProps) {
   const selectedTemplate = templateOptions.find((template) => template.id === selectedTemplateId);
-  const templateIconName = getTechIconName(selectedTemplate?.label.toLowerCase().includes("expo") ? "expo" : "react");
+  const canContinue = Boolean(projectName.trim() && projectDirectory.trim()) && !busy;
+  const inputClassName = clsx(
+    "w-full",
+    "rounded-[20px] border border-border bg-bg px-4 py-3",
+    "text-sm text-text placeholder:text-muted",
+    "outline-none transition",
+    "focus:border-accent focus:ring-2 focus:ring-accentSoft"
+  );
+  const pillClassName = clsx(
+    "flex items-center gap-2",
+    "rounded-full border border-border bg-bg px-3 py-2",
+    "text-xs font-semibold uppercase tracking-[0.22em] text-accent"
+  );
 
   return (
-    <section className="relative overflow-hidden rounded-shell border border-border bg-soft p-6 shadow-[0_0_8px_rgba(0,0,0,0.4)] backdrop-blur">
-      <div className="absolute -right-10 top-8 h-32 w-32 rounded-full blur-3xl" style={{ backgroundColor: "var(--color-accent-soft)" }} />
-      <div className="absolute left-8 top-0 h-20 w-20 animate-drift rounded-full blur-2xl" style={{ backgroundColor: "var(--color-accent-soft)" }} />
+    <div className="flex flex-col gap-5 animate-fadeIn opacity-0">
+      <section className="relative overflow-hidden rounded-[30px] border border-border bg-soft p-6 shadow-panel">
+        <div
+          className="pointer-events-none absolute inset-x-0 top-0 h-24 opacity-80"
+          style={{
+            background:
+              "linear-gradient(135deg, rgba(52, 211, 153, 0.18) 0%, rgba(52, 211, 153, 0.04) 42%, transparent 85%)"
+          }}
+        />
 
-      <div className="relative space-y-6">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-accent">Workflows</p>
-          <h2 className="mt-2 font-display text-4xl leading-none text-text">Launch dev setups without touching a terminal.</h2>
-          <p className="mt-3 max-w-xl text-sm leading-6 text-muted">
-            Lazify wraps project creation, dependency installs, background commands, and log streaming into one secure desktop shell.
-          </p>
-          <div className="mt-4 flex flex-wrap gap-3">
-            <div className="flex items-center gap-2 rounded-full border border-border bg-bg px-3 py-2 text-xs font-semibold uppercase tracking-[0.22em] text-accent">
-              <DevIcon name={templateIconName} className="text-xl text-accent" title={selectedTemplate?.label} />
-              {selectedTemplate?.label ?? "Template"}
+        <div className="relative">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="max-w-2xl">
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-accent">
+                Project setup
+              </p>
+              <h3 className="mt-3 text-2xl font-semibold text-text">
+                {selectedTemplate?.label ?? "Selected template"}
+              </h3>
+              <p className="mt-3 text-sm leading-6 text-muted">
+                Start by naming the project and pointing Lazify to the base directory before the later workflow steps kick in.
+              </p>
             </div>
-            <div className="flex items-center gap-2 rounded-full border border-border bg-bg px-3 py-2 text-xs font-semibold uppercase tracking-[0.22em] text-accent">
-              <DevIcon name={getTechIconName("npm")} className="text-xl text-accent" title="npm" />
-              npm ready
+
+            <div className="flex flex-wrap gap-2">
+              <div className={pillClassName}>
+                {selectedTemplate?.label ?? "Template"}
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className="grid gap-4 md:grid-cols-2">
-          <label className="space-y-2">
-            <span className="text-xs font-semibold uppercase tracking-[0.22em] text-accent">Project name</span>
-            <input
-              value={projectName}
-              onChange={(event) => onProjectNameChange(event.target.value)}
-              placeholder="awesome-mobile-app"
-              className="w-full rounded-[20px] border border-border bg-bg px-4 py-3 text-sm text-text outline-none transition placeholder:text-muted focus:border-accent focus:ring-2 focus:ring-accentSoft"
-            />
-          </label>
+          <div className="mt-6 grid gap-4 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]">
+            <label className="space-y-2">
+              <span className="text-xs font-semibold uppercase tracking-[0.22em] text-accent">Project name</span>
+              <input
+                value={projectName}
+                onChange={(event) => onProjectNameChange(event.target.value)}
+                placeholder="awesome-mobile-app"
+                className={inputClassName}
+              />
+            </label>
 
-          <label className="space-y-2">
-            <span className="text-xs font-semibold uppercase tracking-[0.22em] text-accent">Workspace directory</span>
-            <div className="flex gap-3">
-              <div className="flex min-h-[52px] flex-1 items-center rounded-[20px] border border-border bg-bg px-4 py-3 text-sm text-text">
-                <span className={projectDirectory ? "truncate" : "text-muted"}>
-                  {projectDirectory || "Choose a folder from your operating system"}
-                </span>
+            <label className="space-y-2">
+              <span className="text-xs font-semibold uppercase tracking-[0.22em] text-accent">Workspace directory</span>
+              <div className="flex flex-col gap-3 md:flex-row">
+                <div className="flex min-h-[52px] flex-1 items-center rounded-[20px] border border-border bg-bg px-4 py-3 text-sm text-text">
+                  <span className={projectDirectory ? "truncate" : "text-muted"}>
+                    {projectDirectory || "Choose a folder from your operating system"}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={onBrowseDirectory}
+                  className={clsx(
+                    "group flex items-center justify-center gap-2",
+                    "rounded-[20px] border border-border bg-bg px-4 py-3",
+                    "text-sm font-semibold text-muted",
+                    "transition hover:border-accent hover:text-text",
+                    "disabled:cursor-not-allowed disabled:opacity-60"
+                  )}
+                >
+                  <UiIcon name="folder" className="h-5 w-5 text-muted group-hover:text-accent" />
+                  Browse
+                </button>
               </div>
-              <button
-                type="button"
-                disabled={busy}
-                onClick={onBrowseDirectory}
-                className="group flex items-center gap-2 rounded-[20px] border border-border bg-soft px-4 py-3 text-sm font-semibold text-muted transition hover:border-accent hover:text-text disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                <UiIcon name="folder" className="h-5 w-5 text-muted group-hover:text-accent" />
-                Browse
-              </button>
-            </div>
-          </label>
-
-          <label className="space-y-2">
-            <span className="text-xs font-semibold uppercase tracking-[0.22em] text-accent">Template</span>
-            <select
-              value={selectedTemplateId}
-              onChange={(event) => onTemplateChange(event.target.value)}
-              className="w-full rounded-[20px] border border-border bg-bg px-4 py-3 text-sm text-text outline-none transition focus:border-accent focus:ring-2 focus:ring-accentSoft"
-            >
-              {templateOptions.map((template) => (
-                <option key={template.id} value={template.id}>
-                  {template.label}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label className="space-y-2">
-            <span className="text-xs font-semibold uppercase tracking-[0.22em] text-accent">Package name</span>
-            <input
-              value={packageName}
-              onChange={(event) => onPackageNameChange(event.target.value)}
-              placeholder="zustand, react-query"
-              className="w-full rounded-[20px] border border-border bg-bg px-4 py-3 text-sm text-text outline-none transition placeholder:text-muted focus:border-accent focus:ring-2 focus:ring-accentSoft"
-            />
-          </label>
+            </label>
+          </div>
         </div>
+      </section>
 
-        <div className="grid gap-3 md:grid-cols-2">
-          <button
-            type="button"
-            disabled={busy}
-            onClick={onCreateExpoApp}
-            className="bg-accent text-white hover:bg-accentHover rounded-[22px] border border-transparent px-5 py-4 text-left shadow-glow transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.24em] text-white/70">
-              <UiIcon name="play" className="h-4 w-4 text-white/70" />
-              Create
-            </div>
-            <p className="mt-2 font-display text-2xl">Create Expo App</p>
-            <p className="mt-2 text-sm text-white/80">Runs the project scaffold in the background and streams every line into the UI.</p>
-          </button>
-
-          <button
-            type="button"
-            disabled={busy}
-            onClick={onInstallPackage}
-            className="group rounded-[22px] border border-border bg-bg px-5 py-4 text-left text-text shadow-sm transition hover:-translate-y-0.5 hover:border-accent hover:shadow-[0_0_8px_rgba(0,0,0,0.4)] disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.24em] text-muted group-hover:text-text">
-              <UiIcon name="package" className="h-4 w-4 text-muted group-hover:text-accent" />
-              Maintain
-            </div>
-            <p className="mt-2 font-display text-2xl">Install Package</p>
-            <p className="mt-2 text-sm text-muted">Uses the selected directory and retries once with a safe compatibility fallback when installs fail.</p>
-          </button>
-        </div>
+      <div>
+        <PackageSearchPicker
+          value={packageName}
+          selectedTemplateId={selectedTemplateId}
+          busy={busy}
+          onChange={onPackageNameChange}
+        />
       </div>
-    </section>
+
+      <div className="rounded-[30px] border border-border bg-soft p-6 shadow-panel">
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+          <div className="flex items-start gap-3">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-border bg-soft text-accent">
+              <UiIcon name="play" className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold uppercase tracking-[0.22em] text-accent">
+                Setup stage ready
+              </p>
+              <p className="mt-2 text-lg font-semibold text-text">
+                Continue with the next workflow step.
+              </p>
+              <p className="mt-2 text-sm leading-6 text-muted">
+                This step captures the project name, target directory, and package shortlist.
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            disabled={!canContinue}
+            onClick={onContinue}
+            className={clsx(
+              "inline-flex items-center justify-center gap-2 rounded-[18px] border border-transparent bg-accent px-5 py-3",
+              "text-sm font-semibold text-white shadow-glow transition hover:-translate-y-0.5 hover:bg-accentHover",
+              "disabled:cursor-not-allowed disabled:opacity-60"
+            )}
+          >
+            Continue
+            <UiIcon name="arrow-right" className="h-4 w-4 text-white" />
+          </button>
+        </div>
+
+        {!canContinue ? (
+          <p className="mt-3 text-sm text-muted">
+            Enter both a project name and workspace directory to continue.
+          </p>
+        ) : null}
+      </div>
+    </div>
   );
 }

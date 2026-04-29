@@ -1,8 +1,8 @@
 import { SettingsPage } from "@renderer/features/settings/pages/SettingsPage";
-import { useAppShellContext } from "../app-shell-context";
+import { useLazifyStore } from "@renderer/shared/hooks/use-lazify-store";
 
 export function SettingsRoute() {
-  const { environment } = useAppShellContext();
+  const { environment } = useLazifyStore();
 
   return <SettingsPage environment={environment} />;
 }

@@ -7,10 +7,11 @@ export interface TemplateDefinition {
   id: string;
   label: string;
   description: string;
-  projectType: "expo" | "next" | "vite";
+  projectType: "expo" | "next" | "vite" | "react-native";
   preferredPackageManager: PackageManager;
   createCommands: Partial<Record<CommandBinary | PackageManager, string[]>>;
   postInstallDependencies?: string[];
+  packageManifest?: string;
 }
 
 const TEMPLATE_DIRECTORY = path.resolve(process.cwd(), "templates");
@@ -39,21 +40,33 @@ export function getTemplate(id: string): TemplateDefinition {
   return template;
 }
 
-export function getInstallCommand(packageManager: PackageManager, packages: string[]): string[] {
+export function getInstallCommand(
+  packageManager: PackageManager,
+  packages: string[],
+  options?: { dev?: boolean }
+): string[] {
   if (packageManager === "yarn") {
-    return ["add", ...packages];
+    return options?.dev ? ["add", "--dev", ...packages] : ["add", ...packages];
   }
 
-  return ["install", ...packages];
+  return options?.dev ? ["install", "--save-dev", ...packages] : ["install", ...packages];
 }
 
-export function getAutoFixArgs(packageManager: PackageManager, packages: string[]): string[] | null {
+export function getAutoFixArgs(
+  packageManager: PackageManager,
+  packages: string[],
+  options?: { dev?: boolean }
+): string[] | null {
   if (packageManager === "npm") {
-    return ["install", "--legacy-peer-deps", ...packages];
+    return options?.dev
+      ? ["install", "--save-dev", "--legacy-peer-deps", ...packages]
+      : ["install", "--legacy-peer-deps", ...packages];
   }
 
   if (packageManager === "yarn") {
-    return ["add", "--ignore-engines", ...packages];
+    return options?.dev
+      ? ["add", "--dev", "--ignore-engines", ...packages]
+      : ["add", "--ignore-engines", ...packages];
   }
 
   return null;

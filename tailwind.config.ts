@@ -34,9 +34,14 @@ export default {
       },
       animation: {
         drift: "drift 14s ease-in-out infinite",
+        fadeIn: "fadeIn 420ms ease-out forwards",
         pulseLine: "pulseLine 2.6s ease-in-out infinite"
       },
       keyframes: {
+        fadeIn: {
+          "0%": { opacity: "0", transform: "translate3d(0, 12px, 0)" },
+          "100%": { opacity: "1", transform: "translate3d(0, 0, 0)" }
+        },
         drift: {
           "0%, 100%": { transform: "translate3d(0, 0, 0) scale(1)" },
           "50%": { transform: "translate3d(12px, -16px, 0) scale(1.03)" }

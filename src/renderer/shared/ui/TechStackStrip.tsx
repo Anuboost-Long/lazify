@@ -1,3 +1,4 @@
+import clsx from "clsx";
 import { getTechIconName, type TechIconKey } from "@renderer/shared/lib/icon-map";
 import DevIcon from "./icons/DevIcon";
 import UiIcon from "./icons/UiIcon";
@@ -13,7 +14,12 @@ const primaryStack: Array<{ key: TechIconKey; label: string }> = [
 
 export function TechStackStrip() {
   return (
-    <section className="rounded-shell border border-border bg-soft p-5 shadow-[0_0_8px_rgba(0,0,0,0.4)]">
+    <section
+      className={clsx(
+        "rounded-shell border border-border bg-soft p-5",
+        "shadow-panel"
+      )}
+    >
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.28em] text-accent">
@@ -23,7 +29,13 @@ export function TechStackStrip() {
             The renderer and desktop shell now share a dedicated icon system.
           </p>
         </div>
-        <div className="group flex items-center gap-2 rounded-full border border-border bg-bg px-3 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-muted">
+        <div
+          className={clsx(
+            "group flex items-center gap-2",
+            "rounded-full border border-border bg-bg px-3 py-2",
+            "text-xs font-semibold uppercase tracking-[0.2em] text-muted"
+          )}
+        >
           <UiIcon name="settings" className="h-4 w-4 text-muted group-hover:text-accent" />
           Icon Ready
         </div>
@@ -33,7 +45,10 @@ export function TechStackStrip() {
         {primaryStack.map((item) => (
           <div
             key={item.key}
-            className="flex items-center gap-3 rounded-[20px] border border-border bg-bg px-4 py-3"
+            className={clsx(
+              "flex items-center gap-3",
+              "rounded-[20px] border border-border bg-bg px-4 py-3"
+            )}
           >
             <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-border bg-soft text-accent">
               <DevIcon

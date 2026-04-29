@@ -8,5 +8,5 @@
     "npm": ["create", "expo-app@latest"],
     "npx": ["create-expo-app@latest"]
   },
-  "postInstallDependencies": ["expo-router", "react-native-safe-area-context"]
+  "packageManifest": "expo.json"
 }

@@ -1,3 +1,5 @@
+import fs from "node:fs";
+import path from "node:path";
 import { spawnSync } from "node:child_process";
 
 export type PackageManager = "npm" | "yarn";
@@ -88,8 +90,21 @@ export function ensureCommandAvailable(command: string): void {
   }
 }
 
-export function choosePackageManager(): PackageManager {
+export function choosePackageManager(projectPath?: string): PackageManager {
   const scan = scanEnvironment();
+
+  if (projectPath) {
+    const yarnLockPath = path.join(projectPath, "yarn.lock");
+    const packageLockPath = path.join(projectPath, "package-lock.json");
+
+    if (fs.existsSync(yarnLockPath) && scan.binaries.yarn.available) {
+      return "yarn";
+    }
+
+    if (fs.existsSync(packageLockPath) && scan.binaries.npm.available) {
+      return "npm";
+    }
+  }
 
   if (scan.binaries.npm.available) {
     return "npm";

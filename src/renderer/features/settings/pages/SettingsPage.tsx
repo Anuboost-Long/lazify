@@ -1,3 +1,4 @@
+import clsx from "clsx";
 import { PageHeader } from "@renderer/shared/ui/PageHeader";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import type { EnvironmentSummary } from "@renderer/shared/types/lazify";
@@ -38,7 +39,10 @@ export function SettingsPage({ environment }: SettingsPageProps) {
         {items.map((item) => (
           <article
             key={item.label}
-            className="rounded-shell border border-border bg-soft p-5 shadow-[0_0_8px_rgba(0,0,0,0.4)]"
+            className={clsx(
+              "rounded-shell border border-border bg-soft p-5",
+              "shadow-panel"
+            )}
           >
             <div className="flex items-center gap-3">
               <div className="rounded-2xl border border-border bg-bg p-2 text-accent">

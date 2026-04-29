@@ -1,28 +1,74 @@
-import { useCallback, useState } from "react";
+import { atom, useAtom, useAtomValue, useSetAtom } from "jotai";
+import { useCallback } from "react";
 import type {
   EnvironmentSummary,
   LogEntry,
+  ProjectTreeNode,
+  SavedInitWorkflowConfig,
   TemplateOption,
   WorkflowStatus,
 } from "@renderer/shared/types/lazify";
 
+const PROJECT_DIRECTORY_STORAGE_KEY = "lazify-project-directory";
+
+function readStoredProjectDirectory() {
+  if (typeof window === "undefined") {
+    return "";
+  }
+
+  return window.localStorage.getItem(PROJECT_DIRECTORY_STORAGE_KEY) ?? "";
+}
+
+function persistProjectDirectory(value: string) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.localStorage.setItem(PROJECT_DIRECTORY_STORAGE_KEY, value);
+}
+
+const projectNameAtom = atom("lazify-starter");
+const projectDirectoryAtom = atom(readStoredProjectDirectory());
+const packageNameAtom = atom("");
+const selectedTemplateIdAtom = atom("");
+const initWorkflowStageAtom = atom<"configure" | "structure">("configure");
+const savedInitWorkflowConfigAtom = atom<SavedInitWorkflowConfig | null>(null);
+const savedStructureTreeAtom = atom<ProjectTreeNode[] | null>(null);
+const selectedStructurePathsAtom = atom<string[]>(["app", "components", "lib", "hooks"]);
+const logsAtom = atom<LogEntry[]>([]);
+const busyAtom = atom(false);
+const workflowStatusAtom = atom<WorkflowStatus>("idle");
+const statusMessageAtom = atom("Checking local runtime prerequisites.");
+const environmentAtom = atom<EnvironmentSummary | null>(null);
+const templateOptionsAtom = atom<TemplateOption[]>([
+  {
+    id: "expo-default",
+    label: "Expo Starter",
+    description: "Default Expo template."
+  }
+]);
+
 export function useLazifyStore() {
-  const [projectName, setProjectName] = useState("lazify-starter");
-  const [projectDirectory, setProjectDirectory] = useState("");
-  const [packageName, setPackageName] = useState("react-native-reanimated");
-  const [selectedTemplateId, setSelectedTemplateId] = useState("expo-default");
-  const [logs, setLogs] = useState<LogEntry[]>([]);
-  const [busy, setBusy] = useState(false);
-  const [workflowStatus, setWorkflowStatus] = useState<WorkflowStatus>("idle");
-  const [statusMessage, setStatusMessage] = useState("Checking local runtime prerequisites.");
-  const [environment, setEnvironment] = useState<EnvironmentSummary | null>(null);
-  const [templateOptions, setTemplateOptions] = useState<TemplateOption[]>([
-    {
-      id: "expo-default",
-      label: "Expo Starter",
-      description: "Default Expo template."
-    }
-  ]);
+  const [projectName, setProjectName] = useAtom(projectNameAtom);
+  const [projectDirectory, setProjectDirectory] = useAtom(projectDirectoryAtom);
+  const [packageName, setPackageName] = useAtom(packageNameAtom);
+  const [selectedTemplateId, setSelectedTemplateId] = useAtom(selectedTemplateIdAtom);
+  const [initWorkflowStage, setInitWorkflowStage] = useAtom(initWorkflowStageAtom);
+  const [savedInitWorkflowConfig, setSavedInitWorkflowConfig] = useAtom(savedInitWorkflowConfigAtom);
+  const [savedStructureTree, setSavedStructureTree] = useAtom(savedStructureTreeAtom);
+  const [selectedStructurePaths, setSelectedStructurePaths] = useAtom(selectedStructurePathsAtom);
+  const logs = useAtomValue(logsAtom);
+  const busy = useAtomValue(busyAtom);
+  const workflowStatus = useAtomValue(workflowStatusAtom);
+  const statusMessage = useAtomValue(statusMessageAtom);
+  const environment = useAtomValue(environmentAtom);
+  const templateOptions = useAtomValue(templateOptionsAtom);
+  const setLogs = useSetAtom(logsAtom);
+  const setBusy = useSetAtom(busyAtom);
+  const setWorkflowStatus = useSetAtom(workflowStatusAtom);
+  const setStatusMessage = useSetAtom(statusMessageAtom);
+  const setEnvironment = useSetAtom(environmentAtom);
+  const setTemplateOptions = useSetAtom(templateOptionsAtom);
 
   const bootstrap = useCallback(async () => {
     const [env, templates] = await Promise.all([
@@ -52,9 +98,8 @@ export function useLazifyStore() {
           description: template.description
         }))
       );
-      setSelectedTemplateId(templates[0].id);
     }
-  }, []);
+  }, [setEnvironment, setStatusMessage, setTemplateOptions, setWorkflowStatus]);
 
   const bindEvents = useCallback(() => {
     const stopLogs = window.lazify.onLog((entry) => {
@@ -78,7 +123,7 @@ export function useLazifyStore() {
       stopLogs();
       stopProgress();
     };
-  }, []);
+  }, [setLogs, setStatusMessage, setWorkflowStatus]);
 
   const createProject = useCallback(async () => {
     if (!projectName.trim() || !projectDirectory.trim()) {
@@ -95,7 +140,8 @@ export function useLazifyStore() {
       const result = await window.lazify.createProject({
         name: projectName.trim(),
         baseDirectory: projectDirectory.trim(),
-        templateId: selectedTemplateId
+        templateId: selectedTemplateId,
+        structureTree: savedStructureTree ?? []
       });
 
       setWorkflowStatus(result.success ? "success" : "error");
@@ -106,7 +152,15 @@ export function useLazifyStore() {
     } finally {
       setBusy(false);
     }
-  }, [projectDirectory, projectName, selectedTemplateId]);
+  }, [
+    projectDirectory,
+    projectName,
+    savedStructureTree,
+    selectedTemplateId,
+    setBusy,
+    setStatusMessage,
+    setWorkflowStatus
+  ]);
 
   const installPackage = useCallback(async () => {
     if (!packageName.trim() || !projectDirectory.trim() || !projectName.trim()) {
@@ -134,13 +188,21 @@ export function useLazifyStore() {
     } finally {
       setBusy(false);
     }
-  }, [packageName, projectDirectory, projectName]);
+  }, [
+    packageName,
+    projectDirectory,
+    projectName,
+    setBusy,
+    setStatusMessage,
+    setWorkflowStatus
+  ]);
 
   const pickProjectDirectory = useCallback(async () => {
     try {
       const selectedPath = await window.lazify.selectDirectory();
 
       if (selectedPath) {
+        persistProjectDirectory(selectedPath);
         setProjectDirectory(selectedPath);
         setWorkflowStatus("idle");
         setStatusMessage(`Project directory selected: ${selectedPath}`);
@@ -149,27 +211,80 @@ export function useLazifyStore() {
       setWorkflowStatus("error");
       setStatusMessage(error instanceof Error ? error.message : "Unable to open the directory picker.");
     }
-  }, []);
+  }, [setProjectDirectory, setStatusMessage, setWorkflowStatus]);
+
+  const continueInitWorkflow = useCallback(() => {
+    if (!selectedTemplateId.trim()) {
+      setWorkflowStatus("error");
+      setStatusMessage("Choose a stack before continuing.");
+      return false;
+    }
+
+    if (!projectName.trim() || !projectDirectory.trim()) {
+      setWorkflowStatus("error");
+      setStatusMessage("Enter a project name and workspace directory before continuing.");
+      return false;
+    }
+
+    setSavedInitWorkflowConfig({
+      templateId: selectedTemplateId,
+      projectName: projectName.trim(),
+      projectDirectory: projectDirectory.trim(),
+      packageNames: packageName
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean)
+    });
+    setInitWorkflowStage("structure");
+    setWorkflowStatus("success");
+    setStatusMessage("Project setup saved. Continue with file structure configuration.");
+    return true;
+  }, [
+    packageName,
+    projectDirectory,
+    projectName,
+    selectedTemplateId,
+    setInitWorkflowStage,
+    setSavedInitWorkflowConfig,
+    setStatusMessage,
+    setWorkflowStatus
+  ]);
 
   return {
     busy,
     environment,
+    initWorkflowStage,
     logs,
     packageName,
     projectDirectory,
     projectName,
+    savedInitWorkflowConfig,
+    savedStructureTree,
+    selectedStructurePaths,
     selectedTemplateId,
     statusMessage,
     templateOptions,
     workflowStatus,
     setProjectName,
-    setProjectDirectory,
+    setProjectDirectory: (value: string) => {
+      persistProjectDirectory(value);
+      setProjectDirectory(value);
+    },
     setPackageName,
-    setSelectedTemplateId,
+    setSavedStructureTree,
+    setSelectedStructurePaths,
+    setSelectedTemplateId: (value: string) => {
+      setSelectedTemplateId(value);
+      setInitWorkflowStage("configure");
+      setSavedInitWorkflowConfig(null);
+      setSavedStructureTree(null);
+    },
+    setInitWorkflowStage,
     pickProjectDirectory,
     bootstrap,
     createProject,
     installPackage,
+    continueInitWorkflow,
     bindEvents
   };
 }

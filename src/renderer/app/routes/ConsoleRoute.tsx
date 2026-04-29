@@ -1,9 +1,9 @@
 import { ConsolePage } from "@renderer/features/console/pages/ConsolePage";
-import { useAppShellContext } from "../app-shell-context";
+import { useLazifyStore } from "@renderer/shared/hooks/use-lazify-store";
 
 export function ConsoleRoute() {
   const { environment, logs, statusMessage, workflowStatus } =
-    useAppShellContext();
+    useLazifyStore();
 
   return (
     <ConsolePage

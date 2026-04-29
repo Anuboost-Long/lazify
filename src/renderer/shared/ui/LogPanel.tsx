@@ -1,3 +1,4 @@
+import clsx from "clsx";
 import type { LogEntry } from "@renderer/shared/types/lazify";
 import UiIcon from "./icons/UiIcon";
 
@@ -13,7 +14,13 @@ const streamStyles: Record<LogEntry["stream"], string> = {
 
 export function LogPanel({ logs }: LogPanelProps) {
   return (
-    <section className="relative overflow-hidden rounded-shell border border-border bg-soft p-5 shadow-[0_0_8px_rgba(0,0,0,0.4)] backdrop-blur">
+    <section
+      className={clsx(
+        "relative overflow-hidden",
+        "rounded-shell border border-border bg-soft p-5",
+        "shadow-panel backdrop-blur"
+      )}
+    >
       <div className="absolute inset-x-0 top-0 h-px animate-pulseLine" style={{ background: "linear-gradient(to right, transparent, var(--color-accent), transparent)" }} />
       <div className="mb-4 flex items-center justify-between">
         <div className="flex items-start gap-3">
@@ -37,7 +44,13 @@ export function LogPanel({ logs }: LogPanelProps) {
           </div>
         ) : (
           logs.map((entry) => (
-            <div key={entry.key} className={`whitespace-pre-wrap border-b border-white/10 py-2 last:border-b-0 ${streamStyles[entry.stream]}`}>
+            <div
+              key={entry.key}
+              className={clsx(
+                "whitespace-pre-wrap border-b border-white/10 py-2 last:border-b-0",
+                streamStyles[entry.stream]
+              )}
+            >
               <span className="mr-3 text-xs uppercase tracking-[0.24em] text-white/45">
                 {new Date(entry.timestamp).toLocaleTimeString()}
               </span>

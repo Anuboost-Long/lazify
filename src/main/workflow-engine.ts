@@ -2,6 +2,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
+import type { ProjectTreeNode } from "../renderer/shared/types/lazify";
 import {
   getAutoFixArgs,
   getInstallCommand,
@@ -9,6 +10,12 @@ import {
   summarizeAutoFix,
   type TemplateDefinition
 } from "./harmonizer";
+import {
+  buildTemplatePackageInstallPlan,
+  loadTemplatePackageManifest,
+  readProjectPackageJson
+} from "./template-package-manifest";
+import { reconcileProjectStructure } from "./tree-reconciler";
 import { CommandRunner } from "./command-runner";
 import { choosePackageManager, scanEnvironment, type CommandBinary, type PackageManager } from "./scanner";
 
@@ -29,6 +36,7 @@ export interface CreateProjectPayload {
   name: string;
   baseDirectory: string;
   templateId: string;
+  structureTree: ProjectTreeNode[];
 }
 
 export interface InstallPackagePayload {
@@ -109,7 +117,7 @@ export class WorkflowEngine {
 
       const dependencyResult = await this.installPackagesWithAutoFix({
         workflowId,
-        packageManager: choosePackageManager(),
+        packageManager: choosePackageManager(projectPath),
         projectPath,
         packages: template.postInstallDependencies
       });
@@ -125,6 +133,94 @@ export class WorkflowEngine {
         return {
           success: false,
           message: "Project was created, but template dependency installation failed.",
+          projectPath
+        };
+      }
+    }
+
+    if (payload.structureTree.length > 0) {
+      this.emitProgress({
+        workflowId,
+        status: "running",
+        step: "reconcile-project-structure",
+        message: "Applying Lazify file structure to the generated project."
+      });
+
+      reconcileProjectStructure(projectPath, payload.structureTree);
+    }
+
+    const packageManifest = loadTemplatePackageManifest(template);
+    const projectPackageJson = readProjectPackageJson(projectPath);
+    const packagePlan = buildTemplatePackageInstallPlan(packageManifest, projectPackageJson);
+
+    if (packagePlan.versionMismatches.length > 0) {
+      this.emitProgress({
+        workflowId,
+        status: "running",
+        step: "package-version-check",
+        message: `Detected ${String(packagePlan.versionMismatches.length)} package version mismatch(es). Leaving existing versions unchanged for now.`
+      });
+    }
+
+    if (packagePlan.dependencies.length > 0) {
+      this.emitProgress({
+        workflowId,
+        status: "running",
+        step: "install-manifest-dependencies",
+        message: `Installing ${String(packagePlan.dependencies.length)} missing dependency package(s).`
+      });
+
+      const dependencyResult = await this.installPackagesWithAutoFix({
+        workflowId,
+        packageManager: choosePackageManager(projectPath),
+        projectPath,
+        packages: packagePlan.dependencies,
+        dev: false
+      });
+
+      if (!dependencyResult.success) {
+        this.emitProgress({
+          workflowId,
+          status: "error",
+          step: "install-manifest-dependencies",
+          message: "Project was created, but runtime dependency installation failed."
+        });
+
+        return {
+          success: false,
+          message: "Project was created, but runtime dependency installation failed.",
+          projectPath
+        };
+      }
+    }
+
+    if (packagePlan.devDependencies.length > 0) {
+      this.emitProgress({
+        workflowId,
+        status: "running",
+        step: "install-manifest-dev-dependencies",
+        message: `Installing ${String(packagePlan.devDependencies.length)} missing dev dependency package(s).`
+      });
+
+      const devDependencyResult = await this.installPackagesWithAutoFix({
+        workflowId,
+        packageManager: choosePackageManager(projectPath),
+        projectPath,
+        packages: packagePlan.devDependencies,
+        dev: true
+      });
+
+      if (!devDependencyResult.success) {
+        this.emitProgress({
+          workflowId,
+          status: "error",
+          step: "install-manifest-dev-dependencies",
+          message: "Project was created, but dev dependency installation failed."
+        });
+
+        return {
+          success: false,
+          message: "Project was created, but dev dependency installation failed.",
           projectPath
         };
       }
@@ -152,8 +248,8 @@ export class WorkflowEngine {
       throw new Error(environment.issues.join(" "));
     }
 
-    const packageManager = choosePackageManager();
     const projectPath = path.resolve(resolveUserPath(payload.baseDirectory), payload.projectName);
+    const packageManager = choosePackageManager(projectPath);
 
     if (!fs.existsSync(projectPath)) {
       throw new Error(`Project path does not exist: ${projectPath}`);
@@ -206,8 +302,9 @@ export class WorkflowEngine {
     packageManager: PackageManager;
     projectPath: string;
     packages: string[];
+    dev?: boolean;
   }) {
-    const args = getInstallCommand(input.packageManager, input.packages);
+    const args = getInstallCommand(input.packageManager, input.packages, { dev: input.dev });
     const result = await this.commandRunner.runCommand({
       command: input.packageManager,
       args,
@@ -218,7 +315,7 @@ export class WorkflowEngine {
       return result;
     }
 
-    const autoFixArgs = getAutoFixArgs(input.packageManager, input.packages);
+    const autoFixArgs = getAutoFixArgs(input.packageManager, input.packages, { dev: input.dev });
 
     if (!autoFixArgs) {
       return result;

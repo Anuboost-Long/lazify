@@ -1,0 +1,12 @@
+{
+  "id": "next-default",
+  "label": "Next.js App",
+  "description": "Create a new Next.js application with the official starter and a clean web app baseline.",
+  "projectType": "next",
+  "preferredPackageManager": "npm",
+  "createCommands": {
+    "npm": ["create", "next-app@latest"],
+    "npx": ["create-next-app@latest"]
+  },
+  "packageManifest": "next.json"
+}
