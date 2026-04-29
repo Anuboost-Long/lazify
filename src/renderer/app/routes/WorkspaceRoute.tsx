@@ -1,42 +1,32 @@
 import { WorkspacePage } from "@renderer/features/workspace/pages/WorkspacePage";
-import { useAppShellContext } from "../app-shell-context";
+import { useLazifyStore } from "@renderer/shared/hooks/use-lazify-store";
 
 export function WorkspaceRoute() {
   const {
     busy,
-    environment,
-    packageName,
-    projectDirectory,
     projectName,
+    savedInitWorkflowConfig,
+    savedStructureTree,
+    selectedStructurePaths,
     selectedTemplateId,
-    statusMessage,
     templateOptions,
-    workflowStatus,
-    pickProjectDirectory,
-    setProjectName,
-    setPackageName,
-    setSelectedTemplateId,
-    createProject,
-    installPackage,
-  } = useAppShellContext();
+    setSavedStructureTree
+  } = useLazifyStore();
+
+  const activeTemplateId = savedInitWorkflowConfig?.templateId ?? selectedTemplateId;
+  const activeProjectName = savedInitWorkflowConfig?.projectName ?? projectName;
+  const templateLabel =
+    templateOptions.find((template) => template.id === activeTemplateId)?.label ?? "Template";
 
   return (
     <WorkspacePage
       busy={busy}
-      environment={environment}
-      packageName={packageName}
-      projectDirectory={projectDirectory}
-      projectName={projectName}
-      selectedTemplateId={selectedTemplateId}
-      statusMessage={statusMessage}
-      templateOptions={templateOptions}
-      workflowStatus={workflowStatus}
-      onProjectNameChange={setProjectName}
-      onPackageNameChange={setPackageName}
-      onTemplateChange={setSelectedTemplateId}
-      onBrowseDirectory={() => void pickProjectDirectory()}
-      onCreateExpoApp={() => void createProject()}
-      onInstallPackage={() => void installPackage()}
+      projectName={activeProjectName}
+      templateId={activeTemplateId}
+      templateLabel={templateLabel}
+      selectedStructurePaths={selectedStructurePaths}
+      savedTree={savedStructureTree}
+      onTreeChange={setSavedStructureTree}
     />
   );
 }

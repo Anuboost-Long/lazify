@@ -1,8 +1,11 @@
+import { InitProjectRoute } from "./InitProjectRoute";
+import { ImportProjectRoute } from "./ImportProjectRoute";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { AppShell } from "../AppShell";
 import { appRoute, defaultAppRoute } from "../app-routes";
 import { ConsoleRoute } from "./ConsoleRoute";
 import { SettingsRoute } from "./SettingsRoute";
+import { TestRoute } from "./TestRoute";
 import { TemplatesRoute } from "./TemplatesRoute";
 import { WorkspaceRoute } from "./WorkspaceRoute";
 
@@ -11,7 +14,10 @@ export function AppRoutes() {
     <Routes>
       <Route path={appRoute.root} element={<AppShell />}>
         <Route index element={<Navigate to={defaultAppRoute} replace />} />
+        <Route path={appRoute.initProject.slice(1)} element={<InitProjectRoute />} />
         <Route path={appRoute.workspace.slice(1)} element={<WorkspaceRoute />} />
+        <Route path={appRoute.importProject.slice(1)} element={<ImportProjectRoute />} />
+        <Route path={appRoute.test.slice(1)} element={<TestRoute />} />
         <Route path={appRoute.console.slice(1)} element={<ConsoleRoute />} />
         <Route path={appRoute.templates.slice(1)} element={<TemplatesRoute />} />
         <Route path={appRoute.settings.slice(1)} element={<SettingsRoute />} />

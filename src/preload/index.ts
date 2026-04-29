@@ -2,7 +2,13 @@ import { contextBridge, ipcRenderer } from "electron";
 
 import type { LogEvent } from "../main/command-runner";
 import type { TemplateDefinition } from "../main/harmonizer";
+import type { NpmPackageSearchResult } from "../main/npm-registry";
+import type {
+  ImportedProjectIndexResult,
+  ImportedProjectScanResult
+} from "../renderer/shared/types/lazify";
 import type { EnvironmentScan } from "../main/scanner";
+import type { TemplatePackageEntry } from "../main/template-package-manifest";
 import type {
   CreateProjectPayload,
   InstallPackagePayload,
@@ -19,7 +25,17 @@ const lazifyApi = {
     ipcRenderer.invoke("lazify:install-package", payload),
   checkEnvironment: (): Promise<EnvironmentScan> => ipcRenderer.invoke("lazify:environment"),
   listTemplates: (): Promise<TemplateDefinition[]> => ipcRenderer.invoke("lazify:templates"),
+  getTemplatePackageManifest: (templateId: string): Promise<TemplatePackageEntry[]> =>
+    ipcRenderer.invoke("lazify:template-package-manifest", templateId),
+  searchNpmPackages: (query: string): Promise<NpmPackageSearchResult[]> =>
+    ipcRenderer.invoke("lazify:search-npm-packages", query),
   selectDirectory: (): Promise<string | null> => ipcRenderer.invoke("lazify:select-directory"),
+  importProjectFromDirectory: (projectPath: string): Promise<ImportedProjectScanResult> =>
+    ipcRenderer.invoke("lazify:import-project-from-directory", projectPath),
+  importProjectIndexFromDirectory: (projectPath: string): Promise<ImportedProjectIndexResult> =>
+    ipcRenderer.invoke("lazify:import-project-index-from-directory", projectPath),
+  readImportedProjectFile: (filePath: string): Promise<string> =>
+    ipcRenderer.invoke("lazify:read-imported-project-file", filePath),
   onLog: (callback: (event: LogEvent) => void) => {
     const listener = (_event: Electron.IpcRendererEvent, payload: LogEvent) => callback(payload);
     ipcRenderer.on("lazify:log", listener);

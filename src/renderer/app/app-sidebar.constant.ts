@@ -1,7 +1,7 @@
 import type { UiIconName } from "@renderer/shared/ui/icons/UiIcon";
 import { appRoute } from "./app-routes";
 
-export type AppPageId = "workspace" | "console" | "templates" | "settings";
+export type AppPageId = "workspace" | "importProject" | "test" | "console" | "templates" | "settings";
 
 export interface AppPageLink {
   id: AppPageId;
@@ -18,6 +18,20 @@ export const appSidebarPages: AppPageLink[] = [
     label: "Workspace",
     description: "Create apps and install packages.",
     icon: "folder",
+  },
+  {
+    id: "importProject",
+    path: appRoute.importProject,
+    label: "Import Project",
+    description: "Scan a local project folder into the tree viewer.",
+    icon: "import",
+  },
+  {
+    id: "test",
+    path: appRoute.test,
+    label: "Test",
+    description: "Temporary project tree sandbox.",
+    icon: "play",
   },
   {
     id: "console",

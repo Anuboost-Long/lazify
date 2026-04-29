@@ -2,25 +2,48 @@ import type { ComponentType, SVGProps } from "react";
 import {
   Activity,
   CheckCircle,
+  Code,
+  Css3,
+  Database,
+  EmptyPage,
   Folder,
   HalfMoon,
+  Html5,
+  Import,
+  JournalPage,
   Menu,
+  MediaImage,
+  MediaVideo,
   NavArrowLeft,
   NavArrowRight,
+  Page,
+  Plus,
   Package,
   Play,
   RefreshCircle,
+  Search,
   Settings,
   SunLight,
   Terminal,
-  WarningTriangle
+  WarningTriangle,
+  Xmark
 } from "iconoir-react";
 
 export type UiIconName =
   | "activity"
   | "check-circle"
+  | "code"
+  | "css"
+  | "database"
+  | "empty-page"
   | "folder"
+  | "html"
+  | "import"
+  | "journal-page"
+  | "media-image"
+  | "media-video"
   | "package"
+  | "page"
   | "play"
   | "refresh-circle"
   | "settings"
@@ -30,7 +53,10 @@ export type UiIconName =
   | "arrow-right"
   | "moon"
   | "arrow-left"
-  | "menu";
+  | "menu"
+  | "search"
+  | "xmark"
+  | "plus";
 
 interface UiIconProps extends SVGProps<SVGSVGElement> {
   name: UiIconName;
@@ -40,8 +66,18 @@ interface UiIconProps extends SVGProps<SVGSVGElement> {
 const iconMap: Record<UiIconName, ComponentType<SVGProps<SVGSVGElement>>> = {
   activity: Activity,
   "check-circle": CheckCircle,
+  code: Code,
+  css: Css3,
+  database: Database,
+  "empty-page": EmptyPage,
   folder: Folder,
+  html: Html5,
+  import: Import,
+  "journal-page": JournalPage,
+  "media-image": MediaImage,
+  "media-video": MediaVideo,
   package: Package,
+  page: Page,
   play: Play,
   "refresh-circle": RefreshCircle,
   settings: Settings,
@@ -51,7 +87,10 @@ const iconMap: Record<UiIconName, ComponentType<SVGProps<SVGSVGElement>>> = {
   "arrow-right": NavArrowRight,
   moon: HalfMoon,
   "arrow-left": NavArrowLeft,
-  menu: Menu
+  menu: Menu,
+  search: Search,
+  xmark: Xmark,
+  plus: Plus
 };
 
 export default function UiIcon({ name, className = "", ...props }: UiIconProps) {

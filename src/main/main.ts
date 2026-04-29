@@ -2,8 +2,15 @@ import { app, BrowserWindow, dialog, ipcMain, type OpenDialogOptions } from "ele
 import path from "node:path";
 
 import { CommandRunner } from "./command-runner";
-import { listTemplates } from "./harmonizer";
+import { getTemplate, listTemplates } from "./harmonizer";
+import { searchNpmPackages } from "./npm-registry";
+import { importProjectFromDirectory } from "./project-importer";
+import {
+  importProjectIndexFromDirectory,
+  readImportedProjectFile
+} from "./project-importer-optimized";
 import { scanEnvironment } from "./scanner";
+import { listTemplatePackageEntries } from "./template-package-manifest";
 import { WorkflowEngine } from "./workflow-engine";
 
 let mainWindow: BrowserWindow | null = null;
@@ -24,7 +31,6 @@ function createMainWindow(): BrowserWindow {
     minWidth: 1180,
     minHeight: 760,
     backgroundColor: "#efe7dc",
-    titleBarStyle: "hiddenInset",
     webPreferences: {
       preload: path.join(__dirname, "../preload/index.js"),
       nodeIntegration: false,
@@ -57,6 +63,14 @@ function registerIpcHandlers() {
 
   ipcMain.handle("lazify:templates", async () => listTemplates());
 
+  ipcMain.handle("lazify:template-package-manifest", async (_event, templateId: string) =>
+    listTemplatePackageEntries(getTemplate(templateId))
+  );
+
+  ipcMain.handle("lazify:search-npm-packages", async (_event, query: string) =>
+    searchNpmPackages(query)
+  );
+
   ipcMain.handle("lazify:select-directory", async () => {
     const options: OpenDialogOptions = {
       title: "Choose project directory",
@@ -72,6 +86,18 @@ function registerIpcHandlers() {
 
     return result.filePaths[0] ?? null;
   });
+
+  ipcMain.handle("lazify:import-project-from-directory", async (_event, projectPath: string) =>
+    importProjectFromDirectory(projectPath)
+  );
+
+  ipcMain.handle("lazify:import-project-index-from-directory", async (_event, projectPath: string) =>
+    importProjectIndexFromDirectory(projectPath)
+  );
+
+  ipcMain.handle("lazify:read-imported-project-file", async (_event, filePath: string) =>
+    readImportedProjectFile(filePath)
+  );
 }
 
 app.whenReady().then(() => {

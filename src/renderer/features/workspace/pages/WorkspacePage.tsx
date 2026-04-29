@@ -1,79 +1,52 @@
-import { WorkflowForm } from "@renderer/features/workspace/components/WorkflowForm";
 import { PageHeader } from "@renderer/shared/ui/PageHeader";
-import { StatusStrip } from "@renderer/shared/ui/StatusStrip";
-import { TechStackStrip } from "@renderer/shared/ui/TechStackStrip";
-import type {
-  EnvironmentSummary,
-  TemplateOption,
-  WorkflowStatus,
-} from "@renderer/shared/types/lazify";
+import { ProjectViewPanel } from "@renderer/features/workspace/components/project-view/ProjectViewPanel";
+import type { ProjectTreeNode } from "@renderer/shared/types/lazify";
 
 interface WorkspacePageProps {
   busy: boolean;
-  environment: EnvironmentSummary | null;
-  packageName: string;
-  projectDirectory: string;
   projectName: string;
-  selectedTemplateId: string;
-  statusMessage: string;
-  templateOptions: TemplateOption[];
-  workflowStatus: WorkflowStatus;
-  onProjectNameChange: (value: string) => void;
-  onPackageNameChange: (value: string) => void;
-  onTemplateChange: (value: string) => void;
-  onBrowseDirectory: () => void;
-  onCreateExpoApp: () => void;
-  onInstallPackage: () => void;
+  templateId: string;
+  templateLabel: string;
+  selectedStructurePaths: string[];
+  savedTree: ProjectTreeNode[] | null;
+  onTreeChange: (tree: ProjectTreeNode[]) => void;
 }
 
 export function WorkspacePage({
   busy,
-  environment,
-  packageName,
-  projectDirectory,
   projectName,
-  selectedTemplateId,
-  statusMessage,
-  templateOptions,
-  workflowStatus,
-  onProjectNameChange,
-  onPackageNameChange,
-  onTemplateChange,
-  onBrowseDirectory,
-  onCreateExpoApp,
-  onInstallPackage,
+  templateId,
+  templateLabel,
+  selectedStructurePaths,
+  savedTree,
+  onTreeChange
 }: WorkspacePageProps) {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
         eyebrow="Desktop Workflow Orchestrator"
         title="Workspace"
-        description="Create projects, install dependencies, and manage your active setup flow from a dedicated workspace page."
+        description="Workspace now hosts the reusable project tree view for follow-up functionality outside the init flow."
         icon="folder"
       />
 
-      <StatusStrip
-        environment={environment}
-        workflowStatus={workflowStatus}
-        statusMessage={statusMessage}
-      />
-
-      <TechStackStrip />
-
-      <WorkflowForm
-        projectName={projectName}
-        projectDirectory={projectDirectory}
-        packageName={packageName}
-        selectedTemplateId={selectedTemplateId}
-        templateOptions={templateOptions}
-        busy={busy}
-        onProjectNameChange={onProjectNameChange}
-        onPackageNameChange={onPackageNameChange}
-        onTemplateChange={onTemplateChange}
-        onBrowseDirectory={onBrowseDirectory}
-        onCreateExpoApp={onCreateExpoApp}
-        onInstallPackage={onInstallPackage}
-      />
+      {templateId ? (
+        <ProjectViewPanel
+          busy={busy}
+          projectName={projectName}
+          templateId={templateId}
+          templateLabel={templateLabel}
+          selectedStructurePaths={selectedStructurePaths}
+          savedTree={savedTree}
+          onTreeChange={onTreeChange}
+        />
+      ) : (
+        <section className="rounded-[24px] border border-border bg-soft p-6 shadow-panel">
+          <p className="text-sm leading-6 text-muted">
+            Start from Init Project to choose a stack before using project view.
+          </p>
+        </section>
+      )}
     </div>
   );
 }
