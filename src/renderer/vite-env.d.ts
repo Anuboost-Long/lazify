@@ -6,8 +6,11 @@ import type { NpmPackageSearchResult } from "../main/npm-registry";
 import type { EnvironmentScan } from "../main/scanner";
 import type { TemplatePackageEntry } from "../main/template-package-manifest";
 import type {
+  ImportedTemplateOption,
+  ImportedTemplateSnapshot,
   ImportedProjectIndexResult,
-  ImportedProjectScanResult
+  ImportedProjectScanResult,
+  ProjectTreeNode
 } from "./shared/types/lazify";
 import type {
   CreateProjectPayload,
@@ -24,12 +27,24 @@ declare global {
       installPackage: (payload: InstallPackagePayload) => Promise<WorkflowResult>;
       checkEnvironment: () => Promise<EnvironmentScan>;
       listTemplates: () => Promise<TemplateDefinition[]>;
+      listImportedTemplates: () => Promise<ImportedTemplateOption[]>;
+      getImportedTemplate: (templateId: string) => Promise<ImportedTemplateSnapshot>;
+      updateImportedTemplate: (
+        templateId: string,
+        updates: { name?: string | null; tree?: ProjectTreeNode[] | null }
+      ) => Promise<ImportedTemplateSnapshot>;
+      deleteImportedTemplate: (templateId: string) => Promise<void>;
       getTemplatePackageManifest: (templateId: string) => Promise<TemplatePackageEntry[]>;
       searchNpmPackages: (query: string) => Promise<NpmPackageSearchResult[]>;
       selectDirectory: () => Promise<string | null>;
       importProjectFromDirectory: (projectPath: string) => Promise<ImportedProjectScanResult>;
       importProjectIndexFromDirectory: (projectPath: string) => Promise<ImportedProjectIndexResult>;
       readImportedProjectFile: (filePath: string) => Promise<string>;
+      saveImportedTemplate: (
+        projectPath: string,
+        includedRelativePaths: string[],
+        providedName?: string | null
+      ) => Promise<ImportedTemplateSnapshot>;
       onLog: (callback: (event: LogEvent) => void) => () => void;
       onWorkflowProgress: (callback: (event: WorkflowProgressEvent) => void) => () => void;
     };

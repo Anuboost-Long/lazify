@@ -1,3 +1,4 @@
+import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import { ContextMenu } from "@renderer/shared/ui/project-tree/ContextMenu";
 import { EditorPane } from "@renderer/shared/ui/project-tree/EditorPane";
 import { ExplorerPane } from "@renderer/shared/ui/project-tree/ExplorerPane";
@@ -16,14 +17,13 @@ import {
   mergeTrees,
   removeFromTree,
   slug,
-  updateTree
+  updateTree,
 } from "@renderer/shared/ui/project-tree/tree-utils";
 import type {
   ProjectTreeEditorPanelProps,
-  TreeNode
+  TreeNode,
 } from "@renderer/shared/ui/project-tree/types";
-import UiIcon from "@renderer/shared/ui/icons/UiIcon";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 export function ProjectTreeEditorPanel({
   busy,
@@ -43,10 +43,13 @@ export function ProjectTreeEditorPanel({
   onTreeChange,
   secondaryActionLabel,
   onSecondaryAction,
-  moduleSheet
+  moduleSheet,
 }: ProjectTreeEditorPanelProps) {
   const baselineTree = useMemo(
-    () => (useScaffoldBaseline ? buildBaselineTree(templateId, selectedStructurePaths) : []),
+    () =>
+      useScaffoldBaseline
+        ? buildBaselineTree(templateId, selectedStructurePaths)
+        : [],
     [selectedStructurePaths, templateId, useScaffoldBaseline]
   );
   const resolvedInitialTree = useMemo(
@@ -59,13 +62,26 @@ export function ProjectTreeEditorPanel({
     [baselineTree, initialTree, useScaffoldBaseline]
   );
   const [tree, setTree] = useState<TreeNode[]>(resolvedInitialTree);
-  const [selectedId, setSelectedId] = useState<string | null>(() => findFirstFileId(resolvedInitialTree));
-  const [expandedIds, setExpandedIds] = useState<string[]>(() => collectFolderIds(resolvedInitialTree));
+  const [selectedId, setSelectedId] = useState<string | null>(() =>
+    findFirstFileId(resolvedInitialTree)
+  );
+  const [expandedIds, setExpandedIds] = useState<string[]>(() =>
+    collectFolderIds(resolvedInitialTree)
+  );
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState("");
-  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; nodeId: string } | null>(null);
+  const [contextMenu, setContextMenu] = useState<{
+    x: number;
+    y: number;
+    nodeId: string;
+  } | null>(null);
+  const lastPublishedTreeRef = useRef<TreeNode[] | null>(null);
 
   useEffect(() => {
+    if (initialTree && initialTree === lastPublishedTreeRef.current) {
+      return;
+    }
+
     if (!useScaffoldBaseline && replaceTreeOnInitialChange) {
       setTree(resolvedInitialTree);
       setExpandedIds(collectFolderIds(resolvedInitialTree));
@@ -74,11 +90,16 @@ export function ProjectTreeEditorPanel({
     }
 
     setTree((current) => mergeTrees(resolvedInitialTree, current));
-    setExpandedIds((current) => Array.from(new Set([...current, ...collectFolderIds(resolvedInitialTree)])));
+    setExpandedIds((current) =>
+      Array.from(
+        new Set([...current, ...collectFolderIds(resolvedInitialTree)])
+      )
+    );
     setSelectedId((current) => current ?? findFirstFileId(resolvedInitialTree));
   }, [replaceTreeOnInitialChange, resolvedInitialTree, useScaffoldBaseline]);
 
   useEffect(() => {
+    lastPublishedTreeRef.current = tree;
     onTreeChange(tree);
   }, [onTreeChange, tree]);
 
@@ -87,11 +108,15 @@ export function ProjectTreeEditorPanel({
   const lockedFolderNames = new Set(
     (templateBlueprints[templateId]?.folders ?? []).map((folder) => folder.name)
   );
-  const selectedContextNode = contextMenu ? findNode(tree, contextMenu.nodeId) : null;
+  const selectedContextNode = contextMenu
+    ? findNode(tree, contextMenu.nodeId)
+    : null;
 
   const handleToggleExpand = (id: string) => {
     setExpandedIds((current) =>
-      current.includes(id) ? current.filter((item) => item !== id) : [...current, id]
+      current.includes(id)
+        ? current.filter((item) => item !== id)
+        : [...current, id]
     );
   };
 
@@ -111,7 +136,7 @@ export function ProjectTreeEditorPanel({
     setTree((current) =>
       updateTree(current, renamingId, (node) => ({
         ...node,
-        name: renameValue.trim()
+        name: renameValue.trim(),
       }))
     );
     setRenamingId(null);
@@ -131,7 +156,9 @@ export function ProjectTreeEditorPanel({
   };
 
   const handleCreateEntry = (type: "file" | "folder") => {
-    const parentId = selectedId ? findContainingFolderId(tree, selectedId) : null;
+    const parentId = selectedId
+      ? findContainingFolderId(tree, selectedId)
+      : null;
     const baseName = type === "folder" ? "new-folder" : "new-file.ts";
     const newNode = createNode(
       baseName,
@@ -146,7 +173,9 @@ export function ProjectTreeEditorPanel({
     setTree((current) => addChildNode(current, parentId, newNode));
 
     if (parentId) {
-      setExpandedIds((current) => (current.includes(parentId) ? current : [...current, parentId]));
+      setExpandedIds((current) =>
+        current.includes(parentId) ? current : [...current, parentId]
+      );
     }
 
     setSelectedId(newNode.id);
@@ -163,19 +192,22 @@ export function ProjectTreeEditorPanel({
     setTree((current) =>
       updateTree(current, selectedNode.id, (node) => ({
         ...node,
-        content: value
+        content: value,
       }))
     );
   };
 
-  const handleOpenContextMenu = (event: React.MouseEvent<HTMLButtonElement>, node: TreeNode) => {
+  const handleOpenContextMenu = (
+    event: React.MouseEvent<HTMLButtonElement>,
+    node: TreeNode
+  ) => {
     event.preventDefault();
     setSelectedId(node.id);
 
     setContextMenu({
       x: event.clientX,
       y: event.clientY,
-      nodeId: node.id
+      nodeId: node.id,
     });
   };
 
@@ -198,7 +230,9 @@ export function ProjectTreeEditorPanel({
     >
       <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
         <div className="max-w-2xl">
-          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-accent">{eyebrow}</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-accent">
+            {eyebrow}
+          </p>
           <h3 className="mt-3 text-2xl font-semibold text-text">{title}</h3>
           <p className="mt-3 text-sm leading-6 text-muted">{description}</p>
         </div>

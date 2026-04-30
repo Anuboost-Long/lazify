@@ -4,6 +4,7 @@ import path from "node:path";
 import type {
   ImportedProjectIndexNode,
   ImportedProjectIndexResult,
+  ProjectTreeNode,
 } from "../renderer/shared/types/lazify";
 
 const IGNORED_DIRECTORY_NAMES = new Set([
@@ -214,8 +215,30 @@ async function readFilePreview(filePath: string) {
   if (isLikelyBinary(buffer)) {
     return getPreviewPlaceholder("Preview unavailable for binary file.");
   }
-  console.log(buffer.toString("utf8"), "FILE");
+
   return buffer.toString("utf8");
+}
+
+function normalizeRelativePath(value: string) {
+  return value.split(path.sep).join("/");
+}
+
+function createTemplateNode(
+  relativePath: string,
+  name: string,
+  type: "file" | "folder",
+  children: ProjectTreeNode[] = [],
+  content?: string
+): ProjectTreeNode {
+  return {
+    id: `imported-template-${relativePath || name}`,
+    name,
+    type,
+    source: "custom",
+    locked: false,
+    content,
+    children,
+  };
 }
 
 async function scanDirectoryNode(
@@ -317,4 +340,97 @@ export async function readImportedProjectFile(filePath: string) {
   }
 
   return readFilePreview(resolvedFilePath);
+}
+
+async function buildImportedTemplateTree(
+  rootPath: string,
+  currentPath: string,
+  selectedRelativePaths: Set<string>,
+  inheritedRules: IgnoreRule[] = []
+): Promise<ProjectTreeNode[]> {
+  const baseRelativePath = path.relative(rootPath, currentPath).split(path.sep).join("/");
+  const localRules = await loadIgnoreRules(currentPath, baseRelativePath);
+  const activeRules = [...inheritedRules, ...localRules];
+  const directoryEntries = await fs.readdir(currentPath, {
+    withFileTypes: true,
+  });
+  const visibleEntries = directoryEntries
+    .filter((entry) => {
+      if (entry.name === ".git") {
+        return false;
+      }
+
+      if (entry.isDirectory() && IGNORED_DIRECTORY_NAMES.has(entry.name)) {
+        return false;
+      }
+
+      const entryPath = path.join(currentPath, entry.name);
+      const relativePath = path.relative(rootPath, entryPath).split(path.sep).join("/");
+
+      return !shouldIgnore(relativePath, entry.name, entry.isDirectory(), activeRules);
+    })
+    .sort((left, right) => {
+      if (left.isDirectory() !== right.isDirectory()) {
+        return left.isDirectory() ? -1 : 1;
+      }
+
+      return sortDirectoryEntries(left.name, right.name);
+    });
+
+  const nodes = await Promise.all(
+    visibleEntries.map(async (entry) => {
+      const entryPath = path.join(currentPath, entry.name);
+      const relativePath = normalizeRelativePath(path.relative(rootPath, entryPath));
+
+      if (entry.isDirectory()) {
+        const children = await buildImportedTemplateTree(
+          rootPath,
+          entryPath,
+          selectedRelativePaths,
+          activeRules
+        );
+
+        if (children.length === 0) {
+          return null;
+        }
+
+        return createTemplateNode(relativePath, entry.name, "folder", children);
+      }
+
+      if (!entry.isFile() || !selectedRelativePaths.has(relativePath)) {
+        return null;
+      }
+
+      const content = await readFilePreview(entryPath);
+      return createTemplateNode(relativePath, entry.name, "file", [], content);
+    })
+  );
+
+  return nodes.filter((node): node is ProjectTreeNode => node !== null);
+}
+
+export async function createImportedProjectTemplate(
+  projectPath: string,
+  includedRelativePaths: string[]
+): Promise<ProjectTreeNode[]> {
+  const resolvedProjectPath = path.resolve(projectPath);
+  const stats = await fs.stat(resolvedProjectPath);
+
+  if (!stats.isDirectory()) {
+    throw new Error("The selected path is not a directory.");
+  }
+
+  const selectedRelativePaths = new Set(
+    includedRelativePaths.map((entry) => normalizeRelativePath(path.normalize(entry)))
+  );
+
+  if (selectedRelativePaths.size === 0) {
+    throw new Error("Select at least one file before saving a template.");
+  }
+
+  return buildImportedTemplateTree(
+    resolvedProjectPath,
+    resolvedProjectPath,
+    selectedRelativePaths
+  );
 }

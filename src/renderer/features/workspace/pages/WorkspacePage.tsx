@@ -1,10 +1,12 @@
 import { PageHeader } from "@renderer/shared/ui/PageHeader";
 import { ProjectViewPanel } from "@renderer/features/workspace/components/project-view/ProjectViewPanel";
-import type { ProjectTreeNode } from "@renderer/shared/types/lazify";
+import type { ImportedTemplateSnapshot, ProjectTreeNode } from "@renderer/shared/types/lazify";
 
 interface WorkspacePageProps {
   busy: boolean;
+  importedTemplate: ImportedTemplateSnapshot | null;
   projectName: string;
+  sourceMode?: "stack" | "imported";
   templateId: string;
   templateLabel: string;
   selectedStructurePaths: string[];
@@ -14,13 +16,17 @@ interface WorkspacePageProps {
 
 export function WorkspacePage({
   busy,
+  importedTemplate,
   projectName,
+  sourceMode = "stack",
   templateId,
   templateLabel,
   selectedStructurePaths,
   savedTree,
   onTreeChange
 }: WorkspacePageProps) {
+  const hasProjectSource = Boolean(templateId || importedTemplate);
+
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
@@ -30,9 +36,11 @@ export function WorkspacePage({
         icon="folder"
       />
 
-      {templateId ? (
+      {hasProjectSource ? (
         <ProjectViewPanel
           busy={busy}
+          importedTemplate={importedTemplate}
+          sourceMode={sourceMode}
           projectName={projectName}
           templateId={templateId}
           templateLabel={templateLabel}

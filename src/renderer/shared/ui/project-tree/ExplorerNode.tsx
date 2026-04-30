@@ -76,14 +76,7 @@ export function ExplorerNode({
 
   return (
     <div>
-      <button
-        type="button"
-        onClick={() => {
-          onSelect(node.id);
-          if (node.type === "folder") {
-            onToggleExpand(node.id);
-          }
-        }}
+      <div
         onContextMenu={(event) => onOpenContextMenu(event, node)}
         className={clsx(
           "flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left transition",
@@ -91,46 +84,57 @@ export function ExplorerNode({
         )}
         style={{ paddingLeft: `${12 + depth * 18}px` }}
       >
-        <span className="w-3 text-center text-[10px] text-[#7ca6bb]">
-          {node.type === "folder" ? (expanded ? "▾" : hasChildren ? "▸" : "•") : "•"}
-        </span>
-        <UiIcon
-          name={node.type === "folder" ? "folder" : getFileIconName(node.name)}
-          className={clsx(
-            "h-4 w-4 shrink-0",
-            node.type === "folder"
-              ? node.source === "cli"
-                ? "text-emerald-300"
-                : node.source === "module"
-                  ? "text-cyan-300"
-                  : "text-amber-300"
-              : ["json", "yml", "yaml", "toml", "env", "ini", "lock"].includes(
-                    node.name.includes(".") ? node.name.split(".").pop()?.toLowerCase() ?? "" : ""
-                  ) || node.name === "package.json"
-                ? "text-emerald-300"
-                : ["css", "scss", "sass", "less"].includes(
+        <button
+          type="button"
+          onClick={() => {
+            onSelect(node.id);
+            if (node.type === "folder") {
+              onToggleExpand(node.id);
+            }
+          }}
+          className="contents"
+        >
+          <span className="w-3 text-center text-[10px] text-[#7ca6bb]">
+            {node.type === "folder" ? (expanded ? "▾" : hasChildren ? "▸" : "•") : "•"}
+          </span>
+          <UiIcon
+            name={node.type === "folder" ? "folder" : getFileIconName(node.name)}
+            className={clsx(
+              "h-4 w-4 shrink-0",
+              node.type === "folder"
+                ? node.source === "cli"
+                  ? "text-emerald-300"
+                  : node.source === "module"
+                    ? "text-cyan-300"
+                    : "text-amber-300"
+                : ["json", "yml", "yaml", "toml", "env", "ini", "lock"].includes(
                       node.name.includes(".") ? node.name.split(".").pop()?.toLowerCase() ?? "" : ""
-                    )
-                  ? "text-sky-300"
-                  : ["html", "htm"].includes(
+                    ) || node.name === "package.json"
+                  ? "text-emerald-300"
+                  : ["css", "scss", "sass", "less"].includes(
                         node.name.includes(".") ? node.name.split(".").pop()?.toLowerCase() ?? "" : ""
                       )
-                    ? "text-orange-300"
-                    : ["png", "jpg", "jpeg", "gif", "webp", "svg", "ico", "bmp", "avif"].includes(
+                    ? "text-sky-300"
+                    : ["html", "htm"].includes(
                           node.name.includes(".") ? node.name.split(".").pop()?.toLowerCase() ?? "" : ""
                         )
-                      ? "text-pink-300"
-                      : ["mp4", "mov", "webm", "avi", "mkv"].includes(
+                      ? "text-orange-300"
+                      : ["png", "jpg", "jpeg", "gif", "webp", "svg", "ico", "bmp", "avif"].includes(
                             node.name.includes(".") ? node.name.split(".").pop()?.toLowerCase() ?? "" : ""
                           )
-                        ? "text-violet-300"
-                        : ["md", "mdx", "txt"].includes(
+                        ? "text-pink-300"
+                        : ["mp4", "mov", "webm", "avi", "mkv"].includes(
                               node.name.includes(".") ? node.name.split(".").pop()?.toLowerCase() ?? "" : ""
                             )
-                          ? "text-cyan-200"
-                          : "text-[#ffcf66]"
-          )}
-        />
+                          ? "text-violet-300"
+                          : ["md", "mdx", "txt"].includes(
+                                node.name.includes(".") ? node.name.split(".").pop()?.toLowerCase() ?? "" : ""
+                              )
+                            ? "text-cyan-200"
+                            : "text-[#ffcf66]"
+            )}
+          />
+        </button>
         {isRenaming ? (
           <input
             autoFocus
@@ -152,7 +156,18 @@ export function ExplorerNode({
             className="min-w-0 flex-1 rounded-md border border-cyan-300/30 bg-black/30 px-2 py-1 font-mono text-sm text-slate-50 outline-none"
           />
         ) : (
-          <span className="truncate font-mono text-sm">{node.name}</span>
+          <button
+            type="button"
+            onClick={() => {
+              onSelect(node.id);
+              if (node.type === "folder") {
+                onToggleExpand(node.id);
+              }
+            }}
+            className="min-w-0 flex-1 truncate font-mono text-left text-sm"
+          >
+            {node.name}
+          </button>
         )}
         <span
           className={clsx(
@@ -166,7 +181,7 @@ export function ExplorerNode({
         >
           {node.source}
         </span>
-      </button>
+      </div>
 
       {node.type === "folder" && expanded
         ? node.children.map((child) => (

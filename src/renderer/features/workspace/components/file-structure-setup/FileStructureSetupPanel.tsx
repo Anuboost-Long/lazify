@@ -4,6 +4,7 @@ import { useState } from "react";
 
 export function FileStructureSetupPanel({
   busy,
+  importedTemplate,
   savedConfig,
   selectedStructurePaths,
   templateOptions,
@@ -14,7 +15,10 @@ export function FileStructureSetupPanel({
 }: FileStructureSetupPanelProps) {
   const [moduleSheetOpen, setModuleSheetOpen] = useState(false);
   const templateLabel =
-    templateOptions.find((template) => template.id === savedConfig.templateId)?.label ?? "Template";
+    savedConfig.sourceMode === "imported"
+      ? savedConfig.importedTemplateName ?? "Imported template"
+      : templateOptions.find((template) => template.id === savedConfig.templateId)?.label ?? "Template";
+  const templateId = savedConfig.sourceMode === "imported" ? "imported-template" : savedConfig.templateId ?? "";
 
   return (
     <ProjectTreeEditorPanel
@@ -23,10 +27,12 @@ export function FileStructureSetupPanel({
       title="Configure the project tree like a real explorer"
       description="Your setup config is saved. Now edit the starter structure directly: add files, create folders, rename entries, and reshape the scaffold before generation."
       projectName={savedConfig.projectName}
-      templateId={savedConfig.templateId}
+      templateId={templateId}
       templateLabel={templateLabel}
       selectedStructurePaths={selectedStructurePaths}
-      showModuleSelectionToggle
+      initialTree={importedTemplate?.tree ?? null}
+      useScaffoldBaseline={savedConfig.sourceMode === "stack"}
+      showModuleSelectionToggle={savedConfig.sourceMode === "stack"}
       primaryActionLabel="Create project"
       onPrimaryAction={onCreateProject}
       onTreeChange={onTreeChange}

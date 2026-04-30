@@ -2,6 +2,8 @@ import { atom, useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useCallback } from "react";
 import type {
   EnvironmentSummary,
+  ImportedTemplateOption,
+  ImportedTemplateSnapshot,
   LogEntry,
   ProjectTreeNode,
   SavedInitWorkflowConfig,
@@ -30,7 +32,10 @@ function persistProjectDirectory(value: string) {
 const projectNameAtom = atom("lazify-starter");
 const projectDirectoryAtom = atom(readStoredProjectDirectory());
 const packageNameAtom = atom("");
+const initSourceModeAtom = atom<"stack" | "imported">("stack");
 const selectedTemplateIdAtom = atom("");
+const selectedImportedTemplateIdAtom = atom("");
+const selectedImportedTemplateAtom = atom<ImportedTemplateSnapshot | null>(null);
 const initWorkflowStageAtom = atom<"configure" | "structure">("configure");
 const savedInitWorkflowConfigAtom = atom<SavedInitWorkflowConfig | null>(null);
 const savedStructureTreeAtom = atom<ProjectTreeNode[] | null>(null);
@@ -47,12 +52,16 @@ const templateOptionsAtom = atom<TemplateOption[]>([
     description: "Default Expo template."
   }
 ]);
+const importedTemplateOptionsAtom = atom<ImportedTemplateOption[]>([]);
 
 export function useLazifyStore() {
   const [projectName, setProjectName] = useAtom(projectNameAtom);
   const [projectDirectory, setProjectDirectory] = useAtom(projectDirectoryAtom);
   const [packageName, setPackageName] = useAtom(packageNameAtom);
+  const [initSourceMode, setInitSourceMode] = useAtom(initSourceModeAtom);
   const [selectedTemplateId, setSelectedTemplateId] = useAtom(selectedTemplateIdAtom);
+  const [selectedImportedTemplateId, setSelectedImportedTemplateId] = useAtom(selectedImportedTemplateIdAtom);
+  const [selectedImportedTemplate, setSelectedImportedTemplate] = useAtom(selectedImportedTemplateAtom);
   const [initWorkflowStage, setInitWorkflowStage] = useAtom(initWorkflowStageAtom);
   const [savedInitWorkflowConfig, setSavedInitWorkflowConfig] = useAtom(savedInitWorkflowConfigAtom);
   const [savedStructureTree, setSavedStructureTree] = useAtom(savedStructureTreeAtom);
@@ -63,12 +72,57 @@ export function useLazifyStore() {
   const statusMessage = useAtomValue(statusMessageAtom);
   const environment = useAtomValue(environmentAtom);
   const templateOptions = useAtomValue(templateOptionsAtom);
+  const importedTemplateOptions = useAtomValue(importedTemplateOptionsAtom);
   const setLogs = useSetAtom(logsAtom);
   const setBusy = useSetAtom(busyAtom);
   const setWorkflowStatus = useSetAtom(workflowStatusAtom);
   const setStatusMessage = useSetAtom(statusMessageAtom);
   const setEnvironment = useSetAtom(environmentAtom);
   const setTemplateOptions = useSetAtom(templateOptionsAtom);
+  const setImportedTemplateOptions = useSetAtom(importedTemplateOptionsAtom);
+
+  const resetInitFlow = useCallback(() => {
+    setInitWorkflowStage("configure");
+    setSavedInitWorkflowConfig(null);
+    setSavedStructureTree(null);
+  }, [setInitWorkflowStage, setSavedInitWorkflowConfig, setSavedStructureTree]);
+
+  const refreshImportedTemplates = useCallback(async () => {
+    const templates = await window.lazify.listImportedTemplates();
+    setImportedTemplateOptions(templates);
+
+    if (templates.length === 0) {
+      setSelectedImportedTemplateId("");
+      setSelectedImportedTemplate(null);
+      return templates;
+    }
+
+    if (!selectedImportedTemplateId) {
+      setSelectedImportedTemplate(null);
+      return templates;
+    }
+
+    const resolvedId = templates.some((template) => template.id === selectedImportedTemplateId)
+      ? selectedImportedTemplateId
+      : "";
+
+    if (!resolvedId) {
+      setSelectedImportedTemplateId("");
+      setSelectedImportedTemplate(null);
+      return templates;
+    }
+
+    const detail = await window.lazify.getImportedTemplate(resolvedId);
+
+    setSelectedImportedTemplateId(resolvedId);
+    setSelectedImportedTemplate(detail);
+    return templates;
+  }, [
+    selectedImportedTemplateId,
+    setImportedTemplateOptions,
+    setSelectedImportedTemplate,
+    setSelectedImportedTemplateId
+  ]);
 
   const bootstrap = useCallback(async () => {
     const [env, templates] = await Promise.all([
@@ -99,7 +153,15 @@ export function useLazifyStore() {
         }))
       );
     }
-  }, [setEnvironment, setStatusMessage, setTemplateOptions, setWorkflowStatus]);
+
+    await refreshImportedTemplates();
+  }, [
+    refreshImportedTemplates,
+    setEnvironment,
+    setStatusMessage,
+    setTemplateOptions,
+    setWorkflowStatus
+  ]);
 
   const bindEvents = useCallback(() => {
     const stopLogs = window.lazify.onLog((entry) => {
@@ -132,6 +194,18 @@ export function useLazifyStore() {
       return;
     }
 
+    if (initSourceMode === "stack" && !selectedTemplateId.trim()) {
+      setWorkflowStatus("error");
+      setStatusMessage("Choose a stack before creating the project.");
+      return;
+    }
+
+    if (initSourceMode === "imported" && !selectedImportedTemplateId.trim()) {
+      setWorkflowStatus("error");
+      setStatusMessage("Choose an imported template before creating the project.");
+      return;
+    }
+
     setBusy(true);
     setWorkflowStatus("running");
     setStatusMessage("Starting project creation.");
@@ -140,7 +214,9 @@ export function useLazifyStore() {
       const result = await window.lazify.createProject({
         name: projectName.trim(),
         baseDirectory: projectDirectory.trim(),
-        templateId: selectedTemplateId,
+        sourceMode: initSourceMode,
+        templateId: initSourceMode === "stack" ? selectedTemplateId : null,
+        importedTemplateId: initSourceMode === "imported" ? selectedImportedTemplateId : null,
         structureTree: savedStructureTree ?? []
       });
 
@@ -153,9 +229,11 @@ export function useLazifyStore() {
       setBusy(false);
     }
   }, [
+    initSourceMode,
     projectDirectory,
     projectName,
     savedStructureTree,
+    selectedImportedTemplateId,
     selectedTemplateId,
     setBusy,
     setStatusMessage,
@@ -214,9 +292,15 @@ export function useLazifyStore() {
   }, [setProjectDirectory, setStatusMessage, setWorkflowStatus]);
 
   const continueInitWorkflow = useCallback(() => {
-    if (!selectedTemplateId.trim()) {
+    if (initSourceMode === "stack" && !selectedTemplateId.trim()) {
       setWorkflowStatus("error");
       setStatusMessage("Choose a stack before continuing.");
+      return false;
+    }
+
+    if (initSourceMode === "imported" && !selectedImportedTemplateId.trim()) {
+      setWorkflowStatus("error");
+      setStatusMessage("Choose an imported template before continuing.");
       return false;
     }
 
@@ -227,7 +311,10 @@ export function useLazifyStore() {
     }
 
     setSavedInitWorkflowConfig({
-      templateId: selectedTemplateId,
+      sourceMode: initSourceMode,
+      templateId: initSourceMode === "stack" ? selectedTemplateId : null,
+      importedTemplateId: initSourceMode === "imported" ? selectedImportedTemplateId : null,
+      importedTemplateName: initSourceMode === "imported" ? selectedImportedTemplate?.name ?? null : null,
       projectName: projectName.trim(),
       projectDirectory: projectDirectory.trim(),
       packageNames: packageName
@@ -240,9 +327,12 @@ export function useLazifyStore() {
     setStatusMessage("Project setup saved. Continue with file structure configuration.");
     return true;
   }, [
+    initSourceMode,
     packageName,
     projectDirectory,
     projectName,
+    selectedImportedTemplate?.name,
+    selectedImportedTemplateId,
     selectedTemplateId,
     setInitWorkflowStage,
     setSavedInitWorkflowConfig,
@@ -250,9 +340,45 @@ export function useLazifyStore() {
     setWorkflowStatus
   ]);
 
+  const loadImportedTemplate = useCallback(async (templateId: string) => {
+    if (!templateId) {
+      setSelectedImportedTemplateId("");
+      setSelectedImportedTemplate(null);
+      resetInitFlow();
+      return;
+    }
+
+    const detail = await window.lazify.getImportedTemplate(templateId);
+    setSelectedImportedTemplateId(templateId);
+    setSelectedImportedTemplate(detail);
+    resetInitFlow();
+  }, [resetInitFlow, setSelectedImportedTemplate, setSelectedImportedTemplateId]);
+
+  const saveImportedTemplateChanges = useCallback(async (
+    templateId: string,
+    updates: { name?: string | null; tree?: ProjectTreeNode[] | null }
+  ) => {
+    const detail = await window.lazify.updateImportedTemplate(templateId, updates);
+    await refreshImportedTemplates();
+    setSelectedImportedTemplateId(detail.id);
+    setSelectedImportedTemplate(detail);
+    return detail;
+  }, [
+    refreshImportedTemplates,
+    setSelectedImportedTemplate,
+    setSelectedImportedTemplateId
+  ]);
+
+  const removeImportedTemplate = useCallback(async (templateId: string) => {
+    await window.lazify.deleteImportedTemplate(templateId);
+    await refreshImportedTemplates();
+  }, [refreshImportedTemplates]);
+
   return {
     busy,
     environment,
+    importedTemplateOptions,
+    initSourceMode,
     initWorkflowStage,
     logs,
     packageName,
@@ -260,6 +386,8 @@ export function useLazifyStore() {
     projectName,
     savedInitWorkflowConfig,
     savedStructureTree,
+    selectedImportedTemplate,
+    selectedImportedTemplateId,
     selectedStructurePaths,
     selectedTemplateId,
     statusMessage,
@@ -273,15 +401,21 @@ export function useLazifyStore() {
     setPackageName,
     setSavedStructureTree,
     setSelectedStructurePaths,
+    setInitSourceMode: (value: "stack" | "imported") => {
+      setInitSourceMode(value);
+      resetInitFlow();
+    },
     setSelectedTemplateId: (value: string) => {
       setSelectedTemplateId(value);
-      setInitWorkflowStage("configure");
-      setSavedInitWorkflowConfig(null);
-      setSavedStructureTree(null);
+      resetInitFlow();
     },
+    loadImportedTemplate,
+    saveImportedTemplateChanges,
+    removeImportedTemplate,
     setInitWorkflowStage,
     pickProjectDirectory,
     bootstrap,
+    refreshImportedTemplates,
     createProject,
     installPackage,
     continueInitWorkflow,

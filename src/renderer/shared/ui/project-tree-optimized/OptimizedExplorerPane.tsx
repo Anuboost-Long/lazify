@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ExplorerRow } from "@renderer/shared/ui/project-tree-optimized/ExplorerRow";
 import {
+  countFiles,
   countNodes,
   flattenVisibleRows,
   OVERSCAN_COUNT,
@@ -10,22 +11,26 @@ import type { ImportedProjectIndexNode } from "@renderer/shared/types/lazify";
 
 interface OptimizedExplorerPaneProps {
   busy: boolean;
+  includedFilePaths: Set<string>;
   projectName: string;
   projectPath: string;
   tree: ImportedProjectIndexNode[];
   expandedIds: Set<string>;
   selectedId: string | null;
+  onToggleIncluded: (node: ImportedProjectIndexNode) => void;
   onSelect: (node: ImportedProjectIndexNode) => void;
   onToggleExpand: (nodeId: string) => void;
 }
 
 export function OptimizedExplorerPane({
   busy,
+  includedFilePaths,
   projectName,
   projectPath,
   tree,
   expandedIds,
   selectedId,
+  onToggleIncluded,
   onSelect,
   onToggleExpand
 }: OptimizedExplorerPaneProps) {
@@ -58,6 +63,7 @@ export function OptimizedExplorerPane({
   }, []);
 
   const totalNodeCount = useMemo(() => countNodes(tree), [tree]);
+  const totalFileCount = useMemo(() => countFiles(tree), [tree]);
   const visibleRows = useMemo(() => flattenVisibleRows(tree, expandedIds), [tree, expandedIds]);
   const totalHeight = visibleRows.length * ROW_HEIGHT;
   const startIndex = Math.max(0, Math.floor(scrollTop / ROW_HEIGHT) - OVERSCAN_COUNT);
@@ -102,6 +108,9 @@ export function OptimizedExplorerPane({
         <div className="mt-4 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#9fc6d8]">
           {totalNodeCount} items
         </div>
+        <div className="mt-2 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-200">
+          {includedFilePaths.size}/{totalFileCount} files kept
+        </div>
 
         <div
           ref={listRef}
@@ -117,9 +126,11 @@ export function OptimizedExplorerPane({
               {virtualRows.map((row) => (
                 <ExplorerRow
                   key={row.node.id}
+                  includedFilePaths={includedFilePaths}
                   row={row}
                   selectedId={selectedId}
                   expandedIds={expandedIds}
+                  onToggleIncluded={onToggleIncluded}
                   onSelect={onSelect}
                   onToggleExpand={onToggleExpand}
                 />

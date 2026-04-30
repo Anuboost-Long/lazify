@@ -42,7 +42,8 @@ export function AppShell() {
           label: "Init project",
           description: "Choose a stack to begin a new project.",
         }
-      : appSidebarPages.find((page) => page.id === activePageId) ?? appSidebarPages[0];
+      : appSidebarPages.find((page) => page.id === activePageId) ??
+        appSidebarPages[0];
 
   return (
     <main className="flex h-screen bg-bg text-text">

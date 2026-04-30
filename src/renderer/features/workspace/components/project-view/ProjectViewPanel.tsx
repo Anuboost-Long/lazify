@@ -1,8 +1,11 @@
 import { ProjectTreeEditorPanel } from "@renderer/shared/ui/project-tree/ProjectTreeEditorPanel";
 import type { TreeNode } from "@renderer/shared/ui/project-tree/types";
+import type { ImportedTemplateSnapshot } from "@renderer/shared/types/lazify";
 
 interface ProjectViewPanelProps {
   busy: boolean;
+  importedTemplate: ImportedTemplateSnapshot | null;
+  sourceMode?: "stack" | "imported";
   projectName: string;
   templateId: string;
   templateLabel: string;
@@ -13,6 +16,8 @@ interface ProjectViewPanelProps {
 
 export function ProjectViewPanel({
   busy,
+  importedTemplate,
+  sourceMode = "stack",
   projectName,
   templateId,
   templateLabel,
@@ -30,7 +35,8 @@ export function ProjectViewPanel({
       templateId={templateId}
       templateLabel={templateLabel}
       selectedStructurePaths={selectedStructurePaths}
-      initialTree={savedTree}
+      initialTree={savedTree ?? importedTemplate?.tree ?? null}
+      useScaffoldBaseline={sourceMode === "stack"}
       onTreeChange={onTreeChange}
     />
   );

@@ -1,9 +1,9 @@
-import clsx from "clsx";
 import type {
   AppPageId,
   AppPageLink,
 } from "@renderer/app/app-sidebar.constant";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
+import clsx from "clsx";
 
 interface SidebarProps {
   pages: AppPageLink[];
@@ -29,7 +29,7 @@ export function Sidebar({
   return (
     <aside
       className={clsx(
-        "flex h-full shrink-0 flex-col",
+        "relative z-40 flex h-full shrink-0 flex-col",
         "border-r border-border bg-soft",
         "transition-[width] duration-200 ease-out",
         collapsed ? "w-[72px]" : "w-[280px]"
@@ -85,7 +85,10 @@ export function Sidebar({
               <button
                 key={page.id}
                 type="button"
-                onClick={() => onNavigate(page.path)}
+                onClick={() => {
+                  console.log(page.path);
+                  onNavigate(page.path);
+                }}
                 className={clsx(
                   "flex items-center gap-3 rounded-xl px-3 py-3",
                   "text-left text-sm transition",

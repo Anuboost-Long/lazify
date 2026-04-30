@@ -80,7 +80,7 @@ export function ContextMenu({
 
   return (
     <div
-      className="fixed z-50 min-w-[10rem] rounded-[16px] border border-white/10 bg-[#102230] p-2 shadow-[0_20px_60px_rgba(0,0,0,0.35)]"
+      className="fixed z-30 min-w-[10rem] rounded-[16px] border border-white/10 bg-[#102230] p-2 shadow-[0_20px_60px_rgba(0,0,0,0.35)]"
       style={{ left, top }}
     >
       {menuItems}

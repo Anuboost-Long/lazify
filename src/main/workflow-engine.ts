@@ -10,6 +10,7 @@ import {
   summarizeAutoFix,
   type TemplateDefinition
 } from "./harmonizer";
+import { getImportedTemplate } from "./imported-template-store";
 import {
   buildTemplatePackageInstallPlan,
   loadTemplatePackageManifest,
@@ -35,7 +36,9 @@ export interface WorkflowResult {
 export interface CreateProjectPayload {
   name: string;
   baseDirectory: string;
-  templateId: string;
+  sourceMode: "stack" | "imported";
+  templateId?: string | null;
+  importedTemplateId?: string | null;
   structureTree: ProjectTreeNode[];
 }
 
@@ -59,6 +62,14 @@ export class WorkflowEngine {
 
     if (environment.issues.length > 0) {
       throw new Error(environment.issues.join(" "));
+    }
+
+    if (payload.sourceMode === "imported") {
+      return this.createProjectFromImportedTemplate(payload, workflowId);
+    }
+
+    if (!payload.templateId) {
+      throw new Error("Choose a stack before creating the project.");
     }
 
     const template = getTemplate(payload.templateId);
@@ -225,6 +236,51 @@ export class WorkflowEngine {
         };
       }
     }
+
+    this.emitProgress({
+      workflowId,
+      status: "success",
+      step: "complete",
+      message: `Project created successfully at ${projectPath}.`
+    });
+
+    return {
+      success: true,
+      message: `Project created successfully at ${projectPath}.`,
+      projectPath
+    };
+  }
+
+  private async createProjectFromImportedTemplate(
+    payload: CreateProjectPayload,
+    workflowId: string
+  ): Promise<WorkflowResult> {
+    if (!payload.importedTemplateId) {
+      throw new Error("Select an imported template before creating the project.");
+    }
+
+    const importedTemplate = await getImportedTemplate(payload.importedTemplateId);
+    const baseDirectory = resolveUserPath(payload.baseDirectory);
+    const projectPath = path.resolve(baseDirectory, payload.name);
+    const structureTree =
+      payload.structureTree.length > 0 ? payload.structureTree : importedTemplate.tree;
+
+    this.emitProgress({
+      workflowId,
+      status: "running",
+      step: "preflight",
+      message: `Preparing imported template ${importedTemplate.name}.`
+    });
+
+    this.emitProgress({
+      workflowId,
+      status: "running",
+      step: "create-project",
+      message: `Scaffolding project from imported template in ${projectPath}.`
+    });
+
+    fs.mkdirSync(projectPath, { recursive: true });
+    reconcileProjectStructure(projectPath, structureTree);
 
     this.emitProgress({
       workflowId,

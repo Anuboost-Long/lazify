@@ -9,6 +9,13 @@ export function countNodes(nodes: ImportedProjectIndexNode[]): number {
   return nodes.reduce((total, node) => total + 1 + countNodes(node.children), 0);
 }
 
+export function countFiles(nodes: ImportedProjectIndexNode[]): number {
+  return nodes.reduce(
+    (total, node) => total + (node.type === "file" ? 1 : 0) + countFiles(node.children),
+    0
+  );
+}
+
 export function findNodeById(
   nodes: ImportedProjectIndexNode[],
   id: string
@@ -82,4 +89,16 @@ export function getFileVisual(name: string): { icon: UiIconName; color: string }
   }
 
   return { icon: "page", color: "text-slate-200" };
+}
+
+export function collectDescendantFilePaths(node: ImportedProjectIndexNode): string[] {
+  if (node.type === "file") {
+    return [node.relativePath];
+  }
+
+  return node.children.flatMap((child) => collectDescendantFilePaths(child));
+}
+
+export function hasIncludedFiles(node: ImportedProjectIndexNode, includedFilePaths: Set<string>) {
+  return collectDescendantFilePaths(node).some((filePath) => includedFilePaths.has(filePath));
 }

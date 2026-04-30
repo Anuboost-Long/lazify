@@ -1,4 +1,5 @@
 import type {
+  ImportedTemplateSnapshot,
   ProjectTreeNode,
   SavedInitWorkflowConfig,
   TemplateOption
@@ -6,6 +7,7 @@ import type {
 
 export interface FileStructureSetupPanelProps {
   busy: boolean;
+  importedTemplate: ImportedTemplateSnapshot | null;
   savedConfig: SavedInitWorkflowConfig;
   selectedStructurePaths: string[];
   templateOptions: TemplateOption[];

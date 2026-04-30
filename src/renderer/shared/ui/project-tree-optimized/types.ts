@@ -2,6 +2,7 @@ import type { ImportedProjectIndexNode } from "@renderer/shared/types/lazify";
 
 export interface OptimizedImportedProjectTreeProps {
   busy: boolean;
+  onSaveTemplate: (includedRelativePaths: string[], providedName: string) => Promise<void>;
   projectName: string;
   projectPath: string;
   tree: ImportedProjectIndexNode[];

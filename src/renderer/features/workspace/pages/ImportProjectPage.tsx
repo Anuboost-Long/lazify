@@ -2,15 +2,19 @@ import { startTransition, useState } from "react";
 import { PageHeader } from "@renderer/shared/ui/PageHeader";
 import type { ImportedProjectIndexResult } from "@renderer/shared/types/lazify";
 import { OptimizedImportedProjectTree } from "@renderer/shared/ui/project-tree-optimized/OptimizedImportedProjectTree";
+import { useLazifyStore } from "@renderer/shared/hooks/use-lazify-store";
 
 export function ImportProjectPage() {
+  const { importedTemplateOptions, refreshImportedTemplates } = useLazifyStore();
   const [busy, setBusy] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [scanResult, setScanResult] = useState<ImportedProjectIndexResult | null>(null);
+  const [saveMessage, setSaveMessage] = useState<string | null>(null);
 
   const handleChooseFolder = async () => {
     try {
       setErrorMessage(null);
+      setSaveMessage(null);
       const selectedPath = await window.lazify.selectDirectory();
 
       if (!selectedPath) {
@@ -36,6 +40,7 @@ export function ImportProjectPage() {
 
     try {
       setErrorMessage(null);
+      setSaveMessage(null);
       setBusy(true);
       const result = await window.lazify.importProjectIndexFromDirectory(scanResult.projectPath);
       startTransition(() => {
@@ -45,6 +50,27 @@ export function ImportProjectPage() {
       setErrorMessage(error instanceof Error ? error.message : "Unable to rescan the selected project.");
     } finally {
       setBusy(false);
+    }
+  };
+
+  const handleSaveTemplate = async (includedRelativePaths: string[], providedName: string) => {
+    if (!scanResult) {
+      return;
+    }
+
+    try {
+      setErrorMessage(null);
+      const template = await window.lazify.saveImportedTemplate(
+        scanResult.projectPath,
+        includedRelativePaths,
+        providedName
+      );
+      await refreshImportedTemplates();
+      setSaveMessage(
+        `Saved template "${template.name}" as JSON with ${includedRelativePaths.length} file${includedRelativePaths.length === 1 ? "" : "s"}.`
+      );
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "Unable to save the imported template.");
     }
   };
 
@@ -69,6 +95,11 @@ export function ImportProjectPage() {
             <p className="mt-2 text-xs leading-5 text-muted">
               Large generated directories like `node_modules`, `.git`, `dist`, and `build` are skipped to keep the scan usable.
             </p>
+            {importedTemplateOptions.length > 0 ? (
+              <p className="mt-2 text-xs leading-5 text-emerald-700">
+                {importedTemplateOptions.length} imported template{importedTemplateOptions.length === 1 ? "" : "s"} saved on disk.
+              </p>
+            ) : null}
           </div>
 
           <div className="flex flex-wrap gap-3">
@@ -98,11 +129,17 @@ export function ImportProjectPage() {
             {errorMessage}
           </p>
         ) : null}
+        {saveMessage ? (
+          <p className="mt-4 rounded-[16px] border border-emerald-300/40 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+            {saveMessage}
+          </p>
+        ) : null}
       </section>
 
       {scanResult ? (
         <OptimizedImportedProjectTree
           busy={busy}
+          onSaveTemplate={handleSaveTemplate}
           projectName={scanResult.projectName}
           projectPath={scanResult.projectPath}
           tree={scanResult.tree}

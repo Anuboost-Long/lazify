@@ -4,15 +4,21 @@ import { useLazifyStore } from "@renderer/shared/hooks/use-lazify-store";
 export function InitProjectRoute() {
   const {
     busy,
+    importedTemplateOptions,
+    initSourceMode,
     initWorkflowStage,
     packageName,
     projectDirectory,
     projectName,
     savedInitWorkflowConfig,
+    selectedImportedTemplate,
+    selectedImportedTemplateId,
     setSavedStructureTree,
     selectedStructurePaths,
     selectedTemplateId,
     templateOptions,
+    loadImportedTemplate,
+    setInitSourceMode,
     setPackageName,
     setProjectName,
     setInitWorkflowStage,
@@ -27,14 +33,19 @@ export function InitProjectRoute() {
     <InitProjectPage
       busy={busy}
       onCreateProject={() => void createProject()}
+      importedTemplateOptions={importedTemplateOptions}
+      initSourceMode={initSourceMode}
       initWorkflowStage={initWorkflowStage}
       packageName={packageName}
       projectDirectory={projectDirectory}
       projectName={projectName}
       savedInitWorkflowConfig={savedInitWorkflowConfig}
+      selectedImportedTemplate={selectedImportedTemplate}
+      selectedImportedTemplateId={selectedImportedTemplateId}
       selectedStructurePaths={selectedStructurePaths}
       selectedTemplateId={selectedTemplateId}
       templateOptions={templateOptions}
+      onSelectSourceMode={setInitSourceMode}
       onProjectNameChange={setProjectName}
       onPackageNameChange={setPackageName}
       onBrowseDirectory={() => void pickProjectDirectory()}
@@ -47,7 +58,17 @@ export function InitProjectRoute() {
         )
       }
       onSelectTemplate={setSelectedTemplateId}
-      onChangeStack={() => setSelectedTemplateId("")}
+      onSelectImportedTemplate={(templateId) => void loadImportedTemplate(templateId)}
+      onChangeSelection={() => {
+        setInitWorkflowStage("configure");
+
+        if (initSourceMode === "stack") {
+          setSelectedTemplateId("");
+          return;
+        }
+
+        void loadImportedTemplate("");
+      }}
       onBackToConfig={() => setInitWorkflowStage("configure")}
       onStructureTreeChange={setSavedStructureTree}
     />

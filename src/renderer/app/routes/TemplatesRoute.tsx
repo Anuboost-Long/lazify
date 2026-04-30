@@ -2,12 +2,25 @@ import { TemplatesPage } from "@renderer/features/templates/pages/TemplatesPage"
 import { useLazifyStore } from "@renderer/shared/hooks/use-lazify-store";
 
 export function TemplatesRoute() {
-  const { selectedTemplateId, templateOptions } = useLazifyStore();
+  const {
+    importedTemplateOptions,
+    selectedImportedTemplate,
+    selectedImportedTemplateId,
+    loadImportedTemplate,
+    removeImportedTemplate,
+    saveImportedTemplateChanges
+  } = useLazifyStore();
 
   return (
     <TemplatesPage
-      templateOptions={templateOptions}
-      selectedTemplateId={selectedTemplateId}
+      importedTemplateOptions={importedTemplateOptions}
+      selectedImportedTemplate={selectedImportedTemplate}
+      selectedImportedTemplateId={selectedImportedTemplateId}
+      onSelectTemplate={(templateId) => void loadImportedTemplate(templateId)}
+      onDeleteTemplate={(templateId) => void removeImportedTemplate(templateId)}
+      onSaveTemplate={(templateId, updates) =>
+        saveImportedTemplateChanges(templateId, updates)
+      }
     />
   );
 }

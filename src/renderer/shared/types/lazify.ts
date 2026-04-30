@@ -13,6 +13,15 @@ export interface TemplateOption {
   description: string;
 }
 
+export interface ImportedTemplateOption {
+  id: string;
+  name: string;
+  description: string;
+  sourceProjectPath: string;
+  savedAt: string;
+  fileCount: number;
+}
+
 export interface PackageOption {
   name: string;
   version: string;
@@ -22,7 +31,10 @@ export interface PackageOption {
 }
 
 export interface SavedInitWorkflowConfig {
-  templateId: string;
+  sourceMode: "stack" | "imported";
+  templateId: string | null;
+  importedTemplateId: string | null;
+  importedTemplateName: string | null;
   projectName: string;
   projectDirectory: string;
   packageNames: string[];
@@ -57,6 +69,16 @@ export interface ImportedProjectIndexResult {
   projectName: string;
   projectPath: string;
   tree: ImportedProjectIndexNode[];
+}
+
+export interface ImportedTemplateSnapshot {
+  id: string;
+  name: string;
+  description: string;
+  sourceProjectPath: string;
+  savedAt: string;
+  fileCount: number;
+  tree: ProjectTreeNode[];
 }
 
 export interface EnvironmentSummary {

@@ -1,8 +1,16 @@
 import { app, BrowserWindow, dialog, ipcMain, type OpenDialogOptions } from "electron";
 import path from "node:path";
 
+import type { ProjectTreeNode } from "../renderer/shared/types/lazify";
 import { CommandRunner } from "./command-runner";
 import { getTemplate, listTemplates } from "./harmonizer";
+import {
+  deleteImportedTemplate,
+  getImportedTemplate,
+  listImportedTemplates,
+  saveImportedTemplateFromProject,
+  updateImportedTemplate
+} from "./imported-template-store";
 import { searchNpmPackages } from "./npm-registry";
 import { importProjectFromDirectory } from "./project-importer";
 import {
@@ -62,6 +70,21 @@ function registerIpcHandlers() {
   ipcMain.handle("lazify:environment", async () => scanEnvironment());
 
   ipcMain.handle("lazify:templates", async () => listTemplates());
+  ipcMain.handle("lazify:imported-templates", async () => listImportedTemplates());
+  ipcMain.handle("lazify:imported-template", async (_event, templateId: string) =>
+    getImportedTemplate(templateId)
+  );
+  ipcMain.handle(
+    "lazify:update-imported-template",
+    async (
+      _event,
+      templateId: string,
+      updates: { name?: string | null; tree?: ProjectTreeNode[] | null }
+    ) => updateImportedTemplate(templateId, updates)
+  );
+  ipcMain.handle("lazify:delete-imported-template", async (_event, templateId: string) =>
+    deleteImportedTemplate(templateId)
+  );
 
   ipcMain.handle("lazify:template-package-manifest", async (_event, templateId: string) =>
     listTemplatePackageEntries(getTemplate(templateId))
@@ -97,6 +120,12 @@ function registerIpcHandlers() {
 
   ipcMain.handle("lazify:read-imported-project-file", async (_event, filePath: string) =>
     readImportedProjectFile(filePath)
+  );
+
+  ipcMain.handle(
+    "lazify:save-imported-template",
+    async (_event, projectPath: string, includedRelativePaths: string[], providedName?: string | null) =>
+      saveImportedTemplateFromProject(projectPath, includedRelativePaths, providedName)
   );
 }
 

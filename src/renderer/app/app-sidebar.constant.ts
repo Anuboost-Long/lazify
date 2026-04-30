@@ -44,7 +44,7 @@ export const appSidebarPages: AppPageLink[] = [
     id: "templates",
     path: appRoute.templates,
     label: "Templates",
-    description: "Review available project starters.",
+    description: "Review imported project templates.",
     icon: "package",
   },
   {

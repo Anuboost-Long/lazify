@@ -17,6 +17,7 @@
     "jsx": "react-jsx",
     "baseUrl": ".",
     "paths": {
+      "@brain/*": ["src/brain/*"],
       "@renderer/*": ["src/renderer/*"],
       "@main/*": ["src/main/*"],
       "@preload/*": ["src/preload/*"]

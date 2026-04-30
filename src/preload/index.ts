@@ -4,8 +4,11 @@ import type { LogEvent } from "../main/command-runner";
 import type { TemplateDefinition } from "../main/harmonizer";
 import type { NpmPackageSearchResult } from "../main/npm-registry";
 import type {
+  ImportedTemplateOption,
+  ImportedTemplateSnapshot,
   ImportedProjectIndexResult,
-  ImportedProjectScanResult
+  ImportedProjectScanResult,
+  ProjectTreeNode
 } from "../renderer/shared/types/lazify";
 import type { EnvironmentScan } from "../main/scanner";
 import type { TemplatePackageEntry } from "../main/template-package-manifest";
@@ -25,6 +28,17 @@ const lazifyApi = {
     ipcRenderer.invoke("lazify:install-package", payload),
   checkEnvironment: (): Promise<EnvironmentScan> => ipcRenderer.invoke("lazify:environment"),
   listTemplates: (): Promise<TemplateDefinition[]> => ipcRenderer.invoke("lazify:templates"),
+  listImportedTemplates: (): Promise<ImportedTemplateOption[]> =>
+    ipcRenderer.invoke("lazify:imported-templates"),
+  getImportedTemplate: (templateId: string): Promise<ImportedTemplateSnapshot> =>
+    ipcRenderer.invoke("lazify:imported-template", templateId),
+  updateImportedTemplate: (
+    templateId: string,
+    updates: { name?: string | null; tree?: ProjectTreeNode[] | null }
+  ): Promise<ImportedTemplateSnapshot> =>
+    ipcRenderer.invoke("lazify:update-imported-template", templateId, updates),
+  deleteImportedTemplate: (templateId: string): Promise<void> =>
+    ipcRenderer.invoke("lazify:delete-imported-template", templateId),
   getTemplatePackageManifest: (templateId: string): Promise<TemplatePackageEntry[]> =>
     ipcRenderer.invoke("lazify:template-package-manifest", templateId),
   searchNpmPackages: (query: string): Promise<NpmPackageSearchResult[]> =>
@@ -36,6 +50,12 @@ const lazifyApi = {
     ipcRenderer.invoke("lazify:import-project-index-from-directory", projectPath),
   readImportedProjectFile: (filePath: string): Promise<string> =>
     ipcRenderer.invoke("lazify:read-imported-project-file", filePath),
+  saveImportedTemplate: (
+    projectPath: string,
+    includedRelativePaths: string[],
+    providedName?: string | null
+  ): Promise<ImportedTemplateSnapshot> =>
+    ipcRenderer.invoke("lazify:save-imported-template", projectPath, includedRelativePaths, providedName),
   onLog: (callback: (event: LogEvent) => void) => {
     const listener = (_event: Electron.IpcRendererEvent, payload: LogEvent) => callback(payload);
     ipcRenderer.on("lazify:log", listener);

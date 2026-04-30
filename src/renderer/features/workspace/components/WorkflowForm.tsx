@@ -4,6 +4,8 @@ import type { TemplateOption } from "@renderer/shared/types/lazify";
 import { PackageSearchPicker } from "./PackageSearchPicker";
 
 interface WorkflowFormProps {
+  sourceMode: "stack" | "imported";
+  sourceLabel: string;
   projectName: string;
   projectDirectory: string;
   packageName: string;
@@ -17,6 +19,8 @@ interface WorkflowFormProps {
 }
 
 export function WorkflowForm({
+  sourceMode,
+  sourceLabel,
   projectName,
   projectDirectory,
   packageName,
@@ -61,7 +65,7 @@ export function WorkflowForm({
                 Project setup
               </p>
               <h3 className="mt-3 text-2xl font-semibold text-text">
-                {selectedTemplate?.label ?? "Selected template"}
+                {sourceLabel}
               </h3>
               <p className="mt-3 text-sm leading-6 text-muted">
                 Start by naming the project and pointing Lazify to the base directory before the later workflow steps kick in.
@@ -70,7 +74,7 @@ export function WorkflowForm({
 
             <div className="flex flex-wrap gap-2">
               <div className={pillClassName}>
-                {selectedTemplate?.label ?? "Template"}
+                {sourceMode === "stack" ? selectedTemplate?.label ?? "Stack" : "Imported template"}
               </div>
             </div>
           </div>
@@ -115,14 +119,16 @@ export function WorkflowForm({
         </div>
       </section>
 
-      <div>
-        <PackageSearchPicker
-          value={packageName}
-          selectedTemplateId={selectedTemplateId}
-          busy={busy}
-          onChange={onPackageNameChange}
-        />
-      </div>
+      {sourceMode === "stack" ? (
+        <div>
+          <PackageSearchPicker
+            value={packageName}
+            selectedTemplateId={selectedTemplateId}
+            busy={busy}
+            onChange={onPackageNameChange}
+          />
+        </div>
+      ) : null}
 
       <div className="rounded-[30px] border border-border bg-soft p-6 shadow-panel">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
@@ -138,7 +144,9 @@ export function WorkflowForm({
                 Continue with the next workflow step.
               </p>
               <p className="mt-2 text-sm leading-6 text-muted">
-                This step captures the project name, target directory, and package shortlist.
+                {sourceMode === "stack"
+                  ? "This step captures the project name, target directory, and package shortlist."
+                  : "This step captures the project name and target directory for the imported template scaffold."}
               </p>
             </div>
           </div>
