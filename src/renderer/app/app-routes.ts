@@ -3,7 +3,6 @@ export const appRoute = {
   initProject: "/init-project",
   workspace: "/workspace",
   importProject: "/import-project",
-  test: "/test",
   console: "/console",
   templates: "/templates",
   settings: "/settings",
