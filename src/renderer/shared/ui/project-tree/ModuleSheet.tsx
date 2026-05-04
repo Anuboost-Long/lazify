@@ -54,7 +54,7 @@ export function ModuleSheet({
           <button
             type="button"
             onClick={onClose}
-            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border bg-bg/90 text-text shadow-[0_12px_30px_rgba(15,23,42,0.18)] transition hover:border-accent hover:text-accent"
+            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border bg-bg/90 text-text shadow-[0_12px_30px_rgba(15,23,42,0.18)] hover:border-accent hover:text-accent"
             aria-label="Close module selector"
           >
             <UiIcon name="xmark" className="h-4 w-4" />
@@ -75,7 +75,7 @@ export function ModuleSheet({
                 disabled={busy || locked}
                 onClick={() => onToggleStructurePath(option.path)}
                 className={clsx(
-                  "w-full rounded-[20px] border px-4 py-3 text-left transition duration-200",
+                  "w-full rounded-[20px] border px-4 py-3 text-left duration-200",
                   active
                     ? "border-accent text-text shadow-[0_10px_24px_rgba(16,185,129,0.16)]"
                     : "border-slate-300/80 bg-white text-slate-900 hover:border-accent dark:border-border dark:bg-bg dark:text-text",

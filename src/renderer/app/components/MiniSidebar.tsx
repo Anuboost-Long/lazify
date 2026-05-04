@@ -32,7 +32,7 @@ export function MiniSidebar({
         className={clsx(
           "group flex h-11 w-11 items-center justify-center",
           "rounded-2xl border border-border bg-bg",
-          "text-muted transition hover:border-accent hover:bg-accentSoft"
+          "text-muted hover:border-accent hover:bg-accentSoft"
         )}
         aria-label="Expand sidebar"
         title="Expand sidebar"
@@ -51,7 +51,7 @@ export function MiniSidebar({
               onClick={() => onNavigate(page.path)}
               className={clsx(
                 "group flex h-11 w-11 items-center justify-center",
-                "rounded-2xl transition",
+                "rounded-2xl",
                 active ? "bg-accentSoft text-accent" : "text-muted hover:text-text"
               )}
               aria-label={page.label}

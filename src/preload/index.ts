@@ -4,6 +4,7 @@ import type { LogEvent } from "../main/command-runner";
 import type { TemplateDefinition } from "../main/harmonizer";
 import type { NpmPackageSearchResult } from "../main/npm-registry";
 import type {
+  ProjectGitStatusResult,
   ImportedTemplateOption,
   ImportedTemplateSnapshot,
   ImportedProjectIndexResult,
@@ -50,12 +51,21 @@ const lazifyApi = {
     ipcRenderer.invoke("lazify:import-project-index-from-directory", projectPath),
   readImportedProjectFile: (filePath: string): Promise<string> =>
     ipcRenderer.invoke("lazify:read-imported-project-file", filePath),
+  getProjectGitStatus: (projectPath: string): Promise<ProjectGitStatusResult> =>
+    ipcRenderer.invoke("lazify:project-git-status", projectPath),
   saveImportedTemplate: (
     projectPath: string,
     includedRelativePaths: string[],
-    providedName?: string | null
+    providedName?: string | null,
+    confirmedStack?: string | null
   ): Promise<ImportedTemplateSnapshot> =>
-    ipcRenderer.invoke("lazify:save-imported-template", projectPath, includedRelativePaths, providedName),
+    ipcRenderer.invoke(
+      "lazify:save-imported-template",
+      projectPath,
+      includedRelativePaths,
+      providedName,
+      confirmedStack
+    ),
   onLog: (callback: (event: LogEvent) => void) => {
     const listener = (_event: Electron.IpcRendererEvent, payload: LogEvent) => callback(payload);
     ipcRenderer.on("lazify:log", listener);

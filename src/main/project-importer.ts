@@ -1,6 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 
+import { detectProjectStack } from "../brain";
 import type { ImportedProjectScanResult, ProjectTreeNode } from "../renderer/shared/types/lazify";
 
 const IGNORED_DIRECTORY_NAMES = new Set([
@@ -122,6 +123,7 @@ export async function importProjectFromDirectory(projectPath: string): Promise<I
   return {
     projectName: path.basename(resolvedProjectPath),
     projectPath: resolvedProjectPath,
+    stackDetection: await detectProjectStack(resolvedProjectPath),
     tree: await scanDirectoryNode(resolvedProjectPath, resolvedProjectPath)
   };
 }

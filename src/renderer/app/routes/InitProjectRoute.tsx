@@ -1,7 +1,10 @@
-import { InitProjectPage } from "@renderer/features/workspace/pages/InitProjectPage";
+import { appRoute } from "@renderer/app/app-routes";
+import { InitProjectPage } from "@renderer/features/init/pages/InitProjectPage";
 import { useLazifyStore } from "@renderer/shared/hooks/use-lazify-store";
+import { useNavigate } from "react-router-dom";
 
 export function InitProjectRoute() {
+  const navigate = useNavigate();
   const {
     busy,
     importedTemplateOptions,
@@ -32,7 +35,7 @@ export function InitProjectRoute() {
   return (
     <InitProjectPage
       busy={busy}
-      onCreateProject={() => void createProject()}
+      onCreateProject={() => { void createProject(); navigate(appRoute.console); }}
       importedTemplateOptions={importedTemplateOptions}
       initSourceMode={initSourceMode}
       initWorkflowStage={initWorkflowStage}

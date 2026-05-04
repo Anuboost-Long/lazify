@@ -71,7 +71,7 @@ export function BaseBottomSheet({
       <div
         style={{ minHeight, maxHeight }}
         className={clsx(
-          "flex w-full max-w-4xl flex-col overflow-hidden transition-all duration-300 ease-out",
+          "flex w-full max-w-4xl flex-col overflow-hidden transition-[opacity,transform] duration-300 ease-out",
           contentVisible ? "translate-y-0 opacity-100" : "translate-y-12 opacity-0",
           wrapperClassName
         )}

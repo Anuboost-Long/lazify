@@ -7,6 +7,7 @@ import type {
   ImportedTemplateOption,
   ImportedTemplateSnapshot,
 } from "@renderer/shared/types/lazify";
+import { TextInput } from "@renderer/shared/ui/form/FormInput";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 
 interface TemplatesPageProps {
@@ -114,7 +115,7 @@ export function TemplatesPage({
                   type="button"
                   onClick={() => onSelectTemplate(template.id)}
                   className={clsx(
-                    "rounded-shell border p-5 text-left shadow-panel transition",
+                    "rounded-shell border p-5 text-left shadow-panel",
                     active ? "border-border bg-accentSoft" : "border-border bg-soft hover:border-accent"
                   )}
                 >
@@ -154,21 +155,21 @@ export function TemplatesPage({
                     <span className="text-xs font-semibold uppercase tracking-[0.22em] text-accent">
                       Template name
                     </span>
-                    <input
-                      type="text"
+                    <TextInput
                       value={draftName}
                       onChange={(event) => setDraftName(event.target.value)}
                       placeholder="Imported template"
-                      className="mt-3 w-full rounded-[16px] border border-border bg-bg px-4 py-3 text-sm text-text outline-none transition focus:border-accent"
+                      icon="package"
+                      className="mt-3"
                     />
                   </label>
 
-                  <div className="flex flex-wrap gap-3">
+                  <div className="flex flex-wrap justify-end gap-3 self-end lg:max-w-md">
                     <button
                       type="button"
                       disabled={busy}
                       onClick={() => void handleDelete()}
-                      className="inline-flex items-center justify-center rounded-[16px] border border-red-300 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700 transition hover:border-red-400 disabled:cursor-not-allowed disabled:opacity-60"
+                      className="inline-flex items-center justify-center rounded-[16px] border border-red-300 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700 hover:border-red-400 disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       Remove template
                     </button>
@@ -176,7 +177,7 @@ export function TemplatesPage({
                       type="button"
                       disabled={busy}
                       onClick={() => void handleSave()}
-                      className="inline-flex items-center justify-center rounded-[16px] border border-transparent bg-accent px-4 py-3 text-sm font-semibold text-white transition hover:bg-accentHover disabled:cursor-not-allowed disabled:opacity-60"
+                      className="inline-flex items-center justify-center rounded-[16px] border border-transparent bg-accent px-4 py-3 text-sm font-semibold text-white hover:bg-accentHover disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       Save template changes
                     </button>

@@ -5,6 +5,7 @@ import { AppShell } from "../AppShell";
 import { appRoute, defaultAppRoute } from "../app-routes";
 import { ConsoleRoute } from "./ConsoleRoute";
 import { SettingsRoute } from "./SettingsRoute";
+import { SyncedProjectRoute } from "./SyncedProjectRoute";
 import { TemplatesRoute } from "./TemplatesRoute";
 import { WorkspaceRoute } from "./WorkspaceRoute";
 
@@ -15,6 +16,7 @@ export function AppRoutes() {
         <Route index element={<Navigate to={defaultAppRoute} replace />} />
         <Route path={appRoute.initProject.slice(1)} element={<InitProjectRoute />} />
         <Route path={appRoute.workspace.slice(1)} element={<WorkspaceRoute />} />
+        <Route path={appRoute.workspaceProject.slice(1)} element={<SyncedProjectRoute />} />
         <Route path={appRoute.importProject.slice(1)} element={<ImportProjectRoute />} />
         <Route path={appRoute.console.slice(1)} element={<ConsoleRoute />} />
         <Route path={appRoute.templates.slice(1)} element={<TemplatesRoute />} />

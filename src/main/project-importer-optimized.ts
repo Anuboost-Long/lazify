@@ -1,6 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 
+import { detectProjectStack } from "../brain";
 import type {
   ImportedProjectIndexNode,
   ImportedProjectIndexResult,
@@ -327,6 +328,7 @@ export async function importProjectIndexFromDirectory(
   return {
     projectName: path.basename(resolvedProjectPath),
     projectPath: resolvedProjectPath,
+    stackDetection: await detectProjectStack(resolvedProjectPath),
     tree: await scanDirectoryNode(resolvedProjectPath, resolvedProjectPath),
   };
 }

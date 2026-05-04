@@ -1,4 +1,5 @@
 import clsx from "clsx";
+import { TextInput } from "@renderer/shared/ui/form/FormInput";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import type { PackageOption } from "@renderer/shared/types/lazify";
 import type { TemplatePackageEntry } from "../../../../main/template-package-manifest";
@@ -259,15 +260,13 @@ export function PackageSearchPicker({
           ) : null}
         </div>
 
-        <div className="mt-4 flex items-center gap-3 rounded-[18px] border border-border bg-bg px-4 py-3">
-          <UiIcon name="search" className="h-5 w-5 text-muted" />
-          <input
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search npm packages like zustand, react-query, shadcn..."
-            className="w-full bg-transparent text-sm text-text outline-none placeholder:text-muted"
-          />
-        </div>
+        <TextInput
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder="Search npm packages like zustand, react-query, shadcn..."
+          icon="search"
+          className="mt-4"
+        />
 
         {selectedPackages.length > 0 ? (
           <div className="mt-3 grid gap-2">
@@ -310,12 +309,12 @@ export function PackageSearchPicker({
                       type="button"
                       onClick={() => removePackage(packageName)}
                       disabled={busy}
-                      className="group inline-flex shrink-0 items-center gap-2 rounded-full border border-border bg-soft px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-muted transition hover:border-accent hover:text-text disabled:cursor-not-allowed disabled:opacity-60"
+                      className="group inline-flex shrink-0 items-center gap-2 rounded-full border border-border bg-soft px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-muted hover:border-accent hover:text-text disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       Remove
                       <UiIcon
                         name="xmark"
-                        className="h-4 w-4 text-muted transition group-hover:text-accent"
+                        className="h-4 w-4 text-muted group-hover:text-accent"
                       />
                     </button>
                   </div>
@@ -363,7 +362,7 @@ export function PackageSearchPicker({
                     onClick={() => addPackage(pkg)}
                     disabled={busy || selected}
                     className={clsx(
-                      "w-full rounded-[18px] border px-4 py-3 text-left transition",
+                      "w-full rounded-[18px] border px-4 py-3 text-left",
                       selected
                         ? "border-accent bg-accentSoft text-text"
                         : "border-border bg-soft text-text hover:border-accent hover:bg-bg",

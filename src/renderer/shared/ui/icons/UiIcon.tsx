@@ -3,6 +3,7 @@ import {
   Activity,
   CheckCircle,
   Code,
+  Collapse,
   Css3,
   Database,
   EmptyPage,
@@ -56,7 +57,8 @@ export type UiIconName =
   | "menu"
   | "search"
   | "xmark"
-  | "plus";
+  | "plus"
+  | "collapse";
 
 interface UiIconProps extends SVGProps<SVGSVGElement> {
   name: UiIconName;
@@ -90,7 +92,8 @@ const iconMap: Record<UiIconName, ComponentType<SVGProps<SVGSVGElement>>> = {
   menu: Menu,
   search: Search,
   xmark: Xmark,
-  plus: Plus
+  plus: Plus,
+  collapse: Collapse
 };
 
 export default function UiIcon({ name, className = "", ...props }: UiIconProps) {

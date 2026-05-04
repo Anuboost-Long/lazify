@@ -22,6 +22,45 @@ export interface ImportedTemplateOption {
   fileCount: number;
 }
 
+export type FileRole =
+  | "entry-point"
+  | "config"
+  | "api"
+  | "ui"
+  | "hook"
+  | "type"
+  | "asset"
+  | "style"
+  | "state"
+  | "navigation"
+  | "service"
+  | "unknown";
+
+export type FolderRole =
+  | "ui-layer"
+  | "data-layer"
+  | "shared-ui"
+  | "static"
+  | "types"
+  | "navigation"
+  | "state"
+  | "services"
+  | "config"
+  | "unknown";
+
+export type ProjectStack =
+  | "react-vite"
+  | "react-next"
+  | "react-cra"
+  | "react-unknown"
+  | "react-native-expo"
+  | "react-native-cli"
+  | "node-api"
+  | "electron"
+  | "unknown";
+
+export type DetectedPackageManager = "npm" | "yarn" | "pnpm" | "bun" | "unknown";
+
 export interface PackageOption {
   name: string;
   version: string;
@@ -50,9 +89,67 @@ export interface ProjectTreeNode {
   children: ProjectTreeNode[];
 }
 
+export interface TemplateFileNode {
+  id: string;
+  name: string;
+  path: string;
+  type: "file";
+  extension: string;
+  size?: number;
+  role?: FileRole;
+  includeContent: boolean;
+  content?: string;
+  isBinary: boolean;
+  locked?: boolean;
+  source?: "imported" | "custom" | "generated";
+}
+
+export interface TemplateFolderNode {
+  id: string;
+  name: string;
+  path: string;
+  type: "folder";
+  role?: FolderRole;
+  locked?: boolean;
+  source?: "imported" | "custom" | "generated";
+}
+
+export type TemplateTreeNode = TemplateFileNode | (TemplateFolderNode & { children: TemplateTreeNode[] });
+
+export interface StackDetectionResult {
+  stack: ProjectStack;
+  framework: "react" | "react-native" | "node" | "electron" | "unknown";
+  metaFramework:
+    | "vite"
+    | "nextjs"
+    | "expo"
+    | "react-native-cli"
+    | "cra"
+    | "express"
+    | "electron"
+    | "unknown";
+  packageManager: DetectedPackageManager;
+  commands: {
+    install: string;
+    dev?: string;
+    start?: string;
+    build?: string;
+    preview?: string;
+    test?: string;
+    lint?: string;
+    android?: string;
+    ios?: string;
+    web?: string;
+  };
+  confidence: number;
+  reasons: string[];
+  warnings: string[];
+}
+
 export interface ImportedProjectScanResult {
   projectName: string;
   projectPath: string;
+  stackDetection: StackDetectionResult;
   tree: ProjectTreeNode[];
 }
 
@@ -68,7 +165,39 @@ export interface ImportedProjectIndexNode {
 export interface ImportedProjectIndexResult {
   projectName: string;
   projectPath: string;
+  stackDetection: StackDetectionResult;
   tree: ImportedProjectIndexNode[];
+}
+
+export interface GitStatusEntry {
+  path: string;
+  absolutePath: string;
+  stagedStatus: string;
+  unstagedStatus: string;
+  statusLabel: string;
+}
+
+export interface ProjectGitStatusResult {
+  projectPath: string;
+  repoRoot: string | null;
+  remoteUrl: string | null;
+  branch: string | null;
+  branches: string[];
+  isGitRepo: boolean;
+  hasUncommittedChanges: boolean;
+  entries: GitStatusEntry[];
+}
+
+export interface SyncedWorkspaceProject {
+  id: string;
+  projectName: string;
+  projectPath: string;
+  stack: ProjectStack;
+  framework: StackDetectionResult["framework"];
+  metaFramework: StackDetectionResult["metaFramework"];
+  packageManager: DetectedPackageManager;
+  confidence: number;
+  lastSyncedAt: string;
 }
 
 export interface ImportedTemplateSnapshot {
@@ -78,6 +207,22 @@ export interface ImportedTemplateSnapshot {
   sourceProjectPath: string;
   savedAt: string;
   fileCount: number;
+  stackDetection: StackDetectionResult;
+  structure: {
+    files: TemplateFileNode[];
+    folders: TemplateFolderNode[];
+    tree?: TemplateTreeNode[];
+  };
+  features: string[];
+  tags: string[];
+  metadata: {
+    createdAt: string;
+    updatedAt?: string;
+    fileCount: number;
+    folderCount: number;
+    selectedItemCount: number;
+    originalFileCount?: number;
+  };
   tree: ProjectTreeNode[];
 }
 

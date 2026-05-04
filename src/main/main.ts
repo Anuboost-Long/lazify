@@ -17,6 +17,7 @@ import {
   importProjectIndexFromDirectory,
   readImportedProjectFile
 } from "./project-importer-optimized";
+import { getProjectGitStatus } from "./project-git-status";
 import { scanEnvironment } from "./scanner";
 import { listTemplatePackageEntries } from "./template-package-manifest";
 import { WorkflowEngine } from "./workflow-engine";
@@ -122,10 +123,25 @@ function registerIpcHandlers() {
     readImportedProjectFile(filePath)
   );
 
+  ipcMain.handle("lazify:project-git-status", async (_event, projectPath: string) =>
+    getProjectGitStatus(projectPath)
+  );
+
   ipcMain.handle(
     "lazify:save-imported-template",
-    async (_event, projectPath: string, includedRelativePaths: string[], providedName?: string | null) =>
-      saveImportedTemplateFromProject(projectPath, includedRelativePaths, providedName)
+    async (
+      _event,
+      projectPath: string,
+      includedRelativePaths: string[],
+      providedName?: string | null,
+      confirmedStack?: string | null
+    ) =>
+      saveImportedTemplateFromProject(
+        projectPath,
+        includedRelativePaths,
+        providedName,
+        confirmedStack
+      )
   );
 }
 

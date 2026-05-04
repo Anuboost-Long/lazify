@@ -67,8 +67,8 @@ export function BaseModal({
   return createPortal(
     <div
       className={clsx(
-        "fixed inset-0 z-50 transition-opacity duration-300",
-        open ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0",
+        "fixed inset-0 z-50",
+        open ? "pointer-events-auto" : "pointer-events-none",
         overlayClassName
       )}
     >
@@ -77,17 +77,34 @@ export function BaseModal({
           type="button"
           aria-label="Close modal"
           onClick={onClose}
-          className="absolute inset-0 h-full w-full bg-[#04111a]/58 backdrop-blur-[6px]"
+          className={clsx(
+            "absolute inset-0 h-full w-full bg-[#04111a]/68 backdrop-blur-[2px] transition-opacity duration-300 ease-out",
+            open ? "opacity-100" : "opacity-0"
+          )}
         />
       ) : (
-        <div className="absolute inset-0 bg-[#04111a]/58 backdrop-blur-[6px]" />
+        <div
+          className={clsx(
+            "absolute inset-0 bg-[#04111a]/68 backdrop-blur-[2px] transition-opacity duration-300 ease-out",
+            open ? "opacity-100" : "opacity-0"
+          )}
+        />
       )}
 
       <div
         className={clsx("relative flex h-full w-full", contentClassName)}
         style={{ alignItems: itemAlignment, justifyContent: justifyAlignment }}
       >
-        {children}
+        <div
+          className={clsx(
+            "transition-[opacity,transform] duration-300 ease-out",
+            open
+              ? "translate-y-0 opacity-100 delay-150"
+              : "translate-y-3 opacity-0 delay-0"
+          )}
+        >
+          {children}
+        </div>
       </div>
     </div>,
     document.body

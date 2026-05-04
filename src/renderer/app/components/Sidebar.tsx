@@ -43,7 +43,7 @@ export function Sidebar({
             className={clsx(
               "flex h-10 w-10 items-center justify-center",
               "rounded-xl border border-transparent bg-transparent",
-              "text-muted transition hover:border-border hover:bg-bg hover:text-text"
+              "text-muted hover:border-border hover:bg-bg hover:text-text"
             )}
             aria-label={collapsed ? "Open sidebar" : "Collapse sidebar"}
             title={collapsed ? "Open sidebar" : "Collapse sidebar"}
@@ -68,7 +68,7 @@ export function Sidebar({
           className={clsx(
             "mb-4 flex items-center gap-3",
             "rounded-xl border border-border bg-bg px-3 py-3",
-            "text-sm font-medium text-text transition hover:border-accent"
+            "text-sm font-medium text-text hover:border-accent"
           )}
           aria-label="Start new workflow"
           title="Start new workflow"
@@ -91,7 +91,7 @@ export function Sidebar({
                 }}
                 className={clsx(
                   "flex items-center gap-3 rounded-xl px-3 py-3",
-                  "text-left text-sm transition",
+                  "text-left text-sm",
                   collapsed && "justify-center px-0",
                   isActive
                     ? "bg-bg text-text"
@@ -129,7 +129,7 @@ export function Sidebar({
             onClick={onToggleTheme}
             className={clsx(
               "flex w-full items-center gap-3 rounded-xl px-3 py-3",
-              "text-sm text-muted transition hover:bg-bg/70 hover:text-text",
+              "text-sm text-muted hover:bg-bg/70 hover:text-text",
               collapsed && "justify-center px-0"
             )}
             aria-label="Toggle theme"

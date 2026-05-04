@@ -30,7 +30,7 @@ export function ContextMenu({
         key="new-file"
         type="button"
         onClick={onNewFile}
-        className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm text-slate-100 transition hover:bg-white/[0.06]"
+        className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm text-slate-100 hover:bg-white/[0.06]"
       >
         New file
         <span className="text-[10px] uppercase tracking-[0.18em] text-[#8ab6cb]">+</span>
@@ -41,7 +41,7 @@ export function ContextMenu({
         key="new-folder"
         type="button"
         onClick={onNewFolder}
-        className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm text-slate-100 transition hover:bg-white/[0.06]"
+        className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm text-slate-100 hover:bg-white/[0.06]"
       >
         New folder
         <span className="text-[10px] uppercase tracking-[0.18em] text-[#8ab6cb]">+</span>
@@ -52,7 +52,7 @@ export function ContextMenu({
         key="rename"
         type="button"
         onClick={onRename}
-        className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm text-slate-100 transition hover:bg-white/[0.06]"
+        className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm text-slate-100 hover:bg-white/[0.06]"
       >
         Rename
         <span className="text-[10px] uppercase tracking-[0.18em] text-[#8ab6cb]">F2</span>
@@ -63,7 +63,7 @@ export function ContextMenu({
         key="delete"
         type="button"
         onClick={onDelete}
-        className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm text-slate-100 transition hover:bg-white/[0.06]"
+        className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm text-slate-100 hover:bg-white/[0.06]"
       >
         Delete
         <span className="text-[10px] uppercase tracking-[0.18em] text-[#8ab6cb]">Del</span>

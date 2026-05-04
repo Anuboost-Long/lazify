@@ -7,11 +7,13 @@ import type {
   LogEntry,
   ProjectTreeNode,
   SavedInitWorkflowConfig,
+  SyncedWorkspaceProject,
   TemplateOption,
   WorkflowStatus,
 } from "@renderer/shared/types/lazify";
 
 const PROJECT_DIRECTORY_STORAGE_KEY = "lazify-project-directory";
+const WORKSPACE_PROJECTS_STORAGE_KEY = "lazify-workspace-projects";
 
 function readStoredProjectDirectory() {
   if (typeof window === "undefined") {
@@ -27,6 +29,33 @@ function persistProjectDirectory(value: string) {
   }
 
   window.localStorage.setItem(PROJECT_DIRECTORY_STORAGE_KEY, value);
+}
+
+function readStoredWorkspaceProjects() {
+  if (typeof window === "undefined") {
+    return [] as SyncedWorkspaceProject[];
+  }
+
+  const rawValue = window.localStorage.getItem(WORKSPACE_PROJECTS_STORAGE_KEY);
+
+  if (!rawValue) {
+    return [] as SyncedWorkspaceProject[];
+  }
+
+  try {
+    const parsed = JSON.parse(rawValue);
+    return Array.isArray(parsed) ? (parsed as SyncedWorkspaceProject[]) : [];
+  } catch {
+    return [] as SyncedWorkspaceProject[];
+  }
+}
+
+function persistWorkspaceProjects(value: SyncedWorkspaceProject[]) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.localStorage.setItem(WORKSPACE_PROJECTS_STORAGE_KEY, JSON.stringify(value));
 }
 
 const projectNameAtom = atom("lazify-starter");
@@ -53,6 +82,7 @@ const templateOptionsAtom = atom<TemplateOption[]>([
   }
 ]);
 const importedTemplateOptionsAtom = atom<ImportedTemplateOption[]>([]);
+const syncedWorkspaceProjectsAtom = atom<SyncedWorkspaceProject[]>(readStoredWorkspaceProjects());
 
 export function useLazifyStore() {
   const [projectName, setProjectName] = useAtom(projectNameAtom);
@@ -73,6 +103,7 @@ export function useLazifyStore() {
   const environment = useAtomValue(environmentAtom);
   const templateOptions = useAtomValue(templateOptionsAtom);
   const importedTemplateOptions = useAtomValue(importedTemplateOptionsAtom);
+  const syncedWorkspaceProjects = useAtomValue(syncedWorkspaceProjectsAtom);
   const setLogs = useSetAtom(logsAtom);
   const setBusy = useSetAtom(busyAtom);
   const setWorkflowStatus = useSetAtom(workflowStatusAtom);
@@ -80,6 +111,7 @@ export function useLazifyStore() {
   const setEnvironment = useSetAtom(environmentAtom);
   const setTemplateOptions = useSetAtom(templateOptionsAtom);
   const setImportedTemplateOptions = useSetAtom(importedTemplateOptionsAtom);
+  const setSyncedWorkspaceProjects = useSetAtom(syncedWorkspaceProjectsAtom);
 
   const resetInitFlow = useCallback(() => {
     setInitWorkflowStage("configure");
@@ -374,6 +406,53 @@ export function useLazifyStore() {
     await refreshImportedTemplates();
   }, [refreshImportedTemplates]);
 
+  const syncWorkspaceProject = useCallback(async (projectPath?: string | null) => {
+    const selectedPath = projectPath ?? (await window.lazify.selectDirectory());
+
+    if (!selectedPath) {
+      return null;
+    }
+
+    const isNewSync = projectPath == null;
+    if (isNewSync && syncedWorkspaceProjects.some((p) => p.projectPath === selectedPath)) {
+      throw new Error("This project is already synced to the workspace.");
+    }
+
+    const result = await window.lazify.importProjectIndexFromDirectory(selectedPath);
+    const syncedProject: SyncedWorkspaceProject = {
+      id: result.projectPath,
+      projectName: result.projectName,
+      projectPath: result.projectPath,
+      stack: result.stackDetection.stack,
+      framework: result.stackDetection.framework,
+      metaFramework: result.stackDetection.metaFramework,
+      packageManager: result.stackDetection.packageManager,
+      confidence: result.stackDetection.confidence,
+      lastSyncedAt: new Date().toISOString()
+    };
+
+    setSyncedWorkspaceProjects((current) => {
+      const nextProjects = [
+        syncedProject,
+        ...current.filter((item) => item.projectPath !== syncedProject.projectPath)
+      ];
+      persistWorkspaceProjects(nextProjects);
+      return nextProjects;
+    });
+
+    setWorkflowStatus("success");
+    setStatusMessage(`Synced project "${syncedProject.projectName}" into Workspace.`);
+    return syncedProject;
+  }, [setStatusMessage, setSyncedWorkspaceProjects, setWorkflowStatus, syncedWorkspaceProjects]);
+
+  const removeSyncedWorkspaceProject = useCallback((projectPath: string) => {
+    setSyncedWorkspaceProjects((current) => {
+      const nextProjects = current.filter((item) => item.projectPath !== projectPath);
+      persistWorkspaceProjects(nextProjects);
+      return nextProjects;
+    });
+  }, [setSyncedWorkspaceProjects]);
+
   return {
     busy,
     environment,
@@ -390,6 +469,7 @@ export function useLazifyStore() {
     selectedImportedTemplateId,
     selectedStructurePaths,
     selectedTemplateId,
+    syncedWorkspaceProjects,
     statusMessage,
     templateOptions,
     workflowStatus,
@@ -412,6 +492,8 @@ export function useLazifyStore() {
     loadImportedTemplate,
     saveImportedTemplateChanges,
     removeImportedTemplate,
+    syncWorkspaceProject,
+    removeSyncedWorkspaceProject,
     setInitWorkflowStage,
     pickProjectDirectory,
     bootstrap,

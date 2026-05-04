@@ -71,15 +71,87 @@ export const templateBlueprints: Record<string, TemplateBlueprint> = {
     ]
   },
   "next-default": {
-    rootFiles: ["package.json", "next.config.js", "tsconfig.json"],
+    rootFiles: ["package.json", "next.config.js"],
     folders: [
       {
         name: "app",
         type: "folder",
         children: [
+          { name: "globals.css", type: "file" },
           { name: "layout.tsx", type: "file" },
-          { name: "page.tsx", type: "file" }
+          { name: "page.tsx", type: "file" },
+          {
+            name: "[locale]",
+            type: "folder",
+            children: [
+              { name: "layout.tsx", type: "file" },
+              { name: "page.tsx", type: "file" },
+              {
+                name: "dashboard",
+                type: "folder",
+                children: [{ name: "page.tsx", type: "file" }]
+              },
+              {
+                name: "settings",
+                type: "folder",
+                children: [{ name: "page.tsx", type: "file" }]
+              }
+            ]
+          }
         ]
+      },
+      {
+        name: "components",
+        type: "folder",
+        children: [
+          {
+            name: "navigation",
+            type: "folder",
+            children: [
+              { name: "app-shell.tsx", type: "file" },
+              { name: "nav-link.tsx", type: "file" }
+            ]
+          },
+          {
+            name: "shared",
+            type: "folder",
+            children: [
+              { name: "i18n-provider.tsx", type: "file" },
+              { name: "locale-switcher.tsx", type: "file" }
+            ]
+          }
+        ]
+      },
+      {
+        name: "i18n",
+        type: "folder",
+        children: [{ name: "config.ts", type: "file" }]
+      },
+      {
+        name: "lib",
+        type: "folder",
+        children: [
+          { name: "navigation.ts", type: "file" },
+          { name: "utils.ts", type: "file" }
+        ]
+      },
+      {
+        name: "messages",
+        type: "folder",
+        children: [
+          { name: "en.json", type: "file" },
+          { name: "km.json", type: "file" }
+        ]
+      },
+      {
+        name: "store",
+        type: "folder",
+        children: [{ name: "app-store.ts", type: "file" }]
+      },
+      {
+        name: "types",
+        type: "folder",
+        children: [{ name: "navigation.ts", type: "file" }]
       },
       {
         name: "public",

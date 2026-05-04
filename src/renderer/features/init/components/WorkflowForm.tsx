@@ -1,6 +1,7 @@
-import clsx from "clsx";
-import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import type { TemplateOption } from "@renderer/shared/types/lazify";
+import UiIcon from "@renderer/shared/ui/icons/UiIcon";
+import { TextInput } from "@renderer/shared/ui/form/FormInput";
+import clsx from "clsx";
 import { PackageSearchPicker } from "./PackageSearchPicker";
 
 interface WorkflowFormProps {
@@ -30,17 +31,13 @@ export function WorkflowForm({
   onProjectNameChange,
   onPackageNameChange,
   onBrowseDirectory,
-  onContinue
+  onContinue,
 }: WorkflowFormProps) {
-  const selectedTemplate = templateOptions.find((template) => template.id === selectedTemplateId);
-  const canContinue = Boolean(projectName.trim() && projectDirectory.trim()) && !busy;
-  const inputClassName = clsx(
-    "w-full",
-    "rounded-[20px] border border-border bg-bg px-4 py-3",
-    "text-sm text-text placeholder:text-muted",
-    "outline-none transition",
-    "focus:border-accent focus:ring-2 focus:ring-accentSoft"
+  const selectedTemplate = templateOptions.find(
+    (template) => template.id === selectedTemplateId
   );
+  const canContinue =
+    Boolean(projectName.trim() && projectDirectory.trim()) && !busy;
   const pillClassName = clsx(
     "flex items-center gap-2",
     "rounded-full border border-border bg-bg px-3 py-2",
@@ -54,7 +51,7 @@ export function WorkflowForm({
           className="pointer-events-none absolute inset-x-0 top-0 h-24 opacity-80"
           style={{
             background:
-              "linear-gradient(135deg, rgba(52, 211, 153, 0.18) 0%, rgba(52, 211, 153, 0.04) 42%, transparent 85%)"
+              "linear-gradient(135deg, rgba(52, 211, 153, 0.18) 0%, rgba(52, 211, 153, 0.04) 42%, transparent 85%)",
           }}
         />
 
@@ -68,34 +65,44 @@ export function WorkflowForm({
                 {sourceLabel}
               </h3>
               <p className="mt-3 text-sm leading-6 text-muted">
-                Start by naming the project and pointing Lazify to the base directory before the later workflow steps kick in.
+                Start by naming the project and pointing Lazify to the base
+                directory before the later workflow steps kick in.
               </p>
             </div>
 
             <div className="flex flex-wrap gap-2">
               <div className={pillClassName}>
-                {sourceMode === "stack" ? selectedTemplate?.label ?? "Stack" : "Imported template"}
+                {sourceMode === "stack"
+                  ? selectedTemplate?.label ?? "Stack"
+                  : "Imported template"}
               </div>
             </div>
           </div>
 
           <div className="mt-6 grid gap-4 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]">
             <label className="space-y-2">
-              <span className="text-xs font-semibold uppercase tracking-[0.22em] text-accent">Project name</span>
-              <input
+              <span className="text-xs font-semibold uppercase tracking-[0.22em] text-accent">
+                Project name
+              </span>
+              <TextInput
                 value={projectName}
                 onChange={(event) => onProjectNameChange(event.target.value)}
                 placeholder="awesome-mobile-app"
-                className={inputClassName}
+                icon="folder"
               />
             </label>
 
             <label className="space-y-2">
-              <span className="text-xs font-semibold uppercase tracking-[0.22em] text-accent">Workspace directory</span>
+              <span className="text-xs font-semibold uppercase tracking-[0.22em] text-accent">
+                Workspace directory
+              </span>
               <div className="flex flex-col gap-3 md:flex-row">
                 <div className="flex min-h-[52px] flex-1 items-center rounded-[20px] border border-border bg-bg px-4 py-3 text-sm text-text">
-                  <span className={projectDirectory ? "truncate" : "text-muted"}>
-                    {projectDirectory || "Choose a folder from your operating system"}
+                  <span
+                    className={projectDirectory ? "truncate" : "text-muted"}
+                  >
+                    {projectDirectory ||
+                      "Choose a folder from your operating system"}
                   </span>
                 </div>
                 <button
@@ -106,11 +113,14 @@ export function WorkflowForm({
                     "group flex items-center justify-center gap-2",
                     "rounded-[20px] border border-border bg-bg px-4 py-3",
                     "text-sm font-semibold text-muted",
-                    "transition hover:border-accent hover:text-text",
+                    "hover:border-accent hover:text-text",
                     "disabled:cursor-not-allowed disabled:opacity-60"
                   )}
                 >
-                  <UiIcon name="folder" className="h-5 w-5 text-muted group-hover:text-accent" />
+                  <UiIcon
+                    name="folder"
+                    className="h-5 w-5 text-muted group-hover:text-accent"
+                  />
                   Browse
                 </button>
               </div>
@@ -156,8 +166,8 @@ export function WorkflowForm({
             disabled={!canContinue}
             onClick={onContinue}
             className={clsx(
-              "inline-flex items-center justify-center gap-2 rounded-[18px] border border-transparent bg-accent px-5 py-3",
-              "text-sm font-semibold text-white shadow-glow transition hover:-translate-y-0.5 hover:bg-accentHover",
+              "inline-flex self-end items-center justify-center gap-2 rounded-[18px] border border-transparent bg-accent px-5 py-3",
+              "text-sm font-semibold text-white shadow-glow hover:-translate-y-0.5 hover:bg-accentHover",
               "disabled:cursor-not-allowed disabled:opacity-60"
             )}
           >

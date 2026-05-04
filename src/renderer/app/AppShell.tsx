@@ -35,7 +35,10 @@ export function AppShell() {
   }, [sidebarOpen]);
 
   const activePageId: AppPageId | null =
-    appSidebarPages.find((page) => location.pathname === page.path)?.id ?? null;
+    appSidebarPages.find((page) =>
+      location.pathname === page.path ||
+      (page.id === "workspace" && location.pathname.startsWith("/workspace/project/"))
+    )?.id ?? null;
   const activePage =
     location.pathname === appRoute.initProject
       ? {

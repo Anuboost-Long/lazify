@@ -1,12 +1,12 @@
 {
   "id": "next-default",
   "label": "Next.js App",
-  "description": "Create a new Next.js application with the official starter and a clean web app baseline.",
+  "description": "Create a new Next.js application with App Router, locale-aware routing, translations, and global state scaffolding.",
   "projectType": "next",
   "preferredPackageManager": "npm",
   "createCommands": {
-    "npm": ["create", "next-app@latest"],
-    "npx": ["create-next-app@latest"]
+    "npm": ["create", "next-app@latest", "--ts", "--app", "--eslint", "--use-npm", "--no-tailwind", "--no-src-dir", "--import-alias", "@/*", "--yes"],
+    "npx": ["create-next-app@latest", "--ts", "--app", "--eslint", "--use-npm", "--no-tailwind", "--no-src-dir", "--import-alias", "@/*", "--yes"]
   },
   "packageManifest": "next.json"
 }

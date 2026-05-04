@@ -10,10 +10,16 @@ const REPLACEABLE_ROOT_PATHS = new Set([
   "components",
   "constants",
   "core",
+  "features",
   "hooks",
+  "i18n",
   "lib",
+  "messages",
   "navigation",
-  "translations"
+  "providers",
+  "store",
+  "translations",
+  "types"
 ]);
 
 export function reconcileProjectStructure(projectPath: string, tree: ProjectTreeNode[]) {

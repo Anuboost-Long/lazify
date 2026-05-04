@@ -6,6 +6,7 @@ import type { NpmPackageSearchResult } from "../main/npm-registry";
 import type { EnvironmentScan } from "../main/scanner";
 import type { TemplatePackageEntry } from "../main/template-package-manifest";
 import type {
+  ProjectGitStatusResult,
   ImportedTemplateOption,
   ImportedTemplateSnapshot,
   ImportedProjectIndexResult,
@@ -40,10 +41,12 @@ declare global {
       importProjectFromDirectory: (projectPath: string) => Promise<ImportedProjectScanResult>;
       importProjectIndexFromDirectory: (projectPath: string) => Promise<ImportedProjectIndexResult>;
       readImportedProjectFile: (filePath: string) => Promise<string>;
+      getProjectGitStatus: (projectPath: string) => Promise<ProjectGitStatusResult>;
       saveImportedTemplate: (
         projectPath: string,
         includedRelativePaths: string[],
-        providedName?: string | null
+        providedName?: string | null,
+        confirmedStack?: string | null
       ) => Promise<ImportedTemplateSnapshot>;
       onLog: (callback: (event: LogEvent) => void) => () => void;
       onWorkflowProgress: (callback: (event: WorkflowProgressEvent) => void) => () => void;

@@ -1,8 +1,66 @@
 import { startTransition, useState } from "react";
 import { PageHeader } from "@renderer/shared/ui/PageHeader";
-import type { ImportedProjectIndexResult } from "@renderer/shared/types/lazify";
+import type {
+  ImportedProjectIndexResult,
+  StackDetectionResult
+} from "@renderer/shared/types/lazify";
 import { OptimizedImportedProjectTree } from "@renderer/shared/ui/project-tree-optimized/OptimizedImportedProjectTree";
 import { useLazifyStore } from "@renderer/shared/hooks/use-lazify-store";
+
+function formatStackLabel(value: string) {
+  return value
+    .split("-")
+    .map((segment) => {
+      if (segment === "js") {
+        return "JS";
+      }
+
+      return segment.charAt(0).toUpperCase() + segment.slice(1);
+    })
+    .join(" ");
+}
+
+function formatConfidence(confidence: number) {
+  return `${Math.round(confidence * 100)}%`;
+}
+
+function DetectionSummary({ stackDetection }: { stackDetection: StackDetectionResult }) {
+  return (
+    <section className="rounded-[24px] border border-border bg-soft p-6 shadow-panel">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-accent">
+            Detected stack
+          </p>
+          <p className="mt-2 text-xl font-semibold text-text">
+            {formatStackLabel(stackDetection.stack)}
+          </p>
+          <p className="mt-2 text-sm leading-6 text-muted">
+            Framework: {formatStackLabel(stackDetection.framework)} · Meta-framework:{" "}
+            {formatStackLabel(stackDetection.metaFramework)} · Package manager:{" "}
+            {formatStackLabel(stackDetection.packageManager)}
+          </p>
+        </div>
+
+        <div className="rounded-full border border-border bg-bg px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-muted">
+          Confidence {formatConfidence(stackDetection.confidence)}
+        </div>
+      </div>
+
+      {stackDetection.reasons.length > 0 ? (
+        <p className="mt-4 text-sm leading-6 text-muted">
+          {stackDetection.reasons.join(". ")}.
+        </p>
+      ) : null}
+
+      {stackDetection.warnings.length > 0 ? (
+        <p className="mt-4 rounded-[16px] border border-amber-300/40 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          {stackDetection.warnings.join(" ")}
+        </p>
+      ) : null}
+    </section>
+  );
+}
 
 export function ImportProjectPage() {
   const { importedTemplateOptions, refreshImportedTemplates } = useLazifyStore();
@@ -53,8 +111,17 @@ export function ImportProjectPage() {
     }
   };
 
-  const handleSaveTemplate = async (includedRelativePaths: string[], providedName: string) => {
+  const handleSaveTemplate = async (
+    includedRelativePaths: string[],
+    providedName: string,
+    selectedStack: string
+  ) => {
     if (!scanResult) {
+      return;
+    }
+
+    if (!selectedStack) {
+      setErrorMessage("Select the project stack before saving the imported template.");
       return;
     }
 
@@ -63,7 +130,8 @@ export function ImportProjectPage() {
       const template = await window.lazify.saveImportedTemplate(
         scanResult.projectPath,
         includedRelativePaths,
-        providedName
+        providedName,
+        selectedStack
       );
       await refreshImportedTemplates();
       setSaveMessage(
@@ -102,12 +170,12 @@ export function ImportProjectPage() {
             ) : null}
           </div>
 
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap justify-end gap-3 self-end lg:max-w-sm">
             <button
               type="button"
               disabled={busy}
               onClick={() => void handleChooseFolder()}
-              className="inline-flex items-center justify-center rounded-[16px] border border-border bg-bg px-4 py-2.5 text-sm font-semibold text-text transition hover:border-accent disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex items-center justify-center rounded-[16px] border border-border bg-bg px-4 py-2.5 text-sm font-semibold text-text hover:border-accent disabled:cursor-not-allowed disabled:opacity-60"
             >
               {scanResult ? "Choose another folder" : "Choose project folder"}
             </button>
@@ -116,7 +184,7 @@ export function ImportProjectPage() {
                 type="button"
                 disabled={busy}
                 onClick={() => void handleRescan()}
-                className="inline-flex items-center justify-center rounded-[16px] border border-border bg-bg px-4 py-2.5 text-sm font-semibold text-text transition hover:border-accent disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex items-center justify-center rounded-[16px] border border-border bg-bg px-4 py-2.5 text-sm font-semibold text-text hover:border-accent disabled:cursor-not-allowed disabled:opacity-60"
               >
                 Rescan
               </button>
@@ -137,13 +205,18 @@ export function ImportProjectPage() {
       </section>
 
       {scanResult ? (
-        <OptimizedImportedProjectTree
-          busy={busy}
-          onSaveTemplate={handleSaveTemplate}
-          projectName={scanResult.projectName}
-          projectPath={scanResult.projectPath}
-          tree={scanResult.tree}
-        />
+        <>
+          <DetectionSummary stackDetection={scanResult.stackDetection} />
+          <OptimizedImportedProjectTree
+            busy={busy}
+            editable
+            initialConfirmedStack=""
+            onSaveTemplate={handleSaveTemplate}
+            projectName={scanResult.projectName}
+            projectPath={scanResult.projectPath}
+            tree={scanResult.tree}
+          />
+        </>
       ) : (
         <section className="rounded-[24px] border border-border bg-soft p-6 shadow-panel">
           <p className="text-sm leading-6 text-muted">
