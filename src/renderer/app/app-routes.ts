@@ -7,6 +7,7 @@ export const appRoute = {
   console: "/console",
   templates: "/templates",
   settings: "/settings",
+  environment: "/environment",
 } as const;
 
 export const defaultAppRoute = appRoute.workspace;

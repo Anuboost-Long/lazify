@@ -1,3 +1,4 @@
+import { EnvironmentRoute } from "./EnvironmentRoute";
 import { InitProjectRoute } from "./InitProjectRoute";
 import { ImportProjectRoute } from "./ImportProjectRoute";
 import { Navigate, Route, Routes } from "react-router-dom";
@@ -21,6 +22,7 @@ export function AppRoutes() {
         <Route path={appRoute.console.slice(1)} element={<ConsoleRoute />} />
         <Route path={appRoute.templates.slice(1)} element={<TemplatesRoute />} />
         <Route path={appRoute.settings.slice(1)} element={<SettingsRoute />} />
+        <Route path={appRoute.environment.slice(1)} element={<EnvironmentRoute />} />
         <Route path="*" element={<Navigate to={defaultAppRoute} replace />} />
       </Route>
     </Routes>

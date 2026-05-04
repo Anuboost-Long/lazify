@@ -4,6 +4,7 @@ import type { LogEvent, CommandResult } from "../main/command-runner";
 import type { TemplateDefinition } from "../main/harmonizer";
 import type { NpmPackageSearchResult } from "../main/npm-registry";
 import type { EnvironmentScan } from "../main/scanner";
+import type { ToolScanReport, NvmVersionList, NvmInstallResult, NvmActionResult, ToolUpdateInfo } from "../main/environment-scanner";
 import type { TemplatePackageEntry } from "../main/template-package-manifest";
 import type {
   ProjectGitStatusResult,
@@ -27,6 +28,15 @@ declare global {
       createProject: (payload: CreateProjectPayload) => Promise<WorkflowResult>;
       installPackage: (payload: InstallPackagePayload) => Promise<WorkflowResult>;
       checkEnvironment: () => Promise<EnvironmentScan>;
+      scanTools: () => Promise<ToolScanReport>;
+      probeTool: (name: string) => Promise<import("../renderer/shared/types/lazify").DetectedTool | null>;
+      nvmListVersions: () => Promise<NvmVersionList>;
+      installNvm: () => Promise<NvmInstallResult>;
+      nvmSetDefault: (version: string) => Promise<NvmActionResult>;
+      installTool: (toolName: string) => Promise<NvmActionResult>;
+      checkToolUpdate: (toolName: string, currentVersion: string) => Promise<ToolUpdateInfo>;
+      updateTool: (toolName: string) => Promise<NvmActionResult>;
+      relaunchApp: () => Promise<void>;
       listTemplates: () => Promise<TemplateDefinition[]>;
       listImportedTemplates: () => Promise<ImportedTemplateOption[]>;
       getImportedTemplate: (templateId: string) => Promise<ImportedTemplateSnapshot>;

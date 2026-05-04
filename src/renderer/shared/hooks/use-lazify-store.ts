@@ -9,6 +9,7 @@ import type {
   SavedInitWorkflowConfig,
   SyncedWorkspaceProject,
   TemplateOption,
+  ToolScanReport,
   WorkflowStatus,
 } from "@renderer/shared/types/lazify";
 
@@ -83,6 +84,8 @@ const templateOptionsAtom = atom<TemplateOption[]>([
 ]);
 const importedTemplateOptionsAtom = atom<ImportedTemplateOption[]>([]);
 const syncedWorkspaceProjectsAtom = atom<SyncedWorkspaceProject[]>(readStoredWorkspaceProjects());
+const toolScanReportAtom = atom<ToolScanReport | null>(null);
+const toolScanLoadingAtom = atom(false);
 
 export function useLazifyStore() {
   const [projectName, setProjectName] = useAtom(projectNameAtom);
@@ -104,11 +107,15 @@ export function useLazifyStore() {
   const templateOptions = useAtomValue(templateOptionsAtom);
   const importedTemplateOptions = useAtomValue(importedTemplateOptionsAtom);
   const syncedWorkspaceProjects = useAtomValue(syncedWorkspaceProjectsAtom);
+  const toolScanReport = useAtomValue(toolScanReportAtom);
+  const toolScanLoading = useAtomValue(toolScanLoadingAtom);
   const setLogs = useSetAtom(logsAtom);
   const setBusy = useSetAtom(busyAtom);
   const setWorkflowStatus = useSetAtom(workflowStatusAtom);
   const setStatusMessage = useSetAtom(statusMessageAtom);
   const setEnvironment = useSetAtom(environmentAtom);
+  const setToolScanReport = useSetAtom(toolScanReportAtom);
+  const setToolScanLoading = useSetAtom(toolScanLoadingAtom);
   const setTemplateOptions = useSetAtom(templateOptionsAtom);
   const setImportedTemplateOptions = useSetAtom(importedTemplateOptionsAtom);
   const setSyncedWorkspaceProjects = useSetAtom(syncedWorkspaceProjectsAtom);
@@ -118,6 +125,28 @@ export function useLazifyStore() {
     setSavedInitWorkflowConfig(null);
     setSavedStructureTree(null);
   }, [setInitWorkflowStage, setSavedInitWorkflowConfig, setSavedStructureTree]);
+
+  const refreshToolScan = useCallback(async () => {
+    setToolScanLoading(true);
+    try {
+      const report = await window.lazify.scanTools();
+      setToolScanReport(report);
+    } finally {
+      setToolScanLoading(false);
+    }
+  }, [setToolScanLoading, setToolScanReport]);
+
+  const refreshSingleTool = useCallback(async (toolName: string) => {
+    const updated = await window.lazify.probeTool(toolName);
+    if (!updated) return;
+    setToolScanReport((current) => {
+      if (!current) return current;
+      return {
+        ...current,
+        tools: current.tools.map((t) => t.name === toolName ? updated : t),
+      };
+    });
+  }, [setToolScanReport]);
 
   const refreshImportedTemplates = useCallback(async () => {
     const templates = await window.lazify.listImportedTemplates();
@@ -470,6 +499,8 @@ export function useLazifyStore() {
     selectedStructurePaths,
     selectedTemplateId,
     syncedWorkspaceProjects,
+    toolScanReport,
+    toolScanLoading,
     statusMessage,
     templateOptions,
     workflowStatus,
@@ -497,6 +528,8 @@ export function useLazifyStore() {
     setInitWorkflowStage,
     pickProjectDirectory,
     bootstrap,
+    refreshToolScan,
+    refreshSingleTool,
     refreshImportedTemplates,
     createProject,
     installPackage,

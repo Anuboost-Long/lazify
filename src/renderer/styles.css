@@ -38,39 +38,39 @@
 
 :root,
 :root[data-theme="dark"] {
-  --color-bg: #0b1220; /* deeper base */
-  --color-bg-soft: #111827; /* raised layer (main content) */
+  --color-bg: 11 18 32;
+  --color-bg-soft: 17 24 39;
 
-  --color-text: #e5e7eb; /* softer white */
-  --color-text-muted: #9ca3af;
+  --color-text: 229 231 235;
+  --color-text-muted: 156 163 175;
 
-  --color-accent: #10b981; /* less neon */
-  --color-accent-hover: #059669;
+  --color-accent: 16 185 129;
+  --color-accent-hover: 5 150 105;
   --color-accent-soft: rgba(16, 185, 129, 0.1);
 
-  --color-border: rgba(255, 255, 255, 0.08); /* neutral border */
+  --color-border: rgba(255, 255, 255, 0.08);
 
-  --color-success: #22c55e;
-  --color-warning: #f59e0b;
-  --color-error: #f43f5e;
+  --color-success: 34 197 94;
+  --color-warning: 245 158 11;
+  --color-error: 244 63 94;
 }
 
 :root[data-theme="light"] {
-  --color-bg: #f3f4f6; /* app background */
-  --color-bg-soft: #ffffff; /* main content */
+  --color-bg: 243 244 246;
+  --color-bg-soft: 255 255 255;
 
-  --color-text: #111827;
-  --color-text-muted: #374151;
+  --color-text: 17 24 39;
+  --color-text-muted: 55 65 81;
 
-  --color-accent: #047857;
-  --color-accent-hover: #065f46;
+  --color-accent: 4 120 87;
+  --color-accent-hover: 6 95 70;
   --color-accent-soft: rgba(4, 120, 87, 0.08);
 
   --color-border: rgba(0, 0, 0, 0.14);
 
-  --color-success: #16a34a;
-  --color-warning: #d97706;
-  --color-error: #e11d48;
+  --color-success: 22 163 74;
+  --color-warning: 215 119 6;
+  --color-error: 225 29 72;
 }
 
 html,
@@ -82,12 +82,12 @@ body,
 body {
   margin: 0;
   font-family: "Google Sans", "Avenir Next", "Segoe UI", sans-serif;
-  background: var(--color-bg);
-  color: var(--color-text);
+  background: rgb(var(--color-bg));
+  color: rgb(var(--color-text));
 }
 
 :root[data-theme="light"] body {
-  background: var(--color-bg);
+  background: rgb(var(--color-bg));
 }
 
 * {

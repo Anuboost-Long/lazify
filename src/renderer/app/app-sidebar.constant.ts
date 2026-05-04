@@ -1,7 +1,7 @@
 import type { UiIconName } from "@renderer/shared/ui/icons/UiIcon";
 import { appRoute } from "./app-routes";
 
-export type AppPageId = "workspace" | "importProject" | "console" | "templates" | "settings";
+export type AppPageId = "workspace" | "importProject" | "console" | "templates" | "settings" | "environment";
 
 export interface AppPageLink {
   id: AppPageId;
@@ -46,5 +46,12 @@ export const appSidebarPages: AppPageLink[] = [
     label: "Settings",
     description: "Inspect local runtime details.",
     icon: "settings",
+  },
+  {
+    id: "environment",
+    path: appRoute.environment,
+    label: "Environment",
+    description: "Scan installed runtimes and package managers.",
+    icon: "activity",
   },
 ];

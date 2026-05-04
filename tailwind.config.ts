@@ -6,17 +6,17 @@ export default {
   theme: {
     extend: {
       colors: {
-        bg: "var(--color-bg)",
-        soft: "var(--color-bg-soft)",
-        text: "var(--color-text)",
-        muted: "var(--color-text-muted)",
-        accent: "var(--color-accent)",
-        accentHover: "var(--color-accent-hover)",
+        bg: "rgb(var(--color-bg) / <alpha-value>)",
+        soft: "rgb(var(--color-bg-soft) / <alpha-value>)",
+        text: "rgb(var(--color-text) / <alpha-value>)",
+        muted: "rgb(var(--color-text-muted) / <alpha-value>)",
+        accent: "rgb(var(--color-accent) / <alpha-value>)",
+        accentHover: "rgb(var(--color-accent-hover) / <alpha-value>)",
         accentSoft: "var(--color-accent-soft)",
         border: "var(--color-border)",
-        success: "var(--color-success)",
-        warning: "var(--color-warning)",
-        error: "var(--color-error)"
+        success: "rgb(var(--color-success) / <alpha-value>)",
+        warning: "rgb(var(--color-warning) / <alpha-value>)",
+        error: "rgb(var(--color-error) / <alpha-value>)"
       },
       boxShadow: {
         panel: "0 24px 80px rgba(6, 24, 16, 0.24)",

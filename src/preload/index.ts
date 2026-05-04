@@ -12,6 +12,7 @@ import type {
   ProjectTreeNode
 } from "../renderer/shared/types/lazify";
 import type { EnvironmentScan } from "../main/scanner";
+import type { ToolScanReport, NvmVersionList, NvmInstallResult, NvmActionResult, ToolUpdateInfo } from "../main/environment-scanner";
 import type { TemplatePackageEntry } from "../main/template-package-manifest";
 import type {
   CreateProjectPayload,
@@ -28,6 +29,15 @@ const lazifyApi = {
   installPackage: (payload: InstallPackagePayload): Promise<WorkflowResult> =>
     ipcRenderer.invoke("lazify:install-package", payload),
   checkEnvironment: (): Promise<EnvironmentScan> => ipcRenderer.invoke("lazify:environment"),
+  scanTools: (): Promise<ToolScanReport> => ipcRenderer.invoke("lazify:scan-tools"),
+  probeTool: (name: string): Promise<import("../main/environment-scanner").DetectedTool | null> => ipcRenderer.invoke("lazify:probe-tool", name),
+  nvmListVersions: (): Promise<NvmVersionList> => ipcRenderer.invoke("lazify:nvm-list-versions"),
+  installNvm: (): Promise<NvmInstallResult> => ipcRenderer.invoke("lazify:install-nvm"),
+  nvmSetDefault: (version: string): Promise<NvmActionResult> => ipcRenderer.invoke("lazify:nvm-set-default", version),
+  installTool: (toolName: string): Promise<NvmActionResult> => ipcRenderer.invoke("lazify:install-tool", toolName),
+  checkToolUpdate: (toolName: string, currentVersion: string): Promise<ToolUpdateInfo> => ipcRenderer.invoke("lazify:check-tool-update", toolName, currentVersion),
+  updateTool: (toolName: string): Promise<NvmActionResult> => ipcRenderer.invoke("lazify:update-tool", toolName),
+  relaunchApp: (): Promise<void> => ipcRenderer.invoke("lazify:relaunch"),
   listTemplates: (): Promise<TemplateDefinition[]> => ipcRenderer.invoke("lazify:templates"),
   listImportedTemplates: (): Promise<ImportedTemplateOption[]> =>
     ipcRenderer.invoke("lazify:imported-templates"),

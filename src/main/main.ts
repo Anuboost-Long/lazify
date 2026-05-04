@@ -19,6 +19,7 @@ import {
 } from "./project-importer-optimized";
 import { getProjectGitStatus } from "./project-git-status";
 import { scanEnvironment } from "./scanner";
+import { scanTools, probeSingleTool, listNvmVersions, installNvm, nvmSetDefault, installTool, checkToolUpdate, updateTool } from "./environment-scanner";
 import { listTemplatePackageEntries } from "./template-package-manifest";
 import { WorkflowEngine } from "./workflow-engine";
 
@@ -69,6 +70,16 @@ function registerIpcHandlers() {
   ipcMain.handle("lazify:install-package", async (_event, payload) => workflowEngine.installPackage(payload));
 
   ipcMain.handle("lazify:environment", async () => scanEnvironment());
+
+  ipcMain.handle("lazify:scan-tools", async () => scanTools());
+  ipcMain.handle("lazify:probe-tool", async (_event, name: string) => probeSingleTool(name));
+  ipcMain.handle("lazify:nvm-list-versions", async () => listNvmVersions());
+  ipcMain.handle("lazify:install-nvm", async () => installNvm());
+  ipcMain.handle("lazify:nvm-set-default", async (_event, version: string) => nvmSetDefault(version));
+  ipcMain.handle("lazify:install-tool", async (_event, toolName: string) => installTool(toolName));
+  ipcMain.handle("lazify:check-tool-update", async (_event, toolName: string, currentVersion: string) => checkToolUpdate(toolName, currentVersion));
+  ipcMain.handle("lazify:update-tool", async (_event, toolName: string) => updateTool(toolName));
+  ipcMain.handle("lazify:relaunch", () => { app.relaunch(); app.exit(0); });
 
   ipcMain.handle("lazify:templates", async () => listTemplates());
   ipcMain.handle("lazify:imported-templates", async () => listImportedTemplates());
