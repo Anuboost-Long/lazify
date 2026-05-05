@@ -21,54 +21,51 @@ export function OptimizedEditorPane({
   }, [selectedFileState?.content]);
 
   return (
-    <div className="h-[44rem] overflow-hidden rounded-[26px] border border-border bg-[#0b1720] shadow-[0_28px_80px_rgba(3,10,18,0.32)]">
-      <div className="flex items-center gap-2 border-b border-white/10 bg-[#102230] px-5 py-3.5">
-        <UiIcon name="page" className="h-4 w-4 text-[#ffcf66]" />
+    <div className="h-[44rem] overflow-hidden rounded-[26px] border border-border bg-bg shadow-panel">
+
+      {/* Header */}
+      <div className="flex items-center gap-2 border-b border-border bg-soft px-5 py-3.5">
+        <UiIcon name="page" className="h-4 w-4 text-warning" />
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold text-cyan-50">
-            {selectedNode?.type === "file"
-              ? selectedNode.name
-              : "No file selected"}
+          <p className="truncate text-sm font-semibold text-text">
+            {selectedNode?.type === "file" ? selectedNode.name : "No file selected"}
           </p>
-          <p className="truncate text-[11px] uppercase tracking-[0.18em] text-[#8ab6cb]">
+          <p className="truncate text-[11px] uppercase tracking-[0.18em] text-muted">
             {selectedNode?.type === "file"
               ? selectedNode.absolutePath
               : "Select a file from the explorer"}
           </p>
         </div>
-        <div className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#9fc6d8]">
+        <div className="rounded-full border border-border bg-bg px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted">
           Read only
         </div>
       </div>
 
+      {/* Body */}
       <div
         className="h-[calc(44rem-57px)] p-5"
         style={{
           background:
-            "radial-gradient(circle at top right, rgba(34,211,238,0.08), transparent 26%), linear-gradient(180deg, #0d1c27 0%, #0a141d 100%)",
+            "radial-gradient(circle at top right, rgb(var(--color-accent) / 0.06), transparent 30%), rgb(var(--color-bg))",
         }}
       >
         {selectedNode?.type === "file" ? (
           !selectedFileState ||
           selectedFileState.status === "idle" ||
           selectedFileState.status === "loading" ? (
-            <div className="flex h-full items-center justify-center rounded-[20px] border border-dashed border-white/10 bg-white/[0.03] p-8 text-center">
+            <div className="flex h-full items-center justify-center rounded-[20px] border border-dashed border-border bg-soft/30 p-8 text-center">
               <div>
-                <p className="text-lg font-semibold text-slate-100">
-                  Loading file preview
-                </p>
-                <p className="mt-3 text-sm leading-6 text-[#8fb0bf]">
+                <p className="text-lg font-semibold text-text">Loading file preview</p>
+                <p className="mt-3 text-sm leading-6 text-muted">
                   Content is fetched only for the selected file.
                 </p>
               </div>
             </div>
           ) : selectedFileState.status === "error" ? (
-            <div className="flex h-full items-center justify-center rounded-[20px] border border-dashed border-red-400/20 bg-red-500/5 p-8 text-center">
+            <div className="flex h-full items-center justify-center rounded-[20px] border border-dashed border-error/25 bg-error/5 p-8 text-center">
               <div>
-                <p className="text-lg font-semibold text-red-200">
-                  Unable to load file preview
-                </p>
-                <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-red-100/90">
+                <p className="text-lg font-semibold text-error">Unable to load file preview</p>
+                <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-text/70">
                   {selectedFileState.content}
                 </p>
               </div>
@@ -77,12 +74,12 @@ export function OptimizedEditorPane({
             <div
               className={clsx(
                 "flex h-full overflow-hidden rounded-[20px] border",
-                "border-cyan-400/20 bg-black/20 text-slate-50"
+                "border-accent/15 bg-bg/60 text-text"
               )}
             >
               <div
                 ref={gutterRef}
-                className="w-14 shrink-0 overflow-hidden border-r border-white/10 bg-black/10 px-3 py-4 text-right font-mono text-xs leading-7 text-[#5f8296]"
+                className="w-14 shrink-0 overflow-hidden border-r border-border bg-bg/60 px-3 py-4 text-right font-mono text-xs leading-7 text-muted/50"
               >
                 {lineNumbers.map((lineNumber) => (
                   <div key={lineNumber}>{lineNumber}</div>
@@ -98,22 +95,18 @@ export function OptimizedEditorPane({
                     gutterRef.current.scrollTop = event.currentTarget.scrollTop;
                   }
                 }}
-                className={clsx(
-                  "h-full w-full resize-none overflow-y-auto bg-transparent px-5 py-4 font-mono text-sm leading-7 outline-none",
-                  "text-slate-50"
-                )}
+                className="h-full w-full resize-none overflow-y-auto bg-transparent px-5 py-4 font-mono text-sm leading-7 text-text outline-none"
               />
             </div>
           )
         ) : (
-          <div className="flex h-full items-center justify-center rounded-[20px] border border-dashed border-white/10 bg-white/[0.03] p-8 text-center">
+          <div className="flex h-full items-center justify-center rounded-[20px] border border-dashed border-border bg-soft/30 p-8 text-center">
             <div className="max-w-md">
-              <p className="text-lg font-semibold text-slate-100">
+              <p className="text-lg font-semibold text-text">
                 Select a file to preview its contents
               </p>
-              <p className="mt-3 text-sm leading-6 text-[#8fb0bf]">
-                Folders are listed in the explorer, but file content is loaded
-                only on demand.
+              <p className="mt-3 text-sm leading-6 text-muted">
+                Folders are listed in the explorer, but file content is loaded only on demand.
               </p>
             </div>
           </div>

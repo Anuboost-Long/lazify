@@ -4,7 +4,6 @@ import { TextInput } from "@renderer/shared/ui/form/FormInput";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import { getFileVisual, ROW_HEIGHT, OVERSCAN_COUNT } from "@renderer/shared/ui/project-tree-optimized/tree-utils-editable";
 
-// Structural base — both ProjectTreeNode and ImportedProjectIndexNode satisfy this
 export interface ExplorerNode {
   id: string;
   name: string;
@@ -87,14 +86,13 @@ const TreeRow = memo(function TreeRow({
       }
       onClick={() => {
         onSelect(node.id);
-
-        if (node.type === "folder") {
-          onToggleExpand(node.id);
-        }
+        if (node.type === "folder") onToggleExpand(node.id);
       }}
       className={clsx(
-        "flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left",
-        selected ? "bg-cyan-400/15 text-cyan-50" : "text-slate-100 hover:bg-white/[0.05]"
+        "flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left transition-colors duration-100",
+        selected
+          ? "bg-accent/15 text-text"
+          : "text-text/80 hover:bg-accent/[0.06] hover:text-text"
       )}
       style={{ height: ROW_HEIGHT, paddingLeft: `${12 + depth * 18}px` }}
     >
@@ -109,15 +107,15 @@ const TreeRow = memo(function TreeRow({
           className={clsx(
             "flex h-4 w-4 shrink-0 items-center justify-center rounded border text-[10px] font-bold",
             isChecked
-              ? "border-emerald-300/70 bg-emerald-400/20 text-emerald-100"
-              : "border-white/20 bg-white/[0.03] text-transparent"
+              ? "border-accent/60 bg-accent/20 text-text"
+              : "border-border bg-transparent text-transparent"
           )}
         >
           ✓
         </span>
       ) : null}
 
-      <span className="w-3 text-center text-[10px] text-[#7ca6bb]">
+      <span className="w-3 text-center text-[10px] text-muted/60">
         {node.type === "folder" ? (expanded ? "▾" : hasChildren ? "▸" : "•") : "•"}
       </span>
 
@@ -125,7 +123,7 @@ const TreeRow = memo(function TreeRow({
         name={node.type === "folder" ? "folder" : fileVisual!.icon}
         className={clsx(
           "h-4 w-4 shrink-0",
-          node.type === "folder" ? "text-cyan-300" : fileVisual!.color
+          node.type === "folder" ? "text-accent" : fileVisual!.color
         )}
       />
 
@@ -137,15 +135,8 @@ const TreeRow = memo(function TreeRow({
           onClick={(event) => event.stopPropagation()}
           onBlur={onCommitRename}
           onKeyDown={(event) => {
-            if (event.key === "Enter") {
-              event.preventDefault();
-              onCommitRename?.();
-            }
-
-            if (event.key === "Escape") {
-              event.preventDefault();
-              onCancelRename?.();
-            }
+            if (event.key === "Enter") { event.preventDefault(); onCommitRename?.(); }
+            if (event.key === "Escape") { event.preventDefault(); onCancelRename?.(); }
           }}
           variant="inverse"
           size="sm"
@@ -170,13 +161,10 @@ export interface OptimizedTreeExplorerPaneProps {
   selectedId: string | null;
   renamingId?: string | null;
   renameValue?: string;
-  // Inclusion controls (import flow)
   isChecked?: (nodeId: string) => boolean;
   onToggleChecked?: (nodeId: string) => void;
-  // File counts (import flow)
   includedFileCount?: number;
   totalFileCount?: number;
-  // Actions
   onSelect: (id: string) => void;
   onToggleExpand: (id: string) => void;
   onCollapseAll?: () => void;
@@ -215,26 +203,17 @@ export function OptimizedTreeExplorerPane({
   const [scrollTop, setScrollTop] = useState(0);
   const [viewportHeight, setViewportHeight] = useState(480);
 
-  // Sync scrollTop from DOM after expand/collapse — avoids stale virtualization window
   useEffect(() => {
-    if (listRef.current) {
-      setScrollTop(listRef.current.scrollTop);
-    }
+    if (listRef.current) setScrollTop(listRef.current.scrollTop);
   }, [expandedIds]);
 
   useEffect(() => {
     const element = listRef.current;
-
-    if (!element) {
-      return;
-    }
-
+    if (!element) return;
     const updateHeight = () => setViewportHeight(element.clientHeight);
     updateHeight();
-
     const resizeObserver = new ResizeObserver(updateHeight);
     resizeObserver.observe(element);
-
     return () => resizeObserver.disconnect();
   }, []);
 
@@ -259,9 +238,11 @@ export function OptimizedTreeExplorerPane({
   );
 
   return (
-    <div className="h-[44rem] overflow-hidden rounded-[26px] border border-border bg-[#0b1720] shadow-[0_28px_80px_rgba(3,10,18,0.32)]">
-      <div className="flex items-center gap-2 border-b border-white/10 bg-[#102230] px-5 py-3.5">
-        <div className="text-xs font-semibold uppercase tracking-[0.22em] text-[#8ab6cb]">
+    <div className="h-[44rem] overflow-hidden rounded-[26px] border border-border bg-bg shadow-panel">
+
+      {/* Header */}
+      <div className="flex items-center gap-2 border-b border-border bg-soft px-5 py-3.5">
+        <div className="text-xs font-semibold uppercase tracking-[0.22em] text-muted">
           Explorer
         </div>
         <div className="ml-auto flex items-center gap-2">
@@ -269,11 +250,8 @@ export function OptimizedTreeExplorerPane({
             <>
               <button
                 type="button"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  onCreateEntry("file");
-                }}
-                className="flex h-8 w-8 items-center justify-center rounded-full border border-cyan-400/20 bg-cyan-400/10 text-cyan-200"
+                onClick={(event) => { event.stopPropagation(); onCreateEntry("file"); }}
+                className="flex h-8 w-8 items-center justify-center rounded-full border border-accent/25 bg-accent/10 text-accent transition-colors hover:border-accent/50 hover:bg-accent/20"
                 aria-label="New file"
                 title="New file"
               >
@@ -281,11 +259,8 @@ export function OptimizedTreeExplorerPane({
               </button>
               <button
                 type="button"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  onCreateEntry("folder");
-                }}
-                className="flex h-8 w-8 items-center justify-center rounded-full border border-cyan-400/20 bg-cyan-400/10 text-cyan-200"
+                onClick={(event) => { event.stopPropagation(); onCreateEntry("folder"); }}
+                className="flex h-8 w-8 items-center justify-center rounded-full border border-accent/25 bg-accent/10 text-accent transition-colors hover:border-accent/50 hover:bg-accent/20"
                 aria-label="New folder"
                 title="New folder"
               >
@@ -296,38 +271,37 @@ export function OptimizedTreeExplorerPane({
         </div>
       </div>
 
-      <div className="flex h-[calc(44rem-57px)] flex-col bg-[linear-gradient(180deg,#0f2230_0%,#0a141d_100%)] p-4">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#7ca6bb]">
+      {/* Body */}
+      <div className="flex h-[calc(44rem-57px)] flex-col bg-bg p-4">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted">
           {savedProjectName}
         </p>
+
         <div className="mt-4 space-y-2">
-          <div className="rounded-xl border border-cyan-400/20 bg-cyan-400/10 px-3 py-2 text-sm text-cyan-50 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
+          <div className="rounded-xl border border-accent/20 bg-accent/8 px-3 py-2 text-sm font-semibold text-text shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
             {savedProjectName}/
           </div>
-          <div className="rounded-xl border border-dashed border-white/10 px-3 py-2 text-xs text-[#88a7b6]">
+          <div className="rounded-xl border border-dashed border-border px-3 py-2 text-xs text-muted">
             {subLabel}
           </div>
         </div>
 
         {infoBanner ? (
-          <div className="mt-4 rounded-xl border border-emerald-400/15 bg-emerald-400/10 px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-emerald-200">
+          <div className="mt-4 rounded-xl border border-accent/20 bg-accent/10 px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-accent">
             {infoBanner}
           </div>
         ) : null}
 
         <div className="mt-4 flex items-center gap-2">
-          <div className="flex-1 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#9fc6d8]">
+          <div className="flex-1 rounded-full border border-border bg-soft px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted">
             {totalNodeCount} items
           </div>
           {onCollapseAll ? (
             <button
               type="button"
-              onClick={(event) => {
-                event.stopPropagation();
-                onCollapseAll();
-              }}
+              onClick={(event) => { event.stopPropagation(); onCollapseAll(); }}
               title="Collapse all folders"
-              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-[#9fc6d8] hover:border-cyan-400/30 hover:bg-cyan-400/10 hover:text-cyan-200"
+              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-border bg-soft text-muted transition-colors hover:border-accent/30 hover:bg-accent/10 hover:text-accent"
             >
               <UiIcon name="collapse" className="h-3.5 w-3.5" />
             </button>
@@ -335,7 +309,7 @@ export function OptimizedTreeExplorerPane({
         </div>
 
         {includedFileCount !== undefined && totalFileCount !== undefined ? (
-          <div className="mt-2 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-200">
+          <div className="mt-2 rounded-full border border-accent/25 bg-accent/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-accent">
             {includedFileCount}/{totalFileCount} files kept
           </div>
         ) : null}
