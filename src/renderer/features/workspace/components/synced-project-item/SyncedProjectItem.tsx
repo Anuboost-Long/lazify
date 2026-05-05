@@ -1,4 +1,5 @@
 import clsx from "clsx";
+import { BodyText, CardTitle, PillText } from "@renderer/shared/typography";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import type { SyncedWorkspaceProject } from "@renderer/shared/types/lazify";
 import { formatStackLabel, formatSyncedAt } from "./utils";
@@ -34,12 +35,12 @@ export function SyncedProjectItem({
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <p className="truncate text-lg font-semibold text-text">
+          <CardTitle className="truncate text-lg">
             {project.projectName}
-          </p>
-          <p className="mt-2 truncate text-sm text-muted">
+          </CardTitle>
+          <BodyText className="mt-2 truncate text-muted">
             {project.projectPath}
-          </p>
+          </BodyText>
         </div>
 
         <button
@@ -53,21 +54,21 @@ export function SyncedProjectItem({
       </div>
 
       <div className="mt-4 flex w-full flex-wrap gap-2 text-left">
-        <span className="rounded-full border border-border bg-soft px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-accent">
+        <PillText as="span" className="rounded-full border border-border bg-soft px-3 py-1.5 text-accent">
           {formatStackLabel(project.stack)}
-        </span>
-        <span className="rounded-full border border-border bg-soft px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-muted">
+        </PillText>
+        <PillText as="span" className="rounded-full border border-border bg-soft px-3 py-1.5 text-muted">
           {formatStackLabel(project.metaFramework)}
-        </span>
-        <span className="rounded-full border border-border bg-soft px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-muted">
+        </PillText>
+        <PillText as="span" className="rounded-full border border-border bg-soft px-3 py-1.5 text-muted">
           {formatStackLabel(project.packageManager)}
-        </span>
+        </PillText>
       </div>
 
       <div className="mt-5 flex flex-col items-end gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-right text-xs uppercase tracking-[0.18em] text-muted sm:text-left">
+        <PillText className="text-right text-muted sm:text-left">
           Last synced {formatSyncedAt(project.lastSyncedAt)}
-        </p>
+        </PillText>
 
         <button
           type="button"

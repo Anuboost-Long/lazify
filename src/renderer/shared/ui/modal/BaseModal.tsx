@@ -1,6 +1,8 @@
 import clsx from "clsx";
+import { translation } from "@renderer/i18n/translation";
 import { useEffect, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
+import { useTranslation } from "react-i18next";
 
 interface BaseModalProps {
   open: boolean;
@@ -23,6 +25,7 @@ export function BaseModal({
   itemAlignment = "center",
   justifyAlignment = "center"
 }: BaseModalProps) {
+  const { t } = useTranslation();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -75,7 +78,7 @@ export function BaseModal({
       {cancellable ? (
         <button
           type="button"
-          aria-label="Close modal"
+          aria-label={t(translation.GlobalTerm.CloseModal)}
           onClick={onClose}
           className={clsx(
             "absolute inset-0 h-full w-full bg-[#04111a]/68 backdrop-blur-[2px] transition-opacity duration-300 ease-out",

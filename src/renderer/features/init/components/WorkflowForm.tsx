@@ -1,8 +1,11 @@
+import { translation } from "@renderer/i18n/translation";
+import { BodyText, CardTitle, OverlineText, PillText, SectionTitle } from "@renderer/shared/typography";
 import type { TemplateOption } from "@renderer/shared/types/lazify";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import { TextInput } from "@renderer/shared/ui/form/FormInput";
 import clsx from "clsx";
 import { PackageSearchPicker } from "./PackageSearchPicker";
+import { useTranslation } from "react-i18next";
 
 interface WorkflowFormProps {
   sourceMode: "stack" | "imported";
@@ -33,16 +36,13 @@ export function WorkflowForm({
   onBrowseDirectory,
   onContinue,
 }: WorkflowFormProps) {
+  const { t } = useTranslation();
   const selectedTemplate = templateOptions.find(
     (template) => template.id === selectedTemplateId
   );
   const canContinue =
     Boolean(projectName.trim() && projectDirectory.trim()) && !busy;
-  const pillClassName = clsx(
-    "flex items-center gap-2",
-    "rounded-full border border-border bg-bg px-3 py-2",
-    "text-xs font-semibold uppercase tracking-[0.22em] text-accent"
-  );
+  const pillClassName = "flex items-center gap-2 rounded-full border border-border bg-bg px-3 py-2 tracking-[0.22em]";
 
   return (
     <div className="flex flex-col gap-5 animate-fadeIn opacity-0">
@@ -58,52 +58,52 @@ export function WorkflowForm({
         <div className="relative">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div className="max-w-2xl">
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-accent">
-                Project setup
-              </p>
-              <h3 className="mt-3 text-2xl font-semibold text-text">
+              <OverlineText>
+                {t(translation.WorkflowForm.Title)}
+              </OverlineText>
+              <SectionTitle className="mt-3">
                 {sourceLabel}
-              </h3>
-              <p className="mt-3 text-sm leading-6 text-muted">
-                Start by naming the project and pointing Lazify to the base
-                directory before the later workflow steps kick in.
-              </p>
+              </SectionTitle>
+              <BodyText tone="muted" className="mt-3 leading-6">
+                {t(translation.WorkflowForm.Subtitle)}
+              </BodyText>
             </div>
 
             <div className="flex flex-wrap gap-2">
-              <div className={pillClassName}>
+              <PillText tone="accent" className={pillClassName}>
                 {sourceMode === "stack"
-                  ? selectedTemplate?.label ?? "Stack"
-                  : "Imported template"}
-              </div>
+                  ? selectedTemplate?.label ?? t(translation.WorkflowForm.Stack)
+                  : t(translation.WorkflowForm.ImportedTemplateLabel)}
+              </PillText>
             </div>
           </div>
 
           <div className="mt-6 grid gap-4 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]">
             <label className="space-y-2">
-              <span className="text-xs font-semibold uppercase tracking-[0.22em] text-accent">
-                Project name
-              </span>
+              <OverlineText as="span" className="tracking-[0.22em]">
+                {t(translation.WorkflowForm.ProjectName)}
+              </OverlineText>
               <TextInput
                 value={projectName}
                 onChange={(event) => onProjectNameChange(event.target.value)}
-                placeholder="awesome-mobile-app"
+                placeholder={t(translation.WorkflowForm.ProjectNamePlaceholder)}
                 icon="folder"
               />
             </label>
 
             <label className="space-y-2">
-              <span className="text-xs font-semibold uppercase tracking-[0.22em] text-accent">
-                Workspace directory
-              </span>
+              <OverlineText as="span" className="tracking-[0.22em]">
+                {t(translation.WorkflowForm.WorkspaceDirectory)}
+              </OverlineText>
               <div className="flex flex-col gap-3 md:flex-row">
                 <div className="flex min-h-[52px] flex-1 items-center rounded-[20px] border border-border bg-bg px-4 py-3 text-sm text-text">
-                  <span
+                  <BodyText
+                    as="span"
                     className={projectDirectory ? "truncate" : "text-muted"}
                   >
                     {projectDirectory ||
-                      "Choose a folder from your operating system"}
-                  </span>
+                      t(translation.WorkflowForm.ChooseFolder)}
+                  </BodyText>
                 </div>
                 <button
                   type="button"
@@ -121,7 +121,7 @@ export function WorkflowForm({
                     name="folder"
                     className="h-5 w-5 text-muted group-hover:text-accent"
                   />
-                  Browse
+                  {t(translation.GlobalTerm.Browse)}
                 </button>
               </div>
             </label>
@@ -147,17 +147,17 @@ export function WorkflowForm({
               <UiIcon name="play" className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.22em] text-accent">
-                Setup stage ready
-              </p>
-              <p className="mt-2 text-lg font-semibold text-text">
-                Continue with the next workflow step.
-              </p>
-              <p className="mt-2 text-sm leading-6 text-muted">
+              <OverlineText as="p" className="text-sm tracking-[0.22em]">
+                {t(translation.WorkflowForm.SetupReady)}
+              </OverlineText>
+              <CardTitle className="mt-2">
+                {t(translation.WorkflowForm.SetupReadyDesc)}
+              </CardTitle>
+              <BodyText tone="muted" className="mt-2 leading-6">
                 {sourceMode === "stack"
-                  ? "This step captures the project name, target directory, and package shortlist."
-                  : "This step captures the project name and target directory for the imported template scaffold."}
-              </p>
+                  ? t(translation.WorkflowForm.StackStepDesc)
+                  : t(translation.WorkflowForm.ImportedStepDesc)}
+              </BodyText>
             </div>
           </div>
 
@@ -171,15 +171,15 @@ export function WorkflowForm({
               "disabled:cursor-not-allowed disabled:opacity-60"
             )}
           >
-            Continue
+            {t(translation.GlobalTerm.Continue)}
             <UiIcon name="arrow-right" className="h-4 w-4 text-white" />
           </button>
         </div>
 
         {!canContinue ? (
-          <p className="mt-3 text-sm text-muted">
-            Enter both a project name and workspace directory to continue.
-          </p>
+          <BodyText tone="muted" className="mt-3">
+            {t(translation.WorkflowForm.EnterBoth)}
+          </BodyText>
         ) : null}
       </div>
     </div>

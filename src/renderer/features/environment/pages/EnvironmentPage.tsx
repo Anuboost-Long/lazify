@@ -1,9 +1,12 @@
 import clsx from "clsx";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { PageHeader } from "@renderer/shared/ui/PageHeader";
+import { BodyText } from "@renderer/shared/typography";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import type { ToolCategory, ToolScanReport } from "@renderer/shared/types/lazify";
 import { useLazifyStore } from "@renderer/shared/hooks/use-lazify-store";
+import { translation } from "@renderer/i18n/translation";
 import { CategorySection } from "../components/CategorySection";
 import { NodeVersionModal } from "../components/NodeVersionModal";
 import { InstallToolModal } from "../components/InstallToolModal";
@@ -18,6 +21,7 @@ interface EnvironmentPageProps {
 const categoryOrder: ToolCategory[] = ["nodejs", "python", "dotnet", "system"];
 
 export function EnvironmentPage({ report, loading, onRefresh }: EnvironmentPageProps) {
+  const { t } = useTranslation();
   const { refreshSingleTool } = useLazifyStore();
   const [nodeModalOpen, setNodeModalOpen] = useState(false);
   const [installTarget, setInstallTarget] = useState<ToolScanReport["tools"][number] | null>(null);
@@ -64,9 +68,9 @@ export function EnvironmentPage({ report, loading, onRefresh }: EnvironmentPageP
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <PageHeader
-          eyebrow="Local Machine"
-          title="Environment"
-          description="Installed runtimes, package managers, and development tools detected on this machine."
+          eyebrow={t(translation.Environment.Eyebrow)}
+          title={t(translation.Environment.Title)}
+          description={t(translation.Environment.Description)}
           icon="activity"
         />
         <button
@@ -85,19 +89,21 @@ export function EnvironmentPage({ report, loading, onRefresh }: EnvironmentPageP
             name="refresh-circle"
             className={clsx("h-5 w-5 text-muted group-hover:text-accent", loading && "animate-spin")}
           />
-          {loading ? "Scanning…" : "Refresh"}
+          {loading ? t(translation.GlobalTerm.Scanning) : t(translation.GlobalTerm.Refresh)}
         </button>
       </div>
 
       {loading && !report && (
         <div className="flex items-center gap-3 text-sm text-muted">
           <UiIcon name="refresh-circle" className="h-4 w-4 animate-spin" />
-          Scanning local machine…
+          <BodyText as="span" className="text-muted">
+            {t(translation.Environment.ScanningMachine)}
+          </BodyText>
         </div>
       )}
 
       {!loading && !report && (
-        <p className="text-sm text-muted">No scan results yet.</p>
+        <BodyText className="text-muted">{t(translation.Environment.NoResults)}</BodyText>
       )}
 
       {report && (

@@ -1,7 +1,10 @@
 import clsx from "clsx";
 import { useMemo, useRef } from "react";
+import { translation } from "@renderer/i18n/translation";
+import { BodyText, CardTitle, OverlineText, PillText } from "@renderer/shared/typography";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import type { TreeNode } from "@renderer/shared/ui/project-tree/types";
+import { useTranslation } from "react-i18next";
 
 interface EditorPaneProps {
   selectedNode: TreeNode | null;
@@ -18,6 +21,7 @@ export function EditorPane({
   showModuleSelectionToggle = false,
   onOpenModules,
 }: EditorPaneProps) {
+  const { t } = useTranslation();
   const gutterRef = useRef<HTMLDivElement | null>(null);
   const lineNumbers = useMemo(() => {
     const content = selectedNode?.content ?? "";
@@ -32,12 +36,12 @@ export function EditorPane({
       <div className="flex items-center gap-2 border-b border-border bg-soft px-5 py-3.5">
         <UiIcon name="package" className="h-4 w-4 text-warning" />
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold text-text">
-            {selectedNode?.type === "file" ? selectedNode.name : "No file selected"}
-          </p>
-          <p className="truncate text-[11px] uppercase tracking-[0.18em] text-muted">
-            {selectedPath ?? "Select a file from the explorer"}
-          </p>
+          <CardTitle className="truncate text-sm">
+            {selectedNode?.type === "file" ? selectedNode.name : t(translation.ProjectTree.NoFileSelected)}
+          </CardTitle>
+          <OverlineText className="truncate text-muted">
+            {selectedPath ?? t(translation.ProjectTree.SelectFileFromExplorer)}
+          </OverlineText>
         </div>
         {showModuleSelectionToggle && onOpenModules ? (
           <button
@@ -45,12 +49,12 @@ export function EditorPane({
             onClick={onOpenModules}
             className="rounded-full border border-accent/25 bg-accent/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-accent transition-colors hover:border-accent/50 hover:bg-accent/20"
           >
-            Modules
+            {t(translation.ProjectTree.Modules)}
           </button>
         ) : null}
-        <div className="rounded-full border border-border bg-bg px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted">
-          {selectedNode?.type === "file" ? "Editable" : "Folder"}
-        </div>
+        <PillText className="rounded-full border border-border bg-bg px-3 py-1 text-muted">
+          {selectedNode?.type === "file" ? t(translation.ProjectTree.Editable) : t(translation.ProjectTree.Folder)}
+        </PillText>
       </div>
 
       {/* Body */}
@@ -87,18 +91,18 @@ export function EditorPane({
               }}
               spellCheck={false}
               className="h-full w-full resize-none overflow-y-auto bg-transparent px-5 py-4 font-mono text-sm leading-7 text-text outline-none"
-              placeholder="Write the initial file content here..."
+              placeholder={t(translation.ProjectTree.FileContentPlaceholder)}
             />
           </div>
         ) : (
           <div className="flex h-full items-center justify-center rounded-[20px] border border-dashed border-border bg-soft/30 p-8 text-center">
             <div className="max-w-md">
-              <p className="text-lg font-semibold text-text">
-                Select a file to edit its contents
-              </p>
-              <p className="mt-3 text-sm leading-6 text-muted">
-                The explorer stays on the left. Pick any editable file and this panel becomes a large content editor, similar to the main area in VS Code.
-              </p>
+              <CardTitle className="text-lg">
+                {t(translation.ProjectTree.SelectFileToEdit)}
+              </CardTitle>
+              <BodyText className="mt-3 text-muted">
+                {t(translation.ProjectTree.SelectFileToEditDesc)}
+              </BodyText>
             </div>
           </div>
         )}

@@ -1,9 +1,12 @@
 import clsx from "clsx";
+import { translation } from "@renderer/i18n/translation";
+import { BodyText, CardTitle, OverlineText, PillText } from "@renderer/shared/typography";
 import { TextInput } from "@renderer/shared/ui/form/FormInput";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import type { PackageOption } from "@renderer/shared/types/lazify";
 import type { TemplatePackageEntry } from "../../../../main/template-package-manifest";
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 interface PackageSearchPickerProps {
   value: string;
@@ -39,6 +42,7 @@ export function PackageSearchPicker({
   busy,
   onChange
 }: PackageSearchPickerProps) {
+  const { t } = useTranslation();
   const selectedPackages = useMemo(() => parsePackageNames(value), [value]);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<PackageOption[]>([]);
@@ -96,7 +100,7 @@ export function PackageSearchPicker({
         if (!cancelled) {
           setResults([]);
           setErrorMessage(
-            error instanceof Error ? error.message : "Unable to search npm right now."
+            error instanceof Error ? error.message : t(translation.PackageSearch.NpmError)
           );
         }
       } finally {
@@ -137,7 +141,7 @@ export function PackageSearchPicker({
         if (!cancelled) {
           setTemplatePackages([]);
           setTemplatePackagesError(
-            error instanceof Error ? error.message : "Unable to load template packages."
+            error instanceof Error ? error.message : t(translation.PackageSearch.TemplateError)
           );
         }
       } finally {
@@ -178,38 +182,38 @@ export function PackageSearchPicker({
     <div className="rounded-[30px] border border-border bg-soft p-6 shadow-panel">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-accent">
-            npm packages
-          </p>
-          <p className="mt-2 text-sm leading-6 text-muted">
-            Search the live npm registry and collect multiple packages for installation.
-          </p>
+          <OverlineText className="text-accent">
+            {t(translation.PackageSearch.NpmPackages)}
+          </OverlineText>
+          <BodyText className="mt-2 text-muted">
+            {t(translation.PackageSearch.NpmDesc)}
+          </BodyText>
         </div>
-        <div className="rounded-full border border-border bg-soft px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-muted">
-          {selectedPackages.length} selected
-        </div>
+        <PillText className="rounded-full border border-border bg-soft px-3 py-2 text-muted">
+          {t(translation.PackageSearch.SelectedCount, { count: selectedPackages.length })}
+        </PillText>
       </div>
 
       <div className="mt-4 rounded-[24px] border border-border bg-bg/70 p-3">
         <div className="rounded-[20px] border border-border bg-bg p-4">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-accent">
-                Template packages
-              </p>
-              <p className="mt-2 text-sm leading-6 text-muted">
-                Lazify reads the template manifest and queries the npm searcher so you can review what will be added automatically.
-              </p>
+              <OverlineText className="text-accent">
+                {t(translation.PackageSearch.TemplatePackages)}
+              </OverlineText>
+              <BodyText className="mt-2 text-muted">
+                {t(translation.PackageSearch.TemplateDesc)}
+              </BodyText>
             </div>
-            <div className="rounded-full border border-border bg-soft px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-muted">
-              {templatePackages.length} queued
-            </div>
+            <PillText className="rounded-full border border-border bg-soft px-3 py-2 text-muted">
+              {t(translation.PackageSearch.QueuedCount, { count: templatePackages.length })}
+            </PillText>
           </div>
 
           {templatePackagesLoading ? (
             <div className="mt-3 flex min-h-[2rem] items-center gap-2 rounded-[16px] border border-dashed border-border px-3 py-3 text-sm text-muted">
               <UiIcon name="refresh-circle" className="h-4 w-4 animate-spin text-accent" />
-              Querying npm search for template packages...
+              {t(translation.PackageSearch.QueryingNpm)}
             </div>
           ) : null}
 
@@ -229,24 +233,24 @@ export function PackageSearchPicker({
                   <div className="flex items-start justify-between gap-4">
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="font-semibold text-text">{pkg.name}</span>
-                        <span className="text-xs uppercase tracking-[0.18em] text-muted">
+                        <CardTitle as="span" className="text-text">{pkg.name}</CardTitle>
+                        <PillText as="span" className="text-muted">
                           npm v{pkg.version || pkg.requestedVersion}
-                        </span>
+                        </PillText>
                       </div>
 
-                      <p className="mt-1 text-sm text-muted">
-                        {pkg.description || "No description returned from npm search."}
-                      </p>
+                      <BodyText className="mt-1 text-muted">
+                        {pkg.description || t(translation.PackageSearch.NoDescriptionReturned)}
+                      </BodyText>
 
-                      <p className="mt-2 text-xs text-muted">
-                        Template version: {pkg.requestedVersion}
-                      </p>
+                      <BodyText className="mt-2 text-xs text-muted">
+                        {t(translation.PackageSearch.TemplateVersion, { version: pkg.requestedVersion })}
+                      </BodyText>
                     </div>
 
-                    <div className="shrink-0 rounded-full border border-current/15 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-muted">
-                      Will add
-                    </div>
+                    <PillText className="shrink-0 rounded-full border border-current/15 px-3 py-2 text-muted">
+                      {t(translation.PackageSearch.WillAdd)}
+                    </PillText>
                   </div>
                 </div>
               ))}
@@ -255,7 +259,7 @@ export function PackageSearchPicker({
 
           {!templatePackagesLoading && !templatePackagesError && templatePackages.length === 0 ? (
             <div className="mt-3 rounded-[16px] border border-dashed border-border px-3 py-3 text-sm text-muted">
-              No template package manifest entries were found for this stack.
+              {t(translation.PackageSearch.NoTemplateEntries)}
             </div>
           ) : null}
         </div>
@@ -263,7 +267,7 @@ export function PackageSearchPicker({
         <TextInput
           value={query}
           onChange={(event) => setQuery(event.target.value)}
-          placeholder="Search npm packages like zustand, react-query, shadcn..."
+          placeholder={t(translation.PackageSearch.SearchPlaceholder)}
           icon="search"
           className="mt-4"
         />
@@ -281,27 +285,27 @@ export function PackageSearchPicker({
                   <div className="flex items-start justify-between gap-4">
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="font-semibold text-text">{pkg.name}</span>
+                        <CardTitle as="span" className="text-text">{pkg.name}</CardTitle>
                         {pkg.version ? (
-                          <span className="text-xs uppercase tracking-[0.18em] text-muted">
+                          <PillText as="span" className="text-muted">
                             v{pkg.version}
-                          </span>
+                          </PillText>
                         ) : null}
                         {pkg.publisher ? (
-                          <span className="rounded-full border border-border bg-soft px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted">
+                          <PillText as="span" className="rounded-full border border-border bg-soft px-2 py-1 text-[10px] text-muted">
                             {pkg.publisher}
-                          </span>
+                          </PillText>
                         ) : null}
                       </div>
 
-                      <p className="mt-1 text-sm text-muted">
-                        {pkg.description || "Selected for installation in a later workflow step."}
-                      </p>
+                      <BodyText className="mt-1 text-muted">
+                        {pkg.description || t(translation.PackageSearch.SelectedForInstall)}
+                      </BodyText>
 
                       {pkg.keywords.length > 0 ? (
-                        <p className="mt-2 text-xs text-muted">
+                        <BodyText className="mt-2 text-xs text-muted">
                           {pkg.keywords.slice(0, 5).join(" • ")}
-                        </p>
+                        </BodyText>
                       ) : null}
                     </div>
 
@@ -311,7 +315,7 @@ export function PackageSearchPicker({
                       disabled={busy}
                       className="group inline-flex shrink-0 items-center gap-2 rounded-full border border-border bg-soft px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-muted hover:border-accent hover:text-text disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                      Remove
+                      {t(translation.GlobalTerm.Remove)}
                       <UiIcon
                         name="xmark"
                         className="h-4 w-4 text-muted group-hover:text-accent"
@@ -327,14 +331,14 @@ export function PackageSearchPicker({
         <div className="mt-3 min-h-[3rem] rounded-[20px] border border-dashed border-border bg-bg p-2">
           {query.trim().length < 2 ? (
             <div className="flex min-h-[2rem] items-center px-3 text-sm text-muted">
-              Type at least 2 characters to search npm.
+              {t(translation.PackageSearch.MinChars)}
             </div>
           ) : null}
 
           {loading ? (
             <div className="flex min-h-[2rem] items-center gap-2 px-3 text-sm text-muted">
               <UiIcon name="refresh-circle" className="h-4 w-4 animate-spin text-accent" />
-              Searching npm registry...
+              {t(translation.PackageSearch.Searching)}
             </div>
           ) : null}
 
@@ -346,7 +350,7 @@ export function PackageSearchPicker({
 
           {!loading && !errorMessage && query.trim().length >= 2 && results.length === 0 ? (
             <div className="flex min-h-[2rem] items-center px-3 text-sm text-muted">
-              No packages matched this query.
+              {t(translation.PackageSearch.NoResults)}
             </div>
           ) : null}
 
@@ -372,24 +376,24 @@ export function PackageSearchPicker({
                     <div className="flex items-start justify-between gap-4">
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
-                          <span className="font-semibold">{pkg.name}</span>
-                          <span className="text-xs uppercase tracking-[0.18em] text-muted">
+                          <CardTitle as="span" className="text-inherit">{pkg.name}</CardTitle>
+                          <PillText as="span" className="text-muted">
                             v{pkg.version}
-                          </span>
+                          </PillText>
                         </div>
-                        <p className="mt-1 line-clamp-2 text-sm text-muted">
-                          {pkg.description || "No description provided."}
-                        </p>
+                        <BodyText className="mt-1 line-clamp-2 text-muted">
+                          {pkg.description || t(translation.PackageSearch.NoDescription)}
+                        </BodyText>
                         {pkg.keywords.length > 0 ? (
-                          <p className="mt-2 text-xs text-muted">
+                          <BodyText className="mt-2 text-xs text-muted">
                             {pkg.keywords.slice(0, 4).join(" • ")}
-                          </p>
+                          </BodyText>
                         ) : null}
                       </div>
 
-                      <div className="shrink-0 rounded-full border border-current/15 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.22em]">
-                        {selected ? "Selected" : "Add"}
-                      </div>
+                      <PillText className="shrink-0 rounded-full border border-current/15 px-3 py-2">
+                        {selected ? t(translation.GlobalTerm.Selected) : t(translation.GlobalTerm.Add)}
+                      </PillText>
                     </div>
                   </button>
                 );

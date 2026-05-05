@@ -1,4 +1,6 @@
 import { startTransition, useState } from "react";
+import { translation } from "@renderer/i18n/translation";
+import { BodyText, CardTitle, OverlineText, PillText } from "@renderer/shared/typography";
 import { PageHeader } from "@renderer/shared/ui/PageHeader";
 import type {
   ImportedProjectIndexResult,
@@ -6,6 +8,7 @@ import type {
 } from "@renderer/shared/types/lazify";
 import { OptimizedImportedProjectTree } from "@renderer/shared/ui/project-tree-optimized/OptimizedImportedProjectTree";
 import { useLazifyStore } from "@renderer/shared/hooks/use-lazify-store";
+import { useTranslation } from "react-i18next";
 
 function formatStackLabel(value: string) {
   return value
@@ -25,44 +28,47 @@ function formatConfidence(confidence: number) {
 }
 
 function DetectionSummary({ stackDetection }: { stackDetection: StackDetectionResult }) {
+  const { t } = useTranslation();
+
   return (
     <section className="rounded-[24px] border border-border bg-soft p-6 shadow-panel">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-accent">
-            Detected stack
-          </p>
-          <p className="mt-2 text-xl font-semibold text-text">
+          <OverlineText className="tracking-[0.22em]">
+            {t(translation.ImportProject.DetectedStack)}
+          </OverlineText>
+          <CardTitle className="mt-2 text-xl">
             {formatStackLabel(stackDetection.stack)}
-          </p>
-          <p className="mt-2 text-sm leading-6 text-muted">
-            Framework: {formatStackLabel(stackDetection.framework)} · Meta-framework:{" "}
-            {formatStackLabel(stackDetection.metaFramework)} · Package manager:{" "}
+          </CardTitle>
+          <BodyText tone="muted" className="mt-2 leading-6">
+            {t(translation.ImportProject.Framework)}: {formatStackLabel(stackDetection.framework)} · {t(translation.ImportProject.MetaFramework)}:{" "}
+            {formatStackLabel(stackDetection.metaFramework)} · {t(translation.ImportProject.PackageManager)}:{" "}
             {formatStackLabel(stackDetection.packageManager)}
-          </p>
+          </BodyText>
         </div>
 
-        <div className="rounded-full border border-border bg-bg px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-muted">
-          Confidence {formatConfidence(stackDetection.confidence)}
-        </div>
+        <PillText className="rounded-full border border-border bg-bg px-4 py-2 text-xs tracking-[0.2em]">
+          {t(translation.ImportProject.Confidence, { value: formatConfidence(stackDetection.confidence) })}
+        </PillText>
       </div>
 
       {stackDetection.reasons.length > 0 ? (
-        <p className="mt-4 text-sm leading-6 text-muted">
+        <BodyText tone="muted" className="mt-4 leading-6">
           {stackDetection.reasons.join(". ")}.
-        </p>
+        </BodyText>
       ) : null}
 
       {stackDetection.warnings.length > 0 ? (
-        <p className="mt-4 rounded-[16px] border border-amber-300/40 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+        <BodyText className="mt-4 rounded-[16px] border border-amber-300/40 bg-amber-50 px-4 py-3 text-amber-800">
           {stackDetection.warnings.join(" ")}
-        </p>
+        </BodyText>
       ) : null}
     </section>
   );
 }
 
 export function ImportProjectPage() {
+  const { t } = useTranslation();
   const { importedTemplateOptions, refreshImportedTemplates } = useLazifyStore();
   const [busy, setBusy] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -85,7 +91,7 @@ export function ImportProjectPage() {
         setScanResult(result);
       });
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "Unable to import the selected project.");
+      setErrorMessage(error instanceof Error ? error.message : t(translation.ImportProject.ImportError));
     } finally {
       setBusy(false);
     }
@@ -105,7 +111,7 @@ export function ImportProjectPage() {
         setScanResult(result);
       });
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "Unable to rescan the selected project.");
+      setErrorMessage(error instanceof Error ? error.message : t(translation.ImportProject.RescanError));
     } finally {
       setBusy(false);
     }
@@ -121,7 +127,7 @@ export function ImportProjectPage() {
     }
 
     if (!selectedStack) {
-      setErrorMessage("Select the project stack before saving the imported template.");
+      setErrorMessage(t(translation.ProjectTree.SelectStackWarning));
       return;
     }
 
@@ -135,38 +141,38 @@ export function ImportProjectPage() {
       );
       await refreshImportedTemplates();
       setSaveMessage(
-        `Saved template "${template.name}" as JSON with ${includedRelativePaths.length} file${includedRelativePaths.length === 1 ? "" : "s"}.`
+        t(translation.ImportProject.SaveSuccess, { name: template.name, count: includedRelativePaths.length })
       );
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "Unable to save the imported template.");
+      setErrorMessage(error instanceof Error ? error.message : t(translation.ImportProject.SaveError));
     }
   };
 
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        eyebrow="Import Workflow"
-        title="Import Project"
-        description="Choose a project folder from your machine, scan its files, and inspect the imported structure in the shared project tree."
+        eyebrow={t(translation.ImportProject.Eyebrow)}
+        title={t(translation.ImportProject.Title)}
+        description={t(translation.ImportProject.Description)}
         icon="import"
       />
 
       <section className="rounded-[24px] border border-border bg-soft p-6 shadow-panel">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-accent">
-              Project folder
-            </p>
-            <p className="mt-2 text-sm leading-6 text-muted">
-              {scanResult?.projectPath ?? "No project folder selected yet."}
-            </p>
-            <p className="mt-2 text-xs leading-5 text-muted">
-              Large generated directories like `node_modules`, `.git`, `dist`, and `build` are skipped to keep the scan usable.
-            </p>
+            <OverlineText className="tracking-[0.22em]">
+              {t(translation.ImportProject.ProjectFolder)}
+            </OverlineText>
+            <BodyText tone="muted" className="mt-2 leading-6">
+              {scanResult?.projectPath ?? t(translation.ImportProject.NoFolderSelected)}
+            </BodyText>
+            <BodyText tone="muted" className="mt-2 text-xs leading-5">
+              {t(translation.ImportProject.SkipNotice)}
+            </BodyText>
             {importedTemplateOptions.length > 0 ? (
-              <p className="mt-2 text-xs leading-5 text-emerald-700">
-                {importedTemplateOptions.length} imported template{importedTemplateOptions.length === 1 ? "" : "s"} saved on disk.
-              </p>
+              <BodyText className="mt-2 text-xs leading-5 text-emerald-700">
+                {t(translation.ImportProject.SavedTemplatesCount, { count: importedTemplateOptions.length })}
+              </BodyText>
             ) : null}
           </div>
 
@@ -177,7 +183,7 @@ export function ImportProjectPage() {
               onClick={() => void handleChooseFolder()}
               className="inline-flex items-center justify-center rounded-[16px] border border-border bg-bg px-4 py-2.5 text-sm font-semibold text-text hover:border-accent disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {scanResult ? "Choose another folder" : "Choose project folder"}
+              {scanResult ? t(translation.ImportProject.ChooseAnother) : t(translation.ImportProject.ChooseFolder)}
             </button>
             {scanResult ? (
               <button
@@ -186,21 +192,21 @@ export function ImportProjectPage() {
                 onClick={() => void handleRescan()}
                 className="inline-flex items-center justify-center rounded-[16px] border border-border bg-bg px-4 py-2.5 text-sm font-semibold text-text hover:border-accent disabled:cursor-not-allowed disabled:opacity-60"
               >
-                Rescan
+                {t(translation.GlobalTerm.Rescan)}
               </button>
             ) : null}
           </div>
         </div>
 
         {errorMessage ? (
-          <p className="mt-4 rounded-[16px] border border-red-300/40 bg-red-50 px-4 py-3 text-sm text-red-700">
+          <BodyText className="mt-4 rounded-[16px] border border-red-300/40 bg-red-50 px-4 py-3 text-red-700">
             {errorMessage}
-          </p>
+          </BodyText>
         ) : null}
         {saveMessage ? (
-          <p className="mt-4 rounded-[16px] border border-emerald-300/40 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+          <BodyText className="mt-4 rounded-[16px] border border-emerald-300/40 bg-emerald-50 px-4 py-3 text-emerald-800">
             {saveMessage}
-          </p>
+          </BodyText>
         ) : null}
       </section>
 
@@ -219,9 +225,9 @@ export function ImportProjectPage() {
         </>
       ) : (
         <section className="rounded-[24px] border border-border bg-soft p-6 shadow-panel">
-          <p className="text-sm leading-6 text-muted">
-            Choose a project folder to scan and load its file tree.
-          </p>
+          <BodyText tone="muted" className="leading-6">
+            {t(translation.ImportProject.EmptyPrompt)}
+          </BodyText>
         </section>
       )}
     </div>

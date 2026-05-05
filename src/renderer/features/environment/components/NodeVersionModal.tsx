@@ -1,8 +1,11 @@
 import clsx from "clsx";
 import { useCallback, useEffect, useState } from "react";
+import { translation } from "@renderer/i18n/translation";
+import { BodyText, CardTitle, MonoText, OverlineText, PillText, SectionTitle, Typography } from "@renderer/shared/typography";
 import { BaseModal } from "@renderer/shared/ui/modal/BaseModal";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import type { NvmNodeVersion } from "@renderer/shared/types/lazify";
+import { useTranslation } from "react-i18next";
 
 interface NodeVersionModalProps {
   open: boolean;
@@ -18,6 +21,7 @@ const ACCENT_LINE = {
 } as const;
 
 export function NodeVersionModal({ open, onClose, onSelect }: NodeVersionModalProps) {
+  const { t } = useTranslation();
   const [state, setState] = useState<ModalState>("loading");
   const [versions, setVersions] = useState<NvmNodeVersion[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
@@ -76,8 +80,8 @@ export function NodeVersionModal({ open, onClose, onSelect }: NodeVersionModalPr
           <div className="pointer-events-none absolute inset-x-0 top-0 h-px" style={ACCENT_LINE} />
           <div className="flex items-center justify-between gap-4">
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-muted">Runtime</p>
-              <h3 className="mt-1 font-display text-2xl text-text">Node Versions</h3>
+              <OverlineText className="text-muted">{t(translation.NodeVersionModal.Eyebrow)}</OverlineText>
+              <SectionTitle className="mt-1 text-2xl">{t(translation.NodeVersionModal.Title)}</SectionTitle>
             </div>
             <button
               type="button"
@@ -96,7 +100,7 @@ export function NodeVersionModal({ open, onClose, onSelect }: NodeVersionModalPr
           {state === "loading" && (
             <div className="flex items-center justify-center gap-3 py-8 text-sm text-muted">
               <UiIcon name="refresh-circle" className="h-4 w-4 animate-spin text-accent" />
-              Scanning nvm…
+              <BodyText as="span" className="text-muted">{t(translation.NodeVersionModal.ScanningNvm)}</BodyText>
             </div>
           )}
 
@@ -109,10 +113,10 @@ export function NodeVersionModal({ open, onClose, onSelect }: NodeVersionModalPr
                     <UiIcon name="warning-triangle" className="h-4 w-4" />
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-text">nvm is not installed</p>
-                    <p className="mt-1 text-xs leading-5 text-muted">
-                      Node Version Manager lets you install and switch between multiple Node.js versions with a single command.
-                    </p>
+                    <BodyText className="font-semibold text-text">{t(translation.NodeVersionModal.NvmNotInstalled)}</BodyText>
+                    <BodyText className="mt-1 text-xs text-muted">
+                      {t(translation.NodeVersionModal.NvmDesc)}
+                    </BodyText>
                   </div>
                 </div>
               </div>
@@ -131,10 +135,10 @@ export function NodeVersionModal({ open, onClose, onSelect }: NodeVersionModalPr
                     <UiIcon name="play" className="h-4 w-4" />
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-accent">Install nvm</p>
-                    <p className="mt-0.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-accent/60">
-                      Official install script · auto-configures shell
-                    </p>
+                    <BodyText className="font-semibold text-accent">{t(translation.NodeVersionModal.InstallNvm)}</BodyText>
+                    <PillText className="mt-0.5 text-accent/60">
+                      {t(translation.NodeVersionModal.InstallNvmSubtitle)}
+                    </PillText>
                   </div>
                   <UiIcon name="arrow-right" className="ml-auto h-4 w-4 text-accent/50 transition-transform duration-150 group-hover:translate-x-0.5" />
                 </div>
@@ -151,11 +155,10 @@ export function NodeVersionModal({ open, onClose, onSelect }: NodeVersionModalPr
                     <UiIcon name="warning-triangle" className="h-4 w-4" />
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-text">No Node versions found</p>
-                    <p className="mt-1 text-xs leading-5 text-muted">
-                      nvm is installed but reported no versions. Try installing one with{" "}
-                      <code className="rounded bg-soft px-1 py-0.5 font-mono text-accent">nvm install --lts</code> in your terminal.
-                    </p>
+                    <BodyText className="font-semibold text-text">{t(translation.NodeVersionModal.NoVersionsFound)}</BodyText>
+                    <BodyText className="mt-1 text-xs text-muted">
+                      {t(translation.NodeVersionModal.NvmEmptyDesc)}
+                    </BodyText>
                   </div>
                 </div>
               </div>
@@ -164,7 +167,7 @@ export function NodeVersionModal({ open, onClose, onSelect }: NodeVersionModalPr
                 onClick={load}
                 className="w-full rounded-[20px] border border-border bg-bg px-4 py-3 text-sm font-semibold text-muted transition-colors duration-150 hover:border-accent/30 hover:text-text"
               >
-                Retry
+                {t(translation.GlobalTerm.Retry)}
               </button>
             </div>
           )}
@@ -176,8 +179,8 @@ export function NodeVersionModal({ open, onClose, onSelect }: NodeVersionModalPr
                 <UiIcon name="refresh-circle" className="h-6 w-6 animate-spin" />
               </div>
               <div className="text-center">
-                <p className="text-sm font-semibold text-text">Installing nvm…</p>
-                <p className="mt-1 text-xs text-muted">Running the official install script. This may take a moment.</p>
+                <BodyText className="font-semibold text-text">{t(translation.NodeVersionModal.InstallingNvm)}</BodyText>
+                <BodyText className="mt-1 text-xs text-muted">{t(translation.NodeVersionModal.InstallingNvmDesc)}</BodyText>
               </div>
             </div>
           )}
@@ -205,14 +208,14 @@ export function NodeVersionModal({ open, onClose, onSelect }: NodeVersionModalPr
                     <UiIcon name={installSuccess ? "check-circle" : "warning-triangle"} className="h-4 w-4" />
                   </div>
                   <div>
-                    <p className={clsx("text-sm font-semibold", installSuccess ? "text-success" : "text-error")}>
-                      {installSuccess ? "nvm installed successfully" : "Installation failed"}
-                    </p>
-                    <p className="mt-1 text-xs leading-5 text-muted">
+                    <BodyText className={clsx("font-semibold", installSuccess ? "text-success" : "text-error")}>
+                      {installSuccess ? t(translation.NodeVersionModal.NvmSuccess) : t(translation.NodeVersionModal.NvmFailed)}
+                    </BodyText>
+                    <BodyText className="mt-1 text-xs text-muted">
                       {installSuccess
-                        ? "Restart the app to start using nvm and manage Node.js versions."
-                        : "Check the output below and try again."}
-                    </p>
+                        ? t(translation.NodeVersionModal.NvmSuccessDesc)
+                        : t(translation.NodeVersionModal.NvmFailedDesc)}
+                    </BodyText>
                   </div>
                 </div>
               </div>
@@ -230,7 +233,7 @@ export function NodeVersionModal({ open, onClose, onSelect }: NodeVersionModalPr
                   className="relative w-full overflow-hidden rounded-[20px] border border-accent/30 bg-accent/10 px-4 py-3 text-sm font-semibold text-accent transition-colors duration-150 hover:border-accent/50 hover:bg-accent/15"
                 >
                   <div className="pointer-events-none absolute inset-x-0 top-0 h-px" style={ACCENT_LINE} />
-                  Restart App
+                  {t(translation.NodeVersionModal.RestartApp)}
                 </button>
               )}
             </div>
@@ -267,18 +270,18 @@ export function NodeVersionModal({ open, onClose, onSelect }: NodeVersionModalPr
                           : "border-border bg-transparent group-hover:border-accent/50"
                       )}
                     />
-                    <span className="font-mono text-sm font-semibold text-text">{ver.version}</span>
+                    <MonoText as="span" className="text-sm font-semibold text-text">{ver.version}</MonoText>
 
                     <div className="flex flex-1 items-center gap-1.5">
                       {ver.lts && (
-                        <span className="rounded-full border border-accent/20 bg-accent/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.16em] text-accent">
+                        <PillText as="span" className="rounded-full border border-accent/20 bg-accent/10 px-2 py-0.5 text-[9px] text-accent">
                           LTS · {ver.lts}
-                        </span>
+                        </PillText>
                       )}
                       {ver.current && (
-                        <span className="rounded-full border border-border bg-soft px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.16em] text-muted">
+                        <PillText as="span" className="rounded-full border border-border bg-soft px-2 py-0.5 text-[9px] text-muted">
                           Active
-                        </span>
+                        </PillText>
                       )}
                     </div>
                   </div>
@@ -292,8 +295,8 @@ export function NodeVersionModal({ open, onClose, onSelect }: NodeVersionModalPr
         {state === "ready" && (
           <div className="border-t border-border px-6 py-4">
             <div className="mb-3 flex items-center gap-2">
-              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted">Selected</span>
-              <span className="font-mono text-sm font-semibold text-accent">{selected}</span>
+              <OverlineText as="span" className="text-muted">{t(translation.GlobalTerm.Selected)}</OverlineText>
+              <MonoText as="span" className="text-sm font-semibold text-accent">{selected}</MonoText>
             </div>
             <div className="flex items-center gap-2">
               <button
@@ -302,7 +305,7 @@ export function NodeVersionModal({ open, onClose, onSelect }: NodeVersionModalPr
                 disabled={!!applying}
                 className="rounded-[16px] border border-border bg-bg px-4 py-2.5 text-sm font-semibold text-muted transition-colors duration-150 hover:border-accent/30 hover:text-text disabled:opacity-50"
               >
-                Cancel
+                {t(translation.GlobalTerm.Cancel)}
               </button>
               <div className="flex flex-1 items-center gap-2">
                 <button
@@ -316,7 +319,7 @@ export function NodeVersionModal({ open, onClose, onSelect }: NodeVersionModalPr
                     "disabled:cursor-not-allowed disabled:opacity-50"
                   )}
                 >
-                  Use once
+                  {t(translation.NodeVersionModal.UseOnce)}
                 </button>
                 <button
                   type="button"
@@ -330,12 +333,12 @@ export function NodeVersionModal({ open, onClose, onSelect }: NodeVersionModalPr
                   )}
                 >
                   {applying === "default" ? (
-                    <span className="flex items-center justify-center gap-2">
+                    <Typography as="span" variant="body" className="flex items-center justify-center gap-2 text-inherit">
                       <UiIcon name="refresh-circle" className="h-3.5 w-3.5 animate-spin" />
-                      Applying…
-                    </span>
+                      {t(translation.NodeVersionModal.Applying)}
+                    </Typography>
                   ) : (
-                    "Set as default"
+                    t(translation.NodeVersionModal.SetAsDefault)
                   )}
                 </button>
               </div>

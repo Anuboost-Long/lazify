@@ -1,6 +1,9 @@
+import { translation } from "@renderer/i18n/translation";
+import { CardTitle, PillText } from "@renderer/shared/typography";
 import type { DetectedTool } from "@renderer/shared/types/lazify";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import clsx from "clsx";
+import { useTranslation } from "react-i18next";
 
 interface ToolCardProps {
   tool: DetectedTool;
@@ -15,6 +18,7 @@ export function ToolCard({
   actionLabel,
   loading,
 }: ToolCardProps) {
+  const { t } = useTranslation();
   const Tag = onAction ? "button" : "article";
   const isClickable = !!onAction && !loading;
 
@@ -77,22 +81,22 @@ export function ToolCard({
 
         {/* Text */}
         <div className="min-w-0 flex-1">
-          <p
+          <CardTitle
             className={clsx(
               "truncate text-sm font-semibold leading-none",
               tool.available ? "text-text" : "!text-error"
             )}
           >
             {tool.displayName}
-          </p>
-          <p
+          </CardTitle>
+          <PillText
             className={clsx(
               "mt-1.5 truncate text-[11px] font-medium",
               tool.available ? "!text-accent" : "!text-muted/35"
             )}
           >
-            {tool.available ? tool.version ?? "Detected" : "Not installed"}
-          </p>
+            {tool.available ? tool.version ?? t(translation.Environment.Detected) : t(translation.Environment.NotInstalled)}
+          </PillText>
         </div>
 
         {/* Right slot */}
@@ -104,7 +108,8 @@ export function ToolCard({
             />
           </div>
         ) : onAction ? (
-          <span
+          <PillText
+            as="span"
             className={clsx(
               "shrink-0 rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-[0.14em]",
               "transition-colors duration-150",
@@ -113,10 +118,11 @@ export function ToolCard({
                 : "border-border/70 bg-soft text-error/80 group-hover:border-warning/40 group-hover:text-warning/80"
             )}
           >
-            {actionLabel ?? "Open"}
-          </span>
+            {actionLabel ?? t(translation.GlobalTerm.Open)}
+          </PillText>
         ) : (
-          <span
+          <PillText
+            as="span"
             className={clsx(
               "shrink-0 rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em]",
               tool.available
@@ -124,8 +130,8 @@ export function ToolCard({
                 : "border-border/60 bg-soft text-muted/40"
             )}
           >
-            {tool.available ? "Installed" : "Missing"}
-          </span>
+            {tool.available ? t(translation.Environment.Installed) : t(translation.Environment.Missing)}
+          </PillText>
         )}
       </div>
     </Tag>

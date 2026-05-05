@@ -1,4 +1,5 @@
 import clsx from "clsx";
+import { OverlineText, PageDescription, PageTitle } from "@renderer/shared/typography";
 import UiIcon, { type UiIconName } from "./icons/UiIcon";
 
 interface PageHeaderProps {
@@ -27,15 +28,15 @@ export function PageHeader({
           <UiIcon name={icon} className="h-7 w-7" />
         </div>
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-muted">
+          <OverlineText tone="muted" className="tracking-[0.28em]">
             {eyebrow}
-          </p>
-          <h2 className="mt-2 font-display text-4xl leading-none text-text md:text-5xl">
+          </OverlineText>
+          <PageTitle className="mt-2 leading-none">
             {title}
-          </h2>
+          </PageTitle>
         </div>
       </div>
-      <div className="max-w-xl text-sm leading-6 text-muted">{description}</div>
+      <PageDescription className="max-w-xl leading-6">{description}</PageDescription>
     </header>
   );
 }

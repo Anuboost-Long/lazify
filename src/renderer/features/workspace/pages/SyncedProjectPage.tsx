@@ -1,14 +1,17 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { appRoute } from "@renderer/app/app-routes";
+import { translation } from "@renderer/i18n/translation";
 import { SyncedProjectViewer } from "@renderer/features/workspace/components/SyncedProjectViewer";
 import { PackageVersionPane } from "@renderer/features/workspace/components/PackageVersionPane";
+import { BodyText } from "@renderer/shared/typography";
 import { PageHeader } from "@renderer/shared/ui/PageHeader";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import type {
   ImportedProjectIndexResult,
   SyncedWorkspaceProject
 } from "@renderer/shared/types/lazify";
+import { useTranslation } from "react-i18next";
 
 interface SyncedProjectPageProps {
   busy: boolean;
@@ -19,6 +22,7 @@ export function SyncedProjectPage({
   busy,
   syncedProjects
 }: SyncedProjectPageProps) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { projectPath: encodedProjectPath } = useParams<{ projectPath: string }>();
   const [loading, setLoading] = useState(false);
@@ -48,7 +52,7 @@ export function SyncedProjectPage({
       } catch (error) {
         if (!cancelled) {
           setProjectData(null);
-          setErrorMessage(error instanceof Error ? error.message : "Unable to load the selected synced project.");
+          setErrorMessage(error instanceof Error ? error.message : t(translation.SyncedProject.LoadError));
         }
       } finally {
         if (!cancelled) {
@@ -67,9 +71,9 @@ export function SyncedProjectPage({
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        eyebrow="Workspace Reader"
-        title={syncedProject?.projectName ?? "Synced Project"}
-        description="Read the synced project tree and open file contents in the optimized explorer/editor view."
+        eyebrow={t(translation.SyncedProject.Eyebrow)}
+        title={syncedProject?.projectName ?? t(translation.SyncedProject.Title)}
+        description={t(translation.SyncedProject.Description)}
         icon="folder"
       />
 
@@ -83,23 +87,23 @@ export function SyncedProjectPage({
             name="arrow-left"
             className="h-4 w-4 text-muted group-hover:text-accent"
           />
-          Back to workspace
+          {t(translation.SyncedProject.BackToWorkspace)}
         </button>
       </div>
 
       {!syncedProject ? (
         <section className="rounded-[24px] border border-border bg-soft p-6 shadow-panel">
-          <p className="text-sm leading-6 text-muted">
-            This project is not in the synced workspace list anymore. Open it again from Workspace after syncing it.
-          </p>
+          <BodyText tone="muted" className="leading-6">
+            {t(translation.SyncedProject.NotSyncedAnymore)}
+          </BodyText>
         </section>
       ) : null}
 
       {errorMessage ? (
         <section className="rounded-[24px] border border-red-300/40 bg-red-50 p-6 shadow-panel">
-          <p className="text-sm leading-6 text-red-700">
+          <BodyText className="leading-6 text-red-700">
             {errorMessage}
-          </p>
+          </BodyText>
         </section>
       ) : null}
 
@@ -107,7 +111,7 @@ export function SyncedProjectPage({
         <section className="rounded-[30px] border border-border bg-soft p-6 shadow-panel">
           <div className="flex items-center gap-3 text-sm text-muted">
             <UiIcon name="refresh-circle" className="h-5 w-5 animate-spin text-accent" />
-            Loading project files and content preview...
+            {t(translation.SyncedProject.Loading)}
           </div>
         </section>
       ) : null}

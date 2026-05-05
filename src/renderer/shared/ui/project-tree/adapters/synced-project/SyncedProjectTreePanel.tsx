@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { translation } from "@renderer/i18n/translation";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import { ProjectTreeEditorPanel } from "@renderer/shared/ui/project-tree/core/ProjectTreeEditorPanel";
 import { OptimizedContextMenu } from "@renderer/shared/ui/project-tree-optimized/OptimizedContextMenu";
@@ -10,6 +11,7 @@ import type {
   ProjectGitStatusResult,
 } from "@renderer/shared/types/lazify";
 import { useSyncedProjectTree } from "./useSyncedProjectTree";
+import { useTranslation } from "react-i18next";
 
 interface SyncedProjectTreePanelProps {
   allowGitStatus?: boolean;
@@ -37,6 +39,7 @@ export function SyncedProjectTreePanel({
   renderGitInfo,
   renderGitPane,
 }: SyncedProjectTreePanelProps) {
+  const { t } = useTranslation();
   const adapter = useSyncedProjectTree({
     allowGitStatus,
     editable,
@@ -47,9 +50,9 @@ export function SyncedProjectTreePanel({
     <ProjectTreeEditorPanel
       busy={busy}
       mode={editable ? "editable" : "readonly"}
-      eyebrow="Project contents"
+      eyebrow={t(translation.ProjectTree.ProjectContents)}
       title={project.projectName}
-      description="Click files from the synced project explorer to read their contents in the editor pane."
+      description={t(translation.ProjectTree.ProjectContentsDesc)}
       projectName={project.projectName}
       subLabel={project.projectPath}
       gridClassName="xl:grid-cols-[320px_minmax(0,1fr)]"
@@ -81,7 +84,7 @@ export function SyncedProjectTreePanel({
       headerAccessory={
         <div className="inline-flex items-center gap-2 rounded-full border border-border bg-bg px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-muted">
           <UiIcon name="folder" className="h-4 w-4 text-accent" />
-          {editable ? "Editable workspace view" : "Read-only workspace view"}
+          {editable ? t(translation.ProjectTree.EditableWorkspaceView) : t(translation.ProjectTree.ReadOnlyWorkspaceView)}
         </div>
       }
       extraContent={
@@ -98,7 +101,7 @@ export function SyncedProjectTreePanel({
                 }
               >
                 <UiIcon name="activity" className="h-4 w-4" />
-                Git info
+                {t(translation.ProjectTree.GitInfo)}
               </button>
             </div>
             {adapter.showGitInfo && renderGitInfo ? renderGitInfo({
@@ -115,7 +118,7 @@ export function SyncedProjectTreePanel({
                     : "rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-muted"
                 }
               >
-                Explorer
+                {t(translation.ProjectTree.Explorer)}
               </button>
               <button
                 type="button"
@@ -126,7 +129,7 @@ export function SyncedProjectTreePanel({
                     : "rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-muted"
                 }
               >
-                Commit status
+                {t(translation.GitStatus.Title)}
               </button>
             </div>
           </div>

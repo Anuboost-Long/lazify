@@ -1,3 +1,5 @@
+import { translation } from "@renderer/i18n/translation";
+import { BodyText } from "@renderer/shared/typography";
 import { SelectInput, TextInput } from "@renderer/shared/ui/form/FormInput";
 import { ProjectTreeEditorPanel as ProjectTreeEditorPanelShell } from "@renderer/shared/ui/project-tree/core/ProjectTreeEditorPanel";
 import { OptimizedContextMenu } from "@renderer/shared/ui/project-tree-optimized/OptimizedContextMenu";
@@ -5,6 +7,7 @@ import { OptimizedEditorPane } from "@renderer/shared/ui/project-tree-optimized/
 import { findNodeById } from "@renderer/shared/ui/project-tree-optimized/tree-utils";
 import type { OptimizedImportedProjectTreeProps } from "@renderer/shared/ui/project-tree-optimized/types";
 import { useImportedProjectTree } from "./useImportedProjectTree";
+import { useTranslation } from "react-i18next";
 
 export function ImportedProjectTreePanel({
   busy,
@@ -15,6 +18,7 @@ export function ImportedProjectTreePanel({
   projectPath,
   tree,
 }: OptimizedImportedProjectTreeProps) {
+  const { t } = useTranslation();
   const adapter = useImportedProjectTree({
     initialConfirmedStack,
     onSaveTemplate,
@@ -23,18 +27,18 @@ export function ImportedProjectTreePanel({
   });
   const saveDisabledReason = adapter.confirmedStack
     ? null
-    : "Select the project stack before saving the template.";
+    : t(translation.ProjectTree.SelectStackWarning);
 
   return (
     <ProjectTreeEditorPanelShell
       busy={busy}
       mode={editable ? "editable" : "readonly"}
-      eyebrow="Imported structure"
-      title={`Optimized explorer for ${projectName}`}
-      description="This viewer uses metadata-only scanning, lazy file loading, and virtualized rows so large projects stay responsive."
+      eyebrow={t(translation.ProjectTree.ImportedStructure)}
+      title={t(translation.ProjectTree.ExplorerTitle, { project: projectName })}
+      description={t(translation.ProjectTree.ExplorerDesc)}
       projectName={projectName}
       subLabel={projectPath}
-      infoBanner="Scan loaded — folders start collapsed, files load on demand."
+      infoBanner={t(translation.ProjectTree.ScanLoaded)}
       gridClassName="xl:grid-cols-[320px_minmax(0,1fr)]"
       tree={adapter.editableTree}
       expandedIds={adapter.expandedIds}
@@ -68,7 +72,7 @@ export function ImportedProjectTreePanel({
       headerAccessory={
         <>
           <div className="rounded-full border border-emerald-300/30 bg-emerald-100/70 px-3 py-1 text-xs font-semibold text-emerald-900">
-            {adapter.includedFilePaths.size} of {adapter.totalFileCount} files selected
+            {t(translation.ProjectTree.FilesSelected, { selected: adapter.includedFilePaths.size, total: adapter.totalFileCount })}
           </div>
           <SelectInput
             value={adapter.confirmedStack}
@@ -76,7 +80,7 @@ export function ImportedProjectTreePanel({
             icon="code"
             className="w-full max-w-[22rem] min-w-0"
           >
-            <option value="">Select stack before saving</option>
+            <option value="">{t(translation.ProjectTree.SelectStackFirst)}</option>
             <option value="react-vite">React Vite</option>
             <option value="react-next">React Next.js</option>
             <option value="react-cra">React CRA</option>
@@ -90,7 +94,7 @@ export function ImportedProjectTreePanel({
           <TextInput
             value={adapter.templateName}
             onChange={(event) => adapter.setTemplateName(event.target.value)}
-            placeholder="Template name or leave blank for laz-temp-001"
+            placeholder={t(translation.ProjectTree.TemplateNamePlaceholder)}
             icon="package"
             className="w-full max-w-[22rem] min-w-0"
           />
@@ -101,12 +105,12 @@ export function ImportedProjectTreePanel({
             className="inline-flex items-center justify-center rounded-[16px] border border-transparent bg-accent px-4 py-2.5 text-sm font-semibold text-white hover:bg-accentHover disabled:cursor-not-allowed disabled:opacity-60"
             title={saveDisabledReason ?? undefined}
           >
-            {adapter.saveBusy ? "Saving template..." : "Save as template"}
+            {adapter.saveBusy ? t(translation.ProjectTree.SavingTemplate) : t(translation.ProjectTree.SaveAsTemplate)}
           </button>
           {saveDisabledReason ? (
-            <p className="max-w-[22rem] text-xs leading-5 text-amber-800">
+            <BodyText className="max-w-[22rem] text-xs text-amber-800">
               {saveDisabledReason}
-            </p>
+            </BodyText>
           ) : null}
         </>
       }

@@ -1,10 +1,13 @@
 import { appRoute, getWorkspaceProjectRoute } from "@renderer/app/app-routes";
+import { translation } from "@renderer/i18n/translation";
 import { SyncedProjectItem } from "@renderer/features/workspace/components/synced-project-item/SyncedProjectItem";
 import type { SyncedWorkspaceProject } from "@renderer/shared/types/lazify";
+import { BodyText, CardTitle, OverlineText, SectionTitle } from "@renderer/shared/typography";
 import { PageHeader } from "@renderer/shared/ui/PageHeader";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import { Toast } from "@renderer/shared/ui/toast/Toast";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
 interface WorkspacePageProps {
@@ -20,6 +23,7 @@ export function WorkspacePage({
   onSyncProject,
   onRemoveProject,
 }: WorkspacePageProps) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [syncingProjectPath, setSyncingProjectPath] = useState<string | null>(
     null
@@ -34,7 +38,7 @@ export function WorkspacePage({
       await onSyncProject(projectPath);
     } catch (error) {
       setErrorMessage(
-        error instanceof Error ? error.message : "Unable to sync the selected project."
+        error instanceof Error ? error.message : t(translation.Workspace.SyncError)
       );
     } finally {
       setSyncingProjectPath(null);
@@ -44,9 +48,9 @@ export function WorkspacePage({
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        eyebrow="Desktop Workflow Orchestrator"
-        title="Workspace"
-        description="Track the project folders this desktop app is allowed to read, keep their stack metadata fresh, and jump back into creation flow when you need a new scaffold."
+        eyebrow={t(translation.Workspace.Eyebrow)}
+        title={t(translation.Workspace.Title)}
+        description={t(translation.Workspace.Description)}
         icon="folder"
       />
 
@@ -62,19 +66,19 @@ export function WorkspacePage({
         <div className="relative flex flex-col gap-5">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div className="max-w-2xl">
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-accent">
-                Synced projects
-              </p>
-              <h3 className="mt-3 text-2xl font-semibold text-text">
+              <OverlineText>
+                {t(translation.Workspace.SyncedProjects)}
+              </OverlineText>
+              <SectionTitle className="mt-3">
                 {hasSyncedProjects
-                  ? "Projects available in this workspace"
-                  : "No synced projects yet"}
-              </h3>
-              <p className="mt-3 text-sm leading-6 text-muted">
+                  ? t(translation.Workspace.ProjectsAvailable)
+                  : t(translation.Workspace.NoSyncedYet)}
+              </SectionTitle>
+              <BodyText tone="muted" className="mt-3 leading-6">
                 {hasSyncedProjects
-                  ? "Each item stores the approved folder path, detected stack, and the last sync timestamp."
-                  : "Sync a project folder to let the app remember its path and basic stack details for later workspace access."}
-              </p>
+                  ? t(translation.Workspace.ProjectsDesc)
+                  : t(translation.Workspace.NoProjectsDesc)}
+              </BodyText>
             </div>
 
             <div className="flex flex-wrap justify-end gap-3 self-end lg:max-w-sm">
@@ -84,7 +88,7 @@ export function WorkspacePage({
                 className="inline-flex items-center justify-center gap-2 rounded-[18px] border border-transparent bg-accent px-4 py-2.5 text-sm font-semibold text-white shadow-glow hover:bg-accentHover"
               >
                 <UiIcon name="plus" className="h-4 w-4" />
-                Add new project
+                {t(translation.Workspace.AddNewProject)}
               </button>
               <button
                 type="button"
@@ -100,13 +104,13 @@ export function WorkspacePage({
                       : "h-4 w-4"
                   }
                 />
-                Sync project
+                {t(translation.Workspace.SyncProject)}
               </button>
             </div>
           </div>
 
           {errorMessage ? (
-            <Toast title="Already synced" message={errorMessage} onClose={() => setErrorMessage(null)} />
+            <Toast title={t(translation.Workspace.AlreadySynced)} message={errorMessage} onClose={() => setErrorMessage(null)} />
           ) : null}
 
           {hasSyncedProjects ? (
@@ -132,14 +136,12 @@ export function WorkspacePage({
               <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-[22px] border border-border bg-soft text-accent">
                 <UiIcon name="folder" className="h-8 w-8" />
               </div>
-              <p className="mt-5 text-lg font-semibold text-text">
-                Your workspace is empty
-              </p>
-              <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-muted">
-                No project has been synced into this desktop app yet. Add a
-                fresh project from the init flow or sync an existing folder so
-                it appears here.
-              </p>
+              <CardTitle className="mt-5">
+                {t(translation.Workspace.EmptyTitle)}
+              </CardTitle>
+              <BodyText tone="muted" className="mx-auto mt-3 max-w-xl leading-6">
+                {t(translation.Workspace.EmptyLongDesc)}
+              </BodyText>
               <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
                 <button
                   type="button"
@@ -147,7 +149,7 @@ export function WorkspacePage({
                   className="inline-flex items-center justify-center gap-2 rounded-[18px] border border-transparent bg-accent px-4 py-2.5 text-sm font-semibold text-white shadow-glow hover:bg-accentHover"
                 >
                   <UiIcon name="plus" className="h-4 w-4" />
-                  Add new project
+                  {t(translation.Workspace.AddNewProject)}
                 </button>
                 <button
                   type="button"
@@ -163,7 +165,7 @@ export function WorkspacePage({
                         : "h-4 w-4"
                     }
                   />
-                  Sync existing project
+                  {t(translation.Workspace.SyncExisting)}
                 </button>
               </div>
             </div>

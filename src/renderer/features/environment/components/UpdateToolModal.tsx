@@ -1,8 +1,11 @@
 import clsx from "clsx";
 import { useCallback, useEffect, useState } from "react";
+import { translation } from "@renderer/i18n/translation";
+import { BodyText, MonoText, OverlineText, PillText, SectionTitle } from "@renderer/shared/typography";
 import { BaseModal } from "@renderer/shared/ui/modal/BaseModal";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import type { DetectedTool, ToolUpdateInfo } from "@renderer/shared/types/lazify";
+import { useTranslation } from "react-i18next";
 
 interface UpdateToolModalProps {
   tool: DetectedTool | null;
@@ -20,6 +23,7 @@ const ACCENT_LINE = {
 } as const;
 
 export function UpdateToolModal({ tool, updateInfo, open, onClose, onUpdated }: UpdateToolModalProps) {
+  const { t } = useTranslation();
   const [state, setState] = useState<UpdateState>("result");
   const [output, setOutput] = useState("");
   const [success, setSuccess] = useState(false);
@@ -53,10 +57,10 @@ export function UpdateToolModal({ tool, updateInfo, open, onClose, onUpdated }: 
           <div className="pointer-events-none absolute inset-x-0 top-0 h-px" style={ACCENT_LINE} />
           <div className="flex items-center justify-between gap-4">
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-muted">
-                {hasUpdate ? "Update available" : "Up to date"}
-              </p>
-              <h3 className="mt-1 font-display text-2xl text-text">{tool?.displayName}</h3>
+              <OverlineText className="text-muted">
+                {hasUpdate ? t(translation.UpdateToolModal.UpdateAvailable) : t(translation.UpdateToolModal.UpToDate)}
+              </OverlineText>
+              <SectionTitle className="mt-1 text-2xl">{tool?.displayName}</SectionTitle>
             </div>
             {state !== "updating" && (
               <button
@@ -80,11 +84,13 @@ export function UpdateToolModal({ tool, updateInfo, open, onClose, onUpdated }: 
                 <UiIcon name="check-circle" className="h-4 w-4" />
               </div>
               <div>
-                <p className="text-sm font-semibold text-success">Already up to date</p>
-                <p className="mt-1 text-xs leading-5 text-muted">
-                  {tool?.displayName}
-                  {norm(tool?.version ?? null) ? ` (${norm(tool?.version ?? null)})` : ""} is the latest version.
-                </p>
+                <BodyText className="font-semibold text-success">{t(translation.UpdateToolModal.AlreadyLatest)}</BodyText>
+                <BodyText className="mt-1 text-xs text-muted">
+                  {t(translation.UpdateToolModal.AlreadyLatestDesc, {
+                    name: tool?.displayName,
+                    version: norm(tool?.version ?? null) ? `(${norm(tool?.version ?? null)})` : ""
+                  })}
+                </BodyText>
               </div>
             </div>
           )}
@@ -98,20 +104,20 @@ export function UpdateToolModal({ tool, updateInfo, open, onClose, onUpdated }: 
                     <UiIcon name="activity" className="h-4 w-4" />
                   </div>
                   <div className="flex flex-1 items-center gap-2">
-                    <span className="rounded-full border border-border bg-bg px-2.5 py-0.5 font-mono text-[10px] font-semibold text-muted">
-                      {norm(tool.version) ?? "current"}
-                    </span>
+                    <MonoText as="span" className="rounded-full border border-border bg-bg px-2.5 py-0.5 text-[10px] font-semibold text-muted">
+                      {norm(tool.version) ?? t(translation.UpdateToolModal.Current)}
+                    </MonoText>
                     <UiIcon name="arrow-right" className="h-3 w-3 shrink-0 text-muted/50" />
-                    <span className="rounded-full border border-accent/25 bg-accent/10 px-2.5 py-0.5 font-mono text-[10px] font-semibold text-accent">
+                    <MonoText as="span" className="rounded-full border border-accent/25 bg-accent/10 px-2.5 py-0.5 text-[10px] font-semibold text-accent">
                       {updateInfo?.latestVersion ? norm(updateInfo.latestVersion) : "latest"}
-                    </span>
+                    </MonoText>
                   </div>
                 </div>
               </div>
 
               <div className="rounded-[16px] border border-border bg-bg px-4 py-3">
-                <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-muted">Command</p>
-                <code className="break-all font-mono text-sm text-accent">{tool.updateCommand}</code>
+                <OverlineText className="mb-2 text-muted">{t(translation.GlobalTerm.Command)}</OverlineText>
+                <MonoText as="code" className="break-all text-sm text-accent">{tool.updateCommand}</MonoText>
               </div>
             </div>
           )}
@@ -123,8 +129,8 @@ export function UpdateToolModal({ tool, updateInfo, open, onClose, onUpdated }: 
                 <UiIcon name="refresh-circle" className="h-6 w-6 animate-spin" />
               </div>
               <div className="text-center">
-                <p className="text-sm font-semibold text-text">Updating {tool?.displayName}…</p>
-                <p className="mt-1 text-xs text-muted">This may take a moment.</p>
+                <BodyText className="font-semibold text-text">{t(translation.UpdateToolModal.Updating, { name: tool?.displayName })}</BodyText>
+                <BodyText className="mt-1 text-xs text-muted">{t(translation.UpdateToolModal.UpdatingDesc)}</BodyText>
               </div>
             </div>
           )}
@@ -144,12 +150,12 @@ export function UpdateToolModal({ tool, updateInfo, open, onClose, onUpdated }: 
                     <UiIcon name={success ? "check-circle" : "warning-triangle"} className="h-4 w-4" />
                   </div>
                   <div>
-                    <p className={clsx("text-sm font-semibold", success ? "text-success" : "text-error")}>
-                      {success ? `${tool?.displayName} updated` : "Update failed"}
-                    </p>
-                    <p className="mt-1 text-xs leading-5 text-muted">
-                      {success ? "The environment has been refreshed." : "Check the output below for details."}
-                    </p>
+                    <BodyText className={clsx("font-semibold", success ? "text-success" : "text-error")}>
+                      {success ? t(translation.UpdateToolModal.UpdateSuccess, { name: tool?.displayName }) : t(translation.UpdateToolModal.UpdateFailed)}
+                    </BodyText>
+                    <BodyText className="mt-1 text-xs text-muted">
+                      {success ? t(translation.UpdateToolModal.SuccessDesc) : t(translation.UpdateToolModal.FailedDesc)}
+                    </BodyText>
                   </div>
                 </div>
               </div>
@@ -171,14 +177,14 @@ export function UpdateToolModal({ tool, updateInfo, open, onClose, onUpdated }: 
                 onClick={onClose}
                 className="rounded-[16px] border border-border bg-bg px-4 py-2.5 text-sm font-semibold text-muted transition-colors duration-150 hover:border-accent/30 hover:text-text"
               >
-                Cancel
+                {t(translation.GlobalTerm.Cancel)}
               </button>
               <button
                 type="button"
                 onClick={handleUpdate}
                 className="rounded-[16px] border border-transparent bg-accent px-5 py-2.5 text-sm font-semibold text-bg transition-[background-color] duration-150 hover:bg-accentHover"
               >
-                Update
+                {t(translation.GlobalTerm.Update)}
               </button>
             </>
           )}
@@ -189,7 +195,7 @@ export function UpdateToolModal({ tool, updateInfo, open, onClose, onUpdated }: 
               onClick={state === "done" && success ? () => { onUpdated(tool!.name); onClose(); } : onClose}
               className="rounded-[16px] border border-transparent bg-accent px-5 py-2.5 text-sm font-semibold text-bg transition-[background-color] duration-150 hover:bg-accentHover"
             >
-              Done
+              {t(translation.GlobalTerm.Done)}
             </button>
           )}
         </div>

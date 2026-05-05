@@ -1,4 +1,7 @@
+import { translation } from "@renderer/i18n/translation";
+import { PillText } from "@renderer/shared/typography";
 import type { TreeNode } from "@renderer/shared/ui/project-tree/types";
+import { useTranslation } from "react-i18next";
 
 interface ContextMenuProps {
   contextMenu: { x: number; y: number } | null;
@@ -17,13 +20,14 @@ export function ContextMenu({
   onRename,
   onDelete,
 }: ContextMenuProps) {
+  const { t } = useTranslation();
   if (!contextMenu || !node) return null;
 
   const menuItems = [
-    { key: "new-file",   label: "New file",   hint: "+",   onClick: onNewFile },
-    { key: "new-folder", label: "New folder", hint: "+",   onClick: onNewFolder },
-    { key: "rename",     label: "Rename",     hint: "F2",  onClick: onRename },
-    { key: "delete",     label: "Delete",     hint: "Del", onClick: onDelete },
+    { key: "new-file",   label: translation.ProjectTree.NewFile,   hint: "+",   onClick: onNewFile },
+    { key: "new-folder", label: translation.ProjectTree.NewFolder, hint: "+",   onClick: onNewFolder },
+    { key: "rename",     label: translation.ProjectTree.ContextRename,     hint: "F2",  onClick: onRename },
+    { key: "delete",     label: translation.ProjectTree.ContextDelete,     hint: "Del", onClick: onDelete },
   ];
 
   const menuWidth = 160;
@@ -43,10 +47,10 @@ export function ContextMenu({
           onClick={item.onClick}
           className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm text-text transition-colors hover:bg-accent/10 hover:text-accent"
         >
-          {item.label}
-          <span className="text-[10px] uppercase tracking-[0.18em] text-muted">
+          {t(item.label)}
+          <PillText as="span" className="text-muted">
             {item.hint}
-          </span>
+          </PillText>
         </button>
       ))}
     </div>

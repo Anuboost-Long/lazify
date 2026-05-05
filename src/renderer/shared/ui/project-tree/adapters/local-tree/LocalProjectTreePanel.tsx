@@ -1,3 +1,4 @@
+import { translation } from "@renderer/i18n/translation";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import { ProjectTreeEditorPanel as ProjectTreeEditorPanelShell } from "@renderer/shared/ui/project-tree/core/ProjectTreeEditorPanel";
 import { ContextMenu } from "@renderer/shared/ui/project-tree/ContextMenu";
@@ -5,6 +6,7 @@ import { EditorPane } from "@renderer/shared/ui/project-tree/EditorPane";
 import { ModuleSheet } from "@renderer/shared/ui/project-tree/ModuleSheet";
 import type { ProjectTreeEditorPanelProps } from "@renderer/shared/ui/project-tree/types";
 import { useLocalProjectTree } from "./useLocalProjectTree";
+import { useTranslation } from "react-i18next";
 
 export function LocalProjectTreePanel({
   busy,
@@ -26,6 +28,7 @@ export function LocalProjectTreePanel({
   onSecondaryAction,
   moduleSheet,
 }: ProjectTreeEditorPanelProps) {
+  const { t } = useTranslation();
   const adapter = useLocalProjectTree({
     initialTree,
     onTreeChange,
@@ -43,7 +46,7 @@ export function LocalProjectTreePanel({
       description={description}
       projectName={projectName}
       subLabel={templateLabel}
-      infoBanner="Scaffold essentials are locked"
+      infoBanner={t(translation.ProjectTree.EssentialsLocked)}
       tree={adapter.tree}
       expandedIds={adapter.expandedIds}
       selectedId={adapter.selectedId}

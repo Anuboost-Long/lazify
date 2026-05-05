@@ -1,6 +1,8 @@
+import { translation } from "@renderer/i18n/translation";
 import { ProjectTreeEditorPanel } from "@renderer/shared/ui/project-tree/ProjectTreeEditorPanel";
 import type { TreeNode } from "@renderer/shared/ui/project-tree/types";
 import type { ImportedTemplateSnapshot } from "@renderer/shared/types/lazify";
+import { useTranslation } from "react-i18next";
 
 interface ProjectViewPanelProps {
   busy: boolean;
@@ -25,12 +27,14 @@ export function ProjectViewPanel({
   savedTree,
   onTreeChange
 }: ProjectViewPanelProps) {
+  const { t } = useTranslation();
+
   return (
     <ProjectTreeEditorPanel
       busy={busy}
-      eyebrow="Project view"
-      title="Inspect and shape the project tree"
-      description="This view reuses the explorer and editor experience from setup, without module toggles. Use it as a focused project tree workspace for upcoming functionality."
+      eyebrow={t(translation.ProjectTree.ProjectView)}
+      title={t(translation.ProjectTree.ProjectViewTitle)}
+      description={t(translation.ProjectTree.ProjectViewDesc)}
       projectName={projectName}
       templateId={templateId}
       templateLabel={templateLabel}

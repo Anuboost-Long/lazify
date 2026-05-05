@@ -1,5 +1,8 @@
+import { translation } from "@renderer/i18n/translation";
 import type { ImportedTemplateOption } from "@renderer/shared/types/lazify";
+import { BodyText } from "@renderer/shared/typography";
 import { ImportedTemplateCard } from "@renderer/shared/ui/ImportedTemplateCard";
+import { useTranslation } from "react-i18next";
 
 interface ImportedTemplatePickerProps {
   templates: ImportedTemplateOption[];
@@ -12,12 +15,14 @@ export function ImportedTemplatePicker({
   selectedTemplateId,
   onSelect
 }: ImportedTemplatePickerProps) {
+  const { t } = useTranslation();
+
   if (templates.length === 0) {
     return (
       <section className="rounded-[24px] border border-border bg-soft p-6 shadow-panel">
-        <p className="text-sm leading-6 text-muted">
-          No imported templates have been saved yet. Use Import Project first, then save one as JSON.
-        </p>
+        <BodyText tone="muted" className="leading-6">
+          {t(translation.InitProject.NoTemplatesSaved)}
+        </BodyText>
       </section>
     );
   }

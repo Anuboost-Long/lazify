@@ -1,7 +1,10 @@
 import { useState } from "react";
+import { translation } from "@renderer/i18n/translation";
+import { BodyText, CardTitle, OverlineText } from "@renderer/shared/typography";
 import UiIcon, { type UiIconName } from "@renderer/shared/ui/icons/UiIcon";
 import { BaseModal } from "@renderer/shared/ui/modal/BaseModal";
 import type { ProjectGitStatusResult } from "@renderer/shared/types/lazify";
+import { useTranslation } from "react-i18next";
 
 interface InfoChipProps {
   icon: UiIconName;
@@ -14,6 +17,7 @@ function InfoChip({
   label,
   value
 }: InfoChipProps) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
 
   return (
@@ -28,12 +32,12 @@ function InfoChip({
           <UiIcon name={icon} className="h-4 w-4" />
         </div>
         <div className="min-w-0">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted">
+          <OverlineText className="text-muted">
             {label}
-          </p>
-          <p className="truncate text-sm font-semibold text-text">
+          </OverlineText>
+          <CardTitle className="truncate text-sm">
             {value}
-          </p>
+          </CardTitle>
         </div>
       </button>
       <BaseModal
@@ -48,12 +52,12 @@ function InfoChip({
                 <UiIcon name={icon} className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted">
+                <OverlineText className="text-muted">
                   {label}
-                </p>
-                <p className="mt-1 text-lg font-semibold text-text">
-                  Full information
-                </p>
+                </OverlineText>
+                <CardTitle className="mt-1 text-lg">
+                  {t(translation.Workspace.FullInformation)}
+                </CardTitle>
               </div>
             </div>
             <button
@@ -66,9 +70,9 @@ function InfoChip({
             </button>
           </div>
           <div className="mt-5 rounded-[18px] border border-border bg-bg px-4 py-4">
-            <p className="whitespace-pre-wrap break-words text-sm leading-6 text-text">
+            <BodyText className="whitespace-pre-wrap break-words text-text">
               {value}
-            </p>
+            </BodyText>
           </div>
         </div>
       </BaseModal>
@@ -85,13 +89,15 @@ export function ProjectInfoStrip({
   gitStatus,
   loading
 }: ProjectInfoStripProps) {
+  const { t } = useTranslation();
+
   if (loading) {
     return (
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <InfoChip icon="refresh-circle" label="Git repo" value="Checking repository..." />
-        <InfoChip icon="activity" label="Branches" value="Checking branches..." />
-        <InfoChip icon="check-circle" label="Current branch" value="Checking branch..." />
-        <InfoChip icon="code" label="Working tree" value="Checking status..." />
+        <InfoChip icon="refresh-circle" label={t(translation.GitStatus.GitRepo)} value={t(translation.GitStatus.CheckingRepo)} />
+        <InfoChip icon="activity" label={t(translation.GitStatus.Branches)} value={t(translation.GitStatus.CheckingBranches)} />
+        <InfoChip icon="check-circle" label={t(translation.GitStatus.CurrentBranch)} value={t(translation.GitStatus.CheckingBranch)} />
+        <InfoChip icon="code" label={t(translation.GitStatus.WorkingTree)} value={t(translation.GitStatus.CheckingStatusShort)} />
       </div>
     );
   }
@@ -99,10 +105,10 @@ export function ProjectInfoStrip({
   if (!gitStatus?.isGitRepo) {
     return (
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <InfoChip icon="folder" label="Git repo" value="No linked repository" />
-        <InfoChip icon="activity" label="Branches" value="Unavailable" />
-        <InfoChip icon="check-circle" label="Current branch" value="Unavailable" />
-        <InfoChip icon="code" label="Working tree" value="Unavailable" />
+        <InfoChip icon="folder" label={t(translation.GitStatus.GitRepo)} value={t(translation.GitStatus.NoLinkedRepo)} />
+        <InfoChip icon="activity" label={t(translation.GitStatus.Branches)} value={t(translation.GlobalTerm.Unavailable)} />
+        <InfoChip icon="check-circle" label={t(translation.GitStatus.CurrentBranch)} value={t(translation.GlobalTerm.Unavailable)} />
+        <InfoChip icon="code" label={t(translation.GitStatus.WorkingTree)} value={t(translation.GlobalTerm.Unavailable)} />
       </div>
     );
   }
@@ -111,23 +117,23 @@ export function ProjectInfoStrip({
     <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
       <InfoChip
         icon="folder"
-        label="Git repo"
-        value={gitStatus.remoteUrl || "N/A"}
+        label={t(translation.GitStatus.GitRepo)}
+        value={gitStatus.remoteUrl || t(translation.GlobalTerm.NotAvailable)}
       />
       <InfoChip
         icon="activity"
-        label="Branches"
-        value={`${gitStatus.branches.length} branch${gitStatus.branches.length === 1 ? "" : "es"}`}
+        label={t(translation.GitStatus.Branches)}
+        value={t(gitStatus.branches.length === 1 ? translation.GitStatus.BranchCountOne : translation.GitStatus.BranchCountMany, { count: gitStatus.branches.length })}
       />
       <InfoChip
         icon="check-circle"
-        label="Current branch"
-        value={gitStatus.branch ?? "Detached HEAD"}
+        label={t(translation.GitStatus.CurrentBranch)}
+        value={gitStatus.branch ?? t(translation.GitStatus.DetachedHead)}
       />
       <InfoChip
         icon="code"
-        label="Working tree"
-        value={gitStatus.hasUncommittedChanges ? `${gitStatus.entries.length} uncommitted file${gitStatus.entries.length === 1 ? "" : "s"}` : "Clean"}
+        label={t(translation.GitStatus.WorkingTree)}
+        value={gitStatus.hasUncommittedChanges ? t(gitStatus.entries.length === 1 ? translation.GitStatus.UncommittedOne : translation.GitStatus.UncommittedMany, { count: gitStatus.entries.length }) : t(translation.GitStatus.Clean)}
       />
     </div>
   );

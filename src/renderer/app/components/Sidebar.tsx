@@ -2,8 +2,11 @@ import type {
   AppPageId,
   AppPageLink,
 } from "@renderer/app/app-sidebar.constant";
+import { translation } from "@renderer/i18n/translation";
+import { BodyText, CardTitle, Typography } from "@renderer/shared/typography";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import clsx from "clsx";
+import { useTranslation } from "react-i18next";
 
 interface SidebarProps {
   pages: AppPageLink[];
@@ -26,6 +29,8 @@ export function Sidebar({
   onNavigate,
   onToggleTheme,
 }: SidebarProps) {
+  const { t } = useTranslation();
+
   return (
     <aside
       className={clsx(
@@ -45,8 +50,8 @@ export function Sidebar({
               "rounded-xl border border-transparent bg-transparent",
               "text-muted hover:border-border hover:bg-bg hover:text-text"
             )}
-            aria-label={collapsed ? "Open sidebar" : "Collapse sidebar"}
-            title={collapsed ? "Open sidebar" : "Collapse sidebar"}
+            aria-label={collapsed ? t(translation.Sidebar.Open) : t(translation.Sidebar.Collapse)}
+            title={collapsed ? t(translation.Sidebar.Open) : t(translation.Sidebar.Collapse)}
           >
             <UiIcon
               name={collapsed ? "menu" : "arrow-left"}
@@ -56,8 +61,8 @@ export function Sidebar({
 
           {!collapsed ? (
             <div className="min-w-0">
-              <p className="text-sm font-semibold text-text">Lazify</p>
-              <p className="text-xs text-muted">Desktop workflow</p>
+              <CardTitle className="text-sm">{t(translation.Sidebar.AppName)}</CardTitle>
+              <BodyText className="text-xs text-muted">{t(translation.Sidebar.AppSubtitle)}</BodyText>
             </div>
           ) : null}
         </div>
@@ -70,11 +75,15 @@ export function Sidebar({
             "rounded-xl border border-border bg-bg px-3 py-3",
             "text-sm font-medium text-text hover:border-accent"
           )}
-          aria-label="Start new workflow"
-          title="Start new workflow"
+          aria-label={t(translation.Sidebar.StartNewWorkflow)}
+          title={t(translation.Sidebar.StartNewWorkflow)}
         >
           <UiIcon name="play" className="h-4 w-4 text-accent" />
-          {!collapsed ? <span>New workflow</span> : null}
+          {!collapsed ? (
+            <Typography as="span" variant="body" className="text-inherit">
+              {t(translation.Sidebar.NewWorkflow)}
+            </Typography>
+          ) : null}
         </button>
 
         <nav className="flex flex-1 flex-col gap-1">
@@ -97,8 +106,8 @@ export function Sidebar({
                     ? "bg-bg text-text"
                     : "text-muted hover:bg-bg/70 hover:text-text"
                 )}
-                aria-label={page.label}
-                title={page.label}
+                aria-label={t(page.label)}
+                title={t(page.label)}
               >
                 <UiIcon
                   name={page.icon}
@@ -110,12 +119,12 @@ export function Sidebar({
 
                 {!collapsed ? (
                   <div className="min-w-0">
-                    <p className="truncate font-medium text-inherit">
-                      {page.label}
-                    </p>
-                    <p className="truncate text-xs text-muted">
-                      {page.description}
-                    </p>
+                    <Typography variant="body" className="truncate font-medium text-inherit">
+                      {t(page.label)}
+                    </Typography>
+                    <BodyText className="truncate text-xs text-muted">
+                      {t(page.description)}
+                    </BodyText>
                   </div>
                 ) : null}
               </button>
@@ -132,8 +141,8 @@ export function Sidebar({
               "text-sm text-muted hover:bg-bg/70 hover:text-text",
               collapsed && "justify-center px-0"
             )}
-            aria-label="Toggle theme"
-            title={`Theme: ${theme}`}
+            aria-label={t(translation.Sidebar.ToggleTheme)}
+            title={`${t(translation.Sidebar.Theme)}: ${theme}`}
           >
             <UiIcon
               name={theme === "dark" ? "sun" : "moon"}
@@ -141,8 +150,12 @@ export function Sidebar({
             />
             {!collapsed ? (
               <div className="min-w-0">
-                <p className="font-medium text-text">Theme</p>
-                <p className="text-xs capitalize text-muted">{theme}</p>
+                <Typography variant="body" className="font-medium text-text">
+                  {t(translation.Sidebar.Theme)}
+                </Typography>
+                <BodyText className="text-xs capitalize text-muted">
+                  {theme === "dark" ? t(translation.Settings.Dark) : t(translation.Settings.Light)}
+                </BodyText>
               </div>
             ) : null}
           </button>

@@ -1,6 +1,8 @@
+import { translation } from "@renderer/i18n/translation";
 import { ProjectTreeEditorPanel } from "@renderer/shared/ui/project-tree/ProjectTreeEditorPanel";
 import type { FileStructureSetupPanelProps } from "@renderer/shared/ui/project-tree/types";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 export function FileStructureSetupPanel({
   busy,
@@ -13,19 +15,20 @@ export function FileStructureSetupPanel({
   onTreeChange,
   onToggleStructurePath
 }: FileStructureSetupPanelProps) {
+  const { t } = useTranslation();
   const [moduleSheetOpen, setModuleSheetOpen] = useState(false);
   const templateLabel =
     savedConfig.sourceMode === "imported"
-      ? savedConfig.importedTemplateName ?? "Imported template"
-      : templateOptions.find((template) => template.id === savedConfig.templateId)?.label ?? "Template";
+      ? savedConfig.importedTemplateName ?? t(translation.Templates.ImportedTemplate)
+      : templateOptions.find((template) => template.id === savedConfig.templateId)?.label ?? t(translation.FileStructure.Template);
   const templateId = savedConfig.sourceMode === "imported" ? "imported-template" : savedConfig.templateId ?? "";
 
   return (
     <ProjectTreeEditorPanel
       busy={busy}
-      eyebrow="File structure"
-      title="Configure the project tree like a real explorer"
-      description="Your setup config is saved. Now edit the starter structure directly: add files, create folders, rename entries, and reshape the scaffold before generation."
+      eyebrow={t(translation.FileStructure.Title)}
+      title={t(translation.FileStructure.Subtitle)}
+      description={t(translation.FileStructure.Desc)}
       projectName={savedConfig.projectName}
       templateId={templateId}
       templateLabel={templateLabel}
@@ -33,10 +36,10 @@ export function FileStructureSetupPanel({
       initialTree={importedTemplate?.tree ?? null}
       useScaffoldBaseline={savedConfig.sourceMode === "stack"}
       showModuleSelectionToggle={savedConfig.sourceMode === "stack"}
-      primaryActionLabel="Create project"
+      primaryActionLabel={t(translation.FileStructure.CreateProject)}
       onPrimaryAction={onCreateProject}
       onTreeChange={onTreeChange}
-      secondaryActionLabel="Back to config"
+      secondaryActionLabel={t(translation.FileStructure.BackToConfig)}
       onSecondaryAction={onBackToConfig}
       moduleSheet={{
         open: moduleSheetOpen,

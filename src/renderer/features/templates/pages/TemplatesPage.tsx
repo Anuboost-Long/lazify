@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { translation } from "@renderer/i18n/translation";
+import { BodyText, OverlineText } from "@renderer/shared/typography";
 import { PageHeader } from "@renderer/shared/ui/PageHeader";
 import { ProjectTreeEditorPanel } from "@renderer/shared/ui/project-tree/ProjectTreeEditorPanel";
 import type { TreeNode } from "@renderer/shared/ui/project-tree/types";
@@ -9,6 +11,7 @@ import type {
 import { TextInput } from "@renderer/shared/ui/form/FormInput";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import { ImportedTemplateCard } from "@renderer/shared/ui/ImportedTemplateCard";
+import { useTranslation } from "react-i18next";
 
 interface TemplatesPageProps {
   importedTemplateOptions: ImportedTemplateOption[];
@@ -30,6 +33,7 @@ export function TemplatesPage({
   onSaveTemplate,
   onDeleteTemplate,
 }: TemplatesPageProps) {
+  const { t } = useTranslation();
   const [draftName, setDraftName] = useState("");
   const [draftTree, setDraftTree] = useState<TreeNode[]>([]);
   const [busy, setBusy] = useState(false);
@@ -57,9 +61,9 @@ export function TemplatesPage({
       });
       setDraftName(savedTemplate.name);
       setDraftTree(savedTemplate.tree);
-      setStatusMessage(`Saved changes to "${savedTemplate.name}".`);
+      setStatusMessage(t(translation.Templates.SavedSuccess, { name: savedTemplate.name }));
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "Unable to update the imported template.");
+      setErrorMessage(error instanceof Error ? error.message : t(translation.Templates.UpdateError));
     } finally {
       setBusy(false);
     }
@@ -70,7 +74,7 @@ export function TemplatesPage({
       return;
     }
 
-    const confirmed = window.confirm(`Remove imported template "${selectedImportedTemplate.name}"?`);
+    const confirmed = window.confirm(t(translation.Templates.RemoveConfirm, { name: selectedImportedTemplate.name }));
 
     if (!confirmed) {
       return;
@@ -81,9 +85,9 @@ export function TemplatesPage({
       setErrorMessage(null);
       const removedTemplateName = selectedImportedTemplate.name;
       await onDeleteTemplate(selectedImportedTemplate.id);
-      setStatusMessage(`Removed "${removedTemplateName}" from saved imported templates.`);
+      setStatusMessage(t(translation.Templates.RemovedSuccess, { name: removedTemplateName }));
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "Unable to remove the imported template.");
+      setErrorMessage(error instanceof Error ? error.message : t(translation.Templates.RemoveError));
     } finally {
       setBusy(false);
     }
@@ -96,16 +100,16 @@ export function TemplatesPage({
   ) => {
     event.stopPropagation();
 
-    const confirmed = window.confirm(`Remove imported template "${templateName}"?`);
+    const confirmed = window.confirm(t(translation.Templates.RemoveConfirm, { name: templateName }));
     if (!confirmed) return;
 
     try {
       setDeletingId(templateId);
       setErrorMessage(null);
       await onDeleteTemplate(templateId);
-      setStatusMessage(`Removed "${templateName}" from saved imported templates.`);
+      setStatusMessage(t(translation.Templates.RemovedSuccess, { name: templateName }));
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "Unable to remove the imported template.");
+      setErrorMessage(error instanceof Error ? error.message : t(translation.Templates.RemoveError));
     } finally {
       setDeletingId(null);
     }
@@ -114,17 +118,17 @@ export function TemplatesPage({
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        eyebrow="Imported Templates"
-        title="Templates"
-        description="Review saved imported project templates, rename them, edit their file trees, and remove snapshots you no longer want to keep."
+        eyebrow={t(translation.Templates.Eyebrow)}
+        title={t(translation.Templates.Title)}
+        description={t(translation.Templates.Description)}
         icon="package"
       />
 
       {importedTemplateOptions.length === 0 ? (
         <section className="rounded-[24px] border border-border bg-soft p-6 shadow-panel">
-          <p className="text-sm leading-6 text-muted">
-            No imported templates have been saved yet. Go to Import Project, choose the files to keep, and save the result as a template.
-          </p>
+          <BodyText tone="muted" className="leading-6">
+            {t(translation.Templates.Empty)}
+          </BodyText>
         </section>
       ) : (
         <>
@@ -147,13 +151,13 @@ export function TemplatesPage({
               <section className="rounded-[24px] border border-border bg-soft p-6 shadow-panel">
                 <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
                   <label className="block flex-1">
-                    <span className="text-xs font-semibold uppercase tracking-[0.22em] text-accent">
-                      Template name
-                    </span>
+                    <OverlineText as="span" className="tracking-[0.22em]">
+                      {t(translation.Templates.TemplateName)}
+                    </OverlineText>
                     <TextInput
                       value={draftName}
                       onChange={(event) => setDraftName(event.target.value)}
-                      placeholder="Imported template"
+                      placeholder={t(translation.Templates.ImportedTemplate)}
                       icon="package"
                       className="mt-3"
                     />
@@ -166,7 +170,7 @@ export function TemplatesPage({
                       onClick={() => void handleDelete()}
                       className="inline-flex items-center justify-center rounded-[16px] border border-red-300 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700 hover:border-red-400 disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                      Remove template
+                      {t(translation.Templates.RemoveTemplate)}
                     </button>
                     <button
                       type="button"
@@ -174,28 +178,28 @@ export function TemplatesPage({
                       onClick={() => void handleSave()}
                       className="inline-flex items-center justify-center rounded-[16px] border border-transparent bg-accent px-4 py-3 text-sm font-semibold text-white hover:bg-accentHover disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                      Save template changes
+                      {t(translation.Templates.SaveChanges)}
                     </button>
                   </div>
                 </div>
 
                 {errorMessage ? (
-                  <p className="mt-4 rounded-[16px] border border-red-300/40 bg-red-50 px-4 py-3 text-sm text-red-700">
+                  <BodyText className="mt-4 rounded-[16px] border border-red-300/40 bg-red-50 px-4 py-3 text-red-700">
                     {errorMessage}
-                  </p>
+                  </BodyText>
                 ) : null}
                 {statusMessage ? (
-                  <p className="mt-4 rounded-[16px] border border-emerald-300/40 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+                  <BodyText className="mt-4 rounded-[16px] border border-emerald-300/40 bg-emerald-50 px-4 py-3 text-emerald-800">
                     {statusMessage}
-                  </p>
+                  </BodyText>
                 ) : null}
               </section>
 
               <ProjectTreeEditorPanel
                 busy={busy}
-                eyebrow="Template Editor"
-                title="Edit saved imported template"
-                description="Adjust the saved file tree before reusing this import as a starting point for the next project."
+                eyebrow={t(translation.Templates.EditorEyebrow)}
+                title={t(translation.Templates.EditorTitle)}
+                description={t(translation.Templates.EditorDesc)}
                 projectName={selectedImportedTemplate.name}
                 templateId="imported-template"
                 templateLabel={selectedImportedTemplate.name}
@@ -203,7 +207,7 @@ export function TemplatesPage({
                 initialTree={selectedImportedTemplate.tree}
                 useScaffoldBaseline={false}
                 replaceTreeOnInitialChange
-                primaryActionLabel="Save template changes"
+                primaryActionLabel={t(translation.Templates.SaveChanges)}
                 onPrimaryAction={() => void handleSave()}
                 onTreeChange={setDraftTree}
               />

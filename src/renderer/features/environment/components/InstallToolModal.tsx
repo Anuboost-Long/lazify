@@ -1,8 +1,11 @@
 import clsx from "clsx";
 import { useCallback, useEffect, useState } from "react";
+import { translation } from "@renderer/i18n/translation";
+import { BodyText, MonoText, OverlineText, SectionTitle } from "@renderer/shared/typography";
 import { BaseModal } from "@renderer/shared/ui/modal/BaseModal";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import type { DetectedTool } from "@renderer/shared/types/lazify";
+import { useTranslation } from "react-i18next";
 
 interface InstallToolModalProps {
   tool: DetectedTool | null;
@@ -19,6 +22,7 @@ const ACCENT_LINE = {
 } as const;
 
 export function InstallToolModal({ tool, open, onClose, onInstalled }: InstallToolModalProps) {
+  const { t } = useTranslation();
   const [state, setState] = useState<InstallState>("confirm");
   const [output, setOutput] = useState("");
   const [success, setSuccess] = useState(false);
@@ -50,8 +54,8 @@ export function InstallToolModal({ tool, open, onClose, onInstalled }: InstallTo
           <div className="pointer-events-none absolute inset-x-0 top-0 h-px" style={ACCENT_LINE} />
           <div className="flex items-center justify-between gap-4">
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-muted">Install Tool</p>
-              <h3 className="mt-1 font-display text-2xl text-text">{tool?.displayName}</h3>
+              <OverlineText className="text-muted">{t(translation.InstallToolModal.Title)}</OverlineText>
+              <SectionTitle className="mt-1 text-2xl">{tool?.displayName}</SectionTitle>
             </div>
             {state !== "installing" && (
               <button
@@ -71,20 +75,19 @@ export function InstallToolModal({ tool, open, onClose, onInstalled }: InstallTo
           {/* Confirm */}
           {state === "confirm" && tool && (
             <div className="space-y-4">
-              <p className="text-sm leading-6 text-muted">
-                <span className="font-semibold text-text">{tool.displayName}</span> is not installed on this machine.
-                The following command will be run to install it:
-              </p>
+              <BodyText className="text-muted">
+                {t(translation.InstallToolModal.WillRun, { name: tool.displayName })}
+              </BodyText>
 
               <div className="rounded-[16px] border border-border bg-bg px-4 py-3">
-                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted mb-2">Command</p>
-                <code className="font-mono text-sm text-accent break-all">{tool.installCommand}</code>
+                <OverlineText className="mb-2 text-muted">{t(translation.GlobalTerm.Command)}</OverlineText>
+                <MonoText as="code" className="break-all text-sm text-accent">{tool.installCommand}</MonoText>
               </div>
 
               {tool.installNote && (
                 <div className="flex items-start gap-2.5 rounded-[16px] border border-border/60 bg-bg/60 px-3.5 py-3">
                   <UiIcon name="warning-triangle" className="mt-0.5 h-3.5 w-3.5 shrink-0 text-warning" />
-                  <p className="text-xs leading-5 text-muted">{tool.installNote}</p>
+                  <BodyText className="text-xs text-muted">{tool.installNote}</BodyText>
                 </div>
               )}
             </div>
@@ -97,8 +100,8 @@ export function InstallToolModal({ tool, open, onClose, onInstalled }: InstallTo
                 <UiIcon name="refresh-circle" className="h-6 w-6 animate-spin" />
               </div>
               <div className="text-center">
-                <p className="text-sm font-semibold text-text">Installing {tool?.displayName}…</p>
-                <p className="mt-1 text-xs text-muted">This may take a moment.</p>
+                <BodyText className="font-semibold text-text">{t(translation.InstallToolModal.Installing, { name: tool?.displayName })}</BodyText>
+                <BodyText className="mt-1 text-xs text-muted">{t(translation.InstallToolModal.InstallingDesc)}</BodyText>
               </div>
             </div>
           )}
@@ -120,14 +123,14 @@ export function InstallToolModal({ tool, open, onClose, onInstalled }: InstallTo
                     <UiIcon name={success ? "check-circle" : "warning-triangle"} className="h-4 w-4" />
                   </div>
                   <div>
-                    <p className={clsx("text-sm font-semibold", success ? "text-success" : "text-error")}>
-                      {success ? `${tool?.displayName} installed` : "Installation failed"}
-                    </p>
-                    <p className="mt-1 text-xs leading-5 text-muted">
+                    <BodyText className={clsx("font-semibold", success ? "text-success" : "text-error")}>
+                      {success ? t(translation.InstallToolModal.InstallSuccess, { name: tool?.displayName }) : t(translation.InstallToolModal.InstallFailed)}
+                    </BodyText>
+                    <BodyText className="mt-1 text-xs text-muted">
                       {success
-                        ? "The tool is now available. The environment has been refreshed."
-                        : "Check the output below for details."}
-                    </p>
+                        ? t(translation.InstallToolModal.SuccessDesc)
+                        : t(translation.InstallToolModal.FailedDesc)}
+                    </BodyText>
                   </div>
                 </div>
               </div>
@@ -150,14 +153,14 @@ export function InstallToolModal({ tool, open, onClose, onInstalled }: InstallTo
                 onClick={onClose}
                 className="rounded-[16px] border border-border bg-bg px-4 py-2.5 text-sm font-semibold text-muted transition-colors duration-150 hover:border-accent/30 hover:text-text"
               >
-                Cancel
+                {t(translation.GlobalTerm.Cancel)}
               </button>
               <button
                 type="button"
                 onClick={handleInstall}
                 className="rounded-[16px] border border-transparent bg-accent px-5 py-2.5 text-sm font-semibold text-bg transition-[background-color] duration-150 hover:bg-accentHover"
               >
-                Install
+                {t(translation.GlobalTerm.Install)}
               </button>
             </>
           )}
@@ -168,7 +171,7 @@ export function InstallToolModal({ tool, open, onClose, onInstalled }: InstallTo
               onClick={onClose}
               className="rounded-[16px] border border-transparent bg-accent px-5 py-2.5 text-sm font-semibold text-bg transition-[background-color] duration-150 hover:bg-accentHover"
             >
-              Done
+              {t(translation.GlobalTerm.Done)}
             </button>
           )}
         </div>

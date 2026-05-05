@@ -1,6 +1,8 @@
 import clsx from "clsx";
 import type { AppPageId, AppPageLink } from "@renderer/app/app-sidebar.constant";
+import { translation } from "@renderer/i18n/translation";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
+import { useTranslation } from "react-i18next";
 
 interface MiniSidebarProps {
   pages: AppPageLink[];
@@ -17,6 +19,8 @@ export function MiniSidebar({
   onExpand,
   onNavigate
 }: MiniSidebarProps) {
+  const { t } = useTranslation();
+
   return (
     <aside
       className={clsx(
@@ -34,8 +38,8 @@ export function MiniSidebar({
           "rounded-2xl border border-border bg-bg",
           "text-muted hover:border-accent hover:bg-accentSoft"
         )}
-        aria-label="Expand sidebar"
-        title="Expand sidebar"
+        aria-label={t(translation.Sidebar.Expand)}
+        title={t(translation.Sidebar.Expand)}
       >
         <UiIcon name="menu" className="h-5 w-5 text-muted group-hover:text-accent" />
       </button>
@@ -54,8 +58,8 @@ export function MiniSidebar({
                 "rounded-2xl",
                 active ? "bg-accentSoft text-accent" : "text-muted hover:text-text"
               )}
-              aria-label={page.label}
-              title={page.label}
+              aria-label={t(page.label)}
+              title={t(page.label)}
             >
               <UiIcon
                 name={page.icon}

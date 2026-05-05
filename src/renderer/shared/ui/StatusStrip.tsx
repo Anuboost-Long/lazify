@@ -1,6 +1,9 @@
 import clsx from "clsx";
 import type { EnvironmentSummary, WorkflowStatus } from "@renderer/shared/types/lazify";
+import { translation } from "@renderer/i18n/translation";
+import { BodyText, OverlineText, PillText } from "@renderer/shared/typography";
 import UiIcon from "./icons/UiIcon";
+import { useTranslation } from "react-i18next";
 
 interface StatusStripProps {
   environment: EnvironmentSummary | null;
@@ -9,6 +12,8 @@ interface StatusStripProps {
 }
 
 export function StatusStrip({ environment, workflowStatus, statusMessage }: StatusStripProps) {
+  const { t } = useTranslation();
+
   const statusIcon =
     workflowStatus === "error"
       ? "warning-triangle"
@@ -35,15 +40,21 @@ export function StatusStrip({ environment, workflowStatus, statusMessage }: Stat
             <UiIcon name={statusIcon} className="h-5 w-5" />
           </div>
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.24em]">Runtime health</p>
-            <p className="mt-1 text-sm">{statusMessage}</p>
+            <OverlineText className="text-current">{t(translation.StatusStrip.RuntimeHealth)}</OverlineText>
+            <BodyText className="mt-1 text-current">{statusMessage}</BodyText>
           </div>
         </div>
         {environment ? (
           <div className="flex flex-wrap gap-2 text-xs font-semibold uppercase tracking-[0.18em]">
-            <span className="rounded-full border border-current/20 px-3 py-1">Node {environment.nodeVersion}</span>
-            <span className="rounded-full border border-current/20 px-3 py-1">npm {environment.npmVersion}</span>
-            <span className="rounded-full border border-current/20 px-3 py-1">yarn {environment.yarnVersion}</span>
+            <PillText as="span" className="rounded-full border border-current/20 px-3 py-1 text-current">
+              Node {environment.nodeVersion}
+            </PillText>
+            <PillText as="span" className="rounded-full border border-current/20 px-3 py-1 text-current">
+              npm {environment.npmVersion}
+            </PillText>
+            <PillText as="span" className="rounded-full border border-current/20 px-3 py-1 text-current">
+              yarn {environment.yarnVersion}
+            </PillText>
           </div>
         ) : null}
       </div>

@@ -1,3 +1,4 @@
+import { translation } from "@renderer/i18n/translation";
 import { LogPanel } from "@renderer/shared/ui/LogPanel";
 import { PageHeader } from "@renderer/shared/ui/PageHeader";
 import { StatusStrip } from "@renderer/shared/ui/StatusStrip";
@@ -8,6 +9,7 @@ import type {
   WorkflowStatus,
 } from "@renderer/shared/types/lazify";
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 interface ConsolePageProps {
   environment: EnvironmentSummary | null;
@@ -22,6 +24,7 @@ export function ConsolePage({
   statusMessage,
   workflowStatus
 }: ConsolePageProps) {
+  const { t } = useTranslation();
   const [showSuccessToast, setShowSuccessToast] = useState(false);
   const prevStatusRef = useRef<WorkflowStatus>(workflowStatus);
 
@@ -35,9 +38,9 @@ export function ConsolePage({
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        eyebrow="Command Stream"
-        title="Console"
-        description="Inspect every background command Lazify runs, including workflow events, stdout, and errors."
+        eyebrow={t(translation.Console.Eyebrow)}
+        title={t(translation.Console.Title)}
+        description={t(translation.Console.Description)}
         icon="terminal"
       />
 
@@ -52,7 +55,7 @@ export function ConsolePage({
       {showSuccessToast ? (
         <Toast
           variant="success"
-          title="Project initialized"
+          title={t(translation.Console.ProjectInitialized)}
           message={statusMessage}
           onClose={() => setShowSuccessToast(false)}
         />

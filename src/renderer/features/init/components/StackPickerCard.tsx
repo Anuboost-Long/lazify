@@ -1,4 +1,5 @@
 import type { TemplateOption } from "@renderer/shared/types/lazify";
+import { BodyText, CaptionText, CardTitle, OverlineText, PillText } from "@renderer/shared/typography";
 import DevIcon from "@renderer/shared/ui/icons/DevIcon";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import clsx from "clsx";
@@ -41,14 +42,15 @@ export function StackPickerCard({
       />
 
       <div className="absolute inset-x-5 top-5 flex items-center justify-between gap-3">
-        <span
+        <PillText
+          as="span"
           className={clsx(
             "rounded-full border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.22em]",
             presentation.chipClassName
           )}
         >
           {presentation.badge}
-        </span>
+        </PillText>
         <UiIcon
           name="arrow-right"
           className={clsx(
@@ -78,40 +80,40 @@ export function StackPickerCard({
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <p className="truncate text-lg font-semibold text-inherit">
+              <CardTitle className="truncate text-inherit">
                 {template.label}
-              </p>
-              <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-muted">
+              </CardTitle>
+              <CaptionText className="mt-1 font-semibold uppercase tracking-[0.22em]">
                 {template.id.replace(/-/g, " ")}
-              </p>
+              </CaptionText>
             </div>
             {active ? (
-              <span className="rounded-full border border-accent/20 bg-accent/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-accent">
+              <PillText tone="accent" className="rounded-full border border-accent/20 bg-accent/10 px-3 py-1 tracking-[0.22em]">
                 Selected
-              </span>
+              </PillText>
             ) : null}
           </div>
-          <p className="mt-3 text-sm leading-6 text-muted">
+          <BodyText tone="muted" className="mt-3 leading-6">
             {template.description}
-          </p>
+          </BodyText>
           <div className="mt-4 flex flex-wrap gap-2">
-            <span className="rounded-full border border-border bg-bg px-3 py-1 text-[11px] font-medium text-muted">
+            <CaptionText as="span" className="rounded-full border border-border bg-bg px-3 py-1 font-medium">
               Scaffold preset
-            </span>
-            <span className="rounded-full border border-border bg-bg px-3 py-1 text-[11px] font-medium text-muted">
+            </CaptionText>
+            <CaptionText as="span" className="rounded-full border border-border bg-bg px-3 py-1 font-medium">
               Editable tree
-            </span>
+            </CaptionText>
           </div>
         </div>
       </div>
 
       <div className="mt-5 rounded-[20px] border border-border/80 bg-bg/70 px-4 py-3">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted">
+        <OverlineText tone="muted" className="text-[11px] tracking-[0.22em]">
           Best for
-        </p>
-        <p className="mt-2 text-sm leading-6 text-text/90">
+        </OverlineText>
+        <BodyText className="mt-2 leading-6 text-text/90">
           {presentation.bestFor}
-        </p>
+        </BodyText>
       </div>
     </button>
   );

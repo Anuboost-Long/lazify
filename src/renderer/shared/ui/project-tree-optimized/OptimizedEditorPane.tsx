@@ -1,8 +1,11 @@
+import { translation } from "@renderer/i18n/translation";
+import { BodyText, CardTitle, OverlineText, PillText } from "@renderer/shared/typography";
 import type { ImportedProjectIndexNode } from "@renderer/shared/types/lazify";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import type { FileContentState } from "@renderer/shared/ui/project-tree-optimized/types";
 import clsx from "clsx";
 import { useMemo, useRef } from "react";
+import { useTranslation } from "react-i18next";
 
 interface OptimizedEditorPaneProps {
   selectedNode: ImportedProjectIndexNode | null;
@@ -13,6 +16,7 @@ export function OptimizedEditorPane({
   selectedNode,
   selectedFileState,
 }: OptimizedEditorPaneProps) {
+  const { t } = useTranslation();
   const gutterRef = useRef<HTMLDivElement | null>(null);
   const lineNumbers = useMemo(() => {
     const content = selectedFileState?.content ?? "";
@@ -27,18 +31,18 @@ export function OptimizedEditorPane({
       <div className="flex items-center gap-2 border-b border-border bg-soft px-5 py-3.5">
         <UiIcon name="page" className="h-4 w-4 text-warning" />
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold text-text">
-            {selectedNode?.type === "file" ? selectedNode.name : "No file selected"}
-          </p>
-          <p className="truncate text-[11px] uppercase tracking-[0.18em] text-muted">
+          <CardTitle className="truncate text-sm">
+            {selectedNode?.type === "file" ? selectedNode.name : t(translation.ProjectTree.NoFileSelected)}
+          </CardTitle>
+          <OverlineText className="truncate text-muted">
             {selectedNode?.type === "file"
               ? selectedNode.absolutePath
-              : "Select a file from the explorer"}
-          </p>
+              : t(translation.ProjectTree.SelectFileFromExplorer)}
+          </OverlineText>
         </div>
-        <div className="rounded-full border border-border bg-bg px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted">
-          Read only
-        </div>
+        <PillText className="rounded-full border border-border bg-bg px-3 py-1 text-muted">
+          {t(translation.ProjectTree.ReadOnly)}
+        </PillText>
       </div>
 
       {/* Body */}
@@ -55,19 +59,19 @@ export function OptimizedEditorPane({
           selectedFileState.status === "loading" ? (
             <div className="flex h-full items-center justify-center rounded-[20px] border border-dashed border-border bg-soft/30 p-8 text-center">
               <div>
-                <p className="text-lg font-semibold text-text">Loading file preview</p>
-                <p className="mt-3 text-sm leading-6 text-muted">
-                  Content is fetched only for the selected file.
-                </p>
+                <CardTitle className="text-lg">{t(translation.ProjectTree.LoadingFilePreview)}</CardTitle>
+                <BodyText className="mt-3 text-muted">
+                  {t(translation.ProjectTree.LoadingFilePreviewDesc)}
+                </BodyText>
               </div>
             </div>
           ) : selectedFileState.status === "error" ? (
             <div className="flex h-full items-center justify-center rounded-[20px] border border-dashed border-error/25 bg-error/5 p-8 text-center">
               <div>
-                <p className="text-lg font-semibold text-error">Unable to load file preview</p>
-                <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-text/70">
+                <CardTitle className="text-lg text-error">{t(translation.ProjectTree.LoadFilePreviewError)}</CardTitle>
+                <BodyText className="mt-3 whitespace-pre-wrap text-text/70">
                   {selectedFileState.content}
-                </p>
+                </BodyText>
               </div>
             </div>
           ) : (
@@ -102,12 +106,12 @@ export function OptimizedEditorPane({
         ) : (
           <div className="flex h-full items-center justify-center rounded-[20px] border border-dashed border-border bg-soft/30 p-8 text-center">
             <div className="max-w-md">
-              <p className="text-lg font-semibold text-text">
-                Select a file to preview its contents
-              </p>
-              <p className="mt-3 text-sm leading-6 text-muted">
-                Folders are listed in the explorer, but file content is loaded only on demand.
-              </p>
+              <CardTitle className="text-lg">
+                {t(translation.ProjectTree.SelectFileToPreview)}
+              </CardTitle>
+              <BodyText className="mt-3 text-muted">
+                {t(translation.ProjectTree.SelectFileToPreviewDesc)}
+              </BodyText>
             </div>
           </div>
         )}

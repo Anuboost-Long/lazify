@@ -1,3 +1,4 @@
+import { translation } from "@renderer/i18n/translation";
 import { PageHeader } from "@renderer/shared/ui/PageHeader";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import type {
@@ -12,6 +13,7 @@ import { WorkflowForm } from "../components/WorkflowForm";
 import { StackPicker } from "../components/StackPicker";
 import { SourceModeCard } from "../components/SourceModeCard";
 import { ImportedTemplatePicker } from "../components/ImportedTemplatePicker";
+import { useTranslation } from "react-i18next";
 
 interface InitProjectPageProps {
   busy: boolean;
@@ -68,25 +70,26 @@ export function InitProjectPage({
   onBackToConfig,
   onStructureTreeChange
 }: InitProjectPageProps) {
+  const { t } = useTranslation();
   const hasSelection =
     initSourceMode === "stack" ? Boolean(selectedTemplateId) : Boolean(selectedImportedTemplateId);
   const inStructureStage = initWorkflowStage === "structure";
   const selectedLabel =
     initSourceMode === "stack"
-      ? templateOptions.find((template) => template.id === selectedTemplateId)?.label ?? "Selected stack"
-      : selectedImportedTemplate?.name ?? "Imported template";
+      ? templateOptions.find((template) => template.id === selectedTemplateId)?.label ?? t(translation.InitProject.SelectedStack)
+      : selectedImportedTemplate?.name ?? t(translation.Templates.ImportedTemplate);
 
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        eyebrow="New Workflow"
-        title="Init Project"
+        eyebrow={t(translation.InitProject.Eyebrow)}
+        title={t(translation.InitProject.Title)}
         description={
           inStructureStage
-            ? "Set up the starter file structure before generating the new project."
+            ? t(translation.InitProject.DescriptionStructure)
             : initSourceMode === "imported"
-              ? "Choose one of your saved imported templates or switch back to stack-based setup."
-              : "Start fresh with a stack, or switch to a saved imported template."
+              ? t(translation.InitProject.DescriptionImported)
+              : t(translation.InitProject.DescriptionStack)
         }
         icon="play"
       />
@@ -96,19 +99,19 @@ export function InitProjectPage({
           <SourceModeCard
             active={initSourceMode === "stack"}
             icon="play"
-            eyebrow="Fresh scaffold"
-            title="Start from stack"
-            description="Pick Expo, Next.js, Vite, or another stack and generate a fresh project baseline."
-            metadata="Choose runtime first, then shape the scaffold before generation."
+            eyebrow={t(translation.InitProject.FreshScaffold)}
+            title={t(translation.InitProject.StartFromStack)}
+            description={t(translation.InitProject.StartFromStackDesc)}
+            metadata={t(translation.InitProject.ChooseRuntimeFirst)}
             onClick={() => onSelectSourceMode("stack")}
           />
           <SourceModeCard
             active={initSourceMode === "imported"}
             icon="import"
-            eyebrow="Saved snapshot"
-            title="Use imported template"
-            description="Reuse a previously imported project template saved as JSON from the Import Project flow."
-            metadata="Start from an approved template snapshot and keep its existing structure."
+            eyebrow={t(translation.InitProject.SavedSnapshot)}
+            title={t(translation.InitProject.UseImportedTemplate)}
+            description={t(translation.InitProject.UseImportedTemplateDesc)}
+            metadata={t(translation.InitProject.StartFromTemplate)}
             onClick={() => onSelectSourceMode("imported")}
           />
         </section>
@@ -126,7 +129,7 @@ export function InitProjectPage({
                 name="arrow-left"
                 className="h-4 w-4 text-muted group-hover:text-accent"
               />
-              Change selection
+              {t(translation.InitProject.ChangeSelection)}
             </button>
           </div>
 

@@ -1,7 +1,10 @@
 import clsx from "clsx";
+import { translation } from "@renderer/i18n/translation";
+import { BodyText, CardTitle, OverlineText, PillText } from "@renderer/shared/typography";
 import { structureOptions } from "@renderer/shared/ui/project-tree/constants/structure-options";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import { BaseBottomSheet } from "@renderer/shared/ui/modal/BaseBottomSheet";
+import { useTranslation } from "react-i18next";
 
 interface ModuleSheetProps {
   open: boolean;
@@ -20,6 +23,8 @@ export function ModuleSheet({
   onClose,
   onToggleStructurePath
 }: ModuleSheetProps) {
+  const { t } = useTranslation();
+
   return (
     <BaseBottomSheet
       open={open}
@@ -41,21 +46,21 @@ export function ModuleSheet({
 
         <div className="relative flex items-start justify-between gap-4 pt-3">
           <div className="min-w-0">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-accent">
-              Structure modules
-            </p>
-            <p className="mt-2 text-base font-semibold text-text">
-              Select optional folders for the project scaffold
-            </p>
-            <p className="mt-1 text-sm leading-6 text-slate-600 dark:text-muted">
-              Toggle Lazify modules here. Required scaffold folders stay locked, but you can still add more files inside them from the explorer.
-            </p>
+            <OverlineText className="text-accent">
+              {t(translation.ProjectTree.StructureModules)}
+            </OverlineText>
+            <CardTitle className="mt-2">
+              {t(translation.ProjectTree.StructureModulesTitle)}
+            </CardTitle>
+            <BodyText className="mt-1 text-slate-600 dark:text-muted">
+              {t(translation.ProjectTree.StructureModulesDesc)}
+            </BodyText>
           </div>
           <button
             type="button"
             onClick={onClose}
             className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border bg-bg/90 text-text shadow-[0_12px_30px_rgba(15,23,42,0.18)] hover:border-accent hover:text-accent"
-            aria-label="Close module selector"
+            aria-label={t(translation.ProjectTree.CloseModuleSelector)}
           >
             <UiIcon name="xmark" className="h-4 w-4" />
           </button>
@@ -95,16 +100,16 @@ export function ModuleSheet({
                 <div className="flex items-start justify-between gap-4">
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="font-semibold text-slate-900 dark:text-text">{option.label}</span>
-                      <span className="text-xs uppercase tracking-[0.18em] text-slate-500 dark:text-muted">
+                      <CardTitle as="span" className="text-slate-900 dark:text-text">{option.label}</CardTitle>
+                      <PillText as="span" className="text-slate-500 dark:text-muted">
                         {option.path}/
-                      </span>
+                      </PillText>
                     </div>
-                    <p className="mt-1 text-sm leading-6 text-slate-600 dark:text-muted">
+                    <BodyText className="mt-1 text-slate-600 dark:text-muted">
                       {locked
-                        ? `${option.description} This folder is required by the selected scaffold and cannot be removed.`
+                        ? `${option.description} ${t(translation.ProjectTree.RequiredFolderNotice)}`
                         : option.description}
-                    </p>
+                    </BodyText>
                   </div>
                   <div
                     className={clsx(
@@ -116,7 +121,7 @@ export function ModuleSheet({
                           : "border-slate-500/35 bg-slate-300 text-slate-950 dark:border-border dark:bg-soft dark:text-muted"
                     )}
                   >
-                    {locked ? "Locked" : active ? "On" : "Off"}
+                    {locked ? t(translation.ProjectTree.Locked) : active ? t(translation.ProjectTree.On) : t(translation.ProjectTree.Off)}
                   </div>
                 </div>
               </button>

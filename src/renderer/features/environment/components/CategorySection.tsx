@@ -1,6 +1,9 @@
 import clsx from "clsx";
+import { translation } from "@renderer/i18n/translation";
+import { OverlineText } from "@renderer/shared/typography";
 import type { DetectedTool, ToolCategory } from "@renderer/shared/types/lazify";
 import { ToolCard } from "./ToolCard";
+import { useTranslation } from "react-i18next";
 
 interface CategorySectionProps {
   category: ToolCategory;
@@ -12,18 +15,20 @@ interface CategorySectionProps {
 }
 
 const categoryLabels: Record<ToolCategory, string> = {
-  nodejs: "JavaScript & Node.js",
-  python: "Python",
-  dotnet: ".NET",
-  system: "System Tools",
+  nodejs: translation.Environment.CategoryNode,
+  python: translation.Environment.CategoryPython,
+  dotnet: translation.Environment.CategoryDotnet,
+  system: translation.Environment.CategorySystem,
 };
 
 export function CategorySection({ category, tools, loadingTool, onNvmAction, onInstall, onUpdate }: CategorySectionProps) {
+  const { t } = useTranslation();
+
   return (
     <section className={clsx("rounded-shell border border-border bg-soft p-5", "shadow-panel")}>
-      <p className="text-xs font-semibold uppercase tracking-[0.28em] text-accent">
-        {categoryLabels[category]}
-      </p>
+      <OverlineText className="text-accent">
+        {t(categoryLabels[category])}
+      </OverlineText>
       <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {tools.map((tool) => {
           const isNodeEntry = tool.name === "node";
@@ -42,9 +47,9 @@ export function CategorySection({ category, tools, loadingTool, onNvmAction, onI
                 undefined
               }
               actionLabel={
-                isNodeEntry ? "Versions" :
-                canUpdate ? "Check" :
-                canInstall ? "Install" :
+                isNodeEntry ? t(translation.GlobalTerm.Versions) :
+                canUpdate ? t(translation.Environment.Check) :
+                canInstall ? t(translation.GlobalTerm.Install) :
                 undefined
               }
             />

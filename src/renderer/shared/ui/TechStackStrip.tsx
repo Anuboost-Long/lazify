@@ -1,5 +1,6 @@
 import clsx from "clsx";
 import { getTechIconName, type TechIconKey } from "@renderer/shared/lib/icon-map";
+import { BodyText, CardTitle, OverlineText, PillText } from "@renderer/shared/typography";
 import DevIcon from "./icons/DevIcon";
 import UiIcon from "./icons/UiIcon";
 
@@ -22,12 +23,12 @@ export function TechStackStrip() {
     >
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-accent">
+          <OverlineText className="text-accent">
             Core Stack
-          </p>
-          <p className="mt-1 text-sm text-muted">
+          </OverlineText>
+          <BodyText className="mt-1 text-muted">
             The renderer and desktop shell now share a dedicated icon system.
-          </p>
+          </BodyText>
         </div>
         <div
           className={clsx(
@@ -58,10 +59,10 @@ export function TechStackStrip() {
               />
             </div>
             <div>
-              <p className="text-sm font-semibold text-text">{item.label}</p>
-              <p className="text-xs uppercase tracking-[0.22em] text-muted">
+              <CardTitle className="text-sm">{item.label}</CardTitle>
+              <PillText className="text-muted">
                 {getTechIconName(item.key)}
-              </p>
+              </PillText>
             </div>
           </div>
         ))}

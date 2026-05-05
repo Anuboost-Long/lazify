@@ -1,5 +1,8 @@
 import clsx from "clsx";
+import { translation } from "@renderer/i18n/translation";
+import { BodyText, CardTitle, CaptionText, OverlineText, PillText } from "@renderer/shared/typography";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
+import { useTranslation } from "react-i18next";
 
 interface SourceModeCardProps {
   active: boolean;
@@ -20,6 +23,8 @@ export function SourceModeCard({
   metadata,
   onClick
 }: SourceModeCardProps) {
+  const { t } = useTranslation();
+
   return (
     <button
       type="button"
@@ -50,32 +55,32 @@ export function SourceModeCard({
           <UiIcon name={icon} className="h-7 w-7" />
         </div>
 
-        <span
+        <PillText
           className={clsx(
-            "rounded-full border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.22em]",
+            "rounded-full border px-3 py-1 tracking-[0.22em]",
             active
               ? "border-accent/20 bg-accent/10 text-accent"
               : "border-border bg-bg text-muted"
           )}
         >
-          {active ? "Active mode" : "Click to choose"}
-        </span>
+          {active ? t(translation.SourceModeCard.ActiveMode) : t(translation.SourceModeCard.ClickToChoose)}
+        </PillText>
       </div>
 
       <div className="mt-5">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-accent">
+        <OverlineText className="text-[11px]">
           {eyebrow}
-        </p>
-        <p className="mt-2 text-xl font-semibold text-text">{title}</p>
-        <p className="mt-3 text-sm leading-6 text-muted">{description}</p>
+        </OverlineText>
+        <CardTitle className="mt-2 text-xl">{title}</CardTitle>
+        <BodyText tone="muted" className="mt-3 leading-6">{description}</BodyText>
       </div>
 
       <div className="mt-5 flex items-center justify-between gap-4 rounded-[20px] border border-border/80 bg-bg/75 px-4 py-3">
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted">
-            Flow
-          </p>
-          <p className="mt-1 text-sm text-text">{metadata}</p>
+          <CaptionText className="font-semibold uppercase tracking-[0.22em]">
+            {t(translation.SourceModeCard.Flow)}
+          </CaptionText>
+          <BodyText className="mt-1">{metadata}</BodyText>
         </div>
         <UiIcon
           name="arrow-right"

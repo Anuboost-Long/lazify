@@ -1,8 +1,11 @@
 import clsx from "clsx";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { translation } from "@renderer/i18n/translation";
+import { MonoText, OverlineText, PillText } from "@renderer/shared/typography";
 import { TextInput } from "@renderer/shared/ui/form/FormInput";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import { getFileVisual, ROW_HEIGHT, OVERSCAN_COUNT } from "@renderer/shared/ui/project-tree-optimized/tree-utils-editable";
+import { useTranslation } from "react-i18next";
 
 export interface ExplorerNode {
   id: string;
@@ -144,7 +147,7 @@ const TreeRow = memo(function TreeRow({
           inputClassName="font-mono"
         />
       ) : (
-        <span className="min-w-0 flex-1 truncate font-mono text-sm">{node.name}</span>
+        <MonoText as="span" className="min-w-0 flex-1 truncate text-sm">{node.name}</MonoText>
       )}
     </button>
   );
@@ -199,6 +202,7 @@ export function OptimizedTreeExplorerPane({
   onCommitRename,
   onCancelRename,
 }: OptimizedTreeExplorerPaneProps) {
+  const { t } = useTranslation();
   const listRef = useRef<HTMLDivElement | null>(null);
   const [scrollTop, setScrollTop] = useState(0);
   const [viewportHeight, setViewportHeight] = useState(480);
@@ -242,9 +246,9 @@ export function OptimizedTreeExplorerPane({
 
       {/* Header */}
       <div className="flex items-center gap-2 border-b border-border bg-soft px-5 py-3.5">
-        <div className="text-xs font-semibold uppercase tracking-[0.22em] text-muted">
-          Explorer
-        </div>
+        <OverlineText className="text-muted">
+          {t(translation.ProjectTree.Explorer)}
+        </OverlineText>
         <div className="ml-auto flex items-center gap-2">
           {isEditable && onCreateEntry ? (
             <>
@@ -252,8 +256,8 @@ export function OptimizedTreeExplorerPane({
                 type="button"
                 onClick={(event) => { event.stopPropagation(); onCreateEntry("file"); }}
                 className="flex h-8 w-8 items-center justify-center rounded-full border border-accent/25 bg-accent/10 text-accent transition-colors hover:border-accent/50 hover:bg-accent/20"
-                aria-label="New file"
-                title="New file"
+                aria-label={t(translation.ProjectTree.NewFile)}
+                title={t(translation.ProjectTree.NewFile)}
               >
                 <UiIcon name="plus" className="h-4 w-4" />
               </button>
@@ -261,8 +265,8 @@ export function OptimizedTreeExplorerPane({
                 type="button"
                 onClick={(event) => { event.stopPropagation(); onCreateEntry("folder"); }}
                 className="flex h-8 w-8 items-center justify-center rounded-full border border-accent/25 bg-accent/10 text-accent transition-colors hover:border-accent/50 hover:bg-accent/20"
-                aria-label="New folder"
-                title="New folder"
+                aria-label={t(translation.ProjectTree.NewFolder)}
+                title={t(translation.ProjectTree.NewFolder)}
               >
                 <UiIcon name="folder" className="h-4 w-4" />
               </button>
@@ -273,9 +277,9 @@ export function OptimizedTreeExplorerPane({
 
       {/* Body */}
       <div className="flex h-[calc(44rem-57px)] flex-col bg-bg p-4">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted">
+        <OverlineText className="text-muted">
           {savedProjectName}
-        </p>
+        </OverlineText>
 
         <div className="mt-4 space-y-2">
           <div className="rounded-xl border border-accent/20 bg-accent/8 px-3 py-2 text-sm font-semibold text-text shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
@@ -293,14 +297,14 @@ export function OptimizedTreeExplorerPane({
         ) : null}
 
         <div className="mt-4 flex items-center gap-2">
-          <div className="flex-1 rounded-full border border-border bg-soft px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted">
-            {totalNodeCount} items
-          </div>
+          <PillText className="flex-1 rounded-full border border-border bg-soft px-3 py-1 text-muted">
+            {t(translation.ProjectTree.ItemsCount, { count: totalNodeCount })}
+          </PillText>
           {onCollapseAll ? (
             <button
               type="button"
               onClick={(event) => { event.stopPropagation(); onCollapseAll(); }}
-              title="Collapse all folders"
+              title={t(translation.ProjectTree.CollapseAll)}
               className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-border bg-soft text-muted transition-colors hover:border-accent/30 hover:bg-accent/10 hover:text-accent"
             >
               <UiIcon name="collapse" className="h-3.5 w-3.5" />
@@ -309,9 +313,9 @@ export function OptimizedTreeExplorerPane({
         </div>
 
         {includedFileCount !== undefined && totalFileCount !== undefined ? (
-          <div className="mt-2 rounded-full border border-accent/25 bg-accent/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-accent">
-            {includedFileCount}/{totalFileCount} files kept
-          </div>
+          <PillText className="mt-2 rounded-full border border-accent/25 bg-accent/10 px-3 py-1 text-accent">
+            {t(translation.ProjectTree.FilesKept, { included: includedFileCount, total: totalFileCount })}
+          </PillText>
         ) : null}
 
         <div

@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { BodyText, OverlineText, SectionTitle } from "@renderer/shared/typography";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import {
   OptimizedTreeExplorerPane,
@@ -93,11 +94,11 @@ export function ProjectTreeEditorPanel<TNode extends ExplorerNode>({
     >
       <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
         <div className="max-w-2xl">
-          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-accent">
+          <OverlineText>
             {eyebrow}
-          </p>
-          <h3 className="mt-3 text-2xl font-semibold text-text">{title}</h3>
-          <p className="mt-3 text-sm leading-6 text-muted">{description}</p>
+          </OverlineText>
+          <SectionTitle className="mt-3">{title}</SectionTitle>
+          <BodyText tone="muted" className="mt-3 leading-6">{description}</BodyText>
         </div>
 
         {headerAccessory ? (

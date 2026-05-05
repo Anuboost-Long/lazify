@@ -1,6 +1,9 @@
 import clsx from "clsx";
 import type { LogEntry } from "@renderer/shared/types/lazify";
+import { translation } from "@renderer/i18n/translation";
+import { BodyText, PageTitle, PillText, Typography } from "@renderer/shared/typography";
 import UiIcon from "./icons/UiIcon";
+import { useTranslation } from "react-i18next";
 
 interface LogPanelProps {
   logs: LogEntry[];
@@ -13,6 +16,8 @@ const streamStyles: Record<LogEntry["stream"], string> = {
 };
 
 export function LogPanel({ logs }: LogPanelProps) {
+  const { t } = useTranslation();
+
   return (
     <section
       className={clsx(
@@ -28,19 +33,19 @@ export function LogPanel({ logs }: LogPanelProps) {
             <UiIcon name="terminal" className="h-5 w-5" />
           </div>
           <div>
-            <p className="font-display text-2xl text-text">Live Console</p>
-            <p className="text-sm text-muted">Streamed directly from the Electron main process.</p>
+            <PageTitle className="text-2xl md:text-2xl">{t(translation.LogPanel.Title)}</PageTitle>
+            <BodyText tone="muted">{t(translation.LogPanel.Subtitle)}</BodyText>
           </div>
         </div>
-        <span className="rounded-full border border-border px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-accent">
-          {logs.length} events
-        </span>
+        <PillText tone="accent" className="rounded-full border border-border px-3 py-1 text-xs tracking-[0.24em]">
+          {t(translation.LogPanel.EventsCount, { count: logs.length })}
+        </PillText>
       </div>
 
       <div className="h-[30rem] overflow-y-auto rounded-[22px] border border-border bg-black px-4 py-3 font-mono text-sm shadow-inner">
         {logs.length === 0 ? (
           <div className="flex h-full items-center justify-center text-white/70">
-            Command output will appear here.
+            <Typography as="span" variant="body" tone="inherit">{t(translation.LogPanel.Empty)}</Typography>
           </div>
         ) : (
           logs.map((entry) => (
@@ -51,9 +56,9 @@ export function LogPanel({ logs }: LogPanelProps) {
                 streamStyles[entry.stream]
               )}
             >
-              <span className="mr-3 text-xs uppercase tracking-[0.24em] text-white/45">
+              <Typography as="span" variant="pill" className="mr-3 text-white/45">
                 {new Date(entry.timestamp).toLocaleTimeString()}
-              </span>
+              </Typography>
               {entry.message}
             </div>
           ))

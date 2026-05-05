@@ -1,14 +1,18 @@
 import { useLazifyStore } from "@renderer/shared/hooks/use-lazify-store";
+import { translation } from "@renderer/i18n/translation";
 import clsx from "clsx";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { appRoute } from "./app-routes";
 import { appSidebarPages, type AppPageId } from "./app-sidebar.constant";
 import { Sidebar } from "./components/Sidebar";
+import { BodyText, CardTitle } from "@renderer/shared/typography";
 
 export function AppShell() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [theme, setTheme] = useState<"light" | "dark">(() => {
     const storedTheme = window.localStorage.getItem("lazify-theme");
     return storedTheme === "light" ? "light" : "dark";
@@ -39,11 +43,12 @@ export function AppShell() {
       location.pathname === page.path ||
       (page.id === "workspace" && location.pathname.startsWith("/workspace/project/"))
     )?.id ?? null;
+
   const activePage =
     location.pathname === appRoute.initProject
       ? {
-          label: "Init project",
-          description: "Choose a stack to begin a new project.",
+          label: translation.Sidebar.InitProject,
+          description: translation.Sidebar.InitProjectDesc,
         }
       : appSidebarPages.find((page) => page.id === activePageId) ??
         appSidebarPages[0];
@@ -73,12 +78,12 @@ export function AppShell() {
           >
             <div className="flex min-w-0 items-center gap-3">
               <div className="min-w-0">
-                <p className="truncate text-sm font-semibold text-text">
-                  {activePage.label}
-                </p>
-                <p className="truncate text-xs text-muted">
-                  {activePage.description}
-                </p>
+                <CardTitle className="truncate text-sm">
+                  {t(activePage.label)}
+                </CardTitle>
+                <BodyText className="truncate text-xs text-muted">
+                  {t(activePage.description)}
+                </BodyText>
               </div>
             </div>
           </div>

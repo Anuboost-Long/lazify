@@ -1,5 +1,6 @@
 import type { UiIconName } from "@renderer/shared/ui/icons/UiIcon";
 import { appRoute } from "./app-routes";
+import { translation } from "@renderer/i18n/translation";
 
 export type AppPageId = "workspace" | "importProject" | "console" | "templates" | "settings" | "environment";
 
@@ -15,43 +16,43 @@ export const appSidebarPages: AppPageLink[] = [
   {
     id: "workspace",
     path: appRoute.workspace,
-    label: "Workspace",
-    description: "Create apps and install packages.",
+    label: translation.Navigation.Workspace,
+    description: translation.Navigation.WorkspaceDesc,
     icon: "folder",
   },
   {
     id: "importProject",
     path: appRoute.importProject,
-    label: "Import Project",
-    description: "Scan a local project folder into the tree viewer.",
+    label: translation.Navigation.ImportProject,
+    description: translation.Navigation.ImportProjectDesc,
     icon: "import",
   },
   {
     id: "console",
     path: appRoute.console,
-    label: "Console",
-    description: "Watch live command output.",
+    label: translation.Navigation.Console,
+    description: translation.Navigation.ConsoleDesc,
     icon: "terminal",
   },
   {
     id: "templates",
     path: appRoute.templates,
-    label: "Templates",
-    description: "Review imported project templates.",
+    label: translation.Navigation.Templates,
+    description: translation.Navigation.TemplatesDesc,
     icon: "package",
   },
   {
     id: "settings",
     path: appRoute.settings,
-    label: "Settings",
-    description: "Inspect local runtime details.",
+    label: translation.Navigation.Settings,
+    description: translation.Navigation.SettingsDesc,
     icon: "settings",
   },
   {
     id: "environment",
     path: appRoute.environment,
-    label: "Environment",
-    description: "Scan installed runtimes and package managers.",
+    label: translation.Navigation.Environment,
+    description: translation.Navigation.EnvironmentDesc,
     icon: "activity",
   },
 ];
