@@ -14,6 +14,7 @@ import type {
 import type { EnvironmentScan } from "../main/scanner";
 import type { ToolScanReport, NvmVersionList, NvmInstallResult, NvmActionResult, ToolUpdateInfo } from "../main/environment-scanner";
 import type { TemplatePackageEntry } from "../main/template-package-manifest";
+import type { VersionMatchReport } from "../brain/package-version-matcher";
 import type {
   CreateProjectPayload,
   InstallPackagePayload,
@@ -29,7 +30,7 @@ const lazifyApi = {
   installPackage: (payload: InstallPackagePayload): Promise<WorkflowResult> =>
     ipcRenderer.invoke("lazify:install-package", payload),
   checkEnvironment: (): Promise<EnvironmentScan> => ipcRenderer.invoke("lazify:environment"),
-  scanTools: (): Promise<ToolScanReport> => ipcRenderer.invoke("lazify:scan-tools"),
+  scanTools: (force = false): Promise<ToolScanReport> => ipcRenderer.invoke("lazify:scan-tools", force),
   probeTool: (name: string): Promise<import("../main/environment-scanner").DetectedTool | null> => ipcRenderer.invoke("lazify:probe-tool", name),
   nvmListVersions: (): Promise<NvmVersionList> => ipcRenderer.invoke("lazify:nvm-list-versions"),
   installNvm: (): Promise<NvmInstallResult> => ipcRenderer.invoke("lazify:install-nvm"),
@@ -63,6 +64,10 @@ const lazifyApi = {
     ipcRenderer.invoke("lazify:read-imported-project-file", filePath),
   getProjectGitStatus: (projectPath: string): Promise<ProjectGitStatusResult> =>
     ipcRenderer.invoke("lazify:project-git-status", projectPath),
+  matchPackageVersions: (projectPath: string): Promise<VersionMatchReport> =>
+    ipcRenderer.invoke("lazify:match-package-versions", projectPath),
+  fixProjectPackageVersions: (projectPath: string): Promise<import("../main/workflow-engine").WorkflowResult> =>
+    ipcRenderer.invoke("lazify:fix-project-package-versions", projectPath),
   saveImportedTemplate: (
     projectPath: string,
     includedRelativePaths: string[],

@@ -115,3 +115,27 @@ async function searchViaNpmCli(query: string): Promise<NpmPackageSearchResult[]>
           : pkg.maintainers?.[0]?.username ?? null
   }));
 }
+
+export async function fetchLatestPackageVersion(packageName: string): Promise<string | null> {
+  try {
+    const response = await fetch(
+      `https://registry.npmjs.org/-/package/${encodeURIComponent(packageName)}/dist-tags`,
+      {
+        headers: {
+          Accept: "application/json",
+          "User-Agent": "lazify/0.1.0"
+        },
+        signal: AbortSignal.timeout(8000)
+      }
+    );
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const tags = (await response.json()) as Record<string, string>;
+    return tags.latest ?? null;
+  } catch {
+    return null;
+  }
+}

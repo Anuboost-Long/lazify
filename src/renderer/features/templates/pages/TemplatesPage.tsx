@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import clsx from "clsx";
 import { PageHeader } from "@renderer/shared/ui/PageHeader";
 import { ProjectTreeEditorPanel } from "@renderer/shared/ui/project-tree/ProjectTreeEditorPanel";
 import type { TreeNode } from "@renderer/shared/ui/project-tree/types";
@@ -9,6 +8,7 @@ import type {
 } from "@renderer/shared/types/lazify";
 import { TextInput } from "@renderer/shared/ui/form/FormInput";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
+import { ImportedTemplateCard } from "@renderer/shared/ui/ImportedTemplateCard";
 
 interface TemplatesPageProps {
   importedTemplateOptions: ImportedTemplateOption[];
@@ -33,6 +33,7 @@ export function TemplatesPage({
   const [draftName, setDraftName] = useState("");
   const [draftTree, setDraftTree] = useState<TreeNode[]>([]);
   const [busy, setBusy] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
 
@@ -88,6 +89,28 @@ export function TemplatesPage({
     }
   };
 
+  const handleDeleteFromCard = async (
+    event: React.MouseEvent,
+    templateId: string,
+    templateName: string
+  ) => {
+    event.stopPropagation();
+
+    const confirmed = window.confirm(`Remove imported template "${templateName}"?`);
+    if (!confirmed) return;
+
+    try {
+      setDeletingId(templateId);
+      setErrorMessage(null);
+      await onDeleteTemplate(templateId);
+      setStatusMessage(`Removed "${templateName}" from saved imported templates.`);
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "Unable to remove the imported template.");
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
@@ -106,45 +129,17 @@ export function TemplatesPage({
       ) : (
         <>
           <section className="grid gap-4 lg:grid-cols-2">
-            {importedTemplateOptions.map((template) => {
-              const active = template.id === selectedImportedTemplateId;
-
-              return (
-                <button
-                  key={template.id}
-                  type="button"
-                  onClick={() => onSelectTemplate(template.id)}
-                  className={clsx(
-                    "rounded-shell border p-5 text-left shadow-panel",
-                    active ? "border-border bg-accentSoft" : "border-border bg-soft hover:border-accent"
-                  )}
-                >
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-border bg-bg text-accent">
-                        <UiIcon name="package" className="h-5 w-5" />
-                      </div>
-                      <div>
-                        <p className="text-lg font-semibold text-text">{template.name}</p>
-                        <p className="text-sm text-muted">{template.description}</p>
-                      </div>
-                    </div>
-                    {active ? (
-                      <div className="flex items-center gap-2 rounded-full border border-border bg-accentSoft px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-accent">
-                        <UiIcon name="check-circle" className="h-4 w-4 text-accent" />
-                        Active
-                      </div>
-                    ) : null}
-                  </div>
-
-                  <div className="mt-4 flex flex-wrap gap-3 text-xs text-muted">
-                    <span>{template.fileCount} files</span>
-                    <span>{new Date(template.savedAt).toLocaleString()}</span>
-                  </div>
-                  <p className="mt-3 text-xs leading-5 text-muted">{template.sourceProjectPath}</p>
-                </button>
-              );
-            })}
+            {importedTemplateOptions.map((template) => (
+              <ImportedTemplateCard
+                key={template.id}
+                template={template}
+                active={template.id === selectedImportedTemplateId}
+                isDeleting={deletingId === template.id}
+                disabled={busy}
+                onSelect={onSelectTemplate}
+                onDelete={handleDeleteFromCard}
+              />
+            ))}
           </section>
 
           {selectedImportedTemplate ? (

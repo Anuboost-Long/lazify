@@ -20,6 +20,7 @@ export interface ImportedTemplateOption {
   sourceProjectPath: string;
   savedAt: string;
   fileCount: number;
+  stack: ProjectStack;
 }
 
 export type FileRole =
@@ -277,4 +278,26 @@ export interface NvmInstallResult {
 export interface NvmActionResult {
   success: boolean;
   output: string;
+}
+
+export type MatchAction = "keep" | "update" | "downgrade";
+export type CompatibilityStatus = "compatible" | "incompatible" | "unknown";
+
+export interface PackageMatch {
+  name: string;
+  currentSpec: string;
+  currentVersion: string;
+  targetVersion: string | null;
+  action: MatchAction;
+  compatibility: CompatibilityStatus;
+  reason: string;
+}
+
+export interface VersionMatchReport {
+  projectPath: string;
+  anchorPackage: string;
+  anchorVersion: string;
+  packages: PackageMatch[];
+  unresolved: string[];
+  installPlan: string[];
 }

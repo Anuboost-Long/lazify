@@ -20,6 +20,7 @@ import type {
   WorkflowProgressEvent,
   WorkflowResult
 } from "../main/workflow-engine";
+import type { VersionMatchReport } from "./shared/types/lazify";
 
 declare global {
   interface Window {
@@ -28,7 +29,7 @@ declare global {
       createProject: (payload: CreateProjectPayload) => Promise<WorkflowResult>;
       installPackage: (payload: InstallPackagePayload) => Promise<WorkflowResult>;
       checkEnvironment: () => Promise<EnvironmentScan>;
-      scanTools: () => Promise<ToolScanReport>;
+      scanTools: (force?: boolean) => Promise<ToolScanReport>;
       probeTool: (name: string) => Promise<import("../renderer/shared/types/lazify").DetectedTool | null>;
       nvmListVersions: () => Promise<NvmVersionList>;
       installNvm: () => Promise<NvmInstallResult>;
@@ -58,6 +59,8 @@ declare global {
         providedName?: string | null,
         confirmedStack?: string | null
       ) => Promise<ImportedTemplateSnapshot>;
+      matchPackageVersions: (projectPath: string) => Promise<VersionMatchReport>;
+      fixProjectPackageVersions: (projectPath: string) => Promise<WorkflowResult>;
       onLog: (callback: (event: LogEvent) => void) => () => void;
       onWorkflowProgress: (callback: (event: WorkflowProgressEvent) => void) => () => void;
     };

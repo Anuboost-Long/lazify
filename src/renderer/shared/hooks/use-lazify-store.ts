@@ -126,10 +126,10 @@ export function useLazifyStore() {
     setSavedStructureTree(null);
   }, [setInitWorkflowStage, setSavedInitWorkflowConfig, setSavedStructureTree]);
 
-  const refreshToolScan = useCallback(async () => {
+  const refreshToolScan = useCallback(async (force = false) => {
     setToolScanLoading(true);
     try {
-      const report = await window.lazify.scanTools();
+      const report = await window.lazify.scanTools(force);
       setToolScanReport(report);
     } finally {
       setToolScanLoading(false);

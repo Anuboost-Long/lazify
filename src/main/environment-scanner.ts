@@ -1,7 +1,10 @@
-import { spawnSync } from "node:child_process";
+import { execFile } from "node:child_process";
 import { existsSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
+import { promisify } from "node:util";
+
+const execFileAsync = promisify(execFile);
 
 export interface NvmNodeVersion {
   version: string;
@@ -43,19 +46,25 @@ export interface ToolScanReport {
   tools: DetectedTool[];
 }
 
-function probe(cmd: string, args: string[] = ["--version"]): { available: boolean; version: string | null } {
-  const result = spawnSync(cmd, args, {
-    encoding: "utf8",
-    shell: process.platform === "win32",
-    timeout: 5000
-  });
+// ---------------------------------------------------------------------------
+// Probe helpers (all non-blocking)
+// ---------------------------------------------------------------------------
 
-  if (result.error || result.status !== 0) {
+async function probe(
+  cmd: string,
+  args: string[] = ["--version"]
+): Promise<{ available: boolean; version: string | null }> {
+  try {
+    const { stdout, stderr } = await execFileAsync(cmd, args, {
+      timeout: 5000,
+      shell: process.platform === "win32",
+      maxBuffer: 1024 * 1024
+    });
+    const raw = (stdout || stderr).trim();
+    return { available: !!raw, version: raw || null };
+  } catch {
     return { available: false, version: null };
   }
-
-  const raw = (result.stdout || result.stderr).trim();
-  return { available: !!raw, version: raw || null };
 }
 
 function findNvmScript(): string | null {
@@ -63,7 +72,7 @@ function findNvmScript(): string | null {
     process.env.NVM_DIR ? join(process.env.NVM_DIR, "nvm.sh") : null,
     join(homedir(), ".nvm", "nvm.sh"),
     "/opt/homebrew/opt/nvm/nvm.sh",
-    "/usr/local/opt/nvm/nvm.sh",
+    "/usr/local/opt/nvm/nvm.sh"
   ].filter(Boolean) as string[];
 
   return candidates.find(existsSync) ?? null;
@@ -74,40 +83,50 @@ function nvmSourceCmd(nvmScript: string): string {
   return `export NVM_DIR="${nvmDir}" && source "${nvmScript}"`;
 }
 
-function probeViaNvm(cmd: string): { available: boolean; version: string | null } {
+async function probeViaNvm(
+  cmd: string
+): Promise<{ available: boolean; version: string | null }> {
   const nvmScript = findNvmScript();
   const shell = process.platform === "darwin" ? "zsh" : "bash";
 
   if (nvmScript) {
-    const result = spawnSync(
-      shell,
-      ["-l", "-c", `${nvmSourceCmd(nvmScript)} && ${cmd} --version`],
-      { encoding: "utf8", timeout: 6000 }
-    );
-    if (!result.error && result.status === 0) {
-      const raw = (result.stdout || result.stderr).trim().split("\n")[0].trim();
+    try {
+      const { stdout, stderr } = await execFileAsync(
+        shell,
+        ["-l", "-c", `${nvmSourceCmd(nvmScript)} && ${cmd} --version`],
+        { timeout: 6000, maxBuffer: 1024 * 1024 }
+      );
+      const raw = (stdout || stderr).trim().split("\n")[0].trim();
       if (raw) return { available: true, version: raw };
+    } catch {
+      // fall through to bare probe
     }
   }
 
-  // Fall back to bare probe if nvm not found or command failed
   return probe(cmd);
 }
 
-function probeNvm(): { available: boolean; version: string | null } {
+async function probeNvm(): Promise<{ available: boolean; version: string | null }> {
   const nvmScript = findNvmScript();
   if (!nvmScript) return { available: false, version: null };
 
   const shell = process.platform === "darwin" ? "zsh" : "bash";
-  const result = spawnSync(
-    shell,
-    ["-l", "-c", `${nvmSourceCmd(nvmScript)} && nvm --version`],
-    { encoding: "utf8", timeout: 6000 }
-  );
-
-  const raw = (result.stdout || result.stderr).trim();
-  return { available: true, version: raw || null };
+  try {
+    const { stdout, stderr } = await execFileAsync(
+      shell,
+      ["-l", "-c", `${nvmSourceCmd(nvmScript)} && nvm --version`],
+      { timeout: 6000, maxBuffer: 1024 * 1024 }
+    );
+    const raw = (stdout || stderr).trim();
+    return { available: true, version: raw || null };
+  } catch {
+    return { available: false, version: null };
+  }
 }
+
+// ---------------------------------------------------------------------------
+// Tool builder
+// ---------------------------------------------------------------------------
 
 function getUpdateCommand(name: string): string | null {
   const mac = process.platform === "darwin";
@@ -128,10 +147,9 @@ function getUpdateCommand(name: string): string | null {
     case "docker":  return mac ? "brew upgrade --cask docker" : null;
     case "nvm": {
       if (!mac && !linux) return null;
-      // Fetch the latest tag from GitHub and re-run the install script against it
       return 'LATEST=$(curl -s "https://api.github.com/repos/nvm-sh/nvm/releases/latest" | grep \'"tag_name"\' | cut -d\'"\' -f4) && curl -o- "https://raw.githubusercontent.com/nvm-sh/nvm/${LATEST}/install.sh" | bash';
     }
-    default:        return null;
+    default: return null;
   }
 }
 
@@ -140,9 +158,9 @@ function getInstallInfo(name: string): { command: string; note?: string } | null
   const linux = process.platform === "linux";
 
   switch (name) {
-    case "yarn":  return { command: "npm install -g yarn" };
-    case "pnpm":  return { command: "npm install -g pnpm" };
-    case "bun":   return { command: "curl -fsSL https://bun.sh/install | bash" };
+    case "yarn":    return { command: "npm install -g yarn" };
+    case "pnpm":    return { command: "npm install -g pnpm" };
+    case "bun":     return { command: "curl -fsSL https://bun.sh/install | bash" };
     case "python3":
       if (mac)   return { command: "brew install python3" };
       if (linux) return { command: "sudo apt install -y python3" };
@@ -171,8 +189,7 @@ function getInstallInfo(name: string): { command: string; note?: string } | null
     case "docker":
       if (mac)   return { command: "brew install --cask docker", note: "Launch Docker Desktop after installation." };
       return null;
-    default:
-      return null;
+    default: return null;
   }
 }
 
@@ -190,114 +207,119 @@ function tool(
     ...status,
     installCommand: installInfo?.command ?? null,
     installNote: installInfo?.note ?? null,
-    updateCommand: status.available ? getUpdateCommand(name) : null,
+    updateCommand: status.available ? getUpdateCommand(name) : null
   };
 }
 
-export function installTool(toolName: string): NvmActionResult {
-  const info = getInstallInfo(toolName);
-  if (!info) return { success: false, output: "No install method available for this tool on your platform." };
+// ---------------------------------------------------------------------------
+// Scan — parallel execution, inflight dedup, short TTL cache
+// ---------------------------------------------------------------------------
 
-  const shell = process.platform === "darwin" ? "zsh" : "bash";
+const SCAN_CACHE_TTL_MS = 30_000;
 
-  // npm-based installs need node/npm in PATH — source nvm first if available
-  const needsNvm = ["yarn", "pnpm"].includes(toolName);
-  const nvmPrefix = needsNvm
-    ? (() => { const s = findNvmScript(); return s ? `${nvmSourceCmd(s)} && ` : ""; })()
-    : "";
-
-  const result = spawnSync(
-    shell,
-    ["-l", "-c", `${nvmPrefix}${info.command}`],
-    { encoding: "utf8", timeout: 120000 }
-  );
-
-  const output = [result.stdout, result.stderr].filter(Boolean).join("\n").trim();
-  if (result.error) return { success: false, output: result.error.message };
-  return { success: result.status === 0, output };
+interface ScanCache {
+  report: ToolScanReport;
+  ts: number;
 }
 
-export function checkToolUpdate(toolName: string, currentVersion: string): ToolUpdateInfo {
-  const shell = process.platform === "darwin" ? "zsh" : "bash";
-  const norm = (v: string) => v.replace(/^v/, "").trim();
+let scanCache: ScanCache | null = null;
+let inflightScan: Promise<ToolScanReport> | null = null;
 
-  if (["npm", "yarn", "pnpm"].includes(toolName)) {
-    const nvm = nvmShell();
-    const prefix = nvm ? `${nvmSourceCmd(nvm.nvmScript)} && ` : "";
-    // Use the same major series to avoid false positives (e.g. npm 10.x vs 11.x)
-    const major = norm(currentVersion)?.split(".")[0];
-    const tag = major ? `${toolName}@${major}` : toolName;
-    const r = spawnSync(shell, ["-l", "-c", `${prefix}npm view ${tag} version`], { encoding: "utf8", timeout: 10000 });
-    const latest = r.stdout?.trim().split("\n")[0].trim() ?? null;
-    if (!latest || r.error) return { hasUpdate: false, latestVersion: null, canCheck: false };
-    return { hasUpdate: norm(latest) !== norm(currentVersion), latestVersion: latest, canCheck: true };
-  }
+async function runFullScan(): Promise<ToolScanReport> {
+  const [
+    nodeStatus, nvmStatus, npmStatus, yarnStatus, pnpmStatus, bunStatus,
+    python3Status, pip3Status, dotnetStatus, goStatus, cargoStatus, rubyStatus, gitStatus, dockerStatus
+  ] = await Promise.all([
+    probeViaNvm("node"),
+    probeNvm(),
+    probeViaNvm("npm"),
+    probeViaNvm("yarn"),
+    probeViaNvm("pnpm"),
+    probeViaNvm("bun"),
+    probe("python3"),
+    probe("pip3"),
+    probe("dotnet"),
+    probe("go", ["version"]),
+    probe("cargo"),
+    probe("ruby"),
+    probe("git"),
+    probe("docker")
+  ]);
 
-  if (toolName === "nvm") {
-    const r = spawnSync(
-      "curl",
-      ["-s", "https://api.github.com/repos/nvm-sh/nvm/releases/latest"],
-      { encoding: "utf8", timeout: 8000 }
-    );
-    if (r.error || !r.stdout) return { hasUpdate: false, latestVersion: null, canCheck: false };
-    const match = r.stdout.match(/"tag_name"\s*:\s*"v?([^"]+)"/);
-    const latest = match?.[1] ?? null;
-    if (!latest) return { hasUpdate: false, latestVersion: null, canCheck: false };
-    return { hasUpdate: norm(latest) !== norm(currentVersion), latestVersion: latest, canCheck: true };
-  }
-
-  if (toolName === "bun") {
-    return { hasUpdate: true, latestVersion: null, canCheck: false };
-  }
-
-  if (toolName === "pip3") {
-    return { hasUpdate: true, latestVersion: null, canCheck: false };
-  }
-
-  if (toolName === "cargo") {
-    const r = spawnSync(shell, ["-l", "-c", "rustup check"], { encoding: "utf8", timeout: 15000 });
-    const out = r.stdout?.trim() ?? "";
-    return { hasUpdate: out.includes("Update available"), latestVersion: null, canCheck: true };
-  }
-
-  const brewFormulas: Record<string, string> = {
-    python3: "python3", go: "go", ruby: "ruby",
-    git: "git", dotnet: "dotnet-sdk", docker: "docker",
+  const report: ToolScanReport = {
+    tools: [
+      tool("node",    "Node.js",      "nodejs", nodeStatus),
+      tool("nvm",     "nvm",          "nodejs", nvmStatus),
+      tool("npm",     "npm",          "nodejs", npmStatus),
+      tool("yarn",    "Yarn",         "nodejs", yarnStatus),
+      tool("pnpm",    "pnpm",         "nodejs", pnpmStatus),
+      tool("bun",     "Bun",          "nodejs", bunStatus),
+      tool("python3", "Python 3",     "python", python3Status),
+      tool("pip3",    "pip",          "python", pip3Status),
+      tool("dotnet",  ".NET SDK",     "dotnet", dotnetStatus),
+      tool("go",      "Go",           "system", goStatus),
+      tool("cargo",   "Rust / Cargo", "system", cargoStatus),
+      tool("ruby",    "Ruby",         "system", rubyStatus),
+      tool("git",     "Git",          "system", gitStatus),
+      tool("docker",  "Docker",       "system", dockerStatus)
+    ]
   };
 
-  if (toolName in brewFormulas) {
-    const formula = brewFormulas[toolName];
-    const r = spawnSync("zsh", ["-l", "-c", `brew outdated ${formula} --verbose`], { encoding: "utf8", timeout: 20000 });
-    const out = r.stdout?.trim() ?? "";
-    const hasUpdate = out.length > 0 && !r.error;
-    const match = out.match(/\S+\s+(\S+)\s+<\s+(\S+)/);
-    return { hasUpdate, latestVersion: match?.[2] ?? null, canCheck: true };
+  scanCache = { report, ts: Date.now() };
+  return report;
+}
+
+export async function scanTools(force = false): Promise<ToolScanReport> {
+  if (!force && scanCache && Date.now() - scanCache.ts < SCAN_CACHE_TTL_MS) {
+    return scanCache.report;
   }
 
-  return { hasUpdate: false, latestVersion: null, canCheck: false };
+  if (!force && inflightScan) return inflightScan;
+
+  const scan = runFullScan();
+  inflightScan = scan;
+  scan.finally(() => { if (inflightScan === scan) inflightScan = null; });
+  return scan;
 }
 
-export function updateTool(toolName: string): NvmActionResult {
-  const command = getUpdateCommand(toolName);
-  if (!command) return { success: false, output: "No update method available for this tool on your platform." };
+// ---------------------------------------------------------------------------
+// Single-tool probe
+// ---------------------------------------------------------------------------
 
-  const shell = process.platform === "darwin" ? "zsh" : "bash";
+export async function probeSingleTool(name: string): Promise<DetectedTool | null> {
+  let updated: DetectedTool | null = null;
 
-  const needsNvm = ["npm", "yarn", "pnpm", "pip3"].includes(toolName);
-  const nvmPrefix = needsNvm
-    ? (() => { const s = findNvmScript(); return s ? `${nvmSourceCmd(s)} && ` : ""; })()
-    : "";
+  switch (name) {
+    case "node":    updated = tool("node",    "Node.js",      "nodejs", await probeViaNvm("node")); break;
+    case "nvm":     updated = tool("nvm",     "nvm",          "nodejs", await probeNvm()); break;
+    case "npm":     updated = tool("npm",     "npm",          "nodejs", await probeViaNvm("npm")); break;
+    case "yarn":    updated = tool("yarn",    "Yarn",         "nodejs", await probeViaNvm("yarn")); break;
+    case "pnpm":    updated = tool("pnpm",    "pnpm",         "nodejs", await probeViaNvm("pnpm")); break;
+    case "bun":     updated = tool("bun",     "Bun",          "nodejs", await probeViaNvm("bun")); break;
+    case "python3": updated = tool("python3", "Python 3",     "python", await probe("python3")); break;
+    case "pip3":    updated = tool("pip3",    "pip",          "python", await probe("pip3")); break;
+    case "dotnet":  updated = tool("dotnet",  ".NET SDK",     "dotnet", await probe("dotnet")); break;
+    case "go":      updated = tool("go",      "Go",           "system", await probe("go", ["version"])); break;
+    case "cargo":   updated = tool("cargo",   "Rust / Cargo", "system", await probe("cargo")); break;
+    case "ruby":    updated = tool("ruby",    "Ruby",         "system", await probe("ruby")); break;
+    case "git":     updated = tool("git",     "Git",          "system", await probe("git")); break;
+    case "docker":  updated = tool("docker",  "Docker",       "system", await probe("docker")); break;
+    default: return null;
+  }
 
-  const result = spawnSync(
-    shell,
-    ["-l", "-c", `${nvmPrefix}${command}`],
-    { encoding: "utf8", timeout: 120000 }
-  );
+  if (updated && scanCache) {
+    scanCache = {
+      report: { tools: scanCache.report.tools.map((t) => (t.name === name ? updated! : t)) },
+      ts: scanCache.ts
+    };
+  }
 
-  const output = [result.stdout, result.stderr].filter(Boolean).join("\n").trim();
-  if (result.error) return { success: false, output: result.error.message };
-  return { success: result.status === 0, output };
+  return updated;
 }
+
+// ---------------------------------------------------------------------------
+// Tool update check
+// ---------------------------------------------------------------------------
 
 function nvmShell(): { shell: string; nvmScript: string } | null {
   const nvmScript = findNvmScript();
@@ -305,6 +327,193 @@ function nvmShell(): { shell: string; nvmScript: string } | null {
   const shell = process.platform === "darwin" ? "zsh" : "bash";
   return { shell, nvmScript };
 }
+
+export async function checkToolUpdate(toolName: string, currentVersion: string): Promise<ToolUpdateInfo> {
+  const shell = process.platform === "darwin" ? "zsh" : "bash";
+  const norm = (v: string) => v.replace(/^v/, "").trim();
+
+  if (["npm", "yarn", "pnpm"].includes(toolName)) {
+    const nvm = nvmShell();
+    const prefix = nvm ? `${nvmSourceCmd(nvm.nvmScript)} && ` : "";
+    const major = norm(currentVersion).split(".")[0];
+    const tag = major ? `${toolName}@${major}` : toolName;
+    try {
+      const { stdout } = await execFileAsync(
+        shell,
+        ["-l", "-c", `${prefix}npm view ${tag} version`],
+        { timeout: 10000, maxBuffer: 1024 * 1024 }
+      );
+      const latest = stdout.trim().split("\n")[0].trim();
+      if (!latest) return { hasUpdate: false, latestVersion: null, canCheck: false };
+      return { hasUpdate: norm(latest) !== norm(currentVersion), latestVersion: latest, canCheck: true };
+    } catch {
+      return { hasUpdate: false, latestVersion: null, canCheck: false };
+    }
+  }
+
+  if (toolName === "nvm") {
+    try {
+      const { stdout } = await execFileAsync(
+        "curl",
+        ["-s", "https://api.github.com/repos/nvm-sh/nvm/releases/latest"],
+        { timeout: 8000, maxBuffer: 1024 * 1024 }
+      );
+      const match = stdout.match(/"tag_name"\s*:\s*"v?([^"]+)"/);
+      const latest = match?.[1] ?? null;
+      if (!latest) return { hasUpdate: false, latestVersion: null, canCheck: false };
+      return { hasUpdate: norm(latest) !== norm(currentVersion), latestVersion: latest, canCheck: true };
+    } catch {
+      return { hasUpdate: false, latestVersion: null, canCheck: false };
+    }
+  }
+
+  if (toolName === "bun" || toolName === "pip3") {
+    return { hasUpdate: true, latestVersion: null, canCheck: false };
+  }
+
+  if (toolName === "cargo") {
+    try {
+      const { stdout } = await execFileAsync(shell, ["-l", "-c", "rustup check"], {
+        timeout: 15000,
+        maxBuffer: 1024 * 1024
+      });
+      return { hasUpdate: stdout.includes("Update available"), latestVersion: null, canCheck: true };
+    } catch {
+      return { hasUpdate: false, latestVersion: null, canCheck: false };
+    }
+  }
+
+  const brewFormulas: Record<string, string> = {
+    python3: "python3", go: "go", ruby: "ruby",
+    git: "git", dotnet: "dotnet-sdk", docker: "docker"
+  };
+
+  if (toolName in brewFormulas) {
+    try {
+      const { stdout } = await execFileAsync(
+        "zsh",
+        ["-l", "-c", `brew outdated ${brewFormulas[toolName]} --verbose`],
+        { timeout: 20000, maxBuffer: 1024 * 1024 }
+      );
+      const out = stdout.trim();
+      const match = out.match(/\S+\s+(\S+)\s+<\s+(\S+)/);
+      return { hasUpdate: out.length > 0, latestVersion: match?.[2] ?? null, canCheck: true };
+    } catch {
+      return { hasUpdate: false, latestVersion: null, canCheck: false };
+    }
+  }
+
+  return { hasUpdate: false, latestVersion: null, canCheck: false };
+}
+
+// ---------------------------------------------------------------------------
+// Install / update / nvm actions
+// ---------------------------------------------------------------------------
+
+export async function installTool(toolName: string): Promise<NvmActionResult> {
+  const info = getInstallInfo(toolName);
+  if (!info) return { success: false, output: "No install method available for this tool on your platform." };
+
+  const shell = process.platform === "darwin" ? "zsh" : "bash";
+  const needsNvm = ["yarn", "pnpm"].includes(toolName);
+  const nvmPrefix = needsNvm
+    ? (() => { const s = findNvmScript(); return s ? `${nvmSourceCmd(s)} && ` : ""; })()
+    : "";
+
+  try {
+    const { stdout, stderr } = await execFileAsync(
+      shell,
+      ["-l", "-c", `${nvmPrefix}${info.command}`],
+      { timeout: 120_000, maxBuffer: 10 * 1024 * 1024 }
+    );
+    return { success: true, output: [stdout, stderr].filter(Boolean).join("\n").trim() };
+  } catch (err) {
+    return { success: false, output: err instanceof Error ? err.message : String(err) };
+  }
+}
+
+export async function updateTool(toolName: string): Promise<NvmActionResult> {
+  const command = getUpdateCommand(toolName);
+  if (!command) return { success: false, output: "No update method available for this tool on your platform." };
+
+  const shell = process.platform === "darwin" ? "zsh" : "bash";
+  const needsNvm = ["npm", "yarn", "pnpm", "pip3"].includes(toolName);
+  const nvmPrefix = needsNvm
+    ? (() => { const s = findNvmScript(); return s ? `${nvmSourceCmd(s)} && ` : ""; })()
+    : "";
+
+  try {
+    const { stdout, stderr } = await execFileAsync(
+      shell,
+      ["-l", "-c", `${nvmPrefix}${command}`],
+      { timeout: 120_000, maxBuffer: 10 * 1024 * 1024 }
+    );
+    return { success: true, output: [stdout, stderr].filter(Boolean).join("\n").trim() };
+  } catch (err) {
+    return { success: false, output: err instanceof Error ? err.message : String(err) };
+  }
+}
+
+export async function listNvmVersions(): Promise<NvmVersionList> {
+  const nvm = nvmShell();
+  if (!nvm) return { nvmAvailable: false, versions: [] };
+
+  try {
+    const { stdout } = await execFileAsync(
+      nvm.shell,
+      ["-l", "-c", `${nvmSourceCmd(nvm.nvmScript)} && nvm ls --no-colors`],
+      { timeout: 8000, maxBuffer: 1024 * 1024 }
+    );
+    return { nvmAvailable: true, versions: parseNvmLs(stdout ?? "") };
+  } catch {
+    return { nvmAvailable: true, versions: [] };
+  }
+}
+
+export async function nvmSetDefault(version: string): Promise<NvmActionResult> {
+  const nvm = nvmShell();
+  if (!nvm) return { success: false, output: "nvm not found" };
+
+  try {
+    const { stdout, stderr } = await execFileAsync(
+      nvm.shell,
+      ["-l", "-c", `${nvmSourceCmd(nvm.nvmScript)} && nvm alias default ${version} --no-colors`],
+      { timeout: 8000, maxBuffer: 1024 * 1024 }
+    );
+    return { success: true, output: [stdout, stderr].filter(Boolean).join("\n").trim() };
+  } catch (err) {
+    return { success: false, output: err instanceof Error ? err.message : String(err) };
+  }
+}
+
+export async function installNvm(): Promise<NvmInstallResult> {
+  if (process.platform === "win32") {
+    return {
+      success: false,
+      output: "Windows detected. Please install nvm-windows manually from https://github.com/coreybutler/nvm-windows",
+      platform: "windows"
+    };
+  }
+
+  const platform = process.platform === "darwin" ? "macos" : "linux";
+  const shell = process.platform === "darwin" ? "zsh" : "bash";
+  const installUrl = "https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh";
+
+  try {
+    const { stdout, stderr } = await execFileAsync(
+      shell,
+      ["-l", "-c", `curl -o- "${installUrl}" | bash`],
+      { timeout: 90_000, maxBuffer: 10 * 1024 * 1024 }
+    );
+    return { success: true, output: [stdout, stderr].filter(Boolean).join("\n").trim(), platform };
+  } catch (err) {
+    return { success: false, output: err instanceof Error ? err.message : String(err), platform };
+  }
+}
+
+// ---------------------------------------------------------------------------
+// NVM version list helpers
+// ---------------------------------------------------------------------------
 
 function parseNvmLs(output: string): NvmNodeVersion[] {
   const lines = output.split("\n");
@@ -334,7 +543,7 @@ function parseNvmLs(output: string): NvmNodeVersion[] {
     versions.push({
       version,
       lts: ltsFromLine ?? ltsMap.get(version) ?? null,
-      current: !!currentMatch,
+      current: !!currentMatch
     });
   }
 
@@ -352,113 +561,7 @@ function capitalize(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
 }
 
-export function listNvmVersions(): NvmVersionList {
-  const nvm = nvmShell();
-  if (!nvm) return { nvmAvailable: false, versions: [] };
-
-  const result = spawnSync(
-    nvm.shell,
-    ["-l", "-c", `${nvmSourceCmd(nvm.nvmScript)} && nvm ls --no-colors`],
-    { encoding: "utf8", timeout: 8000 }
-  );
-
-  if (result.error) return { nvmAvailable: true, versions: [] };
-
-  return {
-    nvmAvailable: true,
-    versions: parseNvmLs(result.stdout ?? ""),
-  };
-}
-
 export interface NvmActionResult {
   success: boolean;
   output: string;
-}
-
-export function nvmSetDefault(version: string): NvmActionResult {
-  const nvm = nvmShell();
-  if (!nvm) return { success: false, output: "nvm not found" };
-
-  const result = spawnSync(
-    nvm.shell,
-    ["-l", "-c", `${nvmSourceCmd(nvm.nvmScript)} && nvm alias default ${version} --no-colors`],
-    { encoding: "utf8", timeout: 8000 }
-  );
-
-  const output = [result.stdout, result.stderr].filter(Boolean).join("\n").trim();
-  return { success: result.status === 0, output };
-}
-
-export function installNvm(): NvmInstallResult {
-  if (process.platform === "win32") {
-    return {
-      success: false,
-      output:
-        "Windows detected. Please install nvm-windows manually from https://github.com/coreybutler/nvm-windows",
-      platform: "windows",
-    };
-  }
-
-  const platform = process.platform === "darwin" ? "macos" : "linux";
-  const shell = process.platform === "darwin" ? "zsh" : "bash";
-  const installUrl =
-    "https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh";
-
-  const result = spawnSync(
-    shell,
-    ["-l", "-c", `curl -o- "${installUrl}" | bash`],
-    { encoding: "utf8", timeout: 90000 }
-  );
-
-  const output = [result.stdout, result.stderr]
-    .filter(Boolean)
-    .join("\n")
-    .trim();
-
-  if (result.error) {
-    return { success: false, output: result.error.message, platform };
-  }
-
-  return { success: result.status === 0, output, platform };
-}
-
-export function probeSingleTool(name: string): DetectedTool | null {
-  switch (name) {
-    case "node":    return tool("node",    "Node.js",        "nodejs", probeViaNvm("node"));
-    case "nvm":     return tool("nvm",     "nvm",            "nodejs", probeNvm());
-    case "npm":     return tool("npm",     "npm",            "nodejs", probeViaNvm("npm"));
-    case "yarn":    return tool("yarn",    "Yarn",           "nodejs", probeViaNvm("yarn"));
-    case "pnpm":    return tool("pnpm",    "pnpm",           "nodejs", probeViaNvm("pnpm"));
-    case "bun":     return tool("bun",     "Bun",            "nodejs", probeViaNvm("bun"));
-    case "python3": return tool("python3", "Python 3",       "python", probe("python3"));
-    case "pip3":    return tool("pip3",    "pip",            "python", probe("pip3"));
-    case "dotnet":  return tool("dotnet",  ".NET SDK",       "dotnet", probe("dotnet"));
-    case "go":      return tool("go",      "Go",             "system", probe("go", ["version"]));
-    case "cargo":   return tool("cargo",   "Rust / Cargo",   "system", probe("cargo"));
-    case "ruby":    return tool("ruby",    "Ruby",           "system", probe("ruby"));
-    case "git":     return tool("git",     "Git",            "system", probe("git"));
-    case "docker":  return tool("docker",  "Docker",         "system", probe("docker"));
-    default:        return null;
-  }
-}
-
-export function scanTools(): ToolScanReport {
-  return {
-    tools: [
-      tool("node", "Node.js", "nodejs", probeViaNvm("node")),
-      tool("nvm", "nvm", "nodejs", probeNvm()),
-      tool("npm", "npm", "nodejs", probeViaNvm("npm")),
-      tool("yarn", "Yarn", "nodejs", probeViaNvm("yarn")),
-      tool("pnpm", "pnpm", "nodejs", probeViaNvm("pnpm")),
-      tool("bun", "Bun", "nodejs", probeViaNvm("bun")),
-      tool("python3", "Python 3", "python", probe("python3")),
-      tool("pip3", "pip", "python", probe("pip3")),
-      tool("dotnet", ".NET SDK", "dotnet", probe("dotnet")),
-      tool("go", "Go", "system", probe("go", ["version"])),
-      tool("cargo", "Rust / Cargo", "system", probe("cargo")),
-      tool("ruby", "Ruby", "system", probe("ruby")),
-      tool("git", "Git", "system", probe("git")),
-      tool("docker", "Docker", "system", probe("docker")),
-    ]
-  };
 }

@@ -22,6 +22,7 @@ import { scanEnvironment } from "./scanner";
 import { scanTools, probeSingleTool, listNvmVersions, installNvm, nvmSetDefault, installTool, checkToolUpdate, updateTool } from "./environment-scanner";
 import { listTemplatePackageEntries } from "./template-package-manifest";
 import { WorkflowEngine } from "./workflow-engine";
+import { matchPackageVersions } from "../brain/package-version-matcher";
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -71,7 +72,7 @@ function registerIpcHandlers() {
 
   ipcMain.handle("lazify:environment", async () => scanEnvironment());
 
-  ipcMain.handle("lazify:scan-tools", async () => scanTools());
+  ipcMain.handle("lazify:scan-tools", async (_event, force = false) => scanTools(force as boolean));
   ipcMain.handle("lazify:probe-tool", async (_event, name: string) => probeSingleTool(name));
   ipcMain.handle("lazify:nvm-list-versions", async () => listNvmVersions());
   ipcMain.handle("lazify:install-nvm", async () => installNvm());
@@ -137,6 +138,22 @@ function registerIpcHandlers() {
   ipcMain.handle("lazify:project-git-status", async (_event, projectPath: string) =>
     getProjectGitStatus(projectPath)
   );
+
+  ipcMain.handle("lazify:match-package-versions", async (_event, projectPath: string) =>
+    matchPackageVersions({ projectPath, dryRun: true })
+  );
+
+  ipcMain.handle("lazify:fix-project-package-versions", async (_event, projectPath: string) => {
+    const report = await matchPackageVersions({ projectPath });
+    if (!report.installPlan.length) {
+      return { success: true, message: "All packages are already compatible.", projectPath };
+    }
+    return workflowEngine.installPackage({
+      packageName: report.installPlan.join(","),
+      baseDirectory: path.dirname(projectPath),
+      projectName: path.basename(projectPath)
+    });
+  });
 
   ipcMain.handle(
     "lazify:save-imported-template",

@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 import type { TemplateDefinition } from "./harmonizer";
+import { fetchLatestPackageVersion } from "./npm-registry";
 
 export interface TemplatePackageManifest {
   dependencies?: Record<string, string>;
@@ -144,4 +145,30 @@ function mapPackageEntries(
     name,
     version
   }));
+}
+
+export async function resolveManifestToLatest(
+  manifest: TemplatePackageManifest
+): Promise<TemplatePackageManifest> {
+  const resolveGroup = async (
+    deps: Record<string, string> | undefined
+  ): Promise<Record<string, string> | undefined> => {
+    if (!deps) return deps;
+
+    const entries = await Promise.all(
+      Object.entries(deps).map(async ([name, fallback]) => {
+        const latest = await fetchLatestPackageVersion(name);
+        return [name, latest ?? fallback] as const;
+      })
+    );
+
+    return Object.fromEntries(entries);
+  };
+
+  const [dependencies, devDependencies] = await Promise.all([
+    resolveGroup(manifest.dependencies),
+    resolveGroup(manifest.devDependencies)
+  ]);
+
+  return { dependencies, devDependencies };
 }

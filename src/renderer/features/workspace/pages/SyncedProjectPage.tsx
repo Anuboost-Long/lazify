@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { appRoute } from "@renderer/app/app-routes";
 import { SyncedProjectViewer } from "@renderer/features/workspace/components/SyncedProjectViewer";
+import { PackageVersionPane } from "@renderer/features/workspace/components/PackageVersionPane";
 import { PageHeader } from "@renderer/shared/ui/PageHeader";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import type {
@@ -118,6 +119,10 @@ export function SyncedProjectPage({
           editable
           project={projectData}
         />
+      ) : null}
+
+      {syncedProject && decodedProjectPath ? (
+        <PackageVersionPane projectPath={decodedProjectPath} />
       ) : null}
     </div>
   );

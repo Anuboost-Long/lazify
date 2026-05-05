@@ -42,6 +42,7 @@ function toOption(template: ImportedTemplateSnapshot): ImportedTemplateOption {
     sourceProjectPath: template.sourceProjectPath,
     savedAt: template.savedAt,
     fileCount: template.fileCount,
+    stack: template.stackDetection?.stack ?? "unknown",
   };
 }
 

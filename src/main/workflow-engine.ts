@@ -14,7 +14,8 @@ import { getImportedTemplate } from "./imported-template-store";
 import {
   buildTemplatePackageInstallPlan,
   loadTemplatePackageManifest,
-  readProjectPackageJson
+  readProjectPackageJson,
+  resolveManifestToLatest
 } from "./template-package-manifest";
 import { reconcileProjectStructure } from "./tree-reconciler";
 import { CommandRunner } from "./command-runner";
@@ -160,7 +161,15 @@ export class WorkflowEngine {
       reconcileProjectStructure(projectPath, payload.structureTree);
     }
 
-    const packageManifest = loadTemplatePackageManifest(template);
+    this.emitProgress({
+      workflowId,
+      status: "running",
+      step: "resolve-package-versions",
+      message: "Resolving latest compatible package versions from npm."
+    });
+
+    const rawManifest = loadTemplatePackageManifest(template);
+    const packageManifest = await resolveManifestToLatest(rawManifest);
     const projectPackageJson = readProjectPackageJson(projectPath);
     const packagePlan = buildTemplatePackageInstallPlan(packageManifest, projectPackageJson);
 
@@ -282,6 +291,33 @@ export class WorkflowEngine {
     fs.mkdirSync(projectPath, { recursive: true });
     reconcileProjectStructure(projectPath, structureTree);
 
+    if (fs.existsSync(path.join(projectPath, "package.json"))) {
+      this.emitProgress({
+        workflowId,
+        status: "running",
+        step: "install-dependencies",
+        message: "Installing project dependencies."
+      });
+
+      const packageManager = choosePackageManager(projectPath);
+      const installResult = await this.runPlainInstall({ workflowId, packageManager, projectPath });
+
+      if (!installResult.success) {
+        this.emitProgress({
+          workflowId,
+          status: "error",
+          step: "install-dependencies",
+          message: "Project was created, but dependency installation failed."
+        });
+
+        return {
+          success: false,
+          message: "Project was created, but dependency installation failed.",
+          projectPath
+        };
+      }
+    }
+
     this.emitProgress({
       workflowId,
       status: "success",
@@ -351,6 +387,39 @@ export class WorkflowEngine {
       message: "Packages installed successfully.",
       projectPath
     };
+  }
+
+  private async runPlainInstall(input: {
+    workflowId: string;
+    packageManager: PackageManager;
+    projectPath: string;
+  }) {
+    const result = await this.commandRunner.runCommand({
+      command: input.packageManager,
+      args: ["install"],
+      cwd: input.projectPath
+    });
+
+    if (result.success) {
+      return result;
+    }
+
+    if (input.packageManager === "npm") {
+      this.emitProgress({
+        workflowId: input.workflowId,
+        status: "running",
+        step: "dependency-auto-fix",
+        message: summarizeAutoFix(input.packageManager)
+      });
+
+      return this.commandRunner.runCommand({
+        command: input.packageManager,
+        args: ["install", "--legacy-peer-deps"],
+        cwd: input.projectPath
+      });
+    }
+
+    return result;
   }
 
   private async installPackagesWithAutoFix(input: {

@@ -15,7 +15,7 @@ export function EnvironmentRoute() {
     <EnvironmentPage
       report={toolScanReport}
       loading={toolScanLoading}
-      onRefresh={refreshToolScan}
+      onRefresh={() => void refreshToolScan(true)}
     />
   );
 }
