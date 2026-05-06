@@ -50,10 +50,13 @@ export const themeOptions: { id: string; label: string; icon: UiIconName }[] = [
 
 export const accentOptions = [
   { id: "emerald", color: "bg-emerald-500", label: translation.Settings.Emerald },
-  { id: "sky", color: "bg-sky-500", label: translation.Settings.Sky },
-  { id: "violet", color: "bg-violet-500", label: translation.Settings.Violet },
-  { id: "rose", color: "bg-rose-500", label: translation.Settings.Rose },
-  { id: "amber", color: "bg-amber-500", label: translation.Settings.Amber }
+  { id: "sky",     color: "bg-sky-500",     label: translation.Settings.Sky     },
+  { id: "violet",  color: "bg-violet-500",  label: translation.Settings.Violet  },
+  { id: "rose",    color: "bg-rose-500",    label: translation.Settings.Rose    },
+  { id: "amber",   color: "bg-amber-500",   label: translation.Settings.Amber   },
+  { id: "cyan",    color: "bg-cyan-500",    label: translation.Settings.Cyan    },
+  { id: "pink",    color: "bg-pink-500",    label: translation.Settings.Pink    },
+  { id: "indigo",  color: "bg-indigo-500",  label: translation.Settings.Indigo  },
 ];
 
 export const languages: {

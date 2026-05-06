@@ -121,7 +121,7 @@ export function GitStatusPane({
                           "w-full rounded-[18px] border px-4 py-3 text-left",
                           "transition-[transform,border-color,background-color] duration-150 hover:-translate-y-0.5",
                           selected
-                            ? "border-accent/35 bg-accent/10 text-text shadow-[0_18px_40px_rgba(16,185,129,0.1)]"
+                            ? "border-accent/35 bg-accent/10 text-text shadow-accent-md"
                             : "border-border bg-soft/40 text-text hover:border-accent/20 hover:bg-soft/70"
                         )}
                       >

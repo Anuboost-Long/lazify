@@ -34,7 +34,7 @@ export function ToolCard({
         !loading && tool.available
           ? [
               "border-accent hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-glow",
-              "bg-[linear-gradient(140deg,rgba(16,185,129,0.07)_0%,transparent_55%)]",
+              "bg-accent-gradient-140",
             ]
           : !loading && onAction
           ? "!border-error bg-soft shadow-[0_2px_10px_rgba(0,0,0,0.07)] hover:-translate-y-0.5 hover:border-warning/40 hover:shadow-[0_6px_20px_rgba(0,0,0,0.1)]"
@@ -69,7 +69,7 @@ export function ToolCard({
           className={clsx(
             "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border transition-all duration-200",
             tool.available
-              ? "border-transparent bg-accent text-white shadow-[0_0_16px_rgba(16,185,129,0.3)] group-hover:shadow-[0_0_22px_rgba(16,185,129,0.45)]"
+              ? "border-transparent bg-accent text-white shadow-accent-icon"
               : "border-transparent bg-error text-white shadow-[0_0_12px_rgba(244,63,94,0.25)]"
           )}
         >

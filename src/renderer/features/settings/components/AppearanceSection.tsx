@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { translation } from "@renderer/i18n/translation";
 import { useTheme } from "@renderer/shared/hooks/use-theme";
@@ -13,7 +12,6 @@ import { ThemeOptionCard } from "./ThemeOptionCard";
 export function AppearanceSection() {
   const { t } = useTranslation();
   const { themePreference, setThemePreference } = useTheme();
-  const [selectedAccent, setSelectedAccent] = useState("emerald");
 
   return (
     <div className="flex flex-col gap-8">
@@ -33,7 +31,7 @@ export function AppearanceSection() {
         </div>
       </div>
 
-      <AccentColorSection selectedAccent={selectedAccent} onSelectAccent={setSelectedAccent} />
+      <AccentColorSection />
       <InterfaceSection />
       <JsToolsSection />
     </div>

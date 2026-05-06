@@ -32,7 +32,7 @@ export function SourceModeCard({
       className={clsx(
         "group relative overflow-hidden rounded-[28px] border p-6 text-left transition-[transform,box-shadow,border-color] duration-300 hover:-translate-y-1",
         active
-          ? "border-accent bg-[linear-gradient(135deg,rgba(16,185,129,0.1),rgba(255,255,255,0.02))] shadow-glow"
+          ? "border-accent bg-accent-gradient-135 shadow-glow"
           : "border-border bg-soft hover:border-accent"
       )}
     >
@@ -48,7 +48,7 @@ export function SourceModeCard({
           className={clsx(
             "flex h-14 w-14 shrink-0 items-center justify-center rounded-[20px] border transition-[transform,box-shadow] duration-300",
             active
-              ? "border-accent/25 bg-accent/10 text-accent shadow-[0_18px_40px_rgba(16,185,129,0.2)]"
+              ? "border-accent/25 bg-accent/10 text-accent shadow-accent-lg"
               : "border-border bg-bg text-muted group-hover:border-accent/20 group-hover:text-accent"
           )}
         >

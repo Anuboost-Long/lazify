@@ -28,7 +28,7 @@ export function StackPickerCard({
         "group relative overflow-hidden rounded-[28px] border p-5 text-left",
         "animate-fadeIn opacity-0 transition-[transform,box-shadow,border-color] duration-300 ease-out hover:-translate-y-1.5",
         active
-          ? "border-accent bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(16,185,129,0.04))] text-text shadow-glow"
+          ? "border-accent bg-accent-gradient-180 text-text shadow-glow"
           : "border-border bg-soft text-text hover:border-accent"
       )}
       style={{ animationDelay: `${animationDelay}ms` }}

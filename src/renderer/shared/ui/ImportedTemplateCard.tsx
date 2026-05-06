@@ -40,7 +40,7 @@ export function ImportedTemplateCard({
         "group relative cursor-pointer overflow-hidden rounded-[28px] border p-5 text-left",
         "transition-[transform,box-shadow,border-color] duration-300 ease-out hover:-translate-y-1.5",
         active
-          ? "border-accent bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(16,185,129,0.04))] shadow-glow"
+          ? "border-accent bg-accent-gradient-180 shadow-glow"
           : "border-border bg-soft hover:border-accent"
       )}
     >

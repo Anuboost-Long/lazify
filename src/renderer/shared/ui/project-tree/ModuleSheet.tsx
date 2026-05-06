@@ -82,7 +82,7 @@ export function ModuleSheet({
                 className={clsx(
                   "w-full rounded-[20px] border px-4 py-3 text-left duration-200",
                   active
-                    ? "border-accent text-text shadow-[0_10px_24px_rgba(16,185,129,0.16)]"
+                    ? "border-accent text-text shadow-accent-sm"
                     : "border-slate-300/80 bg-white text-slate-900 hover:border-accent dark:border-border dark:bg-bg dark:text-text",
                   "disabled:cursor-not-allowed disabled:opacity-60"
                 )}
@@ -90,7 +90,7 @@ export function ModuleSheet({
                   active
                     ? {
                         background:
-                          "linear-gradient(135deg, rgba(16,185,129,0.14), rgba(6,182,212,0.06))"
+                          "linear-gradient(135deg, rgb(var(--color-accent) / 0.14), rgba(6,182,212,0.06))"
                       }
                     : {
                         background: "linear-gradient(180deg, rgba(255,255,255,0.98), rgba(248,250,252,0.98))"

@@ -1,5 +1,7 @@
 import { useLazifyStore } from "@renderer/shared/hooks/use-lazify-store";
 import { useTheme } from "@renderer/shared/hooks/use-theme";
+import { useAccentColor } from "@renderer/shared/hooks/use-accent-color";
+import { useInterfaceSettings } from "@renderer/shared/hooks/use-interface-settings";
 import { translation } from "@renderer/i18n/translation";
 import clsx from "clsx";
 import { useEffect, useState } from "react";
@@ -15,6 +17,8 @@ export function AppShell() {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { themePreference, setThemePreference } = useTheme();
+  const { accentColor } = useAccentColor();
+  const { compactSidebar, reduceMotion, showTooltips } = useInterfaceSettings();
   const [systemPrefersDark, setSystemPrefersDark] = useState(
     () => window.matchMedia("(prefers-color-scheme: dark)").matches
   );
@@ -43,10 +47,18 @@ export function AppShell() {
     return () => mq.removeEventListener("change", handler);
   }, []);
 
-  // Apply resolved theme to DOM
+  // Apply resolved theme and accent to DOM
   useEffect(() => {
     document.documentElement.dataset.theme = resolvedTheme;
   }, [resolvedTheme]);
+
+  useEffect(() => {
+    document.documentElement.dataset.accent = accentColor;
+  }, [accentColor]);
+
+  useEffect(() => {
+    document.documentElement.dataset.reduceMotion = String(reduceMotion);
+  }, [reduceMotion]);
 
   useEffect(() => {
     window.localStorage.setItem("lazify-sidebar-open", String(sidebarOpen));
@@ -73,10 +85,12 @@ export function AppShell() {
         <Sidebar
           pages={appSidebarPages}
           activePage={activePageId}
-          collapsed={!sidebarOpen}
+          collapsed={compactSidebar || !sidebarOpen}
           theme={resolvedTheme}
+          compactMode={compactSidebar}
+          showTooltips={showTooltips}
           onStartWorkflow={() => navigate(appRoute.initProject)}
-          onToggleSidebar={() => setSidebarOpen((current) => !current)}
+          onToggleSidebar={() => { if (!compactSidebar) setSidebarOpen((c) => !c); }}
           onNavigate={navigate}
           onToggleTheme={() =>
             setThemePreference(resolvedTheme === "dark" ? "light" : "dark")

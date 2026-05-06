@@ -7,37 +7,10 @@
   to   { transform: scaleX(0); }
 }
 
-/* :root,
-:root[data-theme="dark"] {
-  --color-bg: #06110c;
-  --color-bg-soft: #0d1b14;
-  --color-text: #ecfdf5;
-  --color-text-muted: #9ab7a7;
-  --color-accent: #34d399;
-  --color-accent-hover: #10b981;
-  --color-accent-soft: rgba(52, 211, 153, 0.12);
-  --color-border: rgba(52, 211, 153, 0.16);
-  --color-success: #34d399;
-  --color-warning: #f59e0b;
-  --color-error: #fb7185;
-}
-
-:root[data-theme="light"] {
-  --color-bg: #effaf4;
-  --color-bg-soft: #ffffff;
-  --color-text: #0f172a;
-  --color-text-muted: #4b6355;
-  --color-accent: #047857;
-  --color-accent-hover: #065f46;
-  --color-accent-soft: rgba(4, 120, 87, 0.1);
-  --color-border: rgba(4, 120, 87, 0.16);
-  --color-success: #047857;
-  --color-warning: #b45309;
-  --color-error: #be123c;
-} */
-
-:root,
-:root[data-theme="dark"] {
+/* ─────────────────────────────────────────────
+   BASE (dark theme + emerald accent)
+   ───────────────────────────────────────────── */
+:root {
   --color-bg: 11 18 32;
   --color-bg-soft: 17 24 39;
 
@@ -55,6 +28,53 @@
   --color-error: 244 63 94;
 }
 
+/* ─────────────────────────────────────────────
+   DARK THEME — NON-EMERALD ACCENT OVERRIDES
+   (specificity 0,1,1 — same as light theme rule
+   below, so must come BEFORE light theme block)
+   ───────────────────────────────────────────── */
+:root[data-accent="sky"] {
+  --color-accent: 14 165 233;
+  --color-accent-hover: 2 132 199;
+  --color-accent-soft: rgba(14, 165, 233, 0.1);
+}
+:root[data-accent="violet"] {
+  --color-accent: 139 92 246;
+  --color-accent-hover: 124 58 237;
+  --color-accent-soft: rgba(139, 92, 246, 0.1);
+}
+:root[data-accent="rose"] {
+  --color-accent: 244 63 94;
+  --color-accent-hover: 225 29 72;
+  --color-accent-soft: rgba(244, 63, 94, 0.1);
+}
+:root[data-accent="amber"] {
+  --color-accent: 245 158 11;
+  --color-accent-hover: 217 119 6;
+  --color-accent-soft: rgba(245, 158, 11, 0.1);
+}
+:root[data-accent="cyan"] {
+  --color-accent: 6 182 212;
+  --color-accent-hover: 8 145 178;
+  --color-accent-soft: rgba(6, 182, 212, 0.1);
+}
+:root[data-accent="pink"] {
+  --color-accent: 236 72 153;
+  --color-accent-hover: 219 39 119;
+  --color-accent-soft: rgba(236, 72, 153, 0.1);
+}
+:root[data-accent="indigo"] {
+  --color-accent: 99 102 241;
+  --color-accent-hover: 79 70 229;
+  --color-accent-soft: rgba(99, 102, 241, 0.1);
+}
+
+/* ─────────────────────────────────────────────
+   LIGHT THEME — EMERALD (default accent)
+   (specificity 0,1,1 — comes after dark accent
+   overrides, so emerald-light always takes over
+   for non-accent + light combos)
+   ───────────────────────────────────────────── */
 :root[data-theme="light"] {
   --color-bg: 243 244 246;
   --color-bg-soft: 255 255 255;
@@ -73,6 +93,50 @@
   --color-error: 225 29 72;
 }
 
+/* ─────────────────────────────────────────────
+   LIGHT THEME — NON-EMERALD ACCENT OVERRIDES
+   (specificity 0,2,1 — always beats the single-
+   attribute rules above)
+   ───────────────────────────────────────────── */
+:root[data-accent="sky"][data-theme="light"] {
+  --color-accent: 2 132 199;
+  --color-accent-hover: 3 105 161;
+  --color-accent-soft: rgba(2, 132, 199, 0.08);
+}
+:root[data-accent="violet"][data-theme="light"] {
+  --color-accent: 109 40 217;
+  --color-accent-hover: 91 33 182;
+  --color-accent-soft: rgba(109, 40, 217, 0.08);
+}
+:root[data-accent="rose"][data-theme="light"] {
+  --color-accent: 190 18 60;
+  --color-accent-hover: 159 18 57;
+  --color-accent-soft: rgba(190, 18, 60, 0.08);
+}
+:root[data-accent="amber"][data-theme="light"] {
+  --color-accent: 180 83 9;
+  --color-accent-hover: 146 64 14;
+  --color-accent-soft: rgba(180, 83, 9, 0.08);
+}
+:root[data-accent="cyan"][data-theme="light"] {
+  --color-accent: 14 116 144;
+  --color-accent-hover: 21 94 117;
+  --color-accent-soft: rgba(14, 116, 144, 0.08);
+}
+:root[data-accent="pink"][data-theme="light"] {
+  --color-accent: 190 24 93;
+  --color-accent-hover: 157 23 77;
+  --color-accent-soft: rgba(190, 24, 93, 0.08);
+}
+:root[data-accent="indigo"][data-theme="light"] {
+  --color-accent: 67 56 202;
+  --color-accent-hover: 55 48 163;
+  --color-accent-soft: rgba(67, 56, 202, 0.08);
+}
+
+/* ─────────────────────────────────────────────
+   GLOBALS
+   ───────────────────────────────────────────── */
 html,
 body,
 #root {
@@ -86,16 +150,12 @@ body {
   color: rgb(var(--color-text));
 }
 
-:root[data-theme="light"] body {
-  background: rgb(var(--color-bg));
-}
-
 * {
   box-sizing: border-box;
 }
 
 *::selection {
-  background: rgba(16, 185, 129, 0.28);
+  background: rgb(var(--color-accent) / 0.28);
 }
 
 i[class^="devicon-"],
@@ -117,22 +177,73 @@ i[class*=" devicon-"] {
 }
 
 :root[data-theme="light"] ::-webkit-scrollbar-track {
-  background: rgba(187, 247, 208, 0.4);
+  background: rgba(0, 0, 0, 0.06);
 }
 
 ::-webkit-scrollbar-thumb {
   border: 3px solid transparent;
   border-radius: 999px;
-  background: rgba(16, 185, 129, 0.35);
-  background-clip: content-box;
-}
-
-:root[data-theme="light"] ::-webkit-scrollbar-thumb {
-  background: rgba(4, 120, 87, 0.35);
+  background: rgb(var(--color-accent) / 0.35);
   background-clip: content-box;
 }
 
 * {
   scrollbar-width: none;
   -ms-overflow-style: none;
+}
+
+/* ─────────────────────────────────────────────
+   ACCENT-AWARE UTILITY CLASS OVERRIDES
+   These come after @tailwind utilities so they
+   win via cascade (same specificity, later pos).
+   ───────────────────────────────────────────── */
+
+/* Override Tailwind's hardcoded emerald shadow-glow */
+.shadow-glow {
+  box-shadow:
+    0 0 0 1px rgb(var(--color-accent) / 0.24),
+    0 20px 60px rgb(var(--color-accent) / 0.18);
+}
+
+/* Override Tailwind's hardcoded emerald bg-grid */
+.bg-grid {
+  background-image:
+    linear-gradient(to right, rgb(var(--color-accent) / 0.08) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(var(--color-accent) / 0.08) 1px, transparent 1px);
+}
+
+/* Card gradient backgrounds used in active/selected states */
+.bg-accent-gradient-135 {
+  background: linear-gradient(135deg, rgb(var(--color-accent) / 0.1), rgba(255, 255, 255, 0.02));
+}
+.bg-accent-gradient-180 {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgb(var(--color-accent) / 0.04));
+}
+.bg-accent-gradient-140 {
+  background: linear-gradient(140deg, rgb(var(--color-accent) / 0.07) 0%, transparent 55%);
+}
+
+/* Icon glow used inside group elements */
+.shadow-accent-icon {
+  box-shadow: 0 0 16px rgb(var(--color-accent) / 0.3);
+}
+.group:hover .shadow-accent-icon {
+  box-shadow: 0 0 22px rgb(var(--color-accent) / 0.45);
+}
+
+/* Named accent card shadows (replace arbitrary Tailwind shadow values) */
+.shadow-accent-sm  { box-shadow: 0 10px 24px rgb(var(--color-accent) / 0.16); }
+.shadow-accent-md  { box-shadow: 0 18px 40px rgb(var(--color-accent) / 0.1);  }
+.shadow-accent-lg  { box-shadow: 0 18px 40px rgb(var(--color-accent) / 0.2);  }
+
+/* ─────────────────────────────────────────────
+   REDUCE MOTION
+   ───────────────────────────────────────────── */
+:root[data-reduce-motion="true"] *,
+:root[data-reduce-motion="true"] *::before,
+:root[data-reduce-motion="true"] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
 }

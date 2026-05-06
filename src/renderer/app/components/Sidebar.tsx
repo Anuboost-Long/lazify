@@ -2,9 +2,12 @@ import type {
   AppPageId,
   AppPageLink,
 } from "@renderer/app/app-sidebar.constant";
+import { Logo } from "@renderer/assets/logo.tsx";
 import { translation } from "@renderer/i18n/translation";
 import { BodyText, CardTitle, Typography } from "@renderer/shared/typography";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
+import { SidebarMiniItem } from "./SidebarMiniItem";
+import { SidebarNavItem } from "./SidebarNavItem";
 import clsx from "clsx";
 import { useTranslation } from "react-i18next";
 
@@ -13,17 +16,24 @@ interface SidebarProps {
   activePage: AppPageId | null;
   collapsed: boolean;
   theme: "light" | "dark";
+  compactMode?: boolean;
+  showTooltips?: boolean;
   onStartWorkflow: () => void;
   onToggleSidebar: () => void;
   onNavigate: (path: string) => void;
   onToggleTheme: () => void;
 }
 
+const LOGO_COLOR = "rgb(var(--color-text-muted))";
+const LOGO_BOLT_COLOR = "rgb(var(--color-accent))";
+
 export function Sidebar({
   pages,
   activePage,
   collapsed,
   theme,
+  compactMode = false,
+  showTooltips = true,
   onStartWorkflow,
   onToggleSidebar,
   onNavigate,
@@ -41,97 +51,122 @@ export function Sidebar({
       )}
     >
       <div className="flex h-full flex-col p-3">
-        <div className="flex items-center gap-2 pb-3">
-          <button
-            type="button"
-            onClick={onToggleSidebar}
-            className={clsx(
-              "flex h-10 w-10 items-center justify-center",
-              "rounded-xl border border-transparent bg-transparent",
-              "text-muted hover:border-border hover:bg-bg hover:text-text"
-            )}
-            aria-label={collapsed ? t(translation.Sidebar.Open) : t(translation.Sidebar.Collapse)}
-            title={collapsed ? t(translation.Sidebar.Open) : t(translation.Sidebar.Collapse)}
-          >
-            <UiIcon
-              name={collapsed ? "menu" : "arrow-left"}
-              className="h-5 w-5"
-            />
-          </button>
-
-          {!collapsed ? (
-            <div className="min-w-0">
-              <CardTitle className="text-sm">{t(translation.Sidebar.AppName)}</CardTitle>
-              <BodyText className="text-xs text-muted">{t(translation.Sidebar.AppSubtitle)}</BodyText>
+        {/* ── Header ─────────────────────────────── */}
+        <div
+          className={clsx(
+            "flex items-center pb-3",
+            collapsed ? "justify-center" : "gap-2"
+          )}
+        >
+          {compactMode ? (
+            /* Compact: static brand mark, matches nav item size */
+            <div className="flex w-full items-center justify-center rounded-xl bg-accent/15 py-3">
+              <Logo size={20} color={LOGO_COLOR} boltColor={LOGO_BOLT_COLOR} />
             </div>
-          ) : null}
+          ) : collapsed ? (
+            /* Collapsed: Logo IS the expand button, matches nav item size */
+            <button
+              type="button"
+              onClick={onToggleSidebar}
+              className={clsx(
+                "flex w-full items-center justify-center",
+                "rounded-xl border border-transparent py-3",
+                "hover:border-border hover:bg-bg"
+              )}
+              aria-label={t(translation.Sidebar.Open)}
+              title={t(translation.Sidebar.Open)}
+            >
+              <Logo size={20} color={LOGO_COLOR} boltColor={LOGO_BOLT_COLOR} />
+            </button>
+          ) : (
+            /* Expanded: Logo + app name + collapse button */
+            <>
+              <div className="flex min-w-0 flex-1 items-center gap-2.5 pl-2">
+                <Logo
+                  size={20}
+                  color={LOGO_COLOR}
+                  boltColor={LOGO_BOLT_COLOR}
+                  className="shrink-0"
+                />
+                <div className="min-w-0">
+                  <CardTitle className="text-sm">
+                    {t(translation.Sidebar.AppName)}
+                  </CardTitle>
+                  <BodyText className="text-xs text-muted">
+                    {t(translation.Sidebar.AppSubtitle)}
+                  </BodyText>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={onToggleSidebar}
+                className={clsx(
+                  "flex h-8 w-8 shrink-0 items-center justify-center",
+                  "rounded-xl border border-transparent text-muted",
+                  "hover:border-border hover:bg-bg hover:text-text"
+                )}
+                aria-label={t(translation.Sidebar.Collapse)}
+                title={t(translation.Sidebar.Collapse)}
+              >
+                <UiIcon name="arrow-left" className="h-4 w-4" />
+              </button>
+            </>
+          )}
         </div>
 
+        {/* ── New workflow button ─────────────────── */}
         <button
           type="button"
           onClick={onStartWorkflow}
           className={clsx(
             "mb-4 flex items-center gap-3",
             "rounded-xl border border-border bg-bg px-3 py-3",
-            "text-sm font-medium text-text hover:border-accent"
+            "text-sm font-medium text-text hover:border-accent",
+            collapsed && "justify-center px-0"
           )}
           aria-label={t(translation.Sidebar.StartNewWorkflow)}
-          title={t(translation.Sidebar.StartNewWorkflow)}
+          title={
+            showTooltips && collapsed
+              ? t(translation.Sidebar.StartNewWorkflow)
+              : undefined
+          }
         >
-          <UiIcon name="play" className="h-4 w-4 text-accent" />
-          {!collapsed ? (
+          <UiIcon name="play" className="h-4 w-4 shrink-0 text-accent" />
+          {!collapsed && (
             <Typography as="span" variant="body" className="text-inherit">
               {t(translation.Sidebar.NewWorkflow)}
             </Typography>
-          ) : null}
+          )}
         </button>
 
+        {/* ── Nav ────────────────────────────────── */}
         <nav className="flex flex-1 flex-col gap-1">
           {pages.map((page) => {
             const isActive = page.id === activePage;
 
-            return (
-              <button
+            return collapsed ? (
+              <SidebarMiniItem
                 key={page.id}
-                type="button"
-                onClick={() => {
-                  console.log(page.path);
-                  onNavigate(page.path);
-                }}
-                className={clsx(
-                  "flex items-center gap-3 rounded-xl px-3 py-3",
-                  "text-left text-sm",
-                  collapsed && "justify-center px-0",
-                  isActive
-                    ? "bg-bg text-text"
-                    : "text-muted hover:bg-bg/70 hover:text-text"
-                )}
-                aria-label={t(page.label)}
-                title={t(page.label)}
-              >
-                <UiIcon
-                  name={page.icon}
-                  className={clsx(
-                    "h-5 w-5 shrink-0",
-                    isActive ? "text-accent" : "text-muted"
-                  )}
-                />
-
-                {!collapsed ? (
-                  <div className="min-w-0">
-                    <Typography variant="body" className="truncate font-medium text-inherit">
-                      {t(page.label)}
-                    </Typography>
-                    <BodyText className="truncate text-xs text-muted">
-                      {t(page.description)}
-                    </BodyText>
-                  </div>
-                ) : null}
-              </button>
+                icon={page.icon}
+                label={t(page.label)}
+                isActive={isActive}
+                showTooltip={showTooltips}
+                onClick={() => onNavigate(page.path)}
+              />
+            ) : (
+              <SidebarNavItem
+                key={page.id}
+                icon={page.icon}
+                label={t(page.label)}
+                description={t(page.description)}
+                isActive={isActive}
+                onClick={() => onNavigate(page.path)}
+              />
             );
           })}
         </nav>
 
+        {/* ── Theme toggle ───────────────────────── */}
         <div className="border-t border-border pt-3">
           <button
             type="button"
@@ -142,22 +177,28 @@ export function Sidebar({
               collapsed && "justify-center px-0"
             )}
             aria-label={t(translation.Sidebar.ToggleTheme)}
-            title={`${t(translation.Sidebar.Theme)}: ${theme}`}
+            title={
+              showTooltips && collapsed
+                ? `${t(translation.Sidebar.Theme)}: ${theme}`
+                : undefined
+            }
           >
             <UiIcon
               name={theme === "dark" ? "sun" : "moon"}
               className="h-5 w-5 shrink-0 text-muted"
             />
-            {!collapsed ? (
+            {!collapsed && (
               <div className="min-w-0">
                 <Typography variant="body" className="font-medium text-text">
                   {t(translation.Sidebar.Theme)}
                 </Typography>
                 <BodyText className="text-xs capitalize text-muted">
-                  {theme === "dark" ? t(translation.Settings.Dark) : t(translation.Settings.Light)}
+                  {theme === "dark"
+                    ? t(translation.Settings.Dark)
+                    : t(translation.Settings.Light)}
                 </BodyText>
               </div>
-            ) : null}
+            )}
           </button>
         </div>
       </div>

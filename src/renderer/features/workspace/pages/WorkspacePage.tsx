@@ -59,7 +59,7 @@ export function WorkspacePage({
           className="pointer-events-none absolute inset-0 opacity-80"
           style={{
             background:
-              "radial-gradient(circle at top left, rgba(16, 185, 129, 0.18), transparent 38%), linear-gradient(135deg, rgba(255, 255, 255, 0.02), transparent 55%)",
+              "radial-gradient(circle at top left, rgb(var(--color-accent) / 0.18), transparent 38%), linear-gradient(135deg, rgba(255, 255, 255, 0.02), transparent 55%)",
           }}
         />
 
