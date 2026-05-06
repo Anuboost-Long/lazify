@@ -112,7 +112,14 @@ export const translation = {
     "Legal": "settings.legal",
     "PrivacyPolicy": "settings.privacy_policy",
     "TermsOfService": "settings.terms_of_service",
-    "OpenSourceLicenses": "settings.open_source_licenses"
+    "OpenSourceLicenses": "settings.open_source_licenses",
+    "JsTools": "settings.js_tools",
+    "JsPackageManager": "settings.js_package_manager",
+    "JsPackageManagerDesc": "settings.js_package_manager_desc",
+    "ScanPackageManagers": "settings.scan_package_managers",
+    "PackageManagerModalTitle": "settings.package_manager_modal_title",
+    "PackageManagerModalDesc": "settings.package_manager_modal_desc",
+    "SelectPackageManager": "settings.select_package_manager"
   },
   "Workspace": {
     "Eyebrow": "workspace.eyebrow",

@@ -4,6 +4,7 @@ import { translation } from "@renderer/i18n/translation";
 import { BodyText, PageTitle, PillText, Typography } from "@renderer/shared/typography";
 import UiIcon from "./icons/UiIcon";
 import { useTranslation } from "react-i18next";
+import { formatTime, useDateTimeFormat } from "@renderer/shared/hooks/use-date-time-format";
 
 interface LogPanelProps {
   logs: LogEntry[];
@@ -17,6 +18,7 @@ const streamStyles: Record<LogEntry["stream"], string> = {
 
 export function LogPanel({ logs }: LogPanelProps) {
   const { t } = useTranslation();
+  const { timeFormat } = useDateTimeFormat();
 
   return (
     <section
@@ -57,7 +59,7 @@ export function LogPanel({ logs }: LogPanelProps) {
               )}
             >
               <Typography as="span" variant="pill" className="mr-3 text-white/45">
-                {new Date(entry.timestamp).toLocaleTimeString()}
+                {formatTime(new Date(entry.timestamp), timeFormat)}
               </Typography>
               {entry.message}
             </div>

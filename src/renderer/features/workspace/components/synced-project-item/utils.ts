@@ -25,9 +25,3 @@ export function formatStackLabel(value: string) {
     .join(" ");
 }
 
-export function formatSyncedAt(value: string) {
-  return new Intl.DateTimeFormat(undefined, {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(new Date(value));
-}

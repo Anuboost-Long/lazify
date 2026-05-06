@@ -69,10 +69,10 @@ const toneClassNames: Record<TypographyTone, string> = {
   inherit: "text-inherit",
 };
 
-function removeLeadingClassNames(value?: string) {
+function removeTrackingClassNames(value?: string) {
   return value
     ?.split(/\s+/)
-    .filter((className) => className && !className.startsWith("leading-"))
+    .filter((className) => className && !className.startsWith("tracking-"))
     .join(" ");
 }
 
@@ -89,10 +89,11 @@ export function Typography<TElement extends ElementType = "p">({
     normalizeLanguage(i18n.resolvedLanguage ?? i18n.language) === "kh";
   const Component = as ?? "p";
   const resolvedClassName = clsx(
-    variantClassNames[variant],
+    isKhmer
+      ? removeTrackingClassNames(variantClassNames[variant])
+      : variantClassNames[variant],
     tone ? toneClassNames[tone] : null,
-    isKhmer ? "leading-[1.9]" : null,
-    isKhmer ? removeLeadingClassNames(className) : className
+    isKhmer ? removeTrackingClassNames(className) : className
   );
 
   return createElement(

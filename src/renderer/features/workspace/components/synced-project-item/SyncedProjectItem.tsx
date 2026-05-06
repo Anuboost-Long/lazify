@@ -2,7 +2,8 @@ import clsx from "clsx";
 import { BodyText, CardTitle, PillText } from "@renderer/shared/typography";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import type { SyncedWorkspaceProject } from "@renderer/shared/types/lazify";
-import { formatStackLabel, formatSyncedAt } from "./utils";
+import { formatDate, formatTime, useDateTimeFormat } from "@renderer/shared/hooks/use-date-time-format";
+import { formatStackLabel } from "./utils";
 
 interface SyncedProjectItemProps {
   active: boolean;
@@ -21,6 +22,10 @@ export function SyncedProjectItem({
   onRemove,
   onResync
 }: SyncedProjectItemProps) {
+  const { dateFormat, timeFormat } = useDateTimeFormat();
+  const syncedAt = new Date(project.lastSyncedAt);
+  const formattedSyncedAt = `${formatDate(syncedAt, dateFormat)} ${formatTime(syncedAt, timeFormat)}`;
+
   return (
     <article
       role="button"
@@ -67,7 +72,7 @@ export function SyncedProjectItem({
 
       <div className="mt-5 flex flex-col items-end gap-3 sm:flex-row sm:items-center sm:justify-between">
         <PillText className="text-right text-muted sm:text-left">
-          Last synced {formatSyncedAt(project.lastSyncedAt)}
+          Last synced {formattedSyncedAt}
         </PillText>
 
         <button

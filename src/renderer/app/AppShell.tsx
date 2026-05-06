@@ -1,4 +1,5 @@
 import { useLazifyStore } from "@renderer/shared/hooks/use-lazify-store";
+import { useTheme } from "@renderer/shared/hooks/use-theme";
 import { translation } from "@renderer/i18n/translation";
 import clsx from "clsx";
 import { useEffect, useState } from "react";
@@ -13,15 +14,20 @@ export function AppShell() {
   const location = useLocation();
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const [theme, setTheme] = useState<"light" | "dark">(() => {
-    const storedTheme = window.localStorage.getItem("lazify-theme");
-    return storedTheme === "light" ? "light" : "dark";
-  });
+  const { themePreference, setThemePreference } = useTheme();
+  const [systemPrefersDark, setSystemPrefersDark] = useState(
+    () => window.matchMedia("(prefers-color-scheme: dark)").matches
+  );
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(() => {
     const stored = window.localStorage.getItem("lazify-sidebar-open");
     return stored === null ? true : stored === "true";
   });
   const { bootstrap, bindEvents } = useLazifyStore();
+
+  const resolvedTheme: "dark" | "light" =
+    themePreference === "system"
+      ? systemPrefersDark ? "dark" : "light"
+      : themePreference;
 
   useEffect(() => {
     void bootstrap();
@@ -29,10 +35,18 @@ export function AppShell() {
     return cleanup;
   }, [bindEvents, bootstrap]);
 
+  // Track system preference changes
   useEffect(() => {
-    document.documentElement.dataset.theme = theme;
-    window.localStorage.setItem("lazify-theme", theme);
-  }, [theme]);
+    const mq = window.matchMedia("(prefers-color-scheme: dark)");
+    const handler = (e: MediaQueryListEvent) => setSystemPrefersDark(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+
+  // Apply resolved theme to DOM
+  useEffect(() => {
+    document.documentElement.dataset.theme = resolvedTheme;
+  }, [resolvedTheme]);
 
   useEffect(() => {
     window.localStorage.setItem("lazify-sidebar-open", String(sidebarOpen));
@@ -60,12 +74,12 @@ export function AppShell() {
           pages={appSidebarPages}
           activePage={activePageId}
           collapsed={!sidebarOpen}
-          theme={theme}
+          theme={resolvedTheme}
           onStartWorkflow={() => navigate(appRoute.initProject)}
           onToggleSidebar={() => setSidebarOpen((current) => !current)}
           onNavigate={navigate}
           onToggleTheme={() =>
-            setTheme((current) => (current === "dark" ? "light" : "dark"))
+            setThemePreference(resolvedTheme === "dark" ? "light" : "dark")
           }
         />
 

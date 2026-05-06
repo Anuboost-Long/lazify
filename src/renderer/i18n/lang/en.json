@@ -112,7 +112,14 @@
     "legal": "Legal",
     "privacy_policy": "Privacy Policy",
     "terms_of_service": "Terms of Service",
-    "open_source_licenses": "Open Source Licenses"
+    "open_source_licenses": "Open Source Licenses",
+    "js_tools": "JavaScript Tools",
+    "js_package_manager": "Package Manager",
+    "js_package_manager_desc": "Default package manager used for JavaScript projects",
+    "scan_package_managers": "Scan",
+    "package_manager_modal_title": "Select Package Manager",
+    "package_manager_modal_desc": "Choose your preferred JS package manager. Only installed ones can be selected.",
+    "select_package_manager": "Confirm"
   },
   "workspace": {
     "eyebrow": "Desktop Workflow Orchestrator",

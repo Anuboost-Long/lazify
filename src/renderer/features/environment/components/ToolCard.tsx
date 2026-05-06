@@ -91,7 +91,7 @@ export function ToolCard({
           </CardTitle>
           <PillText
             className={clsx(
-              "mt-1.5 truncate text-[11px] font-medium",
+              "mt-1.5 block truncate text-[11px] font-medium",
               tool.available ? "!text-accent" : "!text-muted/35"
             )}
           >

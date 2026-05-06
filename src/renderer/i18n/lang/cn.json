@@ -95,7 +95,14 @@
     "legal": "法律",
     "privacy_policy": "隐私政策",
     "terms_of_service": "服务条款",
-    "open_source_licenses": "开源许可证"
+    "open_source_licenses": "开源许可证",
+    "js_tools": "JavaScript 工具",
+    "js_package_manager": "包管理器",
+    "js_package_manager_desc": "JavaScript 项目使用的默认包管理器",
+    "scan_package_managers": "扫描",
+    "package_manager_modal_title": "选择包管理器",
+    "package_manager_modal_desc": "选择您偏好的 JS 包管理器。只有已安装的才能被选择。",
+    "select_package_manager": "确认"
   },
   "workspace": {
     "eyebrow": "桌面工作流编排器",

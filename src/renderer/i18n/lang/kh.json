@@ -95,7 +95,14 @@
     "legal": "ច្បាប់",
     "privacy_policy": "គោលការណ៍ភាពឯកជន",
     "terms_of_service": "លក្ខខណ្ឌសេវាកម្ម",
-    "open_source_licenses": "អាជ្ញាប័ណ្ណ Open Source"
+    "open_source_licenses": "អាជ្ញាប័ណ្ណ Open Source",
+    "js_tools": "ឧបករណ៍ JavaScript",
+    "js_package_manager": "Package Manager",
+    "js_package_manager_desc": "Package manager លំនាំដើមសម្រាប់គម្រោង JavaScript",
+    "scan_package_managers": "ស្កែន",
+    "package_manager_modal_title": "ជ្រើសរើស Package Manager",
+    "package_manager_modal_desc": "ជ្រើសរើស package manager ដែលអ្នកចូលចិត្ត។ មានតែដែលបានដំឡើងប៉ុណ្ណោះអាចជ្រើសរើសបាន។",
+    "select_package_manager": "បញ្ជាក់"
   },
   "workspace": {
     "eyebrow": "ប្រព័ន្ធគ្រប់គ្រងលំហូរការងារ Desktop",
