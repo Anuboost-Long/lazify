@@ -1,6 +1,7 @@
 import clsx from "clsx";
 import { BodyText, CardTitle, PillText } from "@renderer/shared/typography";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
+import { IconButton } from "@renderer/shared/ui/IconButton";
 import type { SyncedWorkspaceProject } from "@renderer/shared/types/lazify";
 import { formatDate, formatTime, useDateTimeFormat } from "@renderer/shared/hooks/use-date-time-format";
 import { formatStackLabel } from "./utils";
@@ -48,14 +49,13 @@ export function SyncedProjectItem({
           </BodyText>
         </div>
 
-        <button
-          type="button"
+        <IconButton
+          icon="xmark"
+          iconClassName="h-4 w-4"
           onClick={(e) => { e.stopPropagation(); onRemove(project.projectPath); }}
-          className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border bg-soft text-muted hover:border-red-300/40 hover:text-red-400"
           aria-label={`Remove ${project.projectName}`}
-        >
-          <UiIcon name="xmark" className="h-4 w-4" />
-        </button>
+          className="h-9 w-9 rounded-full border border-border bg-soft text-muted hover:border-red-300/40 hover:text-red-400"
+        />
       </div>
 
       <div className="mt-4 flex w-full flex-wrap gap-2 text-left">

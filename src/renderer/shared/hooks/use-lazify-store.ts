@@ -482,6 +482,16 @@ export function useLazifyStore() {
     });
   }, [setSyncedWorkspaceProjects]);
 
+  const updateProjectNodeVersion = useCallback((projectPath: string, nodeVersion: string | null) => {
+    setSyncedWorkspaceProjects((current) => {
+      const nextProjects = current.map((item) =>
+        item.projectPath === projectPath ? { ...item, nodeVersion } : item
+      );
+      persistWorkspaceProjects(nextProjects);
+      return nextProjects;
+    });
+  }, [setSyncedWorkspaceProjects]);
+
   return {
     busy,
     environment,
@@ -525,6 +535,7 @@ export function useLazifyStore() {
     removeImportedTemplate,
     syncWorkspaceProject,
     removeSyncedWorkspaceProject,
+    updateProjectNodeVersion,
     setInitWorkflowStage,
     pickProjectDirectory,
     bootstrap,

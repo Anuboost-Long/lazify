@@ -486,6 +486,34 @@ export async function nvmSetDefault(version: string): Promise<NvmActionResult> {
   }
 }
 
+export async function nvmUse(version: string): Promise<NvmActionResult> {
+  const nvm = nvmShell();
+  if (!nvm) return { success: false, output: "nvm not found" };
+
+  try {
+    // Run `nvm use` then print the resulting PATH so we can propagate it to
+    // the Electron process — this ensures all subsequent spawn calls inherit
+    // the newly selected Node version.
+    const { stdout, stderr } = await execFileAsync(
+      nvm.shell,
+      ["-l", "-c", `${nvmSourceCmd(nvm.nvmScript)} && nvm use ${version} --no-colors && printf "\\nNVM_NEW_PATH:%s\\n" "$PATH"`],
+      { timeout: 10000, maxBuffer: 1024 * 1024 }
+    );
+
+    const combined = [stdout, stderr].filter(Boolean).join("\n");
+
+    const pathMatch = combined.match(/NVM_NEW_PATH:(.+)/);
+    if (pathMatch?.[1]) {
+      process.env.PATH = pathMatch[1].trim();
+    }
+
+    const output = combined.replace(/NVM_NEW_PATH:.+/g, "").trim();
+    return { success: true, output };
+  } catch (err) {
+    return { success: false, output: err instanceof Error ? err.message : String(err) };
+  }
+}
+
 export async function installNvm(): Promise<NvmInstallResult> {
   if (process.platform === "win32") {
     return {
@@ -564,4 +592,96 @@ function capitalize(s: string): string {
 export interface NvmActionResult {
   success: boolean;
   output: string;
+}
+
+// ---------------------------------------------------------------------------
+// Port scanning
+// ---------------------------------------------------------------------------
+
+export interface ListeningPort {
+  pid: number;
+  port: number;
+  command: string;
+  address: string;
+}
+
+export async function scanListeningPorts(): Promise<ListeningPort[]> {
+  try {
+    // -i TCP  : TCP sockets only
+    // -sTCP:LISTEN : only LISTEN state
+    // -P      : show port numbers (not service names)
+    // -n      : no hostname resolution
+    const { stdout } = await execFileAsync(
+      "lsof", ["-i", "TCP", "-sTCP:LISTEN", "-P", "-n"],
+      { timeout: 4000, maxBuffer: 2 * 1024 * 1024 }
+    );
+
+    const results: ListeningPort[] = [];
+    const seen = new Set<string>();
+
+    for (const line of stdout.split("\n").slice(1)) {
+      const parts = line.trim().split(/\s+/);
+      if (parts.length < 9) continue;
+
+      const command = parts[0];
+      const pid     = parseInt(parts[1], 10);
+      const name    = parts[8]; // e.g. "*:3000", "127.0.0.1:8080", "[::]:5173"
+
+      const portMatch = name.match(/:(\d+)$/);
+      if (!portMatch || isNaN(pid)) continue;
+
+      const port    = parseInt(portMatch[1], 10);
+      const address = name.slice(0, name.lastIndexOf(":")) || "*";
+      const key     = `${pid}:${port}`;
+
+      if (!seen.has(key)) {
+        seen.add(key);
+        results.push({ pid, port, command, address });
+      }
+    }
+
+    return results.sort((a, b) => a.port - b.port);
+  } catch {
+    return [];
+  }
+}
+
+// Returns a Map<childPid, parentPid> for the entire process table.
+export async function buildProcessTree(): Promise<Map<number, number>> {
+  try {
+    const { stdout } = await execFileAsync(
+      "ps", ["-eo", "pid,ppid"],
+      { timeout: 3000, maxBuffer: 2 * 1024 * 1024 }
+    );
+
+    const tree = new Map<number, number>();
+    for (const line of stdout.split("\n").slice(1)) {
+      const parts = line.trim().split(/\s+/);
+      if (parts.length >= 2) {
+        const pid  = parseInt(parts[0], 10);
+        const ppid = parseInt(parts[1], 10);
+        if (!isNaN(pid) && !isNaN(ppid)) tree.set(pid, ppid);
+      }
+    }
+
+    return tree;
+  } catch {
+    return new Map();
+  }
+}
+
+// Returns the set of all descendant PIDs (inclusive of rootPid).
+export function getDescendantPids(rootPid: number, tree: Map<number, number>): Set<number> {
+  const result = new Set<number>([rootPid]);
+  let changed = true;
+  while (changed) {
+    changed = false;
+    for (const [child, parent] of tree) {
+      if (result.has(parent) && !result.has(child)) {
+        result.add(child);
+        changed = true;
+      }
+    }
+  }
+  return result;
 }

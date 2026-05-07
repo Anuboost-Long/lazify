@@ -20,7 +20,7 @@ export default {
       },
       boxShadow: {
         panel: "0 24px 80px rgba(6, 24, 16, 0.24)",
-        glow: "0 0 0 1px rgba(16, 185, 129, 0.24), 0 20px 60px rgba(16, 185, 129, 0.18)"
+        glow: "0 0 0 1px rgb(var(--color-accent) / 0.24), 0 20px 60px rgb(var(--color-accent) / 0.18)"
       },
       borderRadius: {
         shell: "28px"
@@ -31,7 +31,7 @@ export default {
         mono: ["SFMono-Regular", "Menlo", "Monaco", "Consolas", "monospace"]
       },
       backgroundImage: {
-        grid: "linear-gradient(to right, rgba(16, 185, 129, 0.08) 1px, transparent 1px), linear-gradient(to bottom, rgba(16, 185, 129, 0.08) 1px, transparent 1px)"
+        grid: "linear-gradient(to right, rgb(var(--color-accent) / 0.08) 1px, transparent 1px), linear-gradient(to bottom, rgb(var(--color-accent) / 0.08) 1px, transparent 1px)"
       },
       animation: {
         drift: "drift 14s ease-in-out infinite",

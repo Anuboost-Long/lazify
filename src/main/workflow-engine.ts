@@ -7,6 +7,7 @@ import {
   getAutoFixArgs,
   getInstallCommand,
   getTemplate,
+  getUninstallCommand,
   summarizeAutoFix,
   type TemplateDefinition
 } from "./harmonizer";
@@ -47,6 +48,17 @@ export interface InstallPackagePayload {
   packageName: string;
   baseDirectory: string;
   projectName: string;
+}
+
+export interface AddProjectPackagePayload {
+  projectPath: string;
+  packageName: string;
+  dev?: boolean;
+}
+
+export interface RemoveProjectPackagePayload {
+  projectPath: string;
+  packageName: string;
 }
 
 type ProgressEmitter = (event: WorkflowProgressEvent) => void;
@@ -387,6 +399,93 @@ export class WorkflowEngine {
       message: "Packages installed successfully.",
       projectPath
     };
+  }
+
+  async addProjectPackage(payload: AddProjectPackagePayload): Promise<WorkflowResult> {
+    const workflowId = `add-pkg-${Date.now()}`;
+
+    if (!fs.existsSync(payload.projectPath)) {
+      throw new Error(`Project path does not exist: ${payload.projectPath}`);
+    }
+
+    const packageManager = choosePackageManager(payload.projectPath);
+
+    this.emitProgress({
+      workflowId,
+      status: "running",
+      step: "add-package",
+      message: `Installing ${payload.packageName} with ${packageManager}.`
+    });
+
+    const result = await this.installPackagesWithAutoFix({
+      workflowId,
+      packageManager,
+      projectPath: payload.projectPath,
+      packages: [payload.packageName],
+      dev: payload.dev
+    });
+
+    if (!result.success) {
+      this.emitProgress({
+        workflowId,
+        status: "error",
+        step: "add-package",
+        message: "Package installation failed."
+      });
+      return { success: false, message: "Package installation failed." };
+    }
+
+    this.emitProgress({
+      workflowId,
+      status: "success",
+      step: "complete",
+      message: `${payload.packageName} installed successfully.`
+    });
+
+    return { success: true, message: `${payload.packageName} installed successfully.`, projectPath: payload.projectPath };
+  }
+
+  async removeProjectPackage(payload: RemoveProjectPackagePayload): Promise<WorkflowResult> {
+    const workflowId = `remove-pkg-${Date.now()}`;
+
+    if (!fs.existsSync(payload.projectPath)) {
+      throw new Error(`Project path does not exist: ${payload.projectPath}`);
+    }
+
+    const packageManager = choosePackageManager(payload.projectPath);
+
+    this.emitProgress({
+      workflowId,
+      status: "running",
+      step: "remove-package",
+      message: `Removing ${payload.packageName} with ${packageManager}.`
+    });
+
+    const args = getUninstallCommand(packageManager, payload.packageName);
+    const result = await this.commandRunner.runCommand({
+      command: packageManager,
+      args,
+      cwd: payload.projectPath
+    });
+
+    if (!result.success) {
+      this.emitProgress({
+        workflowId,
+        status: "error",
+        step: "remove-package",
+        message: "Package removal failed."
+      });
+      return { success: false, message: "Package removal failed." };
+    }
+
+    this.emitProgress({
+      workflowId,
+      status: "success",
+      step: "complete",
+      message: `${payload.packageName} removed successfully.`
+    });
+
+    return { success: true, message: `${payload.packageName} removed successfully.`, projectPath: payload.projectPath };
   }
 
   private async runPlainInstall(input: {

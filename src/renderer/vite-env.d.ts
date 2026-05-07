@@ -34,6 +34,7 @@ declare global {
       nvmListVersions: () => Promise<NvmVersionList>;
       installNvm: () => Promise<NvmInstallResult>;
       nvmSetDefault: (version: string) => Promise<NvmActionResult>;
+      nvmUse: (version: string) => Promise<NvmActionResult>;
       installTool: (toolName: string) => Promise<NvmActionResult>;
       checkToolUpdate: (toolName: string, currentVersion: string) => Promise<ToolUpdateInfo>;
       updateTool: (toolName: string) => Promise<NvmActionResult>;
@@ -53,6 +54,17 @@ declare global {
       importProjectIndexFromDirectory: (projectPath: string) => Promise<ImportedProjectIndexResult>;
       readImportedProjectFile: (filePath: string) => Promise<string>;
       getProjectGitStatus: (projectPath: string) => Promise<ProjectGitStatusResult>;
+      listSessions: () => Promise<import("./shared/types/lazify").PtySession[]>;
+      listScripts: (projectPath: string) => Promise<Record<string, string>>;
+      runScript: (projectPath: string, scriptName: string, cols?: number, rows?: number) => Promise<{ runId: string; ptyAvailable: boolean }>;
+      stopScript: (runId: string) => Promise<void>;
+      ptyWrite: (runId: string, data: string) => void;
+      ptyResize: (runId: string, cols: number, rows: number) => void;
+      onPtyData: (callback: (event: { runId: string; data: string }) => void) => () => void;
+      onScriptStatus: (callback: (event: import("./shared/types/lazify").ScriptStatusEvent) => void) => () => void;
+      listProjectPackages: (projectPath: string) => Promise<import("./shared/types/lazify").InstalledPackage[]>;
+      addProjectPackage: (payload: import("../main/workflow-engine").AddProjectPackagePayload) => Promise<import("../main/workflow-engine").WorkflowResult>;
+      removeProjectPackage: (payload: import("../main/workflow-engine").RemoveProjectPackagePayload) => Promise<import("../main/workflow-engine").WorkflowResult>;
       saveImportedTemplate: (
         projectPath: string,
         includedRelativePaths: string[],

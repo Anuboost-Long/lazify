@@ -1,8 +1,10 @@
 import { app, BrowserWindow, dialog, ipcMain, type OpenDialogOptions } from "electron";
+import fs from "node:fs";
 import path from "node:path";
 
-import type { ProjectTreeNode } from "../renderer/shared/types/lazify";
+import type { ProjectTreeNode, InstalledPackage } from "../renderer/shared/types/lazify";
 import { CommandRunner } from "./command-runner";
+import { PtyRunner } from "./pty-runner";
 import { getTemplate, listTemplates } from "./harmonizer";
 import {
   deleteImportedTemplate,
@@ -18,8 +20,8 @@ import {
   readImportedProjectFile
 } from "./project-importer-optimized";
 import { getProjectGitStatus } from "./project-git-status";
-import { scanEnvironment } from "./scanner";
-import { scanTools, probeSingleTool, listNvmVersions, installNvm, nvmSetDefault, installTool, checkToolUpdate, updateTool } from "./environment-scanner";
+import { choosePackageManager, scanEnvironment } from "./scanner";
+import { scanTools, probeSingleTool, listNvmVersions, installNvm, nvmSetDefault, nvmUse, installTool, checkToolUpdate, updateTool, scanListeningPorts, buildProcessTree, getDescendantPids } from "./environment-scanner";
 import { listTemplatePackageEntries } from "./template-package-manifest";
 import { WorkflowEngine } from "./workflow-engine";
 import { matchPackageVersions } from "../brain/package-version-matcher";
@@ -33,6 +35,10 @@ const emitToRenderer = (channel: string, payload: unknown) => {
 const commandRunner = new CommandRunner((event) => emitToRenderer("lazify:log", event));
 const workflowEngine = new WorkflowEngine(commandRunner, (event) =>
   emitToRenderer("lazify:workflow-progress", event)
+);
+const ptyRunner = new PtyRunner(
+  (event) => emitToRenderer("lazify:pty-data", event),
+  (event) => emitToRenderer("lazify:script-status", event)
 );
 
 function createMainWindow(): BrowserWindow {
@@ -77,6 +83,7 @@ function registerIpcHandlers() {
   ipcMain.handle("lazify:nvm-list-versions", async () => listNvmVersions());
   ipcMain.handle("lazify:install-nvm", async () => installNvm());
   ipcMain.handle("lazify:nvm-set-default", async (_event, version: string) => nvmSetDefault(version));
+  ipcMain.handle("lazify:nvm-use", async (_event, version: string) => nvmUse(version));
   ipcMain.handle("lazify:install-tool", async (_event, toolName: string) => installTool(toolName));
   ipcMain.handle("lazify:check-tool-update", async (_event, toolName: string, currentVersion: string) => checkToolUpdate(toolName, currentVersion));
   ipcMain.handle("lazify:update-tool", async (_event, toolName: string) => updateTool(toolName));
@@ -137,6 +144,81 @@ function registerIpcHandlers() {
 
   ipcMain.handle("lazify:project-git-status", async (_event, projectPath: string) =>
     getProjectGitStatus(projectPath)
+  );
+
+  ipcMain.handle("lazify:list-scripts", async (_event, projectPath: string): Promise<Record<string, string>> => {
+    const pkgJsonPath = path.join(projectPath, "package.json");
+    if (!fs.existsSync(pkgJsonPath)) return {};
+    const raw = JSON.parse(fs.readFileSync(pkgJsonPath, "utf8")) as Record<string, unknown>;
+    return (raw.scripts ?? {}) as Record<string, string>;
+  });
+
+  ipcMain.handle("lazify:run-script", async (_event, projectPath: string, scriptName: string, cols = 220, rows = 50): Promise<{ runId: string; ptyAvailable: boolean }> => {
+    const packageManager = choosePackageManager(projectPath);
+    const args = packageManager === "yarn" ? [scriptName] : ["run", scriptName];
+
+    if (ptyRunner.available) {
+      const runId = ptyRunner.start(packageManager, args, projectPath, scriptName, cols as number, rows as number);
+      return { runId, ptyAvailable: true };
+    }
+
+    // Fallback: spawn without PTY (no interactive output)
+    const runId = commandRunner.startScript(
+      { command: packageManager, args, cwd: projectPath },
+      (event) => emitToRenderer("lazify:pty-data", { runId: event.id, data: event.message }),
+      (id, exitCode) => emitToRenderer("lazify:script-status", { runId: id, scriptName, exitCode, status: exitCode === 0 ? "done" : "error" })
+    );
+    emitToRenderer("lazify:script-status", { runId, scriptName, exitCode: null, status: "running" });
+    return { runId, ptyAvailable: false };
+  });
+
+  ipcMain.handle("lazify:stop-script", async (_event, runId: string): Promise<void> => {
+    if (runId.startsWith("pty-")) {
+      ptyRunner.kill(runId);
+    } else {
+      commandRunner.stopScript(runId);
+    }
+  });
+
+  ipcMain.handle("lazify:list-sessions", async () => {
+    const sessions = ptyRunner.getSessions();
+    if (sessions.length === 0) return [];
+
+    const [ports, tree] = await Promise.all([scanListeningPorts(), buildProcessTree()]);
+
+    return sessions.map((s) => {
+      const descendants = getDescendantPids(s.pid, tree);
+      const sessionPorts = ports
+        .filter((p) => descendants.has(p.pid))
+        .map((p) => ({ port: p.port, command: p.command, address: p.address }));
+      return { ...s, ports: sessionPorts };
+    });
+  });
+
+  // Fire-and-forget — no invoke/handle round-trip needed for input
+  ipcMain.on("lazify:pty-write", (_event, runId: string, data: string) => {
+    ptyRunner.write(runId, data);
+  });
+
+  ipcMain.on("lazify:pty-resize", (_event, runId: string, cols: number, rows: number) => {
+    ptyRunner.resize(runId, cols, rows);
+  });
+
+  ipcMain.handle("lazify:list-project-packages", async (_event, projectPath: string): Promise<InstalledPackage[]> => {
+    const pkgJsonPath = path.join(projectPath, "package.json");
+    if (!fs.existsSync(pkgJsonPath)) return [];
+    const raw = JSON.parse(fs.readFileSync(pkgJsonPath, "utf8")) as Record<string, unknown>;
+    const deps = Object.entries((raw.dependencies ?? {}) as Record<string, string>).map(([name, versionSpec]) => ({ name, versionSpec, isDev: false }));
+    const devDeps = Object.entries((raw.devDependencies ?? {}) as Record<string, string>).map(([name, versionSpec]) => ({ name, versionSpec, isDev: true }));
+    return [...deps, ...devDeps];
+  });
+
+  ipcMain.handle("lazify:add-project-package", async (_event, payload: { projectPath: string; packageName: string; dev?: boolean }) =>
+    workflowEngine.addProjectPackage(payload)
+  );
+
+  ipcMain.handle("lazify:remove-project-package", async (_event, payload: { projectPath: string; packageName: string }) =>
+    workflowEngine.removeProjectPackage(payload)
   );
 
   ipcMain.handle("lazify:match-package-versions", async (_event, projectPath: string) =>

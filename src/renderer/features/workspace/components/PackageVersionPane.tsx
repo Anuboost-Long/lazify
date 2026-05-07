@@ -3,6 +3,7 @@ import clsx from "clsx";
 import { translation } from "@renderer/i18n/translation";
 import { BodyText, CardTitle, MonoText, OverlineText, PillText, Typography } from "@renderer/shared/typography";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
+import { LabelButton } from "@renderer/shared/ui/LabelButton";
 import type { PackageMatch, VersionMatchReport } from "@renderer/shared/types/lazify";
 import { useTranslation } from "react-i18next";
 
@@ -127,22 +128,18 @@ export function PackageVersionPane({ projectPath }: PackageVersionPaneProps) {
         </OverlineText>
         <div className="flex items-center gap-2">
           {needsFix && !fixing && (
-            <button
-              type="button"
+            <LabelButton
+              label={translation.PackageDoctor.ApplyFix}
+              variant="accent"
               onClick={() => void applyFix()}
-              className="rounded-full border border-accent/30 bg-accent/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-accent transition-colors hover:bg-accent/20"
-            >
-              {t(translation.PackageDoctor.ApplyFix)}
-            </button>
+            />
           )}
-          <button
-            type="button"
-            onClick={() => void runDoctor()}
+          <LabelButton
+            label={scanning ? translation.PackageDoctor.Scanning : translation.PackageDoctor.RunDoctor}
+            loading={scanning}
             disabled={scanning || fixing}
-            className="rounded-full border border-border bg-soft px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted transition-colors hover:border-accent/40 hover:text-text disabled:opacity-40"
-          >
-            {scanning ? t(translation.PackageDoctor.Scanning) : t(translation.PackageDoctor.RunDoctor)}
-          </button>
+            onClick={() => void runDoctor()}
+          />
         </div>
       </div>
 

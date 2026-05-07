@@ -194,6 +194,33 @@
     "nvm_failed_desc": "请查看下方输出并重试。",
     "applying": "应用中…"
   },
+  "sessions_pane": {
+    "title": "运行中的会话",
+    "running_count": "{{count}} 个运行中",
+    "loading": "正在扫描会话…",
+    "empty_title": "没有活跃会话",
+    "empty_desc": "您在任意项目中运行的脚本将在此显示，并附带端口信息。",
+    "no_ports": "暂无端口",
+    "kill": "终止"
+  },
+  "node_version_pane": {
+    "title": "Node 版本",
+    "pinned": "已锁定的 Node 版本",
+    "none_pinned": "未锁定版本",
+    "none_pinned_desc": "从列表中选择一个版本将其锁定到此项目并自动切换。",
+    "switch": "切换",
+    "clear": "清除",
+    "switching": "切换中…",
+    "switch_success": "已切换到 Node {{version}}",
+    "switch_error": "切换 Node 版本失败",
+    "nvm_unavailable": "nvm 不可用",
+    "nvm_unavailable_desc": "请在环境页面安装 nvm 以启用每项目 Node 版本切换。",
+    "loading": "正在加载 nvm 版本…",
+    "available_versions": "可用版本",
+    "current": "当前",
+    "lts": "LTS",
+    "pin_and_switch": "锁定并切换"
+  },
   "templates": {
     "eyebrow": "已导入的模板",
     "title": "模板",

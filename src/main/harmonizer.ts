@@ -72,6 +72,13 @@ export function getAutoFixArgs(
   return null;
 }
 
+export function getUninstallCommand(packageManager: PackageManager, packageName: string): string[] {
+  if (packageManager === "yarn") {
+    return ["remove", packageName];
+  }
+  return ["uninstall", packageName];
+}
+
 export function summarizeAutoFix(packageManager: PackageManager): string {
   if (packageManager === "npm") {
     return "Retrying with --legacy-peer-deps to bypass peer dependency conflicts.";

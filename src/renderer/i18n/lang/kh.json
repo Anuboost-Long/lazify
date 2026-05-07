@@ -194,6 +194,33 @@
     "nvm_failed_desc": "ពិនិត្យ output ខាងក្រោម ហើយព្យាយាមម្ដងទៀត។",
     "applying": "កំពុងអនុវត្ត…"
   },
+  "sessions_pane": {
+    "title": "សម័យដំណើរការ",
+    "running_count": "{{count}} កំពុងដំណើរការ",
+    "loading": "កំពុងស្កេន…",
+    "empty_title": "គ្មានសម័យសកម្ម",
+    "empty_desc": "Script ដែលអ្នករំ​ណាក់ នឹងបង្ហាញទីនេះ​ ជាមួយ port។",
+    "no_ports": "គ្មាន port",
+    "kill": "បញ្ចប់"
+  },
+  "node_version_pane": {
+    "title": "កំណែ Node",
+    "pinned": "កំណែ Node ដែលបានកំណត់",
+    "none_pinned": "មិនទាន់មានកំណែ",
+    "none_pinned_desc": "ជ្រើសរើសកំណែដើម្បីកំណត់ទៅ project នេះ ហើយប្ដូរដោយស្វ័យប្រវត្តិ។",
+    "switch": "ប្ដូរ",
+    "clear": "លុប",
+    "switching": "កំពុងប្ដូរ…",
+    "switch_success": "បានប្ដូរទៅ Node {{version}}",
+    "switch_error": "មិនអាចប្ដូរកំណែ Node បាន",
+    "nvm_unavailable": "nvm មិនអាចប្រើបាន",
+    "nvm_unavailable_desc": "ដំឡើង nvm ពី Environment ដើម្បីប្ដូរកំណែ Node ក្នុង project.",
+    "loading": "កំពុងផ្ទុកកំណែ nvm…",
+    "available_versions": "កំណែដែលអាចប្រើ",
+    "current": "បច្ចុប្បន្ន",
+    "lts": "LTS",
+    "pin_and_switch": "កំណត់ & ប្ដូរ"
+  },
   "templates": {
     "eyebrow": "គំរូដែលបាននាំចូល",
     "title": "គំរូ",

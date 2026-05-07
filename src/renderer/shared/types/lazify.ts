@@ -199,6 +199,7 @@ export interface SyncedWorkspaceProject {
   packageManager: DetectedPackageManager;
   confidence: number;
   lastSyncedAt: string;
+  nodeVersion?: string | null;
 }
 
 export interface ImportedTemplateSnapshot {
@@ -300,4 +301,33 @@ export interface VersionMatchReport {
   packages: PackageMatch[];
   unresolved: string[];
   installPlan: string[];
+}
+
+export interface InstalledPackage {
+  name: string;
+  versionSpec: string;
+  isDev: boolean;
+}
+
+export interface ScriptStatusEvent {
+  runId: string;
+  scriptName: string;
+  status: "running" | "done" | "error";
+  exitCode: number | null;
+}
+
+export interface SessionPort {
+  port: number;
+  command: string;
+  address: string;
+}
+
+export interface PtySession {
+  runId: string;
+  scriptName: string;
+  projectPath: string;
+  projectName: string;
+  pid: number;
+  startedAt: string;
+  ports: SessionPort[];
 }

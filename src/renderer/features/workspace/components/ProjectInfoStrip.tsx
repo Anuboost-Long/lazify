@@ -2,6 +2,7 @@ import { useState } from "react";
 import { translation } from "@renderer/i18n/translation";
 import { BodyText, CardTitle, OverlineText } from "@renderer/shared/typography";
 import UiIcon, { type UiIconName } from "@renderer/shared/ui/icons/UiIcon";
+import { IconButton } from "@renderer/shared/ui/IconButton";
 import { BaseModal } from "@renderer/shared/ui/modal/BaseModal";
 import type { ProjectGitStatusResult } from "@renderer/shared/types/lazify";
 import { useTranslation } from "react-i18next";
@@ -60,14 +61,13 @@ function InfoChip({
                 </CardTitle>
               </div>
             </div>
-            <button
-              type="button"
+            <IconButton
+              icon="xmark"
+              iconClassName="h-4 w-4"
               onClick={() => setOpen(false)}
-              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border bg-bg text-muted hover:border-accent hover:text-text"
               aria-label={`Close ${label}`}
-            >
-              <UiIcon name="xmark" className="h-4 w-4" />
-            </button>
+              className="h-9 w-9 rounded-full border border-border bg-bg text-muted hover:border-accent hover:text-text"
+            />
           </div>
           <div className="mt-5 rounded-[18px] border border-border bg-bg px-4 py-4">
             <BodyText className="whitespace-pre-wrap break-words text-text">

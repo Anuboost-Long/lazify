@@ -25,7 +25,9 @@ import {
   Search,
   Settings,
   SunLight,
+  Pause,
   Terminal,
+  Trash,
   WarningTriangle,
   Xmark
 } from "iconoir-react";
@@ -58,7 +60,10 @@ export type UiIconName =
   | "search"
   | "xmark"
   | "plus"
-  | "collapse";
+  | "collapse"
+  | "trash"
+  | "stop-circle"
+  | "pause";
 
 interface UiIconProps extends SVGProps<SVGSVGElement> {
   name: UiIconName;
@@ -93,7 +98,10 @@ const iconMap: Record<UiIconName, ComponentType<SVGProps<SVGSVGElement>>> = {
   search: Search,
   xmark: Xmark,
   plus: Plus,
-  collapse: Collapse
+  collapse: Collapse,
+  trash: Trash,
+  "stop-circle": Pause,
+  pause: Pause
 };
 
 export default function UiIcon({ name, className = "", ...props }: UiIconProps) {

@@ -1,4 +1,5 @@
 import { appRoute, getWorkspaceProjectRoute } from "@renderer/app/app-routes";
+import { SessionsPane } from "@renderer/features/workspace/components/SessionsPane";
 import { translation } from "@renderer/i18n/translation";
 import { SyncedProjectItem } from "@renderer/features/workspace/components/synced-project-item/SyncedProjectItem";
 import type { SyncedWorkspaceProject } from "@renderer/shared/types/lazify";
@@ -172,6 +173,8 @@ export function WorkspacePage({
           )}
         </div>
       </section>
+
+      <SessionsPane />
 
     </div>
   );

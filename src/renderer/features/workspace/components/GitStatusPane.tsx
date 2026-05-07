@@ -126,7 +126,7 @@ export function GitStatusPane({
                         )}
                       >
                         <div className="flex items-start justify-between gap-3">
-                          <div className="min-w-0">
+                          <div className="min-w-0 flex-1 overflow-hidden">
                             <MonoText className="truncate text-sm">{entry.path}</MonoText>
                             <PillText className="mt-1 text-muted">
                               {entry.stagedStatus === " " ? "—" : entry.stagedStatus} {t(translation.GitStatus.Staged)}
