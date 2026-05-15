@@ -20,6 +20,7 @@ import {
   readImportedProjectFile
 } from "./project-importer-optimized";
 import { getProjectGitStatus } from "./project-git-status";
+import { getNpmOutdated, getNpmAudit } from "./project-health";
 import { choosePackageManager, scanEnvironment } from "./scanner";
 import { scanTools, probeSingleTool, listNvmVersions, installNvm, nvmSetDefault, nvmUse, installTool, checkToolUpdate, updateTool, scanListeningPorts, buildProcessTree, getDescendantPids } from "./environment-scanner";
 import { listTemplatePackageEntries } from "./template-package-manifest";
@@ -48,6 +49,7 @@ function createMainWindow(): BrowserWindow {
     minWidth: 1180,
     minHeight: 760,
     backgroundColor: "#efe7dc",
+    icon: path.join(app.getAppPath(), "build/icon.png"),
     webPreferences: {
       preload: path.join(__dirname, "../preload/index.js"),
       nodeIntegration: false,
@@ -144,6 +146,14 @@ function registerIpcHandlers() {
 
   ipcMain.handle("lazify:project-git-status", async (_event, projectPath: string) =>
     getProjectGitStatus(projectPath)
+  );
+
+  ipcMain.handle("lazify:npm-outdated", async (_event, projectPath: string) =>
+    getNpmOutdated(projectPath)
+  );
+
+  ipcMain.handle("lazify:npm-audit", async (_event, projectPath: string) =>
+    getNpmAudit(projectPath)
   );
 
   ipcMain.handle("lazify:list-scripts", async (_event, projectPath: string): Promise<Record<string, string>> => {
@@ -256,6 +266,10 @@ function registerIpcHandlers() {
 }
 
 app.whenReady().then(() => {
+  if (process.platform === "darwin") {
+    app.dock.setIcon(path.join(app.getAppPath(), "build/icon.png"));
+  }
+
   registerIpcHandlers();
   mainWindow = createMainWindow();
 

@@ -1,11 +1,17 @@
 import { translation } from "@renderer/i18n/translation";
-import { BodyText, CardTitle, OverlineText, PillText, SectionTitle } from "@renderer/shared/typography";
 import type { TemplateOption } from "@renderer/shared/types/lazify";
-import UiIcon from "@renderer/shared/ui/icons/UiIcon";
+import {
+  BodyText,
+  CardTitle,
+  OverlineText,
+  PillText,
+  SectionTitle,
+} from "@renderer/shared/typography";
 import { TextInput } from "@renderer/shared/ui/form/FormInput";
+import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import clsx from "clsx";
-import { PackageSearchPicker } from "./PackageSearchPicker";
 import { useTranslation } from "react-i18next";
+import { PackageSearchPicker } from "./PackageSearchPicker";
 
 interface WorkflowFormProps {
   sourceMode: "stack" | "imported";
@@ -42,7 +48,8 @@ export function WorkflowForm({
   );
   const canContinue =
     Boolean(projectName.trim() && projectDirectory.trim()) && !busy;
-  const pillClassName = "flex items-center gap-2 rounded-full border border-border bg-bg px-3 py-2 tracking-[0.22em]";
+  const pillClassName =
+    "flex items-center gap-2 rounded-full border border-border bg-bg px-3 py-2 tracking-[0.22em]";
 
   return (
     <div className="flex flex-col gap-5 animate-fadeIn opacity-0">
@@ -51,19 +58,15 @@ export function WorkflowForm({
           className="pointer-events-none absolute inset-x-0 top-0 h-24 opacity-80"
           style={{
             background:
-              "linear-gradient(135deg, rgba(52, 211, 153, 0.18) 0%, rgba(52, 211, 153, 0.04) 42%, transparent 85%)",
+              "linear-gradient(135deg, rgb(var(--color-accent) / 0.18) 0%, rgb(var(--color-accent) / 0.04) 42%, transparent 85%)",
           }}
         />
 
         <div className="relative">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div className="max-w-2xl">
-              <OverlineText>
-                {t(translation.WorkflowForm.Title)}
-              </OverlineText>
-              <SectionTitle className="mt-3">
-                {sourceLabel}
-              </SectionTitle>
+              <OverlineText>{t(translation.WorkflowForm.Title)}</OverlineText>
+              <SectionTitle className="mt-3">{sourceLabel}</SectionTitle>
               <BodyText tone="muted" className="mt-3 leading-6">
                 {t(translation.WorkflowForm.Subtitle)}
               </BodyText>

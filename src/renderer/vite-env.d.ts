@@ -7,6 +7,8 @@ import type { EnvironmentScan } from "../main/scanner";
 import type { ToolScanReport, NvmVersionList, NvmInstallResult, NvmActionResult, ToolUpdateInfo } from "../main/environment-scanner";
 import type { TemplatePackageEntry } from "../main/template-package-manifest";
 import type {
+  NpmAuditResult,
+  NpmOutdatedResult,
   ProjectGitStatusResult,
   ImportedTemplateOption,
   ImportedTemplateSnapshot,
@@ -54,6 +56,8 @@ declare global {
       importProjectIndexFromDirectory: (projectPath: string) => Promise<ImportedProjectIndexResult>;
       readImportedProjectFile: (filePath: string) => Promise<string>;
       getProjectGitStatus: (projectPath: string) => Promise<ProjectGitStatusResult>;
+      getNpmOutdated: (projectPath: string) => Promise<NpmOutdatedResult>;
+      getNpmAudit: (projectPath: string) => Promise<NpmAuditResult>;
       listSessions: () => Promise<import("./shared/types/lazify").PtySession[]>;
       listScripts: (projectPath: string) => Promise<Record<string, string>>;
       runScript: (projectPath: string, scriptName: string, cols?: number, rows?: number) => Promise<{ runId: string; ptyAvailable: boolean }>;

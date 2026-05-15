@@ -5,6 +5,8 @@ import type { TemplateDefinition } from "../main/harmonizer";
 import type { NpmPackageSearchResult } from "../main/npm-registry";
 import type {
   InstalledPackage,
+  NpmAuditResult,
+  NpmOutdatedResult,
   PtySession,
   ScriptStatusEvent,
   ProjectGitStatusResult,
@@ -70,6 +72,10 @@ const lazifyApi = {
     ipcRenderer.invoke("lazify:read-imported-project-file", filePath),
   getProjectGitStatus: (projectPath: string): Promise<ProjectGitStatusResult> =>
     ipcRenderer.invoke("lazify:project-git-status", projectPath),
+  getNpmOutdated: (projectPath: string): Promise<NpmOutdatedResult> =>
+    ipcRenderer.invoke("lazify:npm-outdated", projectPath),
+  getNpmAudit: (projectPath: string): Promise<NpmAuditResult> =>
+    ipcRenderer.invoke("lazify:npm-audit", projectPath),
   listScripts: (projectPath: string): Promise<Record<string, string>> =>
     ipcRenderer.invoke("lazify:list-scripts", projectPath),
   runScript: (projectPath: string, scriptName: string, cols?: number, rows?: number): Promise<{ runId: string; ptyAvailable: boolean }> =>

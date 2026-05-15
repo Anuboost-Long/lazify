@@ -6,6 +6,7 @@ import { SyncedProjectViewer } from "@renderer/features/workspace/components/Syn
 import { DependencyPane } from "@renderer/features/workspace/components/DependencyPane";
 import { ScriptsPane } from "@renderer/features/workspace/components/ScriptsPane";
 import { PackageVersionPane } from "@renderer/features/workspace/components/PackageVersionPane";
+import { HealthPane } from "@renderer/features/workspace/components/HealthPane";
 import { NodeVersionPane } from "@renderer/features/workspace/components/NodeVersionPane";
 import { BodyText } from "@renderer/shared/typography";
 import { PageHeader } from "@renderer/shared/ui/PageHeader";
@@ -127,6 +128,9 @@ export function SyncedProjectPage({
 
       {syncedProject && (
         <>
+          {/* ── Health dashboard ── */}
+          <HealthPane projectPath={syncedProject.projectPath} />
+
           {/* ── Runtime — set node version before running scripts ── */}
           <NodeVersionPane
             projectPath={syncedProject.projectPath}
