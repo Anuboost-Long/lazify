@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { app } from "electron";
 
 import type { CommandBinary, PackageManager } from "./scanner";
 
@@ -14,7 +15,9 @@ export interface TemplateDefinition {
   packageManifest?: string;
 }
 
-const TEMPLATE_DIRECTORY = path.resolve(process.cwd(), "templates");
+const TEMPLATE_DIRECTORY = app.isPackaged
+  ? path.join(process.resourcesPath, "templates")
+  : path.join(app.getAppPath(), "templates");
 
 export function listTemplates(): TemplateDefinition[] {
   if (!fs.existsSync(TEMPLATE_DIRECTORY)) {

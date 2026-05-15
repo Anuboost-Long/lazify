@@ -29,14 +29,6 @@ export function detectFeatures(files: FileNode[], folders: FolderNode[]): string
     features.add("authentication");
   }
 
-  if (hasPathContaining("claim")) {
-    features.add("claim-module");
-  }
-
-  if (hasPathContaining("policy")) {
-    features.add("policy-module");
-  }
-
   if (hasPathContaining("payment")) {
     features.add("payment-module");
   }

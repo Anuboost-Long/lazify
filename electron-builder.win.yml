@@ -1,0 +1,44 @@
+appId: com.lazify.app
+productName: Lazify
+
+# Native modules must be unpacked from asar so Windows can load the .node binary
+asar: true
+asarUnpack:
+  - node_modules/node-pty/**/*
+
+directories:
+  buildResources: build
+  output: release/win
+
+files:
+  - dist/**/*
+  - dist-electron/**/*
+  - node_modules/**/*
+  - package.json
+
+# Templates are bundled as plain files in the resources folder
+# so app.isPackaged path resolution in harmonizer.ts can find them
+extraResources:
+  - from: templates
+    to: templates
+
+win:
+  icon: build/icon.ico
+  # x64 only — node-pty native binaries are compiled for x64 on this machine
+  target:
+    - target: nsis
+      arch:
+        - x64
+
+nsis:
+  # User-facing installer — not a silent one-click install
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: Lazify
+  installerIcon: build/icon.ico
+  uninstallerIcon: build/icon.ico
+  # Prevents installing multiple copies side-by-side
+  allowElevation: true
+  perMachine: false

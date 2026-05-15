@@ -1,0 +1,43 @@
+appId: com.lazify.app
+productName: Lazify
+
+# Native modules must be unpacked from asar so the OS can load them directly
+asar: true
+asarUnpack:
+  - node_modules/node-pty/**/*
+
+directories:
+  buildResources: build
+  output: release/mac
+
+files:
+  - dist/**/*
+  - dist-electron/**/*
+  - node_modules/**/*
+  - package.json
+
+# Templates are bundled as plain files in the resources folder
+# so app.isPackaged path resolution in harmonizer.ts can find them
+extraResources:
+  - from: templates
+    to: templates
+
+mac:
+  icon: build/icon.icns
+  category: public.app-category.developer-tools
+  # Build universal binaries — arm64 for Apple Silicon, x64 for Intel
+  target:
+    - target: dmg
+      arch:
+        - arm64
+        - x64
+    - target: zip
+      arch:
+        - arm64
+        - x64
+
+dmg:
+  title: Lazify ${version}
+  window:
+    width: 540
+    height: 380

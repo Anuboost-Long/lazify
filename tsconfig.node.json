@@ -5,6 +5,7 @@
     "moduleResolution": "Node",
     "outDir": "dist-electron",
     "noEmit": false,
+    "allowImportingTsExtensions": false,
     "lib": ["ES2020"],
     "types": ["node"],
     "jsx": "react-jsx"

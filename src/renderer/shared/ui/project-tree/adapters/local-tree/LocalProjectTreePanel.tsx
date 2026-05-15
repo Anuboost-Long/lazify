@@ -1,12 +1,12 @@
 import { translation } from "@renderer/i18n/translation";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
-import { ProjectTreeEditorPanel as ProjectTreeEditorPanelShell } from "@renderer/shared/ui/project-tree/core/ProjectTreeEditorPanel";
 import { ContextMenu } from "@renderer/shared/ui/project-tree/ContextMenu";
+import { ProjectTreeEditorPanel as ProjectTreeEditorPanelShell } from "@renderer/shared/ui/project-tree/core/ProjectTreeEditorPanel";
 import { EditorPane } from "@renderer/shared/ui/project-tree/EditorPane";
 import { ModuleSheet } from "@renderer/shared/ui/project-tree/ModuleSheet";
 import type { ProjectTreeEditorPanelProps } from "@renderer/shared/ui/project-tree/types";
-import { useLocalProjectTree } from "./useLocalProjectTree";
 import { useTranslation } from "react-i18next";
+import { useLocalProjectTree } from "./useLocalProjectTree";
 
 export function LocalProjectTreePanel({
   busy,
@@ -65,7 +65,9 @@ export function LocalProjectTreePanel({
       secondaryActionIcon={<UiIcon name="arrow-left" className="h-4 w-4" />}
       onSecondaryAction={onSecondaryAction}
       primaryActionLabel={primaryActionLabel}
-      primaryActionIcon={<UiIcon name="arrow-right" className="h-4 w-4 text-white" />}
+      primaryActionIcon={
+        <UiIcon name="arrow-right" className="h-4 w-4 text-white" />
+      }
       onPrimaryAction={onPrimaryAction}
       editor={
         <EditorPane
@@ -82,8 +84,12 @@ export function LocalProjectTreePanel({
           node={adapter.selectedContextNode}
           onNewFile={() => adapter.handleCreateEntry("file")}
           onNewFolder={() => adapter.handleCreateEntry("folder")}
-          onRename={() => adapter.handleStartRename(adapter.selectedContextNode!.id)}
-          onDelete={() => adapter.handleDeleteNode(adapter.selectedContextNode!.id)}
+          onRename={() =>
+            adapter.handleStartRename(adapter.selectedContextNode!.id)
+          }
+          onDelete={() =>
+            adapter.handleDeleteNode(adapter.selectedContextNode!.id)
+          }
         />
       }
       extraContent={

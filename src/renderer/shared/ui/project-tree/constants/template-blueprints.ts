@@ -33,7 +33,12 @@ export const templateBlueprints: Record<string, TemplateBlueprint> = {
         type: "folder",
         children: [
           { name: "fonts", type: "folder" },
-          { name: "images", type: "folder" }
+          { name: "images", type: "folder" },
+          {
+            name: "icons",
+            type: "folder",
+            children: [{ name: "logo.tsx", type: "file" }]
+          }
         ]
       },
       {
@@ -62,6 +67,11 @@ export const templateBlueprints: Record<string, TemplateBlueprint> = {
             ]
           }
         ]
+      },
+      {
+        name: "hooks",
+        type: "folder",
+        children: [{ name: "use-theme.ts", type: "file" }]
       },
       {
         name: "navigation",
