@@ -26,6 +26,7 @@ import { scanTools, probeSingleTool, listNvmVersions, installNvm, nvmSetDefault,
 import { listTemplatePackageEntries } from "./template-package-manifest";
 import { WorkflowEngine } from "./workflow-engine";
 import { matchPackageVersions } from "../brain/package-version-matcher";
+import { normalizeRuntimePath } from "./runtime-path";
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -266,6 +267,8 @@ function registerIpcHandlers() {
 }
 
 app.whenReady().then(() => {
+  normalizeRuntimePath();
+
   if (process.platform === "darwin") {
     app.dock.setIcon(path.join(app.getAppPath(), "build/icon.png"));
   }

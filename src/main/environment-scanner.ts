@@ -3,6 +3,7 @@ import { existsSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { promisify } from "node:util";
+import { normalizeRuntimePath } from "./runtime-path";
 
 const execFileAsync = promisify(execFile);
 
@@ -54,6 +55,8 @@ async function probe(
   cmd: string,
   args: string[] = ["--version"]
 ): Promise<{ available: boolean; version: string | null }> {
+  normalizeRuntimePath();
+
   try {
     const { stdout, stderr } = await execFileAsync(cmd, args, {
       timeout: 5000,

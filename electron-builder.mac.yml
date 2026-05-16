@@ -13,6 +13,7 @@ directories:
 files:
   - dist/**/*
   - dist-electron/**/*
+  - build/icon.png
   - node_modules/**/*
   - package.json
 

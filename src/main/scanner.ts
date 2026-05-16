@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
+import { normalizeRuntimePath } from "./runtime-path";
 
 export type PackageManager = "npm" | "yarn";
 export type CommandBinary = PackageManager | "npx";
@@ -24,6 +25,8 @@ function getNodeMajor(version: string): number {
 }
 
 function inspectBinary(name: CommandBinary | "node", args: string[] = ["--version"]): BinaryStatus {
+  normalizeRuntimePath();
+
   const result = spawnSync(name, args, {
     encoding: "utf8",
     shell: process.platform === "win32"
