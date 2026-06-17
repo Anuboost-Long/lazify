@@ -32,12 +32,12 @@ export function BaseBottomSheet({
   useEffect(() => {
     if (open) {
       setModalVisible(true);
-      const timeout = window.setTimeout(() => {
+      const timeout = globalThis.setTimeout(() => {
         setContentVisible(true);
       }, OPEN_DELAY_MS);
 
       return () => {
-        window.clearTimeout(timeout);
+        globalThis.clearTimeout(timeout);
       };
     }
 
@@ -46,12 +46,12 @@ export function BaseBottomSheet({
     }
 
     setContentVisible(false);
-    const timeout = window.setTimeout(() => {
+    const timeout = globalThis.setTimeout(() => {
       setModalVisible(false);
     }, CLOSE_DELAY_MS);
 
     return () => {
-      window.clearTimeout(timeout);
+      globalThis.clearTimeout(timeout);
     };
   }, [modalVisible, open]);
 

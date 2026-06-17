@@ -84,6 +84,12 @@ export function getDefaultFileContent(name: string, templateId?: string, fullPat
   const normalizedPath = fullPath.toLowerCase();
 
   if (templateId === "expo-default") {
+    // Expo source folders are nested under `src/`; match against the path
+    // relative to that directory so the existing keys stay readable.
+    const relativePath = normalizedPath.startsWith("src/")
+      ? normalizedPath.slice("src/".length)
+      : normalizedPath;
+
     if (normalizedName === "package.json")                                   return EXPO_PACKAGE_JSON;
     if (normalizedName === "app.config.js")                                  return EXPO_APP_CONFIG;
     if (normalizedName === "tsconfig.json")                                  return EXPO_TSCONFIG;
@@ -93,18 +99,18 @@ export function getDefaultFileContent(name: string, templateId?: string, fullPat
     if (normalizedName === "eas.json")                                       return EXPO_EAS_JSON;
     if (normalizedName === ".gitignore")                                     return EXPO_GITIGNORE;
     if (normalizedName === ".eslintrc.js")                                   return EXPO_ESLINTRC;
-    if (normalizedPath === "app/_layout.tsx")                                return EXPO_APP_LAYOUT;
-    if (normalizedPath === "app/index.tsx")                                  return EXPO_APP_INDEX;
-    if (normalizedPath === "api/store.ts")                                   return EXPO_API_STORE;
-    if (normalizedPath === "assets/icons/logo.tsx")                          return EXPO_LOGO;
-    if (normalizedPath === "hooks/use-theme.ts")                             return EXPO_USE_THEME;
-    if (normalizedPath === "navigation/root-navigation.tsx")                 return EXPO_ROOT_NAVIGATION;
-    if (normalizedPath === "components/versioning/versioning-controller.tsx") return EXPO_VERSIONING_CONTROLLER;
-    if (normalizedPath === "core/theme/colors.ts")                           return EXPO_THEME_COLORS;
-    if (normalizedPath === "core/theme/theme-provider.tsx")                  return EXPO_THEME_PROVIDER;
-    if (normalizedPath === "core/theme/theme-context.ts")                    return EXPO_THEME_CONTEXT;
-    if (normalizedPath === "core/theme/theme-types.ts")                      return EXPO_THEME_TYPES;
-    if (normalizedPath === "@types/assets/index.d.ts")                       return EXPO_ASSETS_TYPES;
+    if (relativePath === "app/_layout.tsx")                                  return EXPO_APP_LAYOUT;
+    if (relativePath === "app/index.tsx")                                    return EXPO_APP_INDEX;
+    if (relativePath === "api/store.ts")                                     return EXPO_API_STORE;
+    if (relativePath === "assets/icons/logo.tsx")                            return EXPO_LOGO;
+    if (relativePath === "hooks/use-theme.ts")                               return EXPO_USE_THEME;
+    if (relativePath === "navigation/root-navigation.tsx")                   return EXPO_ROOT_NAVIGATION;
+    if (relativePath === "components/versioning/versioning-controller.tsx")  return EXPO_VERSIONING_CONTROLLER;
+    if (relativePath === "core/theme/colors.ts")                            return EXPO_THEME_COLORS;
+    if (relativePath === "core/theme/theme-provider.tsx")                   return EXPO_THEME_PROVIDER;
+    if (relativePath === "core/theme/theme-context.ts")                     return EXPO_THEME_CONTEXT;
+    if (relativePath === "core/theme/theme-types.ts")                       return EXPO_THEME_TYPES;
+    if (relativePath === "@types/assets/index.d.ts")                        return EXPO_ASSETS_TYPES;
   }
 
   if (templateId === "next-default") {
@@ -249,9 +255,18 @@ export function buildBaselineTree(templateId: string, selectedStructurePaths: st
     createFolderNode(folder.name, folder.children ?? [], "cli", true, templateId)
   );
 
+  // Expo nests its configured structure under `src/`, so user-selected module
+  // folders must be created inside that directory too (not at the project root).
+  const sourceDir = templateId === "expo-default" ? "src" : null;
+  const blueprintFolderNames = sourceDir
+    ? (blueprint.folders.find((folder) => folder.name === sourceDir)?.children ?? []).map(
+        (child) => child.name
+      )
+    : blueprint.folders.map((folder) => folder.name);
+
   const moduleFolders = structureOptions
     .filter((option) => selectedStructurePaths.includes(option.path))
-    .filter((option) => !blueprint.folders.some((folder) => folder.name === option.path))
+    .filter((option) => !blueprintFolderNames.includes(option.path))
     .map((option) =>
       createFolderNode(
         option.path,
@@ -261,9 +276,20 @@ export function buildBaselineTree(templateId: string, selectedStructurePaths: st
         })),
         "module",
         false,
-        templateId
+        templateId,
+        sourceDir ?? ""
       )
     );
+
+  if (sourceDir) {
+    const foldersWithModules = cliFolders.map((folder) =>
+      folder.name === sourceDir
+        ? { ...folder, children: [...folder.children, ...moduleFolders] }
+        : folder
+    );
+
+    return [...rootFiles, ...foldersWithModules];
+  }
 
   return [...rootFiles, ...cliFolders, ...moduleFolders];
 }

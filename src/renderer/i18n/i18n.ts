@@ -28,7 +28,7 @@ function getInitialLanguage(): SupportedLanguage {
     return "en";
   }
 
-  return normalizeLanguage(window.localStorage.getItem(LANGUAGE_STORAGE_KEY));
+  return normalizeLanguage(globalThis.localStorage.getItem(LANGUAGE_STORAGE_KEY));
 }
 
 function syncDocumentLanguage(language: string | undefined | null) {

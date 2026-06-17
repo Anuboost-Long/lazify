@@ -25,7 +25,7 @@ export async function resolveTemplatePackagePreviews(
   return Promise.all(
     manifestPackages.map(async (entry) => {
       try {
-        const matches = await window.lazify.searchNpmPackages(entry.name);
+        const matches = await globalThis.lazify.searchNpmPackages(entry.name);
         const exactMatch = matches.find((pkg) => pkg.name === entry.name);
         const pkg = exactMatch ?? getFallbackPackageOption(entry.name);
 

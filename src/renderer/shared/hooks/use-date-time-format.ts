@@ -36,7 +36,7 @@ const TIME_FORMAT_STORAGE_KEY = "lazify-time-format";
 
 function readStoredDateFormat(): DateFormatId {
   if (typeof window === "undefined") return DATE_FORMAT_OPTIONS[0].id;
-  const stored = window.localStorage.getItem(DATE_FORMAT_STORAGE_KEY);
+  const stored = globalThis.localStorage.getItem(DATE_FORMAT_STORAGE_KEY);
   return DATE_FORMAT_OPTIONS.some((o) => o.id === stored)
     ? (stored as DateFormatId)
     : DATE_FORMAT_OPTIONS[0].id;
@@ -44,7 +44,7 @@ function readStoredDateFormat(): DateFormatId {
 
 function readStoredTimeFormat(): TimeFormatId {
   if (typeof window === "undefined") return TIME_FORMAT_OPTIONS[0].id;
-  const stored = window.localStorage.getItem(TIME_FORMAT_STORAGE_KEY);
+  const stored = globalThis.localStorage.getItem(TIME_FORMAT_STORAGE_KEY);
   return TIME_FORMAT_OPTIONS.some((o) => o.id === stored)
     ? (stored as TimeFormatId)
     : TIME_FORMAT_OPTIONS[0].id;
@@ -58,12 +58,12 @@ export function useDateTimeFormat() {
   const [timeFormat, setTimeFormatAtom] = useAtom(timeFormatAtom);
 
   function setDateFormat(value: DateFormatId) {
-    window.localStorage.setItem(DATE_FORMAT_STORAGE_KEY, value);
+    globalThis.localStorage.setItem(DATE_FORMAT_STORAGE_KEY, value);
     setDateFormatAtom(value);
   }
 
   function setTimeFormat(value: TimeFormatId) {
-    window.localStorage.setItem(TIME_FORMAT_STORAGE_KEY, value);
+    globalThis.localStorage.setItem(TIME_FORMAT_STORAGE_KEY, value);
     setTimeFormatAtom(value);
   }
 

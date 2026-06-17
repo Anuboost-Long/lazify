@@ -232,6 +232,10 @@ function registerIpcHandlers() {
     workflowEngine.removeProjectPackage(payload)
   );
 
+  ipcMain.handle("lazify:install-project-dependencies", async (_event, projectPath: string) =>
+    workflowEngine.installProjectDependencies(projectPath)
+  );
+
   ipcMain.handle("lazify:match-package-versions", async (_event, projectPath: string) =>
     matchPackageVersions({ projectPath, dryRun: true })
   );

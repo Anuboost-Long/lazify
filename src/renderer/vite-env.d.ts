@@ -69,6 +69,7 @@ declare global {
       listProjectPackages: (projectPath: string) => Promise<import("./shared/types/lazify").InstalledPackage[]>;
       addProjectPackage: (payload: import("../main/workflow-engine").AddProjectPackagePayload) => Promise<import("../main/workflow-engine").WorkflowResult>;
       removeProjectPackage: (payload: import("../main/workflow-engine").RemoveProjectPackagePayload) => Promise<import("../main/workflow-engine").WorkflowResult>;
+      installProjectDependencies: (projectPath: string) => Promise<WorkflowResult>;
       saveImportedTemplate: (
         projectPath: string,
         includedRelativePaths: string[],
@@ -81,6 +82,10 @@ declare global {
       onWorkflowProgress: (callback: (event: WorkflowProgressEvent) => void) => () => void;
     };
   }
+
+  // Exposed on globalThis (renderer) so `globalThis.lazify` resolves without `window`.
+  // eslint-disable-next-line no-var
+  var lazify: Window["lazify"];
 }
 
 export {};

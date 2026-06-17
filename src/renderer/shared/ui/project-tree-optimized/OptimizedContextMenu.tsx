@@ -30,8 +30,8 @@ export function OptimizedContextMenu({
 
   const menuWidth = 168;
   const menuHeight = menuItems.length * 40 + 16;
-  const left = Math.min(contextMenu.x, window.innerWidth - menuWidth - 12);
-  const top  = Math.min(contextMenu.y, window.innerHeight - menuHeight - 12);
+  const left = Math.min(contextMenu.x, globalThis.innerWidth - menuWidth - 12);
+  const top  = Math.min(contextMenu.y, globalThis.innerHeight - menuHeight - 12);
 
   return (
     <div

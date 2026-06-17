@@ -39,7 +39,7 @@ export function UpdateToolModal({ tool, updateInfo, open, onClose, onUpdated }: 
   const handleUpdate = useCallback(async () => {
     if (!tool) return;
     setState("updating");
-    const result = await window.lazify.updateTool(tool.name);
+    const result = await globalThis.lazify.updateTool(tool.name);
     setOutput(result.output);
     setSuccess(result.success);
     setState("done");

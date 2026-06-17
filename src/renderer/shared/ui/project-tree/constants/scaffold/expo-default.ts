@@ -104,7 +104,7 @@ export const EXPO_TSCONFIG = `{
     "baseUrl": ".",
     "paths": {
       "@/*": [
-        "./*"
+        "./src/*"
       ]
     }
   },

@@ -218,7 +218,7 @@ export function ScriptsPane({ projectPath }: ScriptsPaneProps) {
     setLoading(true);
     setLoadError(null);
     try {
-      const result = await window.lazify.listScripts(projectPath);
+      const result = await globalThis.lazify.listScripts(projectPath);
       setScripts(result);
     } catch (err) {
       setLoadError(
@@ -236,7 +236,7 @@ export function ScriptsPane({ projectPath }: ScriptsPaneProps) {
   }, [projectPath]);
 
   const subscribeStatus = (runId: string, tabId: string) => {
-    const stopStatus = window.lazify.onScriptStatus(
+    const stopStatus = globalThis.lazify.onScriptStatus(
       (event: ScriptStatusEvent) => {
         if (event.runId !== runId) return;
         if (event.status === "done" || event.status === "error") {
@@ -288,7 +288,7 @@ export function ScriptsPane({ projectPath }: ScriptsPaneProps) {
     const rows = container ? Math.floor(container.clientHeight / 17) : 50;
 
     try {
-      const { runId } = await window.lazify.runScript(
+      const { runId } = await globalThis.lazify.runScript(
         projectPath,
         scriptName,
         Math.max(cols, 40),
@@ -312,7 +312,7 @@ export function ScriptsPane({ projectPath }: ScriptsPaneProps) {
   const handleStop = async () => {
     const tab = tabs.find((t) => t.tabId === activeTabId);
     if (!tab?.runId) return;
-    await window.lazify.stopScript(tab.runId);
+    await globalThis.lazify.stopScript(tab.runId);
     unsubMapRef.current.get(tab.runId)?.();
     unsubMapRef.current.delete(tab.runId);
     setTabs((prev) =>
@@ -323,7 +323,7 @@ export function ScriptsPane({ projectPath }: ScriptsPaneProps) {
   const handleCloseTab = (tabId: string) => {
     const tab = tabs.find((t) => t.tabId === tabId);
     if (tab?.status === "running" && tab.runId) {
-      void window.lazify.stopScript(tab.runId);
+      void globalThis.lazify.stopScript(tab.runId);
       unsubMapRef.current.get(tab.runId)?.();
       unsubMapRef.current.delete(tab.runId);
     }

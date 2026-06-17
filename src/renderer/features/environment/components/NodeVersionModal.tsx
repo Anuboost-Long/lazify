@@ -31,7 +31,7 @@ export function NodeVersionModal({ open, onClose, onSelect }: NodeVersionModalPr
 
   const load = useCallback(async () => {
     setState("loading");
-    const result = await window.lazify.nvmListVersions();
+    const result = await globalThis.lazify.nvmListVersions();
     if (!result.nvmAvailable) {
       setState("nvm-missing");
     } else if (result.versions.length === 0) {
@@ -50,7 +50,7 @@ export function NodeVersionModal({ open, onClose, onSelect }: NodeVersionModalPr
 
   const handleInstall = useCallback(async () => {
     setState("installing");
-    const result = await window.lazify.installNvm();
+    const result = await globalThis.lazify.installNvm();
     setInstallOutput(result.output);
     setInstallSuccess(result.success);
     setState("install-done");
@@ -65,7 +65,7 @@ export function NodeVersionModal({ open, onClose, onSelect }: NodeVersionModalPr
   const handleSetDefault = useCallback(async () => {
     if (!selected) return;
     setApplying("default");
-    await window.lazify.nvmSetDefault(selected);
+    await globalThis.lazify.nvmSetDefault(selected);
     setApplying(null);
     onSelect?.(selected);
     onClose();
@@ -229,7 +229,7 @@ export function NodeVersionModal({ open, onClose, onSelect }: NodeVersionModalPr
               {installSuccess && (
                 <button
                   type="button"
-                  onClick={() => window.lazify.relaunchApp()}
+                  onClick={() => globalThis.lazify.relaunchApp()}
                   className="relative w-full overflow-hidden rounded-[20px] border border-accent/30 bg-accent/10 px-4 py-3 text-sm font-semibold text-accent transition-colors duration-150 hover:border-accent/50 hover:bg-accent/15"
                 >
                   <div className="pointer-events-none absolute inset-x-0 top-0 h-px" style={ACCENT_LINE} />

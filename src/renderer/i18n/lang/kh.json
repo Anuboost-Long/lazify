@@ -132,7 +132,11 @@
     "description": "អាន project tree ដែលបានធ្វើសមកាលកម្ម និងបើកមាតិកាឯកសារក្នុង explorer/editor ដែលប្រើប្រាស់ប្រសិទ្ធភាពខ្ពស់។",
     "back_to_workspace": "ត្រឡប់ទៅ Workspace",
     "not_synced_anymore": "គម្រោងនេះលែងមានក្នុងបញ្ជី Workspace ទៀតហើយ។ បើកវាម្ដងទៀតពី Workspace បន្ទាប់ពីធ្វើសមកាលកម្ម។",
-    "loading": "កំពុងផ្ទុកឯកសារ និងការមើលលទ្ធផល..."
+    "loading": "កំពុងផ្ទុកឯកសារ និងការមើលលទ្ធផល...",
+    "install_dependencies": "ដំឡើង dependencies",
+    "installing": "កំពុងដំឡើង dependencies...",
+    "install_success": "ដំឡើង dependencies បានជោគជ័យ។",
+    "install_error": "ការដំឡើង dependencies បានបរាជ័យ។"
   },
   "environment": {
     "eyebrow": "ម៉ាស៊ីនក្នុងតំបន់",

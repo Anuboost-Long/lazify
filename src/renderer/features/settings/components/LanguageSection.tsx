@@ -15,7 +15,7 @@ export function LanguageSection() {
   const selected = normalizeLanguage(i18n.resolvedLanguage ?? i18n.language);
 
   const handleLanguageChange = (language: SupportedLanguage) => {
-    window.localStorage.setItem(LANGUAGE_STORAGE_KEY, language);
+    globalThis.localStorage.setItem(LANGUAGE_STORAGE_KEY, language);
     void i18n.changeLanguage(language);
   };
 

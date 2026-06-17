@@ -22,11 +22,17 @@ const REPLACEABLE_ROOT_PATHS = new Set([
   "types"
 ]);
 
-export function reconcileProjectStructure(projectPath: string, tree: ProjectTreeNode[]) {
+export function reconcileProjectStructure(
+  projectPath: string,
+  tree: ProjectTreeNode[],
+  extraReplaceableRoots: string[] = []
+) {
+  const replaceableRoots = new Set([...REPLACEABLE_ROOT_PATHS, ...extraReplaceableRoots]);
+
   for (const node of tree) {
     const targetPath = path.join(projectPath, node.name);
 
-    if (node.type === "folder" && REPLACEABLE_ROOT_PATHS.has(node.name) && fs.existsSync(targetPath)) {
+    if (node.type === "folder" && replaceableRoots.has(node.name) && fs.existsSync(targetPath)) {
       fs.rmSync(targetPath, { recursive: true, force: true });
     }
 

@@ -20,10 +20,10 @@ export function AppShell() {
   const { accentColor } = useAccentColor();
   const { compactSidebar, reduceMotion, showTooltips } = useInterfaceSettings();
   const [systemPrefersDark, setSystemPrefersDark] = useState(
-    () => window.matchMedia("(prefers-color-scheme: dark)").matches
+    () => globalThis.matchMedia("(prefers-color-scheme: dark)").matches
   );
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(() => {
-    const stored = window.localStorage.getItem("lazify-sidebar-open");
+    const stored = globalThis.localStorage.getItem("lazify-sidebar-open");
     return stored === null ? true : stored === "true";
   });
   const { bootstrap, bindEvents } = useLazifyStore();
@@ -41,7 +41,7 @@ export function AppShell() {
 
   // Track system preference changes
   useEffect(() => {
-    const mq = window.matchMedia("(prefers-color-scheme: dark)");
+    const mq = globalThis.matchMedia("(prefers-color-scheme: dark)");
     const handler = (e: MediaQueryListEvent) => setSystemPrefersDark(e.matches);
     mq.addEventListener("change", handler);
     return () => mq.removeEventListener("change", handler);
@@ -61,7 +61,7 @@ export function AppShell() {
   }, [reduceMotion]);
 
   useEffect(() => {
-    window.localStorage.setItem("lazify-sidebar-open", String(sidebarOpen));
+    globalThis.localStorage.setItem("lazify-sidebar-open", String(sidebarOpen));
   }, [sidebarOpen]);
 
   const activePageId: AppPageId | null =

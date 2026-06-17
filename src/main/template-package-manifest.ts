@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { app } from "electron";
 
 import type { TemplateDefinition } from "./harmonizer";
 import { fetchLatestPackageVersion } from "./npm-registry";
@@ -32,7 +33,9 @@ export interface TemplatePackageInstallPlan {
   versionMismatches: PackageVersionMismatch[];
 }
 
-const TEMPLATE_PACKAGE_DIRECTORY = path.resolve(process.cwd(), "templates/packages");
+const TEMPLATE_PACKAGE_DIRECTORY = app.isPackaged
+  ? path.join(process.resourcesPath, "templates/packages")
+  : path.join(app.getAppPath(), "templates/packages");
 
 export function loadTemplatePackageManifest(template: TemplateDefinition): TemplatePackageManifest {
   if (!template.packageManifest) {

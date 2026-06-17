@@ -24,7 +24,7 @@ export function NodeVersionPane({ projectPath: _projectPath, pinnedVersion, onVe
   const loadVersions = async () => {
     setLoading(true);
     try {
-      const result = await window.lazify.nvmListVersions();
+      const result = await globalThis.lazify.nvmListVersions();
       setVersionList(result);
     } finally {
       setLoading(false);
@@ -39,7 +39,7 @@ export function NodeVersionPane({ projectPath: _projectPath, pinnedVersion, onVe
     setSwitching(true);
     setFeedback(null);
     try {
-      const result = await window.lazify.nvmUse(version);
+      const result = await globalThis.lazify.nvmUse(version);
       if (result.success) {
         onVersionChange(version);
         setFeedback({ ok: true, message: t(translation.NodeVersionPane.SwitchSuccess, { version }) });

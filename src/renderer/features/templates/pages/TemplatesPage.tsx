@@ -74,7 +74,7 @@ export function TemplatesPage({
       return;
     }
 
-    const confirmed = window.confirm(t(translation.Templates.RemoveConfirm, { name: selectedImportedTemplate.name }));
+    const confirmed = globalThis.confirm(t(translation.Templates.RemoveConfirm, { name: selectedImportedTemplate.name }));
 
     if (!confirmed) {
       return;
@@ -100,7 +100,7 @@ export function TemplatesPage({
   ) => {
     event.stopPropagation();
 
-    const confirmed = window.confirm(t(translation.Templates.RemoveConfirm, { name: templateName }));
+    const confirmed = globalThis.confirm(t(translation.Templates.RemoveConfirm, { name: templateName }));
     if (!confirmed) return;
 
     try {

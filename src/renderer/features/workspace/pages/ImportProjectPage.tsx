@@ -79,14 +79,14 @@ export function ImportProjectPage() {
     try {
       setErrorMessage(null);
       setSaveMessage(null);
-      const selectedPath = await window.lazify.selectDirectory();
+      const selectedPath = await globalThis.lazify.selectDirectory();
 
       if (!selectedPath) {
         return;
       }
 
       setBusy(true);
-      const result = await window.lazify.importProjectIndexFromDirectory(selectedPath);
+      const result = await globalThis.lazify.importProjectIndexFromDirectory(selectedPath);
       startTransition(() => {
         setScanResult(result);
       });
@@ -106,7 +106,7 @@ export function ImportProjectPage() {
       setErrorMessage(null);
       setSaveMessage(null);
       setBusy(true);
-      const result = await window.lazify.importProjectIndexFromDirectory(scanResult.projectPath);
+      const result = await globalThis.lazify.importProjectIndexFromDirectory(scanResult.projectPath);
       startTransition(() => {
         setScanResult(result);
       });
@@ -133,7 +133,7 @@ export function ImportProjectPage() {
 
     try {
       setErrorMessage(null);
-      const template = await window.lazify.saveImportedTemplate(
+      const template = await globalThis.lazify.saveImportedTemplate(
         scanResult.projectPath,
         includedRelativePaths,
         providedName,

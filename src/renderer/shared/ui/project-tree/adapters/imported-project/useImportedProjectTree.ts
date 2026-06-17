@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { ImportedProjectIndexNode } from "@renderer/shared/types/lazify";
 import {
   collectDescendantFilePaths,
   countFiles,
@@ -10,12 +10,12 @@ import type {
   OptimizedImportedProjectTreeProps,
   TreeContextMenuState,
 } from "@renderer/shared/ui/project-tree-optimized/types";
-import type { ImportedProjectIndexNode } from "@renderer/shared/types/lazify";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 function updateNodeTree(
   nodes: ImportedProjectIndexNode[],
   targetId: string,
-  updater: (node: ImportedProjectIndexNode) => ImportedProjectIndexNode | null
+  updater: (node: ImportedProjectIndexNode) => ImportedProjectIndexNode | null,
 ): ImportedProjectIndexNode[] {
   return nodes.flatMap((node) => {
     if (node.id === targetId) {
@@ -42,7 +42,7 @@ function buildPath(parentPath: string, name: string) {
 
 function renameNodeWithPaths(
   node: ImportedProjectIndexNode,
-  nextName: string
+  nextName: string,
 ): ImportedProjectIndexNode {
   const previousRelativePath = node.relativePath;
   const previousAbsolutePath = node.absolutePath;
@@ -53,11 +53,19 @@ function renameNodeWithPaths(
   const nextRelativePath = relativeSegments.join("/");
   const nextAbsolutePath = absoluteSegments.join("/");
 
-  const rewriteChildren = (children: ImportedProjectIndexNode[]): ImportedProjectIndexNode[] =>
+  const rewriteChildren = (
+    children: ImportedProjectIndexNode[],
+  ): ImportedProjectIndexNode[] =>
     children.map((child) => ({
       ...child,
-      relativePath: child.relativePath.replace(previousRelativePath, nextRelativePath),
-      absolutePath: child.absolutePath.replace(previousAbsolutePath, nextAbsolutePath),
+      relativePath: child.relativePath.replace(
+        previousRelativePath,
+        nextRelativePath,
+      ),
+      absolutePath: child.absolutePath.replace(
+        previousAbsolutePath,
+        nextAbsolutePath,
+      ),
       children: rewriteChildren(child.children),
     }));
 
@@ -79,15 +87,22 @@ export function useImportedProjectTree({
   OptimizedImportedProjectTreeProps,
   "initialConfirmedStack" | "onSaveTemplate" | "projectPath" | "tree"
 >) {
-  const [editableTree, setEditableTree] = useState<ImportedProjectIndexNode[]>(tree);
+  const [editableTree, setEditableTree] =
+    useState<ImportedProjectIndexNode[]>(tree);
   const [expandedIds, setExpandedIds] = useState<string[]>(() => []);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [activeFilePath, setActiveFilePath] = useState<string | null>(null);
-  const [includedFilePaths, setIncludedFilePaths] = useState<Set<string>>(() => new Set());
+  const [includedFilePaths, setIncludedFilePaths] = useState<Set<string>>(
+    () => new Set(),
+  );
   const [confirmedStack, setConfirmedStack] = useState(initialConfirmedStack);
   const [templateName, setTemplateName] = useState("");
-  const [fileCache, setFileCache] = useState<Record<string, FileContentState>>({});
-  const [contextMenu, setContextMenu] = useState<TreeContextMenuState | null>(null);
+  const [fileCache, setFileCache] = useState<Record<string, FileContentState>>(
+    {},
+  );
+  const [contextMenu, setContextMenu] = useState<TreeContextMenuState | null>(
+    null,
+  );
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState("");
   const [saveBusy, setSaveBusy] = useState(false);
@@ -98,7 +113,9 @@ export function useImportedProjectTree({
     setExpandedIds([]);
     setSelectedId(null);
     setActiveFilePath(null);
-    setIncludedFilePaths(new Set(tree.flatMap((node) => collectDescendantFilePaths(node))));
+    setIncludedFilePaths(
+      new Set(tree.flatMap((node) => collectDescendantFilePaths(node))),
+    );
     setConfirmedStack(initialConfirmedStack);
     setTemplateName("");
     setFileCache({});
@@ -109,17 +126,20 @@ export function useImportedProjectTree({
 
   useEffect(() => {
     const closeMenu = () => setContextMenu(null);
-    window.addEventListener("click", closeMenu);
-    return () => window.removeEventListener("click", closeMenu);
+    globalThis.addEventListener("click", closeMenu);
+    return () => globalThis.removeEventListener("click", closeMenu);
   }, []);
 
-  const totalFileCount = useMemo(() => countFiles(editableTree), [editableTree]);
+  const totalFileCount = useMemo(
+    () => countFiles(editableTree),
+    [editableTree],
+  );
   const selectedNode = useMemo(
     () => (selectedId ? findNodeById(editableTree, selectedId) : null),
-    [selectedId, editableTree]
+    [selectedId, editableTree],
   );
   const selectedFileState = activeFilePath
-    ? fileCache[activeFilePath] ?? { status: "idle", content: "" }
+    ? (fileCache[activeFilePath] ?? { status: "idle", content: "" })
     : null;
 
   useEffect(() => {
@@ -144,7 +164,7 @@ export function useImportedProjectTree({
       },
     }));
 
-    void window.lazify
+    void globalThis.lazify
       .readImportedProjectFile(activeFilePath)
       .then((content) => {
         if (activeRequestIdRef.current !== requestId) {
@@ -191,7 +211,7 @@ export function useImportedProjectTree({
     setExpandedIds((current) =>
       current.includes(nodeId)
         ? current.filter((id) => id !== nodeId)
-        : [...current, nodeId]
+        : [...current, nodeId],
     );
   };
 
@@ -219,7 +239,7 @@ export function useImportedProjectTree({
       const node = findNodeById(editableTree, nodeId);
       return node ? hasIncludedFiles(node, includedFilePaths) : false;
     },
-    [editableTree, includedFilePaths]
+    [editableTree, includedFilePaths],
   );
 
   const handleToggleChecked = useCallback(
@@ -230,19 +250,24 @@ export function useImportedProjectTree({
         handleToggleIncluded(node);
       }
     },
-    [editableTree]
+    [editableTree],
   );
 
   const handleCreateEntry = (type: "file" | "folder") => {
-    const parentNode = contextMenu?.node?.type === "folder" ? contextMenu.node : null;
+    const parentNode =
+      contextMenu?.node?.type === "folder" ? contextMenu.node : null;
     const seed = Date.now();
-    const nextName = type === "file" ? `untitled-${seed}.ts` : `new-folder-${seed}`;
+    const nextName =
+      type === "file" ? `untitled-${seed}.ts` : `new-folder-${seed}`;
     const nextNode: ImportedProjectIndexNode = {
       id: `virtual-${seed}-${Math.random().toString(16).slice(2, 8)}`,
       name: nextName,
       type,
       relativePath: buildPath(parentNode?.relativePath ?? "", nextName),
-      absolutePath: buildPath(parentNode?.absolutePath ?? projectPath, nextName),
+      absolutePath: buildPath(
+        parentNode?.absolutePath ?? projectPath,
+        nextName,
+      ),
       children: [],
     };
 
@@ -259,7 +284,7 @@ export function useImportedProjectTree({
 
     if (parentNode) {
       setExpandedIds((current) =>
-        current.includes(parentNode.id) ? current : [...current, parentNode.id]
+        current.includes(parentNode.id) ? current : [...current, parentNode.id],
       );
     }
 
@@ -289,10 +314,14 @@ export function useImportedProjectTree({
       return;
     }
 
-    setEditableTree((current) => updateNodeTree(current, targetNode.id, () => null));
+    setEditableTree((current) =>
+      updateNodeTree(current, targetNode.id, () => null),
+    );
     setIncludedFilePaths((current) => {
       const next = new Set(current);
-      collectDescendantFilePaths(targetNode).forEach((filePath) => next.delete(filePath));
+      collectDescendantFilePaths(targetNode).forEach((filePath) =>
+        next.delete(filePath),
+      );
       return next;
     });
 
@@ -331,7 +360,9 @@ export function useImportedProjectTree({
     }
 
     setEditableTree((current) =>
-      updateNodeTree(current, renamingId, (node) => renameNodeWithPaths(node, nextName))
+      updateNodeTree(current, renamingId, (node) =>
+        renameNodeWithPaths(node, nextName),
+      ),
     );
     setRenamingId(null);
     setRenameValue("");
@@ -342,9 +373,9 @@ export function useImportedProjectTree({
 
     try {
       await onSaveTemplate(
-        Array.from(includedFilePaths).sort(),
+        Array.from(includedFilePaths).sort((a, b) => a.localeCompare(b)),
         templateName,
-        confirmedStack
+        confirmedStack ?? "",
       );
     } finally {
       setSaveBusy(false);

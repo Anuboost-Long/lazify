@@ -152,7 +152,11 @@ export const translation = {
     "BackToWorkspace": "synced_project.back_to_workspace",
     "NotSyncedAnymore": "synced_project.not_synced_anymore",
     "Loading": "synced_project.loading",
-    "LoadError": "synced_project.load_error"
+    "LoadError": "synced_project.load_error",
+    "InstallDependencies": "synced_project.install_dependencies",
+    "Installing": "synced_project.installing",
+    "InstallSuccess": "synced_project.install_success",
+    "InstallError": "synced_project.install_error"
   },
   "Environment": {
     "Eyebrow": "environment.eyebrow",

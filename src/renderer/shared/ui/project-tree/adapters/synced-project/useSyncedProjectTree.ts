@@ -160,8 +160,8 @@ export function useSyncedProjectTree({
 
   useEffect(() => {
     const closeMenu = () => setContextMenu(null);
-    window.addEventListener("click", closeMenu);
-    return () => window.removeEventListener("click", closeMenu);
+    globalThis.addEventListener("click", closeMenu);
+    return () => globalThis.removeEventListener("click", closeMenu);
   }, []);
 
   useEffect(() => {
@@ -174,7 +174,7 @@ export function useSyncedProjectTree({
     const loadGitStatus = async () => {
       try {
         setGitStatusLoading(true);
-        const result = await window.lazify.getProjectGitStatus(project.projectPath);
+        const result = await globalThis.lazify.getProjectGitStatus(project.projectPath);
 
         if (!cancelled) {
           setGitStatus(result);
@@ -224,7 +224,7 @@ export function useSyncedProjectTree({
       }
     }));
 
-    void window.lazify.readImportedProjectFile(activeFilePath)
+    void globalThis.lazify.readImportedProjectFile(activeFilePath)
       .then((content) => {
         if (activeRequestIdRef.current !== requestId) {
           return;

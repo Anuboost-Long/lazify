@@ -380,15 +380,15 @@ export function HealthPane({ projectPath }: HealthPaneProps) {
     setLoading({ git: true, outdated: true, audit: true });
 
     await Promise.all([
-      window.lazify.getProjectGitStatus(projectPath)
+      globalThis.lazify.getProjectGitStatus(projectPath)
         .then((r) => { setGit(r); setLoading((p) => ({ ...p, git: false })); })
         .catch(() => setLoading((p) => ({ ...p, git: false }))),
 
-      window.lazify.getNpmOutdated(projectPath)
+      globalThis.lazify.getNpmOutdated(projectPath)
         .then((r) => { setOutdated(r); setLoading((p) => ({ ...p, outdated: false })); })
         .catch(() => setLoading((p) => ({ ...p, outdated: false }))),
 
-      window.lazify.getNpmAudit(projectPath)
+      globalThis.lazify.getNpmAudit(projectPath)
         .then((r) => { setAudit(r); setLoading((p) => ({ ...p, audit: false })); })
         .catch(() => setLoading((p) => ({ ...p, audit: false }))),
     ]);

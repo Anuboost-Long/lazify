@@ -104,6 +104,8 @@ const lazifyApi = {
     ipcRenderer.invoke("lazify:add-project-package", payload),
   removeProjectPackage: (payload: RemoveProjectPackagePayload): Promise<WorkflowResult> =>
     ipcRenderer.invoke("lazify:remove-project-package", payload),
+  installProjectDependencies: (projectPath: string): Promise<WorkflowResult> =>
+    ipcRenderer.invoke("lazify:install-project-dependencies", projectPath),
   matchPackageVersions: (projectPath: string): Promise<VersionMatchReport> =>
     ipcRenderer.invoke("lazify:match-package-versions", projectPath),
   fixProjectPackageVersions: (projectPath: string): Promise<import("../main/workflow-engine").WorkflowResult> =>

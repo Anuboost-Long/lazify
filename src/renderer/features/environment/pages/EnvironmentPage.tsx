@@ -44,7 +44,7 @@ export function EnvironmentPage({ report, loading, onRefresh }: EnvironmentPageP
 
   const openUpdate = async (tool: ToolScanReport["tools"][number]) => {
     setLoadingTool(tool.name);
-    const info = await window.lazify.checkToolUpdate(tool.name, tool.version ?? "");
+    const info = await globalThis.lazify.checkToolUpdate(tool.name, tool.version ?? "");
     setLoadingTool(null);
     setUpdateTarget(tool);
     setUpdateInfo(info);

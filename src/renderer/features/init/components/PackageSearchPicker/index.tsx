@@ -57,12 +57,12 @@ export function PackageSearchPicker({
     }
 
     let cancelled = false;
-    const timeoutId = window.setTimeout(async () => {
+    const timeoutId = globalThis.setTimeout(async () => {
       setLoading(true);
       setErrorMessage("");
 
       try {
-        const packages = await window.lazify.searchNpmPackages(normalizedQuery);
+        const packages = await globalThis.lazify.searchNpmPackages(normalizedQuery);
 
         if (!cancelled) {
           setResults(packages);
@@ -94,7 +94,7 @@ export function PackageSearchPicker({
 
     return () => {
       cancelled = true;
-      window.clearTimeout(timeoutId);
+      globalThis.clearTimeout(timeoutId);
     };
   }, [query]);
 
@@ -113,7 +113,7 @@ export function PackageSearchPicker({
       setTemplatePackagesError("");
 
       try {
-        const manifestPackages = await window.lazify.getTemplatePackageManifest(
+        const manifestPackages = await globalThis.lazify.getTemplatePackageManifest(
           selectedTemplateId
         );
         const previews = await resolveTemplatePackagePreviews(manifestPackages);

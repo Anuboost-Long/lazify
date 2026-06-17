@@ -170,7 +170,13 @@ export class WorkflowEngine {
         message: "Applying Lazify file structure to the generated project."
       });
 
-      reconcileProjectStructure(projectPath, payload.structureTree);
+      // Expo scaffolds source into `src/`; replace it wholesale so the generated
+      // routes/components don't conflict with the configured structure.
+      reconcileProjectStructure(
+        projectPath,
+        payload.structureTree,
+        template.projectType === "expo" ? ["src"] : []
+      );
     }
 
     this.emitProgress({
@@ -443,6 +449,44 @@ export class WorkflowEngine {
     });
 
     return { success: true, message: `${payload.packageName} installed successfully.`, projectPath: payload.projectPath };
+  }
+
+  async installProjectDependencies(projectPath: string): Promise<WorkflowResult> {
+    const workflowId = `install-deps-${Date.now()}`;
+
+    if (!fs.existsSync(projectPath)) {
+      throw new Error(`Project path does not exist: ${projectPath}`);
+    }
+
+    const packageManager = choosePackageManager(projectPath);
+
+    this.emitProgress({
+      workflowId,
+      status: "running",
+      step: "install-dependencies",
+      message: `Installing dependencies with ${packageManager}.`
+    });
+
+    const result = await this.runPlainInstall({ workflowId, packageManager, projectPath });
+
+    if (!result.success) {
+      this.emitProgress({
+        workflowId,
+        status: "error",
+        step: "install-dependencies",
+        message: "Dependency installation failed."
+      });
+      return { success: false, message: "Dependency installation failed." };
+    }
+
+    this.emitProgress({
+      workflowId,
+      status: "success",
+      step: "complete",
+      message: "Dependencies installed successfully."
+    });
+
+    return { success: true, message: "Dependencies installed successfully.", projectPath };
   }
 
   async removeProjectPackage(payload: RemoveProjectPackagePayload): Promise<WorkflowResult> {

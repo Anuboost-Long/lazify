@@ -152,7 +152,11 @@
     "back_to_workspace": "Back to workspace",
     "not_synced_anymore": "This project is not in the synced workspace list anymore. Open it again from Workspace after syncing it.",
     "loading": "Loading project files and content preview...",
-    "load_error": "Unable to load the selected synced project."
+    "load_error": "Unable to load the selected synced project.",
+    "install_dependencies": "Install dependencies",
+    "installing": "Installing dependencies...",
+    "install_success": "Dependencies installed successfully.",
+    "install_error": "Dependency installation failed."
   },
   "environment": {
     "eyebrow": "Local Machine",

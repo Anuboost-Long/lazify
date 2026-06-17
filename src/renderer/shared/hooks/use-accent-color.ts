@@ -7,7 +7,7 @@ const DEFAULT_ACCENT: AccentColor = "emerald";
 
 function readStoredAccent(): AccentColor {
   if (typeof window === "undefined") return DEFAULT_ACCENT;
-  const stored = window.localStorage.getItem(ACCENT_STORAGE_KEY);
+  const stored = globalThis.localStorage.getItem(ACCENT_STORAGE_KEY);
   const valid: AccentColor[] = ["emerald", "sky", "violet", "rose", "amber", "cyan", "pink", "indigo"];
   return valid.includes(stored as AccentColor) ? (stored as AccentColor) : DEFAULT_ACCENT;
 }
@@ -18,7 +18,7 @@ export function useAccentColor() {
   const [accentColor, setAccentColorAtom] = useAtom(accentColorAtom);
 
   function setAccentColor(value: AccentColor) {
-    window.localStorage.setItem(ACCENT_STORAGE_KEY, value);
+    globalThis.localStorage.setItem(ACCENT_STORAGE_KEY, value);
     setAccentColorAtom(value);
   }
 

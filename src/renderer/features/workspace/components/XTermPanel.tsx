@@ -67,17 +67,17 @@ export function XTermPanel({ runId, isActive, onReady }: XTermPanelProps) {
       fit.fit();
       const { cols, rows } = term;
       onReady?.(cols, rows);
-      window.lazify.ptyResize(runId, cols, rows);
+      globalThis.lazify.ptyResize(runId, cols, rows);
     });
 
     termRef.current = term;
     fitRef.current  = fit;
 
     // Forward keyboard/paste to the PTY.
-    term.onData((data) => window.lazify.ptyWrite(runId, data));
+    term.onData((data) => globalThis.lazify.ptyWrite(runId, data));
 
     // Stream PTY output directly into xterm — zero processing overhead.
-    const stopData = window.lazify.onPtyData((event) => {
+    const stopData = globalThis.lazify.onPtyData((event) => {
       if (event.runId === runId) term.write(event.data);
     });
     unsubRef.current = stopData;
@@ -104,7 +104,7 @@ export function XTermPanel({ runId, isActive, onReady }: XTermPanelProps) {
       if (container.offsetWidth === 0 || container.offsetHeight === 0) return;
       try {
         fit.fit();
-        window.lazify.ptyResize(runId, term.cols, term.rows);
+        globalThis.lazify.ptyResize(runId, term.cols, term.rows);
       } catch {
         // container may have been detached between observation and callback
       }
@@ -125,7 +125,7 @@ export function XTermPanel({ runId, isActive, onReady }: XTermPanelProps) {
     requestAnimationFrame(() => {
       try {
         fit.fit();
-        window.lazify.ptyResize(runId, term.cols, term.rows);
+        globalThis.lazify.ptyResize(runId, term.cols, term.rows);
       } catch {
         // terminal may have exited
       }

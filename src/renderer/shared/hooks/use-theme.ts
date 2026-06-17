@@ -6,7 +6,7 @@ const THEME_STORAGE_KEY = "lazify-theme";
 
 function readStoredTheme(): ThemePreference {
   if (typeof window === "undefined") return "dark";
-  const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
+  const stored = globalThis.localStorage.getItem(THEME_STORAGE_KEY);
   if (stored === "dark" || stored === "light" || stored === "system") {
     return stored;
   }
@@ -19,7 +19,7 @@ export function useTheme() {
   const [themePreference, setThemePreferenceAtom] = useAtom(themePreferenceAtom);
 
   function setThemePreference(value: ThemePreference) {
-    window.localStorage.setItem(THEME_STORAGE_KEY, value);
+    globalThis.localStorage.setItem(THEME_STORAGE_KEY, value);
     setThemePreferenceAtom(value);
   }
 
