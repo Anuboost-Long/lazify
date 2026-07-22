@@ -12,6 +12,9 @@ import type {
   TokenTotals,
 } from "../../renderer/shared/types/lazify";
 import { listAgentBudgets } from "./agent-limits-store";
+import type { ClaudeUtilization } from "./claude-usage-api";
+import { getClaudeUtilization } from "./claude-usage-api";
+import { getCodexRateLimit } from "./codex-usage-api";
 import { listCustomAgents } from "./custom-agents-store";
 
 /**
@@ -29,8 +32,6 @@ import { listCustomAgents } from "./custom-agents-store";
 const DAILY_HISTORY_DAYS = 30;
 /** Hourly detail is only kept long enough to resolve the current 5-hour block. */
 const HOURLY_HISTORY_DAYS = 3;
-/** Claude Code caches what `/usage` prints here, refreshed while a session runs. */
-const CLAUDE_CONFIG = ".claude.json";
 /** Claude Code and Codex both meter usage in rolling 5-hour blocks. */
 const BLOCK_HOURS = 5;
 /** Bumped whenever a cached slice's shape changes, which invalidates the file. */
@@ -184,8 +185,21 @@ function currentBlock(
 
   const resetsMs = startMs + BLOCK_HOURS * 3_600_000;
 
-  // The last block has already expired — nothing is being metered right now.
-  if (resetsMs <= Date.now()) return null;
+  // The last block has already expired, so nothing is metered right now and the
+  // whole allowance is intact. Report that as an unspent window rather than as
+  // an absence, so the bar keeps showing a percentage between blocks.
+  if (resetsMs <= Date.now()) {
+    return {
+      source: "derived",
+      startsAt: new Date().toISOString(),
+      resetsAt: new Date(Date.now() + BLOCK_HOURS * 3_600_000).toISOString(),
+      hours: BLOCK_HOURS,
+      observedAt: null,
+      totals: emptyTotals(),
+      budget,
+      usedPercent: 0,
+    };
+  }
 
   return {
     source: "derived",
@@ -442,50 +456,6 @@ async function scanAgent(
   return Object.values(agentCache);
 }
 
-interface UtilizationWindow {
-  utilization?: number | null;
-  resets_at?: string | null;
-}
-
-interface ClaudeUtilization {
-  observedAt: string;
-  fiveHour: UtilizationWindow | null;
-  sevenDay: UtilizationWindow | null;
-}
-
-/**
- * The percentages Claude Code shows in `/usage`. It fetches them from the
- * account and caches them in ~/.claude.json, so they are the real limits rather
- * than anything inferred from transcripts — but only as fresh as the last time
- * Claude Code ran, hence `observedAt`.
- */
-function readClaudeUtilization(): ClaudeUtilization | null {
-  try {
-    const raw = fs.readFileSync(path.join(os.homedir(), CLAUDE_CONFIG), "utf8");
-    const cached = (
-      JSON.parse(raw) as {
-        cachedUsageUtilization?: {
-          fetchedAtMs?: number;
-          utilization?: {
-            five_hour?: UtilizationWindow | null;
-            seven_day?: UtilizationWindow | null;
-          };
-        };
-      }
-    ).cachedUsageUtilization;
-
-    if (!cached?.utilization) return null;
-
-    return {
-      observedAt: new Date(cached.fetchedAtMs ?? Date.now()).toISOString(),
-      fiveHour: cached.utilization.five_hour ?? null,
-      sevenDay: cached.utilization.seven_day ?? null,
-    };
-  } catch {
-    return null;
-  }
-}
-
 function claudeFiles(): string[] {
   return listFiles(path.join(os.homedir(), ".claude", "projects"), 2);
 }
@@ -535,9 +505,9 @@ async function scanSince(
 }
 
 /**
- * Prefers the account's own 5-hour percentage when Claude Code has cached one,
- * keeping the locally derived token counts alongside it; otherwise falls back
- * to the block walked out of the transcripts.
+ * Prefers the account's own 5-hour percentage when one is current, keeping the
+ * locally derived token counts alongside it; otherwise falls back to the block
+ * walked out of the transcripts.
  */
 function sessionWindowFor(
   hourly: Record<string, TokenTotals>,
@@ -581,6 +551,7 @@ function summarize(
   weeklyBudget: number | null,
   blockBudget: number | null,
   reported: ClaudeUtilization | null = null,
+  liveRateLimit: AgentRateLimit | null = null,
 ): AgentUsageSummary {
   const daily: Record<string, TokenTotals> = {};
   const hourly: Record<string, TokenTotals> = {};
@@ -641,6 +612,10 @@ function summarize(
   }
 
   history.sort((left, right) => left.date.localeCompare(right.date));
+
+  // The account's own live window beats the snapshot left in the transcripts,
+  // which is only as recent as the last time the agent happened to run.
+  if (liveRateLimit) rateLimit = liveRateLimit;
 
   // A reported weekly window beats anything we could infer locally.
   if (reported?.sevenDay && typeof reported.sevenDay.utilization === "number") {
@@ -709,7 +684,12 @@ export async function getAgentUsage(
   writeCache();
 
   const budgets = listAgentBudgets();
-  const claudeUtilization = readClaudeUtilization();
+  // Both accounts are asked once per refresh, together, and neither call
+  // outlives it.
+  const [claudeUtilization, codexRateLimit] = await Promise.all([
+    getClaudeUtilization(),
+    getCodexRateLimit(),
+  ]);
 
   // Custom agents are arbitrary commands, so nothing local reports their usage.
   const customs = listCustomAgents().map(({ id, label }) =>
@@ -743,6 +723,8 @@ export async function getAgentUsage(
         codexSession,
         budgets.codex ?? null,
         budgets["codex#5h"] ?? null,
+        null,
+        codexRateLimit,
       ),
       ...customs,
     ],

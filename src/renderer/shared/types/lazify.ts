@@ -237,7 +237,7 @@ export interface AgentUsageSummary {
   rateLimit: AgentRateLimit | null;
   weeklyBudget: number | null;
   blockBudget: number | null;
-  /** Null once the last block has expired, i.e. nothing is metered right now. */
+  /** Null only when the agent has no transcripts at all to read a block from. */
   sessionWindow: AgentSessionWindow | null;
 }
 
