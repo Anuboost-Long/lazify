@@ -54,8 +54,10 @@ export function XTermPanel({ runId, isActive, autoFocus, onReady }: XTermPanelPr
       cursorBlink: true,
       fontFamily: '"JetBrains Mono", "Fira Code", Menlo, Consolas, monospace',
       fontSize: 12.5,
-      lineHeight: 1.4,
-      letterSpacing: 0.3,
+      // Block-drawing output (Expo QR codes, progress bars, box UIs) relies on
+      // glyphs touching edge to edge, so rows and columns get no extra gap.
+      lineHeight: 1,
+      letterSpacing: 0,
       theme: THEME,
       scrollback: 10_000,
       allowTransparency: false,

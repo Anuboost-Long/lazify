@@ -45,19 +45,6 @@ function formatReset(resetsAt: string | null): string | null {
   return restHours === 0 ? `${days}d` : `${days}d ${restHours}h`;
 }
 
-/** "· 20m ago" for a cached reading that has gone stale; nothing while it is fresh. */
-function formatObservedAge(observedAt: string | null): string {
-  if (!observedAt) return "";
-
-  const minutes = Math.round((Date.now() - Date.parse(observedAt)) / 60_000);
-
-  if (minutes < 15) return "";
-  if (minutes < 60) return ` · ${minutes}m`;
-  if (minutes < 24 * 60) return ` · ${Math.round(minutes / 60)}h`;
-
-  return ` · ${Math.round(minutes / (24 * 60))}d`;
-}
-
 /** Fill colour for a remaining-allowance bar: warns as the allowance runs out. */
 function barToneClass(remainingPercent: number): string {
   if (remainingPercent <= 10) return "bg-rose-400";
@@ -144,12 +131,11 @@ function BlockRow({ agent }: Readonly<{ agent: AgentUsageSummary }>) {
     remainingPercent === null
       ? ""
       : ` · ${Math.round(remainingPercent)}% ${t(translation.Agents.Left)}`;
-  const observedSuffix = formatObservedAge(block?.observedAt ?? null);
   const windowLabel = block
     ? t(translation.Agents.BlockWindow)
     : t(translation.Agents.BlockIdle);
   const windowValue = block
-    ? `${formatTokens(block.totals.total)}${leftSuffix}${observedSuffix}`
+    ? `${formatTokens(block.totals.total)}${leftSuffix}`
     : "—";
   const resetTooltip = block
     ? `${t(translation.Agents.ResetsAt)} ${formatResetMoment(block.resetsAt)}`
@@ -244,11 +230,10 @@ function LimitBar({
     source === "reported"
       ? `${t(translation.Agents.LimitLeft)}${planSuffix}`
       : t(translation.Agents.BudgetLeft);
-  const observedSuffix = source === "reported" ? formatObservedAge(agent.rateLimit.observedAt) : "";
   const resetTooltip = resetsAt
     ? `${t(translation.Agents.ResetsAt)} ${formatResetMoment(resetsAt)}`
     : undefined;
-  const limitValue = `${Math.round(remainingPercent)}% ${t(translation.Agents.Left)}${observedSuffix}`;
+  const limitValue = `${Math.round(remainingPercent)}% ${t(translation.Agents.Left)}`;
 
   return (
     <button

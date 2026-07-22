@@ -89,7 +89,10 @@
     "left": "នៅសល់",
     "limit_left": "កម្រិតនៅសល់",
     "budget_left": "ថវិកាប្រចាំសប្តាហ៍នៅសល់",
-    "resets_at": "កំណត់ឡើងវិញ"
+    "resets_at": "កំណត់ឡើងវិញ",
+    "close_terminal_title": "បិទស្ថានីយនេះ?",
+    "close_terminal_desc": "“{{label}}” កំពុងដំណើរការ។ ការបិទផ្ទាំងនឹងបញ្ឈប់ដំណើរការ និងលុបលទ្ធផលរបស់វា។",
+    "close_terminal_exited_desc": "“{{label}}” បានបញ្ចប់។ ការបិទផ្ទាំងនឹងលុបលទ្ធផលរបស់វា។"
   },
   "sidebar": {
     "app_name": "Lazify",

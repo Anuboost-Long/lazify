@@ -93,7 +93,10 @@
     "left": "left",
     "limit_left": "Limit left",
     "budget_left": "Weekly budget left",
-    "resets_at": "Resets"
+    "resets_at": "Resets",
+    "close_terminal_title": "Close this terminal?",
+    "close_terminal_desc": "“{{label}}” is still running. Closing the tab stops the process and clears its output.",
+    "close_terminal_exited_desc": "“{{label}}” has finished. Closing the tab clears its output."
   },
   "sidebar": {
     "app_name": "Lazify",

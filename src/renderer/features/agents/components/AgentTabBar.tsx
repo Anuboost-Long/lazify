@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { translation } from "@renderer/i18n/translation";
 import { SmallText } from "@renderer/shared/typography";
 import { IconButton } from "@renderer/shared/ui/IconButton";
+import { ConfirmModal } from "@renderer/shared/ui/modal/ConfirmModal";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import type { AgentDescriptor } from "../../../../main/agents/agent-registry";
 import type { AgentTerminal } from "../hooks/use-agent-terminals";
@@ -47,6 +48,8 @@ export function AgentTabBar({
 }: Readonly<AgentTabBarProps>) {
   const { t } = useTranslation();
   const [pickerOpen, setPickerOpen] = useState(false);
+  // Closing a tab kills its process, so the X asks first.
+  const [pendingClose, setPendingClose] = useState<AgentTerminal | null>(null);
 
   return (
     // The terminal panel is always dark, so this bar uses fixed light-on-dark
@@ -97,7 +100,7 @@ export function AgentTabBar({
             <IconButton
               icon="xmark"
               aria-label={t(translation.GlobalTerm.Close)}
-              onClick={() => onClose(terminal.tabId)}
+              onClick={() => setPendingClose(terminal)}
               className="text-white hover:bg-white/10 dark:hover:bg-white/10"
             />
           </div>
@@ -163,6 +166,24 @@ export function AgentTabBar({
           <SmallText className="!text-white">{t(translation.Agents.Usage)}</SmallText>
         </button>
       </div>
+
+      <ConfirmModal
+        open={pendingClose !== null}
+        title={t(translation.Agents.CloseTerminalTitle)}
+        description={t(
+          pendingClose?.exited
+            ? translation.Agents.CloseTerminalExitedDesc
+            : translation.Agents.CloseTerminalDesc,
+          { label: pendingClose?.label ?? "" }
+        )}
+        confirmLabel={t(translation.GlobalTerm.Close)}
+        destructive
+        onConfirm={() => {
+          if (pendingClose) onClose(pendingClose.tabId);
+          setPendingClose(null);
+        }}
+        onCancel={() => setPendingClose(null)}
+      />
 
       <AgentPickerModal
         open={pickerOpen}

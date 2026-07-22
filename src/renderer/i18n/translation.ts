@@ -93,7 +93,10 @@ export const translation = {
     "Left": "agents.left",
     "LimitLeft": "agents.limit_left",
     "BudgetLeft": "agents.budget_left",
-    "ResetsAt": "agents.resets_at"
+    "ResetsAt": "agents.resets_at",
+    "CloseTerminalTitle": "agents.close_terminal_title",
+    "CloseTerminalDesc": "agents.close_terminal_desc",
+    "CloseTerminalExitedDesc": "agents.close_terminal_exited_desc"
   },
   "Sidebar": {
     "AppName": "sidebar.app_name",

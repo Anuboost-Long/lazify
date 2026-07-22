@@ -9,7 +9,7 @@ import type {
   AgentSessionWindow,
   AgentUsageReport,
   AgentUsageSummary,
-  TokenTotals
+  TokenTotals,
 } from "../../renderer/shared/types/lazify";
 import { listAgentBudgets } from "./agent-limits-store";
 import { listCustomAgents } from "./custom-agents-store";
@@ -67,8 +67,13 @@ function readCache(): UsageCache {
   if (cache) return cache;
 
   try {
-    const parsed = JSON.parse(fs.readFileSync(cachePath(), "utf8")) as UsageCache;
-    cache = parsed.version === CACHE_VERSION ? parsed : { version: CACHE_VERSION, agents: {} };
+    const parsed = JSON.parse(
+      fs.readFileSync(cachePath(), "utf8"),
+    ) as UsageCache;
+    cache =
+      parsed.version === CACHE_VERSION
+        ? parsed
+        : { version: CACHE_VERSION, agents: {} };
   } catch {
     cache = { version: CACHE_VERSION, agents: {} };
   }
@@ -88,7 +93,14 @@ function writeCache(): void {
 }
 
 function emptyTotals(): TokenTotals {
-  return { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0, messages: 0 };
+  return {
+    input: 0,
+    output: 0,
+    cacheRead: 0,
+    cacheWrite: 0,
+    total: 0,
+    messages: 0,
+  };
 }
 
 function addTotals(target: TokenTotals, source: TokenTotals): void {
@@ -109,7 +121,11 @@ function hourKey(timestamp: string): string {
 }
 
 /** Folds one turn's tokens into both the daily and hourly buckets. */
-function record(slice: FileSlice, timestamp: string, totals: TokenTotals): void {
+function record(
+  slice: FileSlice,
+  timestamp: string,
+  totals: TokenTotals,
+): void {
   const day = dayKey(timestamp);
   const hour = hourKey(timestamp);
 
@@ -142,9 +158,9 @@ function pruneHourly(slice: FileSlice, cutoffHour: string): void {
 function currentBlock(
   hourly: Record<string, TokenTotals>,
   hourlyFirst: Record<string, string>,
-  budget: number | null
+  budget: number | null,
 ): AgentSessionWindow | null {
-  const hours = Object.keys(hourly).sort();
+  const hours = Object.keys(hourly).sort((a, b) => a.localeCompare(b));
 
   if (hours.length === 0) return null;
 
@@ -179,7 +195,7 @@ function currentBlock(
     observedAt: null,
     totals,
     budget,
-    usedPercent: budget ? Math.min((totals.total / budget) * 100, 100) : null
+    usedPercent: budget ? Math.min((totals.total / budget) * 100, 100) : null,
   };
 }
 
@@ -205,11 +221,14 @@ function listFiles(root: string, depth: number): string[] {
 async function readLines(
   filePath: string,
   start: number,
-  onLine: (line: string) => void
+  onLine: (line: string) => void,
 ): Promise<void> {
   await new Promise<void>((resolve, reject) => {
     const stream = fs.createReadStream(filePath, { start, encoding: "utf8" });
-    const lines = readline.createInterface({ input: stream, crlfDelay: Infinity });
+    const lines = readline.createInterface({
+      input: stream,
+      crlfDelay: Infinity,
+    });
 
     lines.on("line", (line) => {
       if (line.length > 0) onLine(line);
@@ -252,7 +271,7 @@ function parseClaudeLine(line: string, slice: FileSlice): void {
       cacheRead,
       cacheWrite,
       total: input + output + cacheRead + cacheWrite,
-      messages: 1
+      messages: 1,
     });
 
     if (!slice.lastActivity || entry.timestamp > slice.lastActivity) {
@@ -305,7 +324,7 @@ function parseCodexLine(line: string, slice: FileSlice): void {
         cacheRead,
         cacheWrite: 0,
         total: usage.total_tokens ?? input + output + cacheRead,
-        messages: 1
+        messages: 1,
       });
     }
 
@@ -316,8 +335,17 @@ function parseCodexLine(line: string, slice: FileSlice): void {
     const limits = entry.payload.rate_limits;
 
     if (limits) {
-      const window = toRateLimit(limits.primary, limits.plan_type ?? null, entry.timestamp)
-        ?? toRateLimit(limits.secondary, limits.plan_type ?? null, entry.timestamp);
+      const window =
+        toRateLimit(
+          limits.primary,
+          limits.plan_type ?? null,
+          entry.timestamp,
+        ) ??
+        toRateLimit(
+          limits.secondary,
+          limits.plan_type ?? null,
+          entry.timestamp,
+        );
 
       if (window) slice.rateLimit = window;
     }
@@ -335,7 +363,7 @@ interface RawRateWindow {
 function toRateLimit(
   window: RawRateWindow | null | undefined,
   planType: string | null,
-  observedAt: string
+  observedAt: string,
 ): AgentRateLimit | null {
   if (!window || typeof window.used_percent !== "number") return null;
 
@@ -343,9 +371,11 @@ function toRateLimit(
     source: "reported",
     usedPercent: window.used_percent,
     windowMinutes: window.window_minutes ?? null,
-    resetsAt: window.resets_at ? new Date(window.resets_at * 1000).toISOString() : null,
+    resetsAt: window.resets_at
+      ? new Date(window.resets_at * 1000).toISOString()
+      : null,
     planType,
-    observedAt
+    observedAt,
   };
 }
 
@@ -353,7 +383,7 @@ function toRateLimit(
 async function scanAgent(
   agentId: string,
   files: string[],
-  parseLine: (line: string, slice: FileSlice) => void
+  parseLine: (line: string, slice: FileSlice) => void,
 ): Promise<FileSlice[]> {
   const store = readCache();
   const agentCache = (store.agents[agentId] ??= {});
@@ -372,7 +402,7 @@ async function scanAgent(
 
     const cached = agentCache[filePath];
 
-    if (cached && cached.size === stat.size && cached.mtimeMs === stat.mtimeMs) continue;
+    if (cached?.size === stat.size && cached.mtimeMs === stat.mtimeMs) continue;
 
     // A file that shrank was rewritten, so its cached totals can't be trusted.
     const reusable = cached && stat.size >= cached.offset ? cached : null;
@@ -384,7 +414,7 @@ async function scanAgent(
       hourly: {},
       hourlyFirst: {},
       lastActivity: null,
-      rateLimit: null
+      rateLimit: null,
     };
 
     await readLines(filePath, slice.offset, (line) => parseLine(line, slice));
@@ -396,7 +426,7 @@ async function scanAgent(
   }
 
   const cutoffHour = hourKey(
-    new Date(Date.now() - HOURLY_HISTORY_DAYS * 24 * 3_600_000).toISOString()
+    new Date(Date.now() - HOURLY_HISTORY_DAYS * 24 * 3_600_000).toISOString(),
   );
 
   for (const filePath of Object.keys(agentCache)) {
@@ -432,19 +462,24 @@ interface ClaudeUtilization {
 function readClaudeUtilization(): ClaudeUtilization | null {
   try {
     const raw = fs.readFileSync(path.join(os.homedir(), CLAUDE_CONFIG), "utf8");
-    const cached = (JSON.parse(raw) as {
-      cachedUsageUtilization?: {
-        fetchedAtMs?: number;
-        utilization?: { five_hour?: UtilizationWindow | null; seven_day?: UtilizationWindow | null };
-      };
-    }).cachedUsageUtilization;
+    const cached = (
+      JSON.parse(raw) as {
+        cachedUsageUtilization?: {
+          fetchedAtMs?: number;
+          utilization?: {
+            five_hour?: UtilizationWindow | null;
+            seven_day?: UtilizationWindow | null;
+          };
+        };
+      }
+    ).cachedUsageUtilization;
 
     if (!cached?.utilization) return null;
 
     return {
       observedAt: new Date(cached.fetchedAtMs ?? Date.now()).toISOString(),
       fiveHour: cached.utilization.five_hour ?? null,
-      sevenDay: cached.utilization.seven_day ?? null
+      sevenDay: cached.utilization.seven_day ?? null,
     };
   } catch {
     return null;
@@ -463,7 +498,7 @@ function codexFiles(): string[] {
 async function scanSince(
   files: string[],
   sinceIso: string,
-  parseLine: (line: string, slice: FileSlice) => void
+  parseLine: (line: string, slice: FileSlice) => void,
 ): Promise<TokenTotals> {
   const sinceMs = Date.parse(sinceIso);
   const totals = emptyTotals();
@@ -486,7 +521,7 @@ async function scanSince(
       hourlyFirst: {},
       lastActivity: null,
       rateLimit: null,
-      since: sinceIso
+      since: sinceIso,
     };
 
     await readLines(filePath, 0, (line) => parseLine(line, slice));
@@ -508,14 +543,16 @@ function sessionWindowFor(
   hourly: Record<string, TokenTotals>,
   hourlyFirst: Record<string, string>,
   blockBudget: number | null,
-  reported: ClaudeUtilization | null
+  reported: ClaudeUtilization | null,
 ): AgentSessionWindow | null {
   const derived = currentBlock(hourly, hourlyFirst, blockBudget);
   const window = reported?.fiveHour;
 
   if (!window || typeof window.utilization !== "number") return derived;
 
-  const resetsAt = window.resets_at ? new Date(window.resets_at).toISOString() : null;
+  const resetsAt = window.resets_at
+    ? new Date(window.resets_at).toISOString()
+    : null;
   const resetsMs = resetsAt ? Date.parse(resetsAt) : 0;
 
   // The cached window has already expired, so its percentage says nothing about
@@ -526,13 +563,13 @@ function sessionWindowFor(
     source: "reported",
     startsAt: resetsMs
       ? new Date(resetsMs - BLOCK_HOURS * 3_600_000).toISOString()
-      : derived?.startsAt ?? new Date().toISOString(),
+      : (derived?.startsAt ?? new Date().toISOString()),
     resetsAt: resetsAt ?? derived?.resetsAt ?? new Date().toISOString(),
     hours: BLOCK_HOURS,
     totals: derived?.totals ?? emptyTotals(),
     budget: blockBudget,
     usedPercent: window.utilization,
-    observedAt: reported.observedAt
+    observedAt: reported.observedAt,
   };
 }
 
@@ -543,7 +580,7 @@ function summarize(
   sessionTotals: TokenTotals | null,
   weeklyBudget: number | null,
   blockBudget: number | null,
-  reported: ClaudeUtilization | null = null
+  reported: ClaudeUtilization | null = null,
 ): AgentUsageSummary {
   const daily: Record<string, TokenTotals> = {};
   const hourly: Record<string, TokenTotals> = {};
@@ -563,10 +600,14 @@ function summarize(
     }
 
     for (const [hour, first] of Object.entries(slice.hourlyFirst)) {
-      if (!hourlyFirst[hour] || first < hourlyFirst[hour]) hourlyFirst[hour] = first;
+      if (!hourlyFirst[hour] || first < hourlyFirst[hour])
+        hourlyFirst[hour] = first;
     }
 
-    if (slice.lastActivity && (!lastActivity || slice.lastActivity > lastActivity)) {
+    if (
+      slice.lastActivity &&
+      (!lastActivity || slice.lastActivity > lastActivity)
+    ) {
       lastActivity = slice.lastActivity;
     }
 
@@ -580,8 +621,12 @@ function summarize(
   }
 
   const today = new Date().toISOString().slice(0, 10);
-  const weekStart = new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
-  const historyStart = new Date(Date.now() - (DAILY_HISTORY_DAYS - 1) * 24 * 60 * 60 * 1000)
+  const weekStart = new Date(Date.now() - 6 * 24 * 60 * 60 * 1000)
+    .toISOString()
+    .slice(0, 10);
+  const historyStart = new Date(
+    Date.now() - (DAILY_HISTORY_DAYS - 1) * 24 * 60 * 60 * 1000,
+  )
     .toISOString()
     .slice(0, 10);
 
@@ -605,7 +650,7 @@ function summarize(
       windowMinutes: 7 * 24 * 60,
       resetsAt: reported.sevenDay.resets_at ?? null,
       planType: null,
-      observedAt: reported.observedAt
+      observedAt: reported.observedAt,
     };
   }
 
@@ -617,7 +662,7 @@ function summarize(
       windowMinutes: 7 * 24 * 60,
       resetsAt: null,
       planType: null,
-      observedAt: new Date().toISOString()
+      observedAt: new Date().toISOString(),
     };
   }
 
@@ -634,7 +679,7 @@ function summarize(
     rateLimit,
     weeklyBudget,
     blockBudget,
-    sessionWindow: sessionWindowFor(hourly, hourlyFirst, blockBudget, reported)
+    sessionWindow: sessionWindowFor(hourly, hourlyFirst, blockBudget, reported),
   };
 }
 
@@ -643,19 +688,21 @@ function summarize(
  * recorded at or after that moment — the app passes the time the agent tab was
  * opened.
  */
-export async function getAgentUsage(sinceIso?: string): Promise<AgentUsageReport> {
+export async function getAgentUsage(
+  sinceIso?: string,
+): Promise<AgentUsageReport> {
   const claudePaths = claudeFiles();
   const codexPaths = codexFiles();
 
   const [claudeSlices, codexSlices] = await Promise.all([
     scanAgent("claude", claudePaths, parseClaudeLine),
-    scanAgent("codex", codexPaths, parseCodexLine)
+    scanAgent("codex", codexPaths, parseCodexLine),
   ]);
 
   const [claudeSession, codexSession] = sinceIso
     ? await Promise.all([
         scanSince(claudePaths, sinceIso, parseClaudeLine),
-        scanSince(codexPaths, sinceIso, parseCodexLine)
+        scanSince(codexPaths, sinceIso, parseCodexLine),
       ])
     : [null, null];
 
@@ -666,7 +713,14 @@ export async function getAgentUsage(sinceIso?: string): Promise<AgentUsageReport
 
   // Custom agents are arbitrary commands, so nothing local reports their usage.
   const customs = listCustomAgents().map(({ id, label }) =>
-    summarize(id, label, [], null, budgets[id] ?? null, budgets[`${id}#5h`] ?? null)
+    summarize(
+      id,
+      label,
+      [],
+      null,
+      budgets[id] ?? null,
+      budgets[`${id}#5h`] ?? null,
+    ),
   );
 
   return {
@@ -680,7 +734,7 @@ export async function getAgentUsage(sinceIso?: string): Promise<AgentUsageReport
         claudeSession,
         budgets.claude ?? null,
         budgets["claude#5h"] ?? null,
-        claudeUtilization
+        claudeUtilization,
       ),
       summarize(
         "codex",
@@ -688,9 +742,9 @@ export async function getAgentUsage(sinceIso?: string): Promise<AgentUsageReport
         codexSlices,
         codexSession,
         budgets.codex ?? null,
-        budgets["codex#5h"] ?? null
+        budgets["codex#5h"] ?? null,
       ),
-      ...customs
-    ]
+      ...customs,
+    ],
   };
 }

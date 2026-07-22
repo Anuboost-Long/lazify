@@ -89,7 +89,10 @@
     "left": "剩余",
     "limit_left": "额度剩余",
     "budget_left": "每周预算剩余",
-    "resets_at": "重置时间"
+    "resets_at": "重置时间",
+    "close_terminal_title": "关闭此终端？",
+    "close_terminal_desc": "“{{label}}”仍在运行。关闭标签页将停止该进程并清除其输出。",
+    "close_terminal_exited_desc": "“{{label}}”已结束。关闭标签页将清除其输出。"
   },
   "sidebar": {
     "app_name": "Lazify",
