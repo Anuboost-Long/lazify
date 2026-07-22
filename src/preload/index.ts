@@ -4,6 +4,8 @@ import type { LogEvent } from "../main/command-runner";
 import type { TemplateDefinition } from "../main/harmonizer";
 import type { NpmPackageSearchResult } from "../main/npm-registry";
 import type {
+  AgentFileChange,
+  AgentUsageReport,
   InstalledPackage,
   NpmAuditResult,
   NpmOutdatedResult,
@@ -19,6 +21,8 @@ import type {
 import type { EnvironmentScan } from "../main/scanner";
 import type { ToolScanReport, NvmVersionList, NvmInstallResult, NvmActionResult, ToolUpdateInfo } from "../main/environment-scanner";
 import type { TemplatePackageEntry } from "../main/template-package-manifest";
+import type { AgentDescriptor } from "../main/agents/agent-registry";
+import type { CustomAgent, CustomAgentInput } from "../main/agents/custom-agents-store";
 import type { VersionMatchReport } from "../brain/package-version-matcher";
 import type {
   AddProjectPackagePayload,
@@ -72,6 +76,10 @@ const lazifyApi = {
     ipcRenderer.invoke("lazify:read-imported-project-file", filePath),
   getProjectGitStatus: (projectPath: string): Promise<ProjectGitStatusResult> =>
     ipcRenderer.invoke("lazify:project-git-status", projectPath),
+  getWorkingChanges: (projectPath: string): Promise<AgentFileChange[]> =>
+    ipcRenderer.invoke("lazify:working-changes", projectPath),
+  getFileDiff: (projectPath: string, filePath: string): Promise<string> =>
+    ipcRenderer.invoke("lazify:file-diff", projectPath, filePath),
   getNpmOutdated: (projectPath: string): Promise<NpmOutdatedResult> =>
     ipcRenderer.invoke("lazify:npm-outdated", projectPath),
   getNpmAudit: (projectPath: string): Promise<NpmAuditResult> =>
@@ -86,6 +94,8 @@ const lazifyApi = {
     ipcRenderer.invoke("lazify:list-sessions"),
   ptyWrite: (runId: string, data: string): void =>
     ipcRenderer.send("lazify:pty-write", runId, data),
+  ptyBacklog: (runId: string): Promise<import("../main/pty-runner").PtyBacklog> =>
+    ipcRenderer.invoke("lazify:pty-backlog", runId),
   ptyResize: (runId: string, cols: number, rows: number): void =>
     ipcRenderer.send("lazify:pty-resize", runId, cols, rows),
   onPtyData: (callback: (event: { runId: string; data: string }) => void) => {
@@ -98,6 +108,22 @@ const lazifyApi = {
     ipcRenderer.on("lazify:script-status", listener);
     return () => ipcRenderer.removeListener("lazify:script-status", listener);
   },
+  listAgents: (): Promise<AgentDescriptor[]> => ipcRenderer.invoke("lazify:list-agents"),
+  addCustomAgent: (input: CustomAgentInput): Promise<CustomAgent> =>
+    ipcRenderer.invoke("lazify:add-custom-agent", input),
+  removeCustomAgent: (agentId: string): Promise<void> =>
+    ipcRenderer.invoke("lazify:remove-custom-agent", agentId),
+  getAgentUsage: (sinceIso?: string): Promise<AgentUsageReport> =>
+    ipcRenderer.invoke("lazify:agent-usage", sinceIso),
+  setAgentBudget: (agentId: string, weeklyTokens: number): Promise<Record<string, number>> =>
+    ipcRenderer.invoke("lazify:set-agent-budget", agentId, weeklyTokens),
+  openAgentTerminal: (
+    agentId: string,
+    projectPath: string,
+    cols?: number,
+    rows?: number
+  ): Promise<{ runId: string }> =>
+    ipcRenderer.invoke("lazify:open-agent-terminal", agentId, projectPath, cols, rows),
   listProjectPackages: (projectPath: string): Promise<InstalledPackage[]> =>
     ipcRenderer.invoke("lazify:list-project-packages", projectPath),
   addProjectPackage: (payload: AddProjectPackagePayload): Promise<WorkflowResult> =>

@@ -4,6 +4,7 @@ export const appRoute = {
   workspace: "/workspace",
   workspaceProject: "/workspace/project/:projectPath",
   importProject: "/import-project",
+  agents: "/agents",
   console: "/console",
   templates: "/templates",
   settings: "/settings",

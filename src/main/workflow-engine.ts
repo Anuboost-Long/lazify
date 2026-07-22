@@ -42,6 +42,8 @@ export interface CreateProjectPayload {
   templateId?: string | null;
   importedTemplateId?: string | null;
   structureTree: ProjectTreeNode[];
+  /** Keyed by TemplateCreateOption.key; missing keys fall back to the option default. */
+  createOptions?: Record<string, boolean>;
 }
 
 export interface InstallPackagePayload {
@@ -111,9 +113,24 @@ export class WorkflowEngine {
 
     fs.mkdirSync(baseDirectory, { recursive: true });
 
+    // Some scaffolders (create-next-app) declare negated boolean flags like
+    // --no-tailwind that swallow a trailing positional, so the project name
+    // cannot simply be appended. Templates mark the correct slot with
+    // {{projectName}}; anything without a marker keeps the old append behavior.
+    const nameMarker = "{{projectName}}";
+    const resolvedArgs = createArgs.includes(nameMarker)
+      ? createArgs.map((arg) => (arg === nameMarker ? payload.name : arg))
+      : [...createArgs, payload.name];
+
+    // Option flags go last: the name is already positioned, so there is no
+    // trailing positional left for a negated flag to swallow.
+    const optionFlags = (template.createOptions ?? []).map((option) =>
+      (payload.createOptions?.[option.key] ?? option.default) ? option.onFlag : option.offFlag
+    );
+
     const createResult = await this.commandRunner.runCommand({
       command: createCommand,
-      args: [...createArgs, payload.name],
+      args: [...resolvedArgs, ...optionFlags],
       cwd: baseDirectory
     });
 
@@ -187,8 +204,11 @@ export class WorkflowEngine {
     });
 
     const rawManifest = loadTemplatePackageManifest(template);
-    const packageManifest = await resolveManifestToLatest(rawManifest);
     const projectPackageJson = readProjectPackageJson(projectPath);
+    const packageManifest = await resolveManifestToLatest(rawManifest, {
+      ...projectPackageJson.dependencies,
+      ...projectPackageJson.devDependencies
+    });
     const packagePlan = buildTemplatePackageInstallPlan(packageManifest, projectPackageJson);
 
     if (packagePlan.versionMismatches.length > 0) {

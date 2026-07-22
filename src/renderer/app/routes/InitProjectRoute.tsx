@@ -29,7 +29,9 @@ export function InitProjectRoute() {
     setSelectedTemplateId,
     pickProjectDirectory,
     createProject,
-    continueInitWorkflow
+    continueInitWorkflow,
+    createOptionValues,
+    setCreateOptionValues
   } = useLazifyStore();
 
   return (
@@ -48,6 +50,10 @@ export function InitProjectRoute() {
       selectedStructurePaths={selectedStructurePaths}
       selectedTemplateId={selectedTemplateId}
       templateOptions={templateOptions}
+      createOptionValues={createOptionValues}
+      onCreateOptionChange={(key, value) =>
+        setCreateOptionValues((current) => ({ ...current, [key]: value }))
+      }
       onSelectSourceMode={setInitSourceMode}
       onProjectNameChange={setProjectName}
       onPackageNameChange={setPackageName}

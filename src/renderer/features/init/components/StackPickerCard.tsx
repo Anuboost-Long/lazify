@@ -3,6 +3,8 @@ import { BodyText, CaptionText, CardTitle, OverlineText, PillText } from "@rende
 import DevIcon from "@renderer/shared/ui/icons/DevIcon";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import clsx from "clsx";
+import { CardShapes } from "@renderer/shared/ui/card/CardShapes";
+import { SelectionRail } from "@renderer/shared/ui/card/SelectionRail";
 import { getTemplatePresentation } from "../lib/stack-presentations";
 
 interface StackPickerCardProps {
@@ -28,11 +30,15 @@ export function StackPickerCard({
         "group relative overflow-hidden rounded-[28px] border p-5 text-left",
         "animate-fadeIn opacity-0 transition-[transform,box-shadow,border-color] duration-300 ease-out hover:-translate-y-1.5",
         active
-          ? "border-accent bg-accent-gradient-180 text-text shadow-glow"
+          ? "border-accent bg-accent-gradient-180 text-text shadow-panel"
           : "border-border bg-soft text-text hover:border-accent"
       )}
       style={{ animationDelay: `${animationDelay}ms` }}
     >
+      {active ? <SelectionRail /> : null}
+
+      <CardShapes variant={(animationDelay / 60) % 3 as 0 | 1 | 2} />
+
       <div
         className="absolute inset-x-0 top-0 h-px"
         style={{
@@ -41,7 +47,7 @@ export function StackPickerCard({
         }}
       />
 
-      <div className="absolute inset-x-5 top-5 flex items-center justify-between gap-3">
+      <div className="absolute inset-x-5 top-5 z-10 flex items-center justify-between gap-3">
         <PillText
           as="span"
           className={clsx(
@@ -62,10 +68,11 @@ export function StackPickerCard({
         />
       </div>
 
-      <div className="flex items-start gap-4 pt-12">
+      <div className="relative flex items-start gap-4 pt-12">
         <div
           className={clsx(
             "flex h-16 w-16 shrink-0 items-center justify-center rounded-[22px] dark:border dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]",
+            "transition-transform duration-300 group-hover:-rotate-3 group-hover:scale-105",
             presentation.frameClassName,
             active && presentation.activeGlow
           )}
@@ -107,7 +114,7 @@ export function StackPickerCard({
         </div>
       </div>
 
-      <div className="mt-5 rounded-[20px] border border-border/80 bg-bg/70 px-4 py-3">
+      <div className="relative mt-5 rounded-[20px] border border-border/80 bg-bg/70 px-4 py-3">
         <OverlineText tone="muted" className="text-[11px] tracking-[0.22em]">
           Best for
         </OverlineText>

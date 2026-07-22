@@ -5,7 +5,7 @@ import type { ProjectGitStatusResult } from "../renderer/shared/types/lazify";
 
 const execFileAsync = promisify(execFile);
 
-function getStatusLabel(stagedStatus: string, unstagedStatus: string) {
+export function getStatusLabel(stagedStatus: string, unstagedStatus: string) {
   const codes = `${stagedStatus}${unstagedStatus}`;
 
   if (codes.includes("?")) {

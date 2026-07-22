@@ -7,10 +7,19 @@ export interface LogEntry {
   message: string;
 }
 
+export interface TemplateCreateOption {
+  key: string;
+  label: string;
+  default: boolean;
+  onFlag: string;
+  offFlag: string;
+}
+
 export interface TemplateOption {
   id: string;
   label: string;
   description: string;
+  createOptions?: TemplateCreateOption[];
 }
 
 export interface ImportedTemplateOption {
@@ -176,6 +185,77 @@ export interface GitStatusEntry {
   stagedStatus: string;
   unstagedStatus: string;
   statusLabel: string;
+}
+
+export interface TokenTotals {
+  input: number;
+  output: number;
+  cacheRead: number;
+  cacheWrite: number;
+  total: number;
+  /** Billed responses, i.e. assistant turns. */
+  messages: number;
+}
+
+export interface AgentRateLimit {
+  /** "reported" comes from the agent's own transcripts; "budget" is user-set. */
+  source: "reported" | "budget";
+  usedPercent: number;
+  windowMinutes: number | null;
+  resetsAt: string | null;
+  planType: string | null;
+  observedAt: string;
+}
+
+/** The rolling 5-hour block both CLIs meter against. */
+export interface AgentSessionWindow {
+  /** "reported" is the account's own percentage; "derived" is read off transcripts. */
+  source: "reported" | "derived";
+  startsAt: string;
+  resetsAt: string;
+  hours: number;
+  totals: TokenTotals;
+  /** User-set token allowance for one block, when they set one. */
+  budget: number | null;
+  usedPercent: number | null;
+  /** When a reported percentage was last refreshed by the agent CLI. */
+  observedAt: string | null;
+}
+
+export interface AgentUsageSummary {
+  agentId: string;
+  label: string;
+  /** False when the agent has no local transcripts to read. */
+  hasData: boolean;
+  session: TokenTotals;
+  today: TokenTotals;
+  week: TokenTotals;
+  allTime: TokenTotals;
+  /** Daily totals for the last 30 days, oldest first. */
+  history: { date: string; total: number }[];
+  lastActivity: string | null;
+  rateLimit: AgentRateLimit | null;
+  weeklyBudget: number | null;
+  blockBudget: number | null;
+  /** Null once the last block has expired, i.e. nothing is metered right now. */
+  sessionWindow: AgentSessionWindow | null;
+}
+
+export interface AgentUsageReport {
+  generatedAt: string;
+  /** Start of the "session" window the totals were measured against. */
+  since: string | null;
+  agents: AgentUsageSummary[];
+}
+
+/** One working-tree file plus its line counts, used by the agent changes panel. */
+export interface AgentFileChange {
+  path: string;
+  absolutePath: string;
+  statusLabel: string;
+  untracked: boolean;
+  additions: number;
+  deletions: number;
 }
 
 export interface ProjectGitStatusResult {

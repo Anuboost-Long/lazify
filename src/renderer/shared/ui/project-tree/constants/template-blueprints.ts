@@ -89,7 +89,9 @@ export const templateBlueprints: Record<string, TemplateBlueprint> = {
     ]
   },
   "next-default": {
-    rootFiles: ["package.json", "next.config.js"],
+    // create-next-app already emits next.config.ts; writing our own
+    // next.config.js here left the project with two competing configs
+    rootFiles: ["package.json"],
     folders: [
       {
         name: "app",

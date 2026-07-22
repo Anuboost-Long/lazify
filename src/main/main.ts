@@ -20,11 +20,17 @@ import {
   readImportedProjectFile
 } from "./project-importer-optimized";
 import { getProjectGitStatus } from "./project-git-status";
+import { getFileDiff, getWorkingChanges } from "./agent-changes";
 import { getNpmOutdated, getNpmAudit } from "./project-health";
 import { choosePackageManager, scanEnvironment } from "./scanner";
+import { resolveDevPortInjection } from "./dev-port";
 import { scanTools, probeSingleTool, listNvmVersions, installNvm, nvmSetDefault, nvmUse, installTool, checkToolUpdate, updateTool, scanListeningPorts, buildProcessTree, getDescendantPids } from "./environment-scanner";
 import { listTemplatePackageEntries } from "./template-package-manifest";
 import { WorkflowEngine } from "./workflow-engine";
+import { getAgentDefinition, listAgents } from "./agents/agent-registry";
+import { addCustomAgent, removeCustomAgent, type CustomAgentInput } from "./agents/custom-agents-store";
+import { getAgentUsage } from "./agents/agent-usage";
+import { setAgentBudget } from "./agents/agent-limits-store";
 import { matchPackageVersions } from "../brain/package-version-matcher";
 import { normalizeRuntimePath } from "./runtime-path";
 
@@ -149,6 +155,14 @@ function registerIpcHandlers() {
     getProjectGitStatus(projectPath)
   );
 
+  ipcMain.handle("lazify:working-changes", async (_event, projectPath: string) =>
+    getWorkingChanges(projectPath)
+  );
+
+  ipcMain.handle("lazify:file-diff", async (_event, projectPath: string, filePath: string) =>
+    getFileDiff(projectPath, filePath)
+  );
+
   ipcMain.handle("lazify:npm-outdated", async (_event, projectPath: string) =>
     getNpmOutdated(projectPath)
   );
@@ -166,16 +180,18 @@ function registerIpcHandlers() {
 
   ipcMain.handle("lazify:run-script", async (_event, projectPath: string, scriptName: string, cols = 220, rows = 50): Promise<{ runId: string; ptyAvailable: boolean }> => {
     const packageManager = choosePackageManager(projectPath);
-    const args = packageManager === "yarn" ? [scriptName] : ["run", scriptName];
+    // If this dev script's port is already taken, step up to the next free one.
+    const { extraArgs, env } = await resolveDevPortInjection(projectPath, scriptName, packageManager);
+    const args = [...(packageManager === "yarn" ? [scriptName] : ["run", scriptName]), ...extraArgs];
 
     if (ptyRunner.available) {
-      const runId = ptyRunner.start(packageManager, args, projectPath, scriptName, cols as number, rows as number);
+      const runId = ptyRunner.start(packageManager, args, projectPath, scriptName, cols as number, rows as number, env);
       return { runId, ptyAvailable: true };
     }
 
     // Fallback: spawn without PTY (no interactive output)
     const runId = commandRunner.startScript(
-      { command: packageManager, args, cwd: projectPath },
+      { command: packageManager, args, cwd: projectPath, env },
       (event) => emitToRenderer("lazify:pty-data", { runId: event.id, data: event.message }),
       (id, exitCode) => emitToRenderer("lazify:script-status", { runId: id, scriptName, exitCode, status: exitCode === 0 ? "done" : "error" })
     );
@@ -211,9 +227,59 @@ function registerIpcHandlers() {
     ptyRunner.write(runId, data);
   });
 
+  ipcMain.handle("lazify:pty-backlog", async (_event, runId: string) => ptyRunner.getBacklog(runId));
+
   ipcMain.on("lazify:pty-resize", (_event, runId: string, cols: number, rows: number) => {
     ptyRunner.resize(runId, cols, rows);
   });
+
+  ipcMain.handle("lazify:list-agents", async () => listAgents());
+
+  ipcMain.handle("lazify:add-custom-agent", async (_event, input: CustomAgentInput) =>
+    addCustomAgent(input)
+  );
+
+  ipcMain.handle("lazify:agent-usage", async (_event, sinceIso?: string) =>
+    getAgentUsage(sinceIso)
+  );
+
+  ipcMain.handle(
+    "lazify:set-agent-budget",
+    async (_event, agentId: string, weeklyTokens: number) =>
+      setAgentBudget(agentId, weeklyTokens)
+  );
+
+  ipcMain.handle("lazify:remove-custom-agent", async (_event, agentId: string) =>
+    removeCustomAgent(agentId)
+  );
+
+  // Agents are plain interactive CLIs: run them in a PTY and let xterm render.
+  // Input, resize, and teardown reuse the existing pty-write/resize/stop-script channels.
+  ipcMain.handle(
+    "lazify:open-agent-terminal",
+    async (_event, agentId: string, projectPath: string, cols = 120, rows = 30): Promise<{ runId: string }> => {
+      const definition = getAgentDefinition(agentId);
+
+      if (!definition) {
+        throw new Error(`Unknown agent: ${agentId}`);
+      }
+
+      if (!ptyRunner.available) {
+        throw new Error("node-pty is not available. Run: npm run rebuild");
+      }
+
+      const runId = ptyRunner.start(
+        definition.binary,
+        definition.args,
+        projectPath,
+        definition.label,
+        cols as number,
+        rows as number
+      );
+
+      return { runId };
+    }
+  );
 
   ipcMain.handle("lazify:list-project-packages", async (_event, projectPath: string): Promise<InstalledPackage[]> => {
     const pkgJsonPath = path.join(projectPath, "package.json");

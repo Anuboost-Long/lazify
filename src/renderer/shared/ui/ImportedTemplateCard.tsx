@@ -1,5 +1,6 @@
 import type { MouseEvent } from "react";
 import clsx from "clsx";
+import { SelectionRail } from "@renderer/shared/ui/card/SelectionRail";
 import DevIcon from "@renderer/shared/ui/icons/DevIcon";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import type { ImportedTemplateOption } from "@renderer/shared/types/lazify";
@@ -40,10 +41,12 @@ export function ImportedTemplateCard({
         "group relative cursor-pointer overflow-hidden rounded-[28px] border p-5 text-left",
         "transition-[transform,box-shadow,border-color] duration-300 ease-out hover:-translate-y-1.5",
         active
-          ? "border-accent bg-accent-gradient-180 shadow-glow"
+          ? "border-accent bg-accent-gradient-180 shadow-panel"
           : "border-border bg-soft hover:border-accent"
       )}
     >
+      {active ? <SelectionRail /> : null}
+
       <div
         className="absolute inset-x-0 top-0 h-px"
         style={{

@@ -22,7 +22,9 @@ export function ThemeOptionCard({ id, label, icon, selected, onSelect }: ThemeOp
       className={clsx(
         "group relative flex flex-col items-center gap-3 rounded-2xl border p-5",
         "transition-all duration-150",
-        selected ? "border-accent bg-accentSoft shadow-glow" : "border-border bg-soft hover:border-accent/40"
+        selected
+          ? "border-accent bg-accentSoft shadow-panel ring-1 ring-accent/30"
+          : "border-border bg-soft hover:border-accent/40"
       )}
     >
       <ThemePreview themeId={id} />

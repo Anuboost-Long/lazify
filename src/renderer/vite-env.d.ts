@@ -7,6 +7,8 @@ import type { EnvironmentScan } from "../main/scanner";
 import type { ToolScanReport, NvmVersionList, NvmInstallResult, NvmActionResult, ToolUpdateInfo } from "../main/environment-scanner";
 import type { TemplatePackageEntry } from "../main/template-package-manifest";
 import type {
+  AgentFileChange,
+  AgentUsageReport,
   NpmAuditResult,
   NpmOutdatedResult,
   ProjectGitStatusResult,
@@ -23,6 +25,7 @@ import type {
   WorkflowResult
 } from "../main/workflow-engine";
 import type { VersionMatchReport } from "./shared/types/lazify";
+import type { AgentDescriptor } from "../main/agents/agent-registry";
 
 declare global {
   interface Window {
@@ -56,6 +59,8 @@ declare global {
       importProjectIndexFromDirectory: (projectPath: string) => Promise<ImportedProjectIndexResult>;
       readImportedProjectFile: (filePath: string) => Promise<string>;
       getProjectGitStatus: (projectPath: string) => Promise<ProjectGitStatusResult>;
+      getWorkingChanges: (projectPath: string) => Promise<AgentFileChange[]>;
+      getFileDiff: (projectPath: string, filePath: string) => Promise<string>;
       getNpmOutdated: (projectPath: string) => Promise<NpmOutdatedResult>;
       getNpmAudit: (projectPath: string) => Promise<NpmAuditResult>;
       listSessions: () => Promise<import("./shared/types/lazify").PtySession[]>;
@@ -63,8 +68,11 @@ declare global {
       runScript: (projectPath: string, scriptName: string, cols?: number, rows?: number) => Promise<{ runId: string; ptyAvailable: boolean }>;
       stopScript: (runId: string) => Promise<void>;
       ptyWrite: (runId: string, data: string) => void;
+      ptyBacklog: (runId: string) => Promise<import("../main/pty-runner").PtyBacklog>;
       ptyResize: (runId: string, cols: number, rows: number) => void;
-      onPtyData: (callback: (event: { runId: string; data: string }) => void) => () => void;
+      onPtyData: (
+        callback: (event: { runId: string; data: string; seq?: number }) => void
+      ) => () => void;
       onScriptStatus: (callback: (event: import("./shared/types/lazify").ScriptStatusEvent) => void) => () => void;
       listProjectPackages: (projectPath: string) => Promise<import("./shared/types/lazify").InstalledPackage[]>;
       addProjectPackage: (payload: import("../main/workflow-engine").AddProjectPackagePayload) => Promise<import("../main/workflow-engine").WorkflowResult>;
@@ -78,6 +86,19 @@ declare global {
       ) => Promise<ImportedTemplateSnapshot>;
       matchPackageVersions: (projectPath: string) => Promise<VersionMatchReport>;
       fixProjectPackageVersions: (projectPath: string) => Promise<WorkflowResult>;
+      listAgents: () => Promise<AgentDescriptor[]>;
+      addCustomAgent: (
+        input: import("../main/agents/custom-agents-store").CustomAgentInput
+      ) => Promise<import("../main/agents/custom-agents-store").CustomAgent>;
+      removeCustomAgent: (agentId: string) => Promise<void>;
+      getAgentUsage: (sinceIso?: string) => Promise<AgentUsageReport>;
+      setAgentBudget: (agentId: string, weeklyTokens: number) => Promise<Record<string, number>>;
+      openAgentTerminal: (
+        agentId: string,
+        projectPath: string,
+        cols?: number,
+        rows?: number
+      ) => Promise<{ runId: string }>;
       onLog: (callback: (event: LogEvent) => void) => () => void;
       onWorkflowProgress: (callback: (event: WorkflowProgressEvent) => void) => () => void;
     };

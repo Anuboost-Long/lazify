@@ -67,6 +67,8 @@ const projectDirectoryAtom = atom(readStoredProjectDirectory());
 const packageNameAtom = atom("");
 const initSourceModeAtom = atom<"stack" | "imported">("stack");
 const selectedTemplateIdAtom = atom("");
+/** Scaffolder toggles chosen in the pre-flight panel, keyed by option key. */
+const createOptionValuesAtom = atom<Record<string, boolean>>({});
 const selectedImportedTemplateIdAtom = atom("");
 const selectedImportedTemplateAtom = atom<ImportedTemplateSnapshot | null>(
   null,
@@ -106,6 +108,9 @@ export function useLazifyStore() {
   const [initSourceMode, setInitSourceMode] = useAtom(initSourceModeAtom);
   const [selectedTemplateId, setSelectedTemplateId] = useAtom(
     selectedTemplateIdAtom,
+  );
+  const [createOptionValues, setCreateOptionValues] = useAtom(
+    createOptionValuesAtom,
   );
   const [selectedImportedTemplateId, setSelectedImportedTemplateId] = useAtom(
     selectedImportedTemplateIdAtom,
@@ -245,6 +250,7 @@ export function useLazifyStore() {
           id: template.id,
           label: template.label,
           description: template.description,
+          createOptions: template.createOptions,
         })),
       );
     }
@@ -316,6 +322,7 @@ export function useLazifyStore() {
         importedTemplateId:
           initSourceMode === "imported" ? selectedImportedTemplateId : null,
         structureTree: savedStructureTree ?? [],
+        createOptions: initSourceMode === "stack" ? createOptionValues : undefined,
       });
 
       setWorkflowStatus(result.success ? "success" : "error");
@@ -329,6 +336,7 @@ export function useLazifyStore() {
       setBusy(false);
     }
   }, [
+    createOptionValues,
     initSourceMode,
     projectDirectory,
     projectName,
@@ -642,5 +650,7 @@ export function useLazifyStore() {
     installPackage,
     continueInitWorkflow,
     bindEvents,
+    createOptionValues,
+    setCreateOptionValues,
   };
 }

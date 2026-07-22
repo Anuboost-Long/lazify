@@ -3,6 +3,7 @@ import { CardTitle, PillText } from "@renderer/shared/typography";
 import type { DetectedTool } from "@renderer/shared/types/lazify";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import clsx from "clsx";
+import { CardShapes } from "@renderer/shared/ui/card/CardShapes";
 import { useTranslation } from "react-i18next";
 
 interface ToolCardProps {
@@ -33,7 +34,7 @@ export function ToolCard({
         loading && "cursor-wait",
         !loading && tool.available
           ? [
-              "border-accent hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-glow",
+              "border-accent hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-panel",
               "bg-accent-gradient-140",
             ]
           : !loading && onAction
@@ -41,6 +42,8 @@ export function ToolCard({
           : "!border-border bg-soft shadow-[0_2px_10px_rgba(0,0,0,0.07)]"
       )}
     >
+      <CardShapes variant={tool.available ? 0 : 2} className="opacity-20 group-hover:opacity-40" />
+
       {/* Top shimmer line — available only */}
       {tool.available && (
         <div
@@ -63,7 +66,7 @@ export function ToolCard({
         )}
       />
 
-      <div className="flex items-center gap-3 pl-1.5">
+      <div className="relative flex items-center gap-3 pl-1.5">
         {/* Icon */}
         <div
           className={clsx(

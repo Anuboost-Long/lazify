@@ -11,6 +11,7 @@ import type {
 import { FileStructureSetupPanel } from "../components/file-structure-setup/FileStructureSetupPanel";
 import { WorkflowForm } from "../components/WorkflowForm";
 import { StackPicker } from "../components/StackPicker";
+import { TemplateOptionsPanel } from "../components/TemplateOptionsPanel";
 import { SourceModeCard } from "../components/SourceModeCard";
 import { ImportedTemplatePicker } from "../components/ImportedTemplatePicker";
 import { useTranslation } from "react-i18next";
@@ -41,6 +42,8 @@ interface InitProjectPageProps {
   onChangeSelection: () => void;
   onBackToConfig: () => void;
   onStructureTreeChange: (tree: ProjectTreeNode[]) => void;
+  createOptionValues: Record<string, boolean>;
+  onCreateOptionChange: (key: string, value: boolean) => void;
 }
 
 export function InitProjectPage({
@@ -68,7 +71,9 @@ export function InitProjectPage({
   onSelectImportedTemplate,
   onChangeSelection,
   onBackToConfig,
-  onStructureTreeChange
+  onStructureTreeChange,
+  createOptionValues,
+  onCreateOptionChange
 }: InitProjectPageProps) {
   const { t } = useTranslation();
   const hasSelection =
@@ -161,6 +166,18 @@ export function InitProjectPage({
               onContinue={onContinue}
             />
           )}
+
+          {!inStructureStage && initSourceMode === "stack" ? (
+            <TemplateOptionsPanel
+              options={
+                templateOptions.find((template) => template.id === selectedTemplateId)
+                  ?.createOptions ?? []
+              }
+              values={createOptionValues}
+              busy={busy}
+              onChange={onCreateOptionChange}
+            />
+          ) : null}
         </div>
       ) : initSourceMode === "stack" ? (
         <StackPicker

@@ -7,13 +7,17 @@ import { FitAddon } from "@xterm/addon-fit";
 interface XTermPanelProps {
   runId: string;
   isActive?: boolean;
+  /** Grab keyboard focus when this terminal is the visible one. */
+  autoFocus?: boolean;
   onReady?: (cols: number, rows: number) => void;
 }
 
 // Match the existing dark panel background exactly.
+// The terminal is always dark, in both app themes, so default text stays pure
+// white; the ANSI colours below are left alone so CLI output keeps its colour.
 const THEME = {
   background:      "#0a0e17",
-  foreground:      "#c9cdd6",
+  foreground:      "#ffffff",
   black:           "#1a1e2e",
   red:             "#f07178",
   green:           "#c3e88d",
@@ -21,7 +25,7 @@ const THEME = {
   blue:            "#82aaff",
   magenta:         "#c792ea",
   cyan:            "#89ddff",
-  white:           "#c9cdd6",
+  white:           "#ffffff",
   brightBlack:     "#4a5068",
   brightRed:       "#f07178",
   brightGreen:     "#c3e88d",
@@ -35,7 +39,7 @@ const THEME = {
   selectionBackground: "#c792ea40",
 };
 
-export function XTermPanel({ runId, isActive, onReady }: XTermPanelProps) {
+export function XTermPanel({ runId, isActive, autoFocus, onReady }: XTermPanelProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const termRef     = useRef<Terminal | null>(null);
   const fitRef      = useRef<FitAddon | null>(null);
@@ -76,11 +80,43 @@ export function XTermPanel({ runId, isActive, onReady }: XTermPanelProps) {
     // Forward keyboard/paste to the PTY.
     term.onData((data) => globalThis.lazify.ptyWrite(runId, data));
 
-    // Stream PTY output directly into xterm — zero processing overhead.
+    // Replay what the session already printed, so re-attaching (switching
+    // project, or leaving and returning to the page) keeps the transcript.
+    //
+    // Subscribe first and hold live chunks aside, then write the backlog and
+    // flush only the chunks it did not already contain — matched by sequence,
+    // so nothing is lost or duplicated in the round-trip.
+    let replayed = false;
+    let pending: { data: string; seq?: number }[] = [];
+
     const stopData = globalThis.lazify.onPtyData((event) => {
-      if (event.runId === runId) term.write(event.data);
+      if (event.runId !== runId) return;
+
+      if (replayed) {
+        term.write(event.data);
+      } else {
+        pending.push({ data: event.data, seq: event.seq });
+      }
     });
     unsubRef.current = stopData;
+
+    void globalThis.lazify
+      .ptyBacklog(runId)
+      .then(({ data, seq }) => {
+        if (data) term.write(data);
+
+        pending
+          .filter((chunk) => chunk.seq === undefined || chunk.seq > seq)
+          .forEach((chunk) => term.write(chunk.data));
+      })
+      .catch(() => {
+        // No backlog available (non-PTY fallback) — just show live output.
+        pending.forEach((chunk) => term.write(chunk.data));
+      })
+      .finally(() => {
+        pending = [];
+        replayed = true;
+      });
 
     return () => {
       stopData();
@@ -126,11 +162,14 @@ export function XTermPanel({ runId, isActive, onReady }: XTermPanelProps) {
       try {
         fit.fit();
         globalThis.lazify.ptyResize(runId, term.cols, term.rows);
+        if (autoFocus) {
+          term.focus();
+        }
       } catch {
         // terminal may have exited
       }
     });
-  }, [isActive, runId]);
+  }, [autoFocus, isActive, runId]);
 
   return (
     <div

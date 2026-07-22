@@ -4,6 +4,10 @@ import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import { IconButton } from "@renderer/shared/ui/IconButton";
 import type { SyncedWorkspaceProject } from "@renderer/shared/types/lazify";
 import { formatDate, formatTime, useDateTimeFormat } from "@renderer/shared/hooks/use-date-time-format";
+import { getTechIconName } from "@renderer/shared/lib/icon-map";
+import DevIcon from "@renderer/shared/ui/icons/DevIcon";
+import { CardShapes } from "@renderer/shared/ui/card/CardShapes";
+import { SheetStack } from "@renderer/shared/ui/card/SheetStack";
 import { formatStackLabel } from "./utils";
 
 interface SyncedProjectItemProps {
@@ -35,11 +39,22 @@ export function SyncedProjectItem({
       onKeyDown={(e) => e.key === "Enter" && onOpen(project.projectPath)}
       aria-label={`Open ${project.projectName}`}
       className={clsx(
-        "cursor-pointer overflow-hidden rounded-[24px] border bg-bg/80 p-5 transition-[transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:shadow-panel",
+        "group relative cursor-pointer overflow-hidden rounded-[24px] border bg-bg/80 p-5",
+        "transition-[transform,box-shadow,border-color] duration-300",
+        "hover:-translate-y-1.5 hover:rotate-[0.4deg] hover:shadow-panel active:scale-[0.99]",
         active ? "border-accent shadow-panel" : "border-border"
       )}
     >
-      <div className="flex items-start justify-between gap-3">
+      <CardShapes variant={0} />
+
+      <div className="relative flex items-start justify-between gap-3">
+        <SheetStack
+          active={active}
+          size="md"
+          className="mr-1"
+          icon={<DevIcon name={getTechIconName(project.stack)} />}
+        />
+
         <div className="min-w-0 flex-1">
           <CardTitle className="truncate text-lg">
             {project.projectName}
@@ -58,19 +73,21 @@ export function SyncedProjectItem({
         />
       </div>
 
-      <div className="mt-4 flex w-full flex-wrap gap-2 text-left">
+      <div className="relative mt-4 flex w-full flex-wrap gap-2 text-left">
         <PillText as="span" className="rounded-full border border-border bg-soft px-3 py-1.5 text-accent">
           {formatStackLabel(project.stack)}
         </PillText>
-        <PillText as="span" className="rounded-full border border-border bg-soft px-3 py-1.5 text-muted">
-          {formatStackLabel(project.metaFramework)}
-        </PillText>
+        {project.metaFramework ? (
+          <PillText as="span" className="rounded-full border border-border bg-soft px-3 py-1.5 text-muted">
+            {formatStackLabel(project.metaFramework)}
+          </PillText>
+        ) : null}
         <PillText as="span" className="rounded-full border border-border bg-soft px-3 py-1.5 text-muted">
           {formatStackLabel(project.packageManager)}
         </PillText>
       </div>
 
-      <div className="mt-5 flex flex-col items-end gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="relative mt-5 flex flex-col items-end gap-3 sm:flex-row sm:items-center sm:justify-between">
         <PillText className="text-right text-muted sm:text-left">
           Last synced {formattedSyncedAt}
         </PillText>

@@ -116,6 +116,37 @@ async function searchViaNpmCli(query: string): Promise<NpmPackageSearchResult[]>
   }));
 }
 
+/**
+ * Peer requirements a specific published version declares. Used to reject a
+ * "latest" that would not actually work against the scaffolded project.
+ */
+export async function fetchPackagePeerDependencies(
+  packageName: string,
+  version: string
+): Promise<Record<string, string> | null> {
+  try {
+    const response = await fetch(
+      `https://registry.npmjs.org/${encodeURIComponent(packageName)}/${encodeURIComponent(version)}`,
+      {
+        headers: {
+          Accept: "application/json",
+          "User-Agent": "lazify/0.1.0"
+        },
+        signal: AbortSignal.timeout(8000)
+      }
+    );
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const manifest = (await response.json()) as { peerDependencies?: Record<string, string> };
+    return manifest.peerDependencies ?? {};
+  } catch {
+    return null;
+  }
+}
+
 export async function fetchLatestPackageVersion(packageName: string): Promise<string | null> {
   try {
     const response = await fetch(
