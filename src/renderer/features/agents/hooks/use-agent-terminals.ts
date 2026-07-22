@@ -37,7 +37,7 @@ export function useAgentTerminals(projectPath: string) {
 
   const refreshAgents = useCallback(
     () => globalThis.lazify.listAgents().then(setAvailableAgents),
-    [setAvailableAgents]
+    [setAvailableAgents],
   );
 
   useEffect(() => {
@@ -50,7 +50,7 @@ export function useAgentTerminals(projectPath: string) {
       await globalThis.lazify.addCustomAgent(input);
       await refreshAgents();
     },
-    [refreshAgents]
+    [refreshAgents],
   );
 
   const deleteAgent = useCallback(
@@ -58,7 +58,7 @@ export function useAgentTerminals(projectPath: string) {
       await globalThis.lazify.removeCustomAgent(agentId);
       await refreshAgents();
     },
-    [refreshAgents]
+    [refreshAgents],
   );
 
   // Work out what the run button should launch for this project.
@@ -69,7 +69,9 @@ export function useAgentTerminals(projectPath: string) {
     }
 
     void globalThis.lazify.listScripts(projectPath).then((scripts) => {
-      setRunnableScript(RUNNABLE_SCRIPTS.find((name) => name in scripts) ?? null);
+      setRunnableScript(
+        RUNNABLE_SCRIPTS.find((name) => name in scripts) ?? null,
+      );
     });
   }, [projectPath]);
 
@@ -80,14 +82,16 @@ export function useAgentTerminals(projectPath: string) {
 
       setTerminals((current) =>
         current.map((terminal) =>
-          terminal.runId === event.runId ? { ...terminal, exited: true } : terminal
-        )
+          terminal.runId === event.runId
+            ? { ...terminal, exited: true }
+            : terminal,
+        ),
       );
     });
   }, [setTerminals]);
 
   const projectTerminals = terminals.filter(
-    (terminal) => terminal.projectPath === projectPath
+    (terminal) => terminal.projectPath === projectPath,
   );
   const activeTabId = activeByProject[projectPath] ?? null;
   const activeTerminal =
@@ -97,14 +101,14 @@ export function useAgentTerminals(projectPath: string) {
     (tabId: string | null) => {
       setActiveByProject((current) => ({ ...current, [projectPath]: tabId }));
     },
-    [projectPath, setActiveByProject]
+    [projectPath, setActiveByProject],
   );
 
   /** Adds the tab immediately, then fills in the PTY id once it exists. */
   const addTerminal = useCallback(
     async (
       tab: Pick<AgentTerminal, "kind" | "sourceId" | "label">,
-      start: () => Promise<string>
+      start: () => Promise<string>,
     ) => {
       const tabId = `agent-tab-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
 
@@ -117,25 +121,32 @@ export function useAgentTerminals(projectPath: string) {
       const runId = await start();
 
       setTerminals((current) =>
-        current.map((terminal) => (terminal.tabId === tabId ? { ...terminal, runId } : terminal))
+        current.map((terminal) =>
+          terminal.tabId === tabId ? { ...terminal, runId } : terminal,
+        ),
       );
     },
-    [projectPath, setActiveTab, setTerminals]
+    [projectPath, setActiveTab, setTerminals],
   );
 
   const openTerminal = useCallback(
     async (agentId: string) => {
-      const agent = availableAgents.find((candidate) => candidate.id === agentId);
+      const agent = availableAgents.find(
+        (candidate) => candidate.id === agentId,
+      );
 
       await addTerminal(
         { kind: "agent", sourceId: agentId, label: agent?.label ?? agentId },
         async () => {
-          const { runId } = await globalThis.lazify.openAgentTerminal(agentId, projectPath);
+          const { runId } = await globalThis.lazify.openAgentTerminal(
+            agentId,
+            projectPath,
+          );
           return runId;
-        }
+        },
       );
     },
-    [addTerminal, availableAgents, projectPath]
+    [addTerminal, availableAgents, projectPath],
   );
 
   const runProject = useCallback(async () => {
@@ -144,9 +155,12 @@ export function useAgentTerminals(projectPath: string) {
     await addTerminal(
       { kind: "script", sourceId: runnableScript, label: runnableScript },
       async () => {
-        const { runId } = await globalThis.lazify.runScript(projectPath, runnableScript);
+        const { runId } = await globalThis.lazify.runScript(
+          projectPath,
+          runnableScript,
+        );
         return runId;
-      }
+      },
     );
   }, [addTerminal, projectPath, runnableScript]);
 
@@ -158,15 +172,19 @@ export function useAgentTerminals(projectPath: string) {
         await globalThis.lazify.stopScript(target.runId);
       }
 
-      const remaining = terminals.filter((terminal) => terminal.tabId !== tabId);
+      const remaining = terminals.filter(
+        (terminal) => terminal.tabId !== tabId,
+      );
       setTerminals(remaining);
 
       if (activeTabId === tabId) {
-        const fallback = remaining.find((terminal) => terminal.projectPath === projectPath);
+        const fallback = remaining.find(
+          (terminal) => terminal.projectPath === projectPath,
+        );
         setActiveTab(fallback?.tabId ?? null);
       }
     },
-    [activeTabId, projectPath, setActiveTab, setTerminals, terminals]
+    [activeTabId, projectPath, setActiveTab, setTerminals, terminals],
   );
 
   /** Drops the dragged tab onto the target's position, shifting the rest. */
@@ -184,7 +202,9 @@ export function useAgentTerminals(projectPath: string) {
         }, []);
 
         const ordered = slots.map((index) => current[index]);
-        const from = ordered.findIndex((terminal) => terminal.tabId === fromTabId);
+        const from = ordered.findIndex(
+          (terminal) => terminal.tabId === fromTabId,
+        );
         const to = ordered.findIndex((terminal) => terminal.tabId === toTabId);
 
         if (from === -1 || to === -1) return current;
@@ -199,15 +219,18 @@ export function useAgentTerminals(projectPath: string) {
         return next;
       });
     },
-    [projectPath, setTerminals]
+    [projectPath, setTerminals],
   );
 
   // Live terminal count per project, for the project picker's status line.
-  const runningCountByProject = terminals.reduce<Record<string, number>>((counts, terminal) => {
-    if (terminal.exited) return counts;
-    counts[terminal.projectPath] = (counts[terminal.projectPath] ?? 0) + 1;
-    return counts;
-  }, {});
+  const runningCountByProject = terminals.reduce<Record<string, number>>(
+    (counts, terminal) => {
+      if (terminal.exited) return counts;
+      counts[terminal.projectPath] = (counts[terminal.projectPath] ?? 0) + 1;
+      return counts;
+    },
+    {},
+  );
 
   return {
     availableAgents,

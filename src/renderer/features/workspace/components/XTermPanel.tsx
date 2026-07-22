@@ -1,8 +1,8 @@
 import "@xterm/xterm/css/xterm.css";
 
-import { useEffect, useLayoutEffect, useRef } from "react";
-import { Terminal } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
+import { Terminal } from "@xterm/xterm";
+import { useEffect, useLayoutEffect, useRef } from "react";
 
 interface XTermPanelProps {
   runId: string;
@@ -16,34 +16,39 @@ interface XTermPanelProps {
 // The terminal is always dark, in both app themes, so default text stays pure
 // white; the ANSI colours below are left alone so CLI output keeps its colour.
 const THEME = {
-  background:      "#0a0e17",
-  foreground:      "#ffffff",
-  black:           "#1a1e2e",
-  red:             "#f07178",
-  green:           "#c3e88d",
-  yellow:          "#ffcb6b",
-  blue:            "#82aaff",
-  magenta:         "#c792ea",
-  cyan:            "#89ddff",
-  white:           "#ffffff",
-  brightBlack:     "#4a5068",
-  brightRed:       "#f07178",
-  brightGreen:     "#c3e88d",
-  brightYellow:    "#ffcb6b",
-  brightBlue:      "#82aaff",
-  brightMagenta:   "#c792ea",
-  brightCyan:      "#89ddff",
-  brightWhite:     "#ffffff",
-  cursor:          "#c792ea",
-  cursorAccent:    "#0a0e17",
+  background: "#0a0e17",
+  foreground: "#ffffff",
+  black: "#1a1e2e",
+  red: "#f07178",
+  green: "#c3e88d",
+  yellow: "#ffcb6b",
+  blue: "#82aaff",
+  magenta: "#c792ea",
+  cyan: "#89ddff",
+  white: "#ffffff",
+  brightBlack: "#4a5068",
+  brightRed: "#f07178",
+  brightGreen: "#c3e88d",
+  brightYellow: "#ffcb6b",
+  brightBlue: "#82aaff",
+  brightMagenta: "#c792ea",
+  brightCyan: "#89ddff",
+  brightWhite: "#ffffff",
+  cursor: "#c792ea",
+  cursorAccent: "#0a0e17",
   selectionBackground: "#c792ea40",
 };
 
-export function XTermPanel({ runId, isActive, autoFocus, onReady }: XTermPanelProps) {
+export function XTermPanel({
+  runId,
+  isActive,
+  autoFocus,
+  onReady,
+}: Readonly<XTermPanelProps>) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const termRef     = useRef<Terminal | null>(null);
-  const fitRef      = useRef<FitAddon | null>(null);
-  const unsubRef    = useRef<(() => void) | null>(null);
+  const termRef = useRef<Terminal | null>(null);
+  const fitRef = useRef<FitAddon | null>(null);
+  const unsubRef = useRef<(() => void) | null>(null);
 
   // Build the terminal once per runId (key handles remount on new run).
   useLayoutEffect(() => {
@@ -77,7 +82,7 @@ export function XTermPanel({ runId, isActive, autoFocus, onReady }: XTermPanelPr
     });
 
     termRef.current = term;
-    fitRef.current  = fit;
+    fitRef.current = fit;
 
     // Forward keyboard/paste to the PTY.
     term.onData((data) => globalThis.lazify.ptyWrite(runId, data));
@@ -124,7 +129,7 @@ export function XTermPanel({ runId, isActive, autoFocus, onReady }: XTermPanelPr
       stopData();
       term.dispose();
       termRef.current = null;
-      fitRef.current  = null;
+      fitRef.current = null;
       unsubRef.current = null;
     };
   }, [runId]);
@@ -135,7 +140,7 @@ export function XTermPanel({ runId, isActive, autoFocus, onReady }: XTermPanelPr
     if (!container) return;
 
     const observer = new ResizeObserver(() => {
-      const fit  = fitRef.current;
+      const fit = fitRef.current;
       const term = termRef.current;
       if (!fit || !term) return;
       // Skip fitting when the container is hidden (display:none → 0 dimensions)
@@ -156,7 +161,7 @@ export function XTermPanel({ runId, isActive, autoFocus, onReady }: XTermPanelPr
   useEffect(() => {
     if (!isActive) return;
     const container = containerRef.current;
-    const fit  = fitRef.current;
+    const fit = fitRef.current;
     const term = termRef.current;
     if (!container || !fit || !term) return;
     if (container.offsetWidth === 0 || container.offsetHeight === 0) return;
