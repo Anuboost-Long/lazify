@@ -25,6 +25,8 @@ interface AgentProjectPickerProps {
   /** Open terminals per project path, shown as card status. */
   runningCounts: Record<string, number>;
   onSelect: (projectPath: string) => void;
+  syncing: boolean;
+  onSync: () => void;
 }
 
 export function AgentProjectPicker({
@@ -32,6 +34,8 @@ export function AgentProjectPicker({
   selectedPath,
   runningCounts,
   onSelect,
+  syncing,
+  onSync,
 }: Readonly<AgentProjectPickerProps>) {
   const { t } = useTranslation();
 
@@ -122,6 +126,52 @@ export function AgentProjectPicker({
             </button>
           );
         })}
+      </div>
+
+      {/* Pinned below the list, so syncing another project never means leaving
+          the agents page. Dashed to read as an "add" slot, not a project. */}
+      <div className="shrink-0 border-t border-border p-3">
+        <button
+          type="button"
+          disabled={syncing}
+          onClick={onSync}
+          className={clsx(
+            "group/add flex w-full items-center gap-2.5 rounded-[18px] p-3 text-left",
+            "border border-dashed border-border bg-bg/60",
+            "transition-[transform,box-shadow,border-color,background-color] duration-300",
+            "hover:-translate-y-0.5 hover:border-accent/50 hover:bg-bg hover:shadow-panel",
+            "active:scale-[0.98]",
+            "disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
+          )}
+        >
+          <span
+            className={clsx(
+              "flex h-9 w-9 shrink-0 items-center justify-center rounded-[12px]",
+              "border border-border bg-soft text-accent",
+              "transition-transform duration-300",
+              !syncing && "group-hover/add:rotate-90"
+            )}
+          >
+            <UiIcon
+              name={syncing ? "refresh-circle" : "plus"}
+              className={clsx("h-4 w-4", syncing && "animate-spin")}
+            />
+          </span>
+
+          <CardTitle className="min-w-0 flex-1 truncate text-sm">
+            {t(translation.Workspace.SyncProject)}
+          </CardTitle>
+
+          <span
+            className={clsx(
+              "flex h-6 w-6 shrink-0 items-center justify-center rounded-full border",
+              "border-border text-muted transition-transform duration-300",
+              "group-hover/add:translate-x-0.5"
+            )}
+          >
+            <UiIcon name="arrow-right" className="h-3 w-3" />
+          </span>
+        </button>
       </div>
     </aside>
   );

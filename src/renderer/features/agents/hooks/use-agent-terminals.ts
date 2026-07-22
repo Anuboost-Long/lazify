@@ -169,6 +169,39 @@ export function useAgentTerminals(projectPath: string) {
     [activeTabId, projectPath, setActiveTab, setTerminals, terminals]
   );
 
+  /** Drops the dragged tab onto the target's position, shifting the rest. */
+  const reorderTerminal = useCallback(
+    (fromTabId: string, toTabId: string) => {
+      if (fromTabId === toTabId) return;
+
+      setTerminals((current) => {
+        // Only this project's tabs move. They are rewritten into the same slots
+        // they already occupy in the shared list, so every other project keeps
+        // both its order and its position.
+        const slots = current.reduce<number[]>((indexes, terminal, index) => {
+          if (terminal.projectPath === projectPath) indexes.push(index);
+          return indexes;
+        }, []);
+
+        const ordered = slots.map((index) => current[index]);
+        const from = ordered.findIndex((terminal) => terminal.tabId === fromTabId);
+        const to = ordered.findIndex((terminal) => terminal.tabId === toTabId);
+
+        if (from === -1 || to === -1) return current;
+
+        ordered.splice(to, 0, ordered.splice(from, 1)[0]);
+
+        const next = [...current];
+        slots.forEach((index, position) => {
+          next[index] = ordered[position];
+        });
+
+        return next;
+      });
+    },
+    [projectPath, setTerminals]
+  );
+
   // Live terminal count per project, for the project picker's status line.
   const runningCountByProject = terminals.reduce<Record<string, number>>((counts, terminal) => {
     if (terminal.exited) return counts;
@@ -187,6 +220,7 @@ export function useAgentTerminals(projectPath: string) {
     openTerminal,
     runProject,
     closeTerminal,
+    reorderTerminal,
     createAgent,
     deleteAgent,
   };

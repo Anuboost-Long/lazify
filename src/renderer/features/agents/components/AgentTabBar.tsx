@@ -25,6 +25,8 @@ interface AgentTabBarProps {
   onToggleRail: (tab: "changes" | "usage") => void;
   onSelect: (tabId: string) => void;
   onClose: (tabId: string) => void;
+  /** Moves the dragged tab to the target tab's position. */
+  onReorder: (fromTabId: string, toTabId: string) => void;
   onOpen: (agentId: string) => void;
   onRun: () => void;
   onCreateAgent: (input: { label: string; command: string; image?: string }) => Promise<void>;
@@ -41,6 +43,7 @@ export function AgentTabBar({
   onToggleRail,
   onSelect,
   onClose,
+  onReorder,
   onOpen,
   onRun,
   onCreateAgent,
@@ -50,6 +53,14 @@ export function AgentTabBar({
   const [pickerOpen, setPickerOpen] = useState(false);
   // Closing a tab kills its process, so the X asks first.
   const [pendingClose, setPendingClose] = useState<AgentTerminal | null>(null);
+  // Tab being dragged, and the one it would drop onto.
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [dropTargetId, setDropTargetId] = useState<string | null>(null);
+
+  const endDrag = () => {
+    setDraggingId(null);
+    setDropTargetId(null);
+  };
 
   return (
     // The terminal panel is always dark, so this bar uses fixed light-on-dark
@@ -60,19 +71,62 @@ export function AgentTabBar({
         "border-b border-white/10 px-2 py-1.5"
       )}
     >
-      {terminals.map((terminal) => {
+      {terminals.map((terminal, index) => {
         const isActive = terminal.tabId === activeTabId;
+        const isDragging = terminal.tabId === draggingId;
+        const isDropTarget = terminal.tabId === dropTargetId && !isDragging;
+        // The insertion line sits on the edge the tab would arrive from.
+        const draggingIndex = terminals.findIndex(
+          (candidate) => candidate.tabId === draggingId
+        );
+        const dropsAfter = draggingIndex !== -1 && draggingIndex < index;
 
         return (
           <div
             key={terminal.tabId}
+            draggable
+            onDragStart={(event) => {
+              setDraggingId(terminal.tabId);
+              event.dataTransfer.effectAllowed = "move";
+              // Firefox refuses to start a drag without payload.
+              event.dataTransfer.setData("text/plain", terminal.tabId);
+            }}
+            onDragOver={(event) => {
+              if (!draggingId) return;
+              // Preventing the default is what marks this a valid drop target.
+              event.preventDefault();
+              event.dataTransfer.dropEffect = "move";
+              setDropTargetId(terminal.tabId);
+            }}
+            onDragLeave={() => {
+              setDropTargetId((current) =>
+                current === terminal.tabId ? null : current
+              );
+            }}
+            onDrop={(event) => {
+              event.preventDefault();
+              if (draggingId) onReorder(draggingId, terminal.tabId);
+              endDrag();
+            }}
+            onDragEnd={endDrag}
             className={clsx(
-              "flex shrink-0 items-center gap-2 rounded-lg px-3 py-1.5 transition-colors",
+              "relative flex shrink-0 items-center gap-2 rounded-lg px-3 py-1.5 transition-colors",
+              "cursor-grab active:cursor-grabbing",
               isActive
                 ? "bg-white/[0.12] text-white"
-                : "text-white hover:bg-white/[0.06]"
+                : "text-white hover:bg-white/[0.06]",
+              isDragging && "opacity-40"
             )}
           >
+            {isDropTarget ? (
+              <span
+                aria-hidden
+                className={clsx(
+                  "absolute inset-y-1 w-0.5 rounded-full bg-accent",
+                  dropsAfter ? "-right-0.5" : "-left-0.5"
+                )}
+              />
+            ) : null}
             <button
               type="button"
               onClick={() => onSelect(terminal.tabId)}

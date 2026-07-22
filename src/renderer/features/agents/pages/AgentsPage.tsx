@@ -5,11 +5,12 @@ import { useTranslation } from "react-i18next";
 import { XTermPanel } from "@renderer/features/workspace/components/XTermPanel";
 import { translation } from "@renderer/i18n/translation";
 import type { SyncedWorkspaceProject } from "@renderer/shared/types/lazify";
-import { CaptionText } from "@renderer/shared/typography";
 import { PageHeader } from "@renderer/shared/ui/PageHeader";
+import { Toast } from "@renderer/shared/ui/toast/Toast";
 import { AgentChangesPanel } from "../components/AgentChangesPanel";
 import { AgentUsagePanel } from "../components/AgentUsagePanel";
 import { AgentEmptyState } from "../components/AgentEmptyState";
+import { AgentNoProjectState } from "../components/AgentNoProjectState";
 import { AgentProjectPicker } from "../components/AgentProjectPicker";
 import { AgentTabBar } from "../components/AgentTabBar";
 import { useAgentChanges } from "../hooks/use-agent-changes";
@@ -18,13 +19,22 @@ import { useAgentTerminals } from "../hooks/use-agent-terminals";
 
 interface AgentsPageProps {
   projects: SyncedWorkspaceProject[];
+  /** Opens the folder picker and syncs whatever the user chooses. */
+  onSyncProject: (
+    projectPath?: string | null,
+  ) => Promise<SyncedWorkspaceProject | null>;
 }
 
-export function AgentsPage({ projects }: Readonly<AgentsPageProps>) {
+export function AgentsPage({
+  projects,
+  onSyncProject,
+}: Readonly<AgentsPageProps>) {
   const { t } = useTranslation();
   const [projectPath, setProjectPath] = useState(
     projects[0]?.projectPath ?? "",
   );
+  const [syncing, setSyncing] = useState(false);
+  const [syncError, setSyncError] = useState<string | null>(null);
   // One rail, two tabs: clicking the open tab's button closes it again.
   const [railTab, setRailTab] = useState<"changes" | "usage" | null>(null);
   const { sessionChanges, loading, refresh, resetBaseline } = useAgentChanges(
@@ -48,9 +58,30 @@ export function AgentsPage({ projects }: Readonly<AgentsPageProps>) {
     openTerminal,
     runProject,
     closeTerminal,
+    reorderTerminal,
     createAgent,
     deleteAgent,
   } = useAgentTerminals(projectPath);
+
+  /** Syncs from here, then selects the new project so agents can open in it. */
+  const handleSyncProject = async () => {
+    try {
+      setSyncError(null);
+      setSyncing(true);
+
+      const synced = await onSyncProject();
+      // Null when the user dismissed the folder picker.
+      if (synced) setProjectPath(synced.projectPath);
+    } catch (error) {
+      setSyncError(
+        error instanceof Error
+          ? error.message
+          : t(translation.Workspace.SyncError),
+      );
+    } finally {
+      setSyncing(false);
+    }
+  };
 
   return (
     <div className="flex h-[calc(100vh-6.5rem)] min-h-0 flex-col gap-6">
@@ -61,12 +92,22 @@ export function AgentsPage({ projects }: Readonly<AgentsPageProps>) {
         icon="code"
       />
 
+      {/* Syncing is reachable from both branches, so the error is shown once here. */}
+      {syncError ? (
+        <Toast
+          title={t(translation.Workspace.AlreadySynced)}
+          message={syncError}
+          onClose={() => setSyncError(null)}
+        />
+      ) : null}
+
       {projects.length === 0 ? (
-        <div className="flex flex-1 items-center justify-center">
-          <CaptionText tone="muted">
-            {t(translation.Agents.NoProjects)}
-          </CaptionText>
-        </div>
+        /* Saves a trip to the workspace page just to get started here. */
+        <AgentNoProjectState
+          agents={availableAgents}
+          syncing={syncing}
+          onSync={() => void handleSyncProject()}
+        />
       ) : (
         <div
           className={clsx(
@@ -80,6 +121,8 @@ export function AgentsPage({ projects }: Readonly<AgentsPageProps>) {
             selectedPath={projectPath}
             runningCounts={runningCountByProject}
             onSelect={setProjectPath}
+            syncing={syncing}
+            onSync={() => void handleSyncProject()}
           />
 
           <div
@@ -100,6 +143,7 @@ export function AgentsPage({ projects }: Readonly<AgentsPageProps>) {
               }
               onSelect={setActiveTab}
               onClose={closeTerminal}
+              onReorder={reorderTerminal}
               onOpen={openTerminal}
               onRun={runProject}
               onCreateAgent={createAgent}
