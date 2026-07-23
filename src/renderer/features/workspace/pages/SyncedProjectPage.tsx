@@ -1,4 +1,3 @@
-import { appRoute } from "@renderer/app/app-routes";
 import { DependencyPane } from "@renderer/features/workspace/components/DependencyPane";
 import { HealthPane } from "@renderer/features/workspace/components/HealthPane";
 import { NodeVersionPane } from "@renderer/features/workspace/components/NodeVersionPane";
@@ -10,12 +9,13 @@ import type {
   ImportedProjectIndexResult,
   SyncedWorkspaceProject,
 } from "@renderer/shared/types/lazify";
-import { BodyText } from "@renderer/shared/typography";
-import { PageHeader } from "@renderer/shared/ui/PageHeader";
+import { PageActions, PageCrumb } from "@renderer/app/components/PageChrome";
+import { BodyText, MonoText } from "@renderer/shared/typography";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
+import type { SidebarView } from "@renderer/shared/ui/project-tree/sidebar/types";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 
 interface SyncedProjectPageProps {
   busy: boolean;
@@ -29,7 +29,6 @@ export function SyncedProjectPage({
   onNodeVersionChange,
 }: Readonly<SyncedProjectPageProps>) {
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const { projectPath: encodedProjectPath } = useParams<{
     projectPath: string;
   }>();
@@ -108,62 +107,97 @@ export function SyncedProjectPage({
     }
   };
 
+  /* The project tools, reachable from the workbench's right-hand rail. Every
+     one stays mounted while the panel is closed — a running script lives in
+     the Scripts pane's own state, and unmounting it would strand the process. */
+  const toolViews: SidebarView[] = syncedProject
+    ? [
+        {
+          id: "health",
+          label: t(translation.HealthPane.Title),
+          icon: "activity",
+          content: <HealthPane projectPath={syncedProject.projectPath} />,
+        },
+        {
+          id: "runtime",
+          label: t(translation.NodeVersionPane.Title),
+          icon: "terminal",
+          content: (
+            <NodeVersionPane
+              projectPath={syncedProject.projectPath}
+              pinnedVersion={syncedProject.nodeVersion}
+              onVersionChange={(version) =>
+                onNodeVersionChange(syncedProject.projectPath, version)
+              }
+            />
+          ),
+        },
+        {
+          id: "scripts",
+          label: t(translation.ScriptsPane.Title),
+          icon: "play",
+          content: <ScriptsPane projectPath={syncedProject.projectPath} />,
+        },
+        {
+          id: "dependencies",
+          label: t(translation.DependencyPane.Title),
+          icon: "package",
+          content: <DependencyPane projectPath={syncedProject.projectPath} />,
+        },
+        {
+          id: "packages",
+          label: t(translation.PackageDoctor.Title),
+          icon: "check-circle",
+          content: <PackageVersionPane projectPath={syncedProject.projectPath} />,
+        },
+      ]
+    : [];
+
   return (
-    <div className="flex flex-col gap-6">
-      {/* ── Page header ── */}
-      <PageHeader
-        eyebrow={t(translation.SyncedProject.Eyebrow)}
-        title={syncedProject?.projectName ?? t(translation.SyncedProject.Title)}
-        description={t(translation.SyncedProject.Description)}
-        icon="folder"
-      />
+    <div className="flex h-full min-h-0 flex-col gap-3">
+      {/* The page's identity and actions live in the shell's top bar, so the
+          page body starts straight at the content. "Workspace" in the
+          breadcrumb is the way back. */}
+      <PageCrumb>
+        <span className="shrink-0 text-xs text-muted/50">/</span>
+        <MonoText as="span" className="truncate text-xs text-text">
+          {syncedProject?.projectName ?? t(translation.SyncedProject.Title)}
+        </MonoText>
+      </PageCrumb>
 
-      {/* ── Back navigation ── */}
-      <div className="flex items-center justify-between gap-3">
-        <button
-          type="button"
-          onClick={() => navigate(appRoute.workspace)}
-          className="group inline-flex items-center gap-2 rounded-full border border-border bg-soft px-4 py-2 text-sm font-semibold text-muted hover:border-accent hover:text-text"
-        >
-          <UiIcon
-            name="arrow-left"
-            className="h-4 w-4 text-muted group-hover:text-accent"
-          />
-          {t(translation.SyncedProject.BackToWorkspace)}
-        </button>
-
-        {syncedProject && (
+      {syncedProject && (
+        <PageActions>
           <button
             type="button"
             onClick={() => void handleInstallDependencies()}
             disabled={busy || installing}
-            className="group inline-flex items-center gap-2.5 rounded-full bg-accent px-5 py-2.5 text-sm font-bold text-white shadow-[0_6px_20px_rgba(0,0,0,0.18)] ring-1 ring-accent/40 transition-all hover:-translate-y-px hover:shadow-[0_8px_26px_rgba(0,0,0,0.24)] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
+            className="inline-flex items-center gap-1.5 rounded-[8px] bg-accent px-3 py-1 text-xs font-semibold text-white transition-colors hover:bg-accentHover focus:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:cursor-not-allowed disabled:opacity-60"
           >
             <UiIcon
               name={installing ? "refresh-circle" : "package"}
-              className={`h-4 w-4 ${installing ? "animate-spin" : ""}`}
+              className={`h-3.5 w-3.5 ${installing ? "animate-spin" : ""}`}
             />
             {installing
               ? t(translation.SyncedProject.Installing)
               : t(translation.SyncedProject.InstallDependencies)}
           </button>
-        )}
-      </div>
+        </PageActions>
+      )}
 
       {/* ── Feedback: dependency installation result ── */}
       {installFeedback && (
         <section
           className={
             installFeedback.tone === "success"
-              ? "rounded-[24px] border border-border bg-soft p-4 shadow-panel"
-              : "rounded-[24px] border border-red-300/40 bg-red-50 p-4 shadow-panel"
+              ? "shrink-0 rounded-[12px] border border-border bg-soft px-4 py-3"
+              : "shrink-0 rounded-[12px] border border-error/30 bg-error/10 px-4 py-3"
           }
         >
           <BodyText
             className={
               installFeedback.tone === "success"
-                ? "leading-6 text-text"
-                : "leading-6 text-red-700"
+                ? "text-sm leading-6 text-text"
+                : "text-sm leading-6 text-error"
             }
           >
             {installFeedback.message}
@@ -173,8 +207,8 @@ export function SyncedProjectPage({
 
       {/* ── Feedback: project no longer in workspace ── */}
       {!syncedProject && (
-        <section className="rounded-[24px] border border-border bg-soft p-6 shadow-panel">
-          <BodyText tone="muted" className="leading-6">
+        <section className="shrink-0 rounded-[12px] border border-border bg-soft px-4 py-3">
+          <BodyText tone="muted" className="text-sm leading-6">
             {t(translation.SyncedProject.NotSyncedAnymore)}
           </BodyText>
         </section>
@@ -182,54 +216,37 @@ export function SyncedProjectPage({
 
       {/* ── Feedback: failed to load project index ── */}
       {errorMessage && (
-        <section className="rounded-[24px] border border-red-300/40 bg-red-50 p-6 shadow-panel">
-          <BodyText className="leading-6 text-red-700">{errorMessage}</BodyText>
+        <section className="shrink-0 rounded-[12px] border border-error/30 bg-error/10 px-4 py-3">
+          <BodyText className="text-sm leading-6 text-error">{errorMessage}</BodyText>
         </section>
       )}
 
       {/* ── Feedback: project index loading ── */}
       {loading && !projectData && (
-        <section className="rounded-[30px] border border-border bg-soft p-6 shadow-panel">
+        <section className="shrink-0 rounded-[12px] border border-border bg-soft px-4 py-3">
           <div className="flex items-center gap-3 text-sm text-muted">
             <UiIcon
               name="refresh-circle"
-              className="h-5 w-5 animate-spin text-accent"
+              className="h-4 w-4 animate-spin text-accent"
             />
             {t(translation.SyncedProject.Loading)}
           </div>
         </section>
       )}
 
-      {/* ── File tree + git info ── */}
+      {/* ── Workbench: explorer, editor, and the project tool rail ── */}
       {syncedProject && projectData && (
-        <SyncedProjectViewer
-          allowGitStatus
-          busy={busy || loading}
-          editable
-          project={projectData}
-        />
-      )}
-
-      {syncedProject && (
-        <>
-          {/* ── Health dashboard ── */}
-          <HealthPane projectPath={syncedProject.projectPath} />
-
-          {/* ── Runtime — set node version before running scripts ── */}
-          <NodeVersionPane
-            projectPath={syncedProject.projectPath}
-            pinnedVersion={syncedProject.nodeVersion}
-            onVersionChange={(version) =>
-              onNodeVersionChange(syncedProject.projectPath, version)
-            }
+        <div className="min-h-0 flex-1">
+          <SyncedProjectViewer
+            allowGitStatus
+            busy={busy || loading}
+            editable
+            project={projectData}
+            toolViews={toolViews}
           />
-          <ScriptsPane projectPath={syncedProject.projectPath} />
-
-          {/* ── Package management ── */}
-          <DependencyPane projectPath={syncedProject.projectPath} />
-          <PackageVersionPane projectPath={syncedProject.projectPath} />
-        </>
+        </div>
       )}
+
     </div>
   );
 }

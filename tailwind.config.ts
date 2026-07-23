@@ -19,8 +19,10 @@ export default {
         error: "rgb(var(--color-error) / <alpha-value>)"
       },
       boxShadow: {
-        panel: "0 24px 80px rgba(6, 24, 16, 0.24)",
-        glow: "0 0 0 1px rgb(var(--color-accent) / 0.24), 0 20px 60px rgb(var(--color-accent) / 0.18)"
+        // Short offset, tight blur: cards should sit on the surface rather than
+        // hover above it, so neighbouring panels read as one plane.
+        panel: "0 2px 8px rgba(6, 24, 16, 0.08)",
+        glow: "0 0 0 1px rgb(var(--color-accent) / 0.24), 0 4px 12px rgb(var(--color-accent) / 0.14)"
       },
       borderRadius: {
         shell: "28px"

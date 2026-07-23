@@ -75,10 +75,6 @@ function toComponentName(name: string) {
     .join("");
 }
 
-export function isFolderEntry(name: string) {
-  return name.endsWith("/");
-}
-
 export function getDefaultFileContent(name: string, templateId?: string, fullPath = name) {
   const normalizedName = name.toLowerCase();
   const normalizedPath = fullPath.toLowerCase();
@@ -207,7 +203,7 @@ export function createNode(
   };
 }
 
-export function createFolderNode(
+function createFolderNode(
   name: string,
   entries: TemplateBlueprintEntry[],
   source: TreeNode["source"],

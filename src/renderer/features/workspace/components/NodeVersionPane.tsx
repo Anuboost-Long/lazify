@@ -62,14 +62,10 @@ export function NodeVersionPane({ projectPath: _projectPath, pinnedVersion, onVe
   const versions: NvmNodeVersion[] = versionList?.versions ?? [];
 
   return (
-    <div className="overflow-hidden rounded-[26px] border border-border bg-bg shadow-panel">
+    <div>
 
       {/* ── Header ── */}
-      <div className="flex items-center gap-2 border-b border-border bg-soft px-5 py-3.5">
-        <UiIcon name="activity" className="h-4 w-4 text-muted" />
-        <OverlineText className="min-w-0 flex-1 text-muted">
-          {t(translation.NodeVersionPane.Title)}
-        </OverlineText>
+      <div className="flex items-center justify-end gap-2 border-b border-border bg-soft px-4 py-2">
         <LabelButton
           label={loading ? translation.GlobalTerm.Scanning : translation.GlobalTerm.Refresh}
           loading={loading}

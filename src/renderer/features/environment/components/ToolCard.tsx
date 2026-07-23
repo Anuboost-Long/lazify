@@ -1,10 +1,22 @@
 import { translation } from "@renderer/i18n/translation";
-import { CardTitle, PillText } from "@renderer/shared/typography";
+import { CardTitle, MonoText, PillText } from "@renderer/shared/typography";
 import type { DetectedTool } from "@renderer/shared/types/lazify";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import clsx from "clsx";
 import { CardShapes } from "@renderer/shared/ui/card/CardShapes";
 import { useTranslation } from "react-i18next";
+
+/**
+ * One detected tool.
+ *
+ * The card used to paint availability six times over — gradient wash, shimmer
+ * line, accent rail, saturated icon chip, coloured title, coloured version,
+ * coloured pill — so a full grid read as a wall of green with red alarms in it.
+ * Now the surface is neutral for every state and status is carried by the rail,
+ * the icon chip and one pill. Missing is a fact, not an error, so it is amber
+ * rather than red. The playful part is the clipped artwork and the hover lift,
+ * which only actionable cards get — that is how you tell them apart.
+ */
 
 interface ToolCardProps {
   tool: DetectedTool;
@@ -28,114 +40,102 @@ export function ToolCard({
       {...(isClickable ? { type: "button" as const, onClick: onAction } : {})}
       disabled={loading || undefined}
       className={clsx(
-        "group relative w-full overflow-hidden rounded-2xl border px-4 py-4 text-left",
+        "group relative flex w-full flex-col overflow-hidden text-left",
+        "rounded-2xl border border-border bg-soft px-4 py-3.5 shadow-panel",
         "transition-[transform,border-color,box-shadow] duration-200",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40",
         loading && "cursor-wait",
-        !loading && tool.available
-          ? [
-              "border-accent hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-panel",
-              "bg-accent-gradient-140",
-            ]
-          : !loading && onAction
-          ? "!border-error bg-soft shadow-[0_2px_10px_rgba(0,0,0,0.07)] hover:-translate-y-0.5 hover:border-warning/40 hover:shadow-[0_6px_20px_rgba(0,0,0,0.1)]"
-          : "!border-border bg-soft shadow-[0_2px_10px_rgba(0,0,0,0.07)]"
+        isClickable && "hover:-translate-y-0.5 hover:border-accent hover:shadow-accent-md",
       )}
     >
-      <CardShapes variant={tool.available ? 0 : 2} className="opacity-20 group-hover:opacity-40" />
+      <CardShapes
+        variant={tool.available ? 0 : 2}
+        className="opacity-[0.14] group-hover:opacity-30"
+      />
 
-      {/* Top shimmer line — available only */}
-      {tool.available && (
-        <div
-          className="pointer-events-none absolute inset-x-0 top-0 h-px"
-          style={{
-            background:
-              "linear-gradient(to right, transparent 5%, var(--color-accent) 50%, transparent 95%)",
-            opacity: 0.45,
-          }}
-        />
-      )}
-
-      {/* Left accent rail */}
+      {/* State rail. The one place availability is colour-coded on the surface
+          itself, so the grid can be scanned down its left edge. */}
       <div
         className={clsx(
-          "pointer-events-none absolute inset-y-0 left-0 w-[3px] rounded-r-full transition-opacity duration-200",
-          tool.available
-            ? "bg-accent opacity-70 group-hover:opacity-100"
-            : "bg-border/30 opacity-100"
+          "pointer-events-none absolute inset-y-0 left-0 w-[3px] rounded-r-full",
+          tool.available ? "bg-accent" : "bg-border",
         )}
       />
 
       <div className="relative flex items-center gap-3 pl-1.5">
-        {/* Icon */}
         <div
           className={clsx(
-            "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border transition-all duration-200",
+            "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border",
+            "transition-colors duration-200",
             tool.available
-              ? "border-transparent bg-accent text-white shadow-accent-icon"
-              : "border-transparent bg-error text-white shadow-[0_0_12px_rgba(244,63,94,0.25)]"
+              ? "border-accent/20 bg-accent/10 text-accent"
+              : "border-border bg-soft text-muted",
           )}
         >
           <UiIcon
             name={tool.available ? "check-circle" : "xmark"}
-            className="h-[18px] w-[18px]"
+            className="h-[17px] w-[17px]"
           />
         </div>
 
-        {/* Text */}
         <div className="min-w-0 flex-1">
-          <CardTitle
-            className={clsx(
-              "truncate text-sm font-semibold leading-none",
-              tool.available ? "text-text" : "!text-error"
-            )}
-          >
+          <CardTitle className="truncate text-sm font-semibold leading-none text-text">
             {tool.displayName}
           </CardTitle>
-          <PillText
-            className={clsx(
-              "mt-1.5 block truncate text-[11px] font-medium",
-              tool.available ? "!text-accent" : "!text-muted/35"
-            )}
+          <MonoText
+            as="span"
+            className="mt-1.5 block truncate text-[11px] text-muted"
           >
-            {tool.available ? tool.version ?? t(translation.Environment.Detected) : t(translation.Environment.NotInstalled)}
-          </PillText>
+            {tool.available
+              ? tool.version ?? t(translation.Environment.Detected)
+              : t(translation.Environment.NotInstalled)}
+          </MonoText>
         </div>
+      </div>
 
-        {/* Right slot */}
+      {/* Footer. Status on the left, the action on the right — separating them
+          is what stops the two pills from reading as the same control. */}
+      <div className="relative mt-3.5 flex items-center gap-2 border-t border-border/60 pl-1.5 pt-2.5">
+        <PillText
+          as="span"
+          className={clsx(
+            "shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.12em]",
+            tool.available
+              ? "border-accent/25 bg-accent/10 !text-accent"
+              : "border-warning/30 bg-warning/10 !text-warning",
+          )}
+        >
+          {tool.available
+            ? t(translation.Environment.Installed)
+            : t(translation.Environment.Missing)}
+        </PillText>
+
         {loading ? (
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-accent/20 bg-accent/10">
+          <span className="ml-auto flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-accent/20 bg-accent/10">
             <UiIcon
               name="refresh-circle"
-              className="h-4 w-4 animate-spin text-accent"
+              className="h-3.5 w-3.5 animate-spin text-accent"
             />
-          </div>
+          </span>
         ) : onAction ? (
-          <PillText
-            as="span"
-            className={clsx(
-              "shrink-0 rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-[0.14em]",
-              "transition-colors duration-150",
-              tool.available
-                ? "border-accent/25 bg-accent/12 text-accent/80 group-hover:border-accent/45 group-hover:bg-accent/20"
-                : "border-border/70 bg-soft text-error/80 group-hover:border-warning/40 group-hover:text-warning/80"
-            )}
-          >
-            {actionLabel ?? t(translation.GlobalTerm.Open)}
-          </PillText>
-        ) : (
-          <PillText
-            as="span"
-            className={clsx(
-              "shrink-0 rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em]",
-              tool.available
-                ? "border-accent/25 bg-accent/12 text-accent"
-                : "border-border/60 bg-soft text-muted/40"
-            )}
-          >
-            {tool.available ? t(translation.Environment.Installed) : t(translation.Environment.Missing)}
-          </PillText>
-        )}
+          <span className="ml-auto flex shrink-0 items-center gap-1.5">
+            <PillText
+              as="span"
+              className="text-[10px] font-semibold uppercase tracking-[0.12em] !text-muted transition-colors duration-150 group-hover:!text-accent"
+            >
+              {actionLabel ?? t(translation.GlobalTerm.Open)}
+            </PillText>
+            <span
+              className={clsx(
+                "flex h-6 w-6 items-center justify-center rounded-full border border-border bg-soft text-muted",
+                "transition-[transform,color,border-color] duration-200",
+                "group-hover:translate-x-0.5 group-hover:border-accent/40 group-hover:text-accent",
+              )}
+            >
+              <UiIcon name="arrow-right" className="h-3 w-3" />
+            </span>
+          </span>
+        ) : null}
       </div>
     </Tag>
   );

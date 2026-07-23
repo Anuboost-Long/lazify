@@ -4,6 +4,8 @@ import { FitAddon } from "@xterm/addon-fit";
 import { Terminal } from "@xterm/xterm";
 import { useEffect, useLayoutEffect, useRef } from "react";
 
+import { useResolvedTheme } from "@renderer/shared/hooks/use-theme";
+
 interface XTermPanelProps {
   runId: string;
   isActive?: boolean;
@@ -12,11 +14,12 @@ interface XTermPanelProps {
   onReady?: (cols: number, rows: number) => void;
 }
 
-// Match the existing dark panel background exactly.
-// The terminal is always dark, in both app themes, so default text stays pure
-// white; the ANSI colours below are left alone so CLI output keeps its colour.
-const THEME = {
-  background: "#0a0e17",
+// The terminal follows the app theme. Each palette is tuned for its own
+// background: the dark one keeps the pastel ANSI colours, while the light one
+// darkens every hue, since pastels on white are barely legible.
+const DARK_THEME = {
+  // Exactly --color-bg-soft (dark), so the terminal and its panel are seamless.
+  background: "#111827",
   foreground: "#ffffff",
   black: "#1a1e2e",
   red: "#f07178",
@@ -26,7 +29,7 @@ const THEME = {
   magenta: "#c792ea",
   cyan: "#89ddff",
   white: "#ffffff",
-  brightBlack: "#4a5068",
+  brightBlack: "#7c869e",
   brightRed: "#f07178",
   brightGreen: "#c3e88d",
   brightYellow: "#ffcb6b",
@@ -35,8 +38,33 @@ const THEME = {
   brightCyan: "#89ddff",
   brightWhite: "#ffffff",
   cursor: "#c792ea",
-  cursorAccent: "#0a0e17",
+  cursorAccent: "#111827",
   selectionBackground: "#c792ea40",
+};
+
+const LIGHT_THEME = {
+  // Exactly --color-bg-soft (light).
+  background: "#ffffff",
+  foreground: "#111827",
+  black: "#111827",
+  red: "#b91c1c",
+  green: "#166534",
+  yellow: "#854d0e",
+  blue: "#1d4ed8",
+  magenta: "#7e22ce",
+  cyan: "#155e75",
+  white: "#374151",
+  brightBlack: "#6b7280",
+  brightRed: "#dc2626",
+  brightGreen: "#15803d",
+  brightYellow: "#a16207",
+  brightBlue: "#2563eb",
+  brightMagenta: "#9333ea",
+  brightCyan: "#0e7490",
+  brightWhite: "#111827",
+  cursor: "#7e22ce",
+  cursorAccent: "#ffffff",
+  selectionBackground: "#7e22ce29",
 };
 
 export function XTermPanel({
@@ -45,6 +73,11 @@ export function XTermPanel({
   autoFocus,
   onReady,
 }: Readonly<XTermPanelProps>) {
+  const resolvedTheme = useResolvedTheme();
+  // Read through a ref so a theme switch repaints (below) instead of rebuilding
+  // the terminal, which would throw away the scrollback.
+  const themeRef = useRef(resolvedTheme);
+  themeRef.current = resolvedTheme;
   const containerRef = useRef<HTMLDivElement>(null);
   const termRef = useRef<Terminal | null>(null);
   const fitRef = useRef<FitAddon | null>(null);
@@ -63,7 +96,7 @@ export function XTermPanel({
       // glyphs touching edge to edge, so rows and columns get no extra gap.
       lineHeight: 1,
       letterSpacing: 0,
-      theme: THEME,
+      theme: themeRef.current === "light" ? LIGHT_THEME : DARK_THEME,
       scrollback: 10_000,
       allowTransparency: false,
       convertEol: false,
@@ -133,6 +166,14 @@ export function XTermPanel({
       unsubRef.current = null;
     };
   }, [runId]);
+
+  // Repainting in place keeps the scrollback; rebuilding would lose it.
+  useEffect(() => {
+    const term = termRef.current;
+    if (!term) return;
+
+    term.options.theme = resolvedTheme === "light" ? LIGHT_THEME : DARK_THEME;
+  }, [resolvedTheme]);
 
   // Keep the terminal sized to its container at all times.
   useEffect(() => {

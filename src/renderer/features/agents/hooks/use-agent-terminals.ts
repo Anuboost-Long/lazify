@@ -232,8 +232,20 @@ export function useAgentTerminals(projectPath: string) {
     {},
   );
 
+  // Which agents are worth reading usage for. Tabs from every project count:
+  // an agent's quota is per account, not per project. Sorted so the list is a
+  // stable identity for callers that key off it.
+  const openAgentIds = [
+    ...new Set(
+      terminals
+        .filter((terminal) => terminal.kind === "agent")
+        .map((terminal) => terminal.sourceId),
+    ),
+  ].sort();
+
   return {
     availableAgents,
+    openAgentIds,
     runningCountByProject,
     terminals: projectTerminals,
     activeTerminal,

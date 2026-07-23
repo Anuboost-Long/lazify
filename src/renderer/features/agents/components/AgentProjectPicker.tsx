@@ -2,7 +2,7 @@ import clsx from "clsx";
 import { useTranslation } from "react-i18next";
 
 import { translation } from "@renderer/i18n/translation";
-import { formatStackLabel } from "@renderer/features/workspace/components/synced-project-item/utils";
+import { formatStackLabel } from "@renderer/features/workspace/utils/stack-label";
 import { getTechIconName } from "@renderer/shared/lib/icon-map";
 import type { SyncedWorkspaceProject } from "@renderer/shared/types/lazify";
 import { CaptionText, CardTitle, OverlineText, PillText } from "@renderer/shared/typography";

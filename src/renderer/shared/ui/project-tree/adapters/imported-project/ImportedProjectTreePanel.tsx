@@ -2,7 +2,7 @@ import { translation } from "@renderer/i18n/translation";
 import { BodyText } from "@renderer/shared/typography";
 import { SelectInput, TextInput } from "@renderer/shared/ui/form/FormInput";
 import { ProjectTreeEditorPanel as ProjectTreeEditorPanelShell } from "@renderer/shared/ui/project-tree/core/ProjectTreeEditorPanel";
-import { OptimizedContextMenu } from "@renderer/shared/ui/project-tree-optimized/OptimizedContextMenu";
+import { TreeContextMenu } from "@renderer/shared/ui/project-tree/TreeContextMenu";
 import { OptimizedEditorPane } from "@renderer/shared/ui/project-tree-optimized/OptimizedEditorPane";
 import { findNodeById } from "@renderer/shared/ui/project-tree-optimized/tree-utils";
 import type { OptimizedImportedProjectTreeProps } from "@renderer/shared/ui/project-tree-optimized/types";
@@ -122,8 +122,8 @@ export function ImportedProjectTreePanel({
       }
       contextMenu={
         editable ? (
-          <OptimizedContextMenu
-            contextMenu={adapter.contextMenu}
+          <TreeContextMenu
+            position={adapter.contextMenu}
             onNewFile={() => adapter.handleCreateEntry("file")}
             onNewFolder={() => adapter.handleCreateEntry("folder")}
             onRename={adapter.handleStartRename}

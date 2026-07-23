@@ -1,6 +1,11 @@
-import type { ReactNode } from "react";
+import clsx from "clsx";
+import { useState, type ReactNode } from "react";
 import { BodyText, OverlineText, SectionTitle } from "@renderer/shared/typography";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
+import { SplitPane } from "@renderer/shared/ui/split/SplitPane";
+import { WorkbenchToolRail } from "@renderer/shared/ui/project-tree/sidebar/WorkbenchToolRail";
+import { WorkbenchToolOverlay } from "@renderer/shared/ui/project-tree/sidebar/WorkbenchToolOverlay";
+import type { SidebarView } from "@renderer/shared/ui/project-tree/sidebar/types";
 import {
   OptimizedTreeExplorerPane,
   type ExplorerNode,
@@ -20,11 +25,31 @@ interface ProjectTreeEditorPanelProps<TNode extends ExplorerNode> {
   renamingId?: string | null;
   renameValue?: string;
   mode?: "editable" | "readonly";
+  /**
+   * "card" keeps the titled panel with its side-by-side grid. "workbench"
+   * drops the outer card and the title block — which repeat what the page
+   * header already says — and joins the explorer and editor into one frame
+   * split by a draggable divider, so both panes get the page's full width.
+   */
+  layout?: "card" | "workbench";
   gridClassName?: string;
+  /**
+   * Wraps the explorer in a sidebar shell that can switch between it and other
+   * views. When given, the shell owns the header, so the explorer draws none.
+   * Workbench layout only.
+   */
+  renderSidebar?: (explorer: ReactNode) => ReactNode;
+  /**
+   * Project tools reachable from an icon rail on the right edge. Closed by
+   * default, so the editor keeps the full frame height. Workbench layout only.
+   */
+  toolViews?: SidebarView[];
   headerAccessory?: ReactNode;
   editor: ReactNode;
   leftPane?: ReactNode;
   contextMenu?: ReactNode;
+  /** Modals and other overlays. Portalled, so they cost no layout space. */
+  overlays?: ReactNode;
   extraContent?: ReactNode;
   primaryActionLabel?: string;
   secondaryActionLabel?: string;
@@ -60,6 +85,7 @@ export function ProjectTreeEditorPanel<TNode extends ExplorerNode>({
   includedFileCount,
   infoBanner,
   isChecked,
+  layout = "card",
   leftPane,
   mode = "editable",
   onCancelRename,
@@ -72,6 +98,7 @@ export function ProjectTreeEditorPanel<TNode extends ExplorerNode>({
   onRenameValueChange,
   onSecondaryAction,
   onSelect,
+  overlays,
   onToggleChecked,
   onToggleExpand,
   primaryActionIcon,
@@ -79,14 +106,100 @@ export function ProjectTreeEditorPanel<TNode extends ExplorerNode>({
   projectName,
   renameValue,
   renamingId,
+  renderSidebar,
   secondaryActionIcon,
   secondaryActionLabel,
   selectedId,
   subLabel,
   title,
   totalFileCount,
+  toolViews,
   tree,
 }: ProjectTreeEditorPanelProps<TNode>) {
+  // Which tool panel is open, or null for none — the default, so the editor
+  // starts at full height.
+  const [activeToolId, setActiveToolId] = useState<string | null>(null);
+  const explorer = (
+    <OptimizedTreeExplorerPane
+      mode={mode}
+      chrome={layout === "workbench" ? "flush" : "card"}
+      showHeader={!(layout === "workbench" && renderSidebar)}
+      busy={busy}
+      savedProjectName={projectName}
+      subLabel={subLabel}
+      infoBanner={infoBanner}
+      tree={tree}
+      expandedIds={expandedIds}
+      selectedId={selectedId}
+      renamingId={renamingId}
+      renameValue={renameValue}
+      isChecked={isChecked}
+      onToggleChecked={onToggleChecked}
+      includedFileCount={includedFileCount}
+      totalFileCount={totalFileCount}
+      onSelect={onSelect}
+      onToggleExpand={onToggleExpand}
+      onCollapseAll={onCollapseAll}
+      onCreateEntry={onCreateEntry}
+      onOpenContextMenu={onOpenContextMenu}
+      onRenameValueChange={onRenameValueChange}
+      onCommitRename={onCommitRename}
+      onCancelRename={onCancelRename}
+    />
+  );
+
+  if (layout === "workbench") {
+    return (
+      <div className="flex h-full min-h-0 flex-col gap-3" onClick={onClearContextMenu}>
+        {extraContent || headerAccessory ? (
+          <div className="flex shrink-0 flex-wrap items-center justify-between gap-3">
+            <div className="min-w-0">{extraContent}</div>
+            {headerAccessory}
+          </div>
+        ) : null}
+
+        {/* One frame, one border. The divider is a seam between the panes
+            rather than a gap between two cards. */}
+        <div className="min-h-0 flex-1 overflow-hidden rounded-[18px] border border-border bg-bg">
+          <SplitPane
+            className="h-full"
+            storageKey="lazify-project-workbench-split"
+            defaultSize={300}
+            minSize={200}
+            minOtherSize={360}
+            first={renderSidebar ? renderSidebar(explorer) : (leftPane ?? explorer)}
+            second={
+              toolViews && toolViews.length > 0 ? (
+                <div className="flex h-full min-w-0">
+                  {/* The overlay covers this whole area when a tool is open,
+                      and stays mounted behind it when closed. */}
+                  <div className="relative min-w-0 flex-1 overflow-hidden">
+                    {editor}
+                    <WorkbenchToolOverlay
+                      views={toolViews}
+                      activeId={activeToolId}
+                      onClose={() => setActiveToolId(null)}
+                    />
+                  </div>
+                  <WorkbenchToolRail
+                    views={toolViews}
+                    activeId={activeToolId}
+                    onChange={setActiveToolId}
+                  />
+                </div>
+              ) : (
+                editor
+              )
+            }
+          />
+        </div>
+
+        {contextMenu}
+        {overlays}
+      </div>
+    );
+  }
+
   return (
     <section
       className="overflow-hidden rounded-[30px] border border-border bg-soft p-6 shadow-panel"
@@ -120,37 +233,13 @@ export function ProjectTreeEditorPanel<TNode extends ExplorerNode>({
       {extraContent}
 
       <div className={`mt-6 grid gap-5 ${gridClassName}`}>
-        {leftPane ?? (
-          <OptimizedTreeExplorerPane
-            mode={mode}
-            busy={busy}
-            savedProjectName={projectName}
-            subLabel={subLabel}
-            infoBanner={infoBanner}
-            tree={tree}
-            expandedIds={expandedIds}
-            selectedId={selectedId}
-            renamingId={renamingId}
-            renameValue={renameValue}
-            isChecked={isChecked}
-            onToggleChecked={onToggleChecked}
-            includedFileCount={includedFileCount}
-            totalFileCount={totalFileCount}
-            onSelect={onSelect}
-            onToggleExpand={onToggleExpand}
-            onCollapseAll={onCollapseAll}
-            onCreateEntry={onCreateEntry}
-            onOpenContextMenu={onOpenContextMenu}
-            onRenameValueChange={onRenameValueChange}
-            onCommitRename={onCommitRename}
-            onCancelRename={onCancelRename}
-          />
-        )}
+        {leftPane ?? explorer}
 
         {editor}
       </div>
 
       {contextMenu}
+      {overlays}
 
       {primaryActionLabel && onPrimaryAction ? (
         <div className="mt-6 flex justify-end">

@@ -1,4 +1,13 @@
 import clsx from "clsx";
+import { useState } from "react";
+import { BranchSwitcher } from "@renderer/features/workspace/components/BranchSwitcher";
+import { GitStatusGroup } from "@renderer/features/workspace/components/git-status/GitStatusGroup";
+import { GitStatusList } from "@renderer/features/workspace/components/git-status/GitStatusList";
+import { groupEntries } from "@renderer/features/workspace/components/git-status/group-entries";
+import { CommitBox } from "@renderer/features/workspace/components/git-status/CommitBox";
+import { RowAction } from "@renderer/features/workspace/components/git-status/RowAction";
+import { ConfirmModal } from "@renderer/shared/ui/modal/ConfirmModal";
+import { GitStatusTree } from "@renderer/features/workspace/components/git-status/GitStatusTree";
 import { translation } from "@renderer/i18n/translation";
 import { BodyText, CardTitle, MonoText, OverlineText, PillText } from "@renderer/shared/typography";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
@@ -11,6 +20,12 @@ interface GitStatusPaneProps {
   loading: boolean;
   selectedPath: string | null;
   onSelect: (entry: GitStatusEntry) => void;
+  projectPath: string;
+  onBranchSwitched: () => void;
+  /** "flush" fills a frame that already owns the border and height. */
+  chrome?: "card" | "flush";
+  /** False when a sidebar shell owns the header. */
+  showHeader?: boolean;
 }
 
 function getStatusTone(entry: GitStatusEntry): string {
@@ -31,14 +46,49 @@ export function GitStatusPane({
   loading,
   selectedPath,
   onSelect,
+  projectPath,
+  onBranchSwitched,
+  chrome = "card",
+  showHeader = true,
 }: GitStatusPaneProps) {
   const { t } = useTranslation();
+  const flush = chrome === "flush";
+  const [viewMode, setViewMode] = useState<"list" | "tree">("list");
+  // Discard destroys uncommitted work, so it is the one action behind a gate.
+  const [pendingDiscard, setPendingDiscard] = useState<GitStatusEntry[] | null>(null);
+
+  const runAction = async (
+    action: (paths: string[]) => Promise<{ success: boolean; message: string }>,
+    entries: GitStatusEntry[]
+  ) => {
+    if (entries.length === 0) return;
+
+    const result = await action(entries.map((entry) => entry.path));
+    if (result.success) onBranchSwitched();
+  };
+
+  const stage = (entries: GitStatusEntry[]) =>
+    void runAction((paths) => globalThis.lazify.stageFiles(projectPath, paths), entries);
+  const unstage = (entries: GitStatusEntry[]) =>
+    void runAction((paths) => globalThis.lazify.unstageFiles(projectPath, paths), entries);
+  const discard = (entries: GitStatusEntry[]) =>
+    void runAction((paths) => globalThis.lazify.discardChanges(projectPath, paths), entries);
 
   return (
-    <div className="h-[44rem] overflow-hidden rounded-[26px] border border-border bg-bg shadow-panel">
+    <div
+      className={clsx(
+        "flex flex-col overflow-hidden bg-bg",
+        flush ? "h-full" : "h-[44rem] rounded-[26px] border border-border shadow-panel"
+      )}
+    >
 
       {/* Header */}
-      <div className="flex items-center gap-2 border-b border-border bg-soft px-5 py-3.5">
+      <div
+        className={clsx(
+          "flex shrink-0 items-center gap-2 border-b border-border bg-soft",
+          flush ? "px-4 py-2.5" : "px-5 py-3.5"
+        )}
+      >
         <UiIcon name="activity" className="h-4 w-4 text-muted" />
         <OverlineText className="min-w-0 flex-1 text-muted">
           {t(translation.GitStatus.Title)}
@@ -48,14 +98,25 @@ export function GitStatusPane({
             {t(translation.GlobalTerm.Checking)}
           </PillText>
         )}
+        {/* Flat list or folder tree, the way source control views let you
+            choose once a change set gets deep. */}
+        <button
+          type="button"
+          onClick={() => setViewMode((current) => (current === "list" ? "tree" : "list"))}
+          title={t(viewMode === "list" ? translation.GitStatus.ViewAsTree : translation.GitStatus.ViewAsList)}
+          aria-label={t(viewMode === "list" ? translation.GitStatus.ViewAsTree : translation.GitStatus.ViewAsList)}
+          className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-muted transition-colors hover:bg-accent/10 hover:text-accent"
+        >
+          <UiIcon name={viewMode === "list" ? "folder" : "menu"} className="h-3.5 w-3.5" />
+        </button>
       </div>
 
       {/* Body */}
-      <div className="flex h-[calc(44rem-57px)] flex-col bg-bg p-4">
+      <div className={clsx("flex min-h-0 flex-1 flex-col bg-bg", flush ? "p-3" : "p-4")}>
 
         {/* Initial load — no data yet */}
         {loading && !gitStatus && (
-          <div className="flex h-full items-center justify-center rounded-[20px] border border-dashed border-border bg-soft/30 p-8 text-center">
+          <div className={clsx("flex h-full items-center justify-center p-8 text-center", !flush && "rounded-[20px] border border-dashed border-border bg-soft/30")}>
             <div>
               <CardTitle className="text-lg">{t(translation.GitStatus.CheckingStatus)}</CardTitle>
               <BodyText className="mt-3 text-muted">
@@ -67,7 +128,7 @@ export function GitStatusPane({
 
         {/* Not a git repo */}
         {!loading && gitStatus && !gitStatus.isGitRepo && (
-          <div className="flex h-full items-center justify-center rounded-[20px] border border-dashed border-border bg-soft/30 p-8 text-center">
+          <div className={clsx("flex h-full items-center justify-center p-8 text-center", !flush && "rounded-[20px] border border-dashed border-border bg-soft/30")}>
             <div className="max-w-sm">
               <CardTitle className="text-lg">{t(translation.GitStatus.NoRepo)}</CardTitle>
               <BodyText className="mt-3 text-muted">
@@ -80,17 +141,25 @@ export function GitStatusPane({
         {/* Git repo — branch info always visible, list area shows loading or entries */}
         {gitStatus?.isGitRepo && (
           <>
-            <div className="space-y-2">
-              <div className="rounded-xl border border-accent/20 bg-accent/8 px-3 py-2 text-sm font-semibold text-text shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
-                {gitStatus.branch ? `${t(translation.GitStatus.Branch)}: ${gitStatus.branch}` : t(translation.GitStatus.DetachedHead)}
-              </div>
-              <div className="rounded-xl border border-dashed border-border px-3 py-2 text-xs text-muted">
-                {gitStatus.repoRoot ?? gitStatus.projectPath}
-              </div>
-            </div>
+            {/* One row instead of two stacked boxes: the branch, switchable,
+                with the repo path as its hover title. */}
+            <BranchSwitcher
+              projectPath={projectPath}
+              branch={gitStatus.branch}
+              branches={gitStatus.branches}
+              repoRoot={gitStatus.repoRoot ?? gitStatus.projectPath}
+              disabled={busy || loading}
+              onSwitched={onBranchSwitched}
+            />
 
-            <div className="mt-4 rounded-full border border-border bg-soft px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted">
-              {t(gitStatus.entries.length === 1 ? translation.GitStatus.UncommittedOne : translation.GitStatus.UncommittedMany, { count: gitStatus.entries.length })}
+            <div className="mt-2">
+              <CommitBox
+                projectPath={projectPath}
+                branch={gitStatus.branch}
+                stagedCount={groupEntries(gitStatus.entries).staged.length}
+                disabled={busy || loading}
+                onChanged={onBranchSwitched}
+              />
             </div>
 
             {loading ? (
@@ -99,7 +168,7 @@ export function GitStatusPane({
                 {t(translation.GitStatus.Refreshing)}
               </div>
             ) : !gitStatus.hasUncommittedChanges ? (
-              <div className="mt-4 flex flex-1 items-center justify-center rounded-[20px] border border-dashed border-border bg-soft/30 p-8 text-center">
+              <div className={clsx("mt-4 flex flex-1 items-center justify-center p-8 text-center", !flush && "rounded-[20px] border border-dashed border-border bg-soft/30")}>
                 <div>
                   <CardTitle className="text-lg">{t(translation.GitStatus.TreeClean)}</CardTitle>
                   <BodyText className="mt-3 text-muted">
@@ -108,51 +177,83 @@ export function GitStatusPane({
                 </div>
               </div>
             ) : (
-              <div className="mt-5 min-h-0 flex-1 overflow-y-auto">
-                <div className="grid gap-2">
-                  {gitStatus.entries.map((entry) => {
-                    const selected = selectedPath === entry.absolutePath;
-                    return (
-                      <button
-                        key={`${entry.absolutePath}-${entry.stagedStatus}-${entry.unstagedStatus}`}
-                        type="button"
-                        onClick={() => onSelect(entry)}
-                        className={clsx(
-                          "w-full rounded-[18px] border px-4 py-3 text-left",
-                          "transition-[transform,border-color,background-color] duration-150 hover:-translate-y-0.5",
-                          selected
-                            ? "border-accent/35 bg-accent/10 text-text shadow-accent-md"
-                            : "border-border bg-soft/40 text-text hover:border-accent/20 hover:bg-soft/70"
-                        )}
-                      >
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="min-w-0 flex-1 overflow-hidden">
-                            <MonoText className="truncate text-sm">{entry.path}</MonoText>
-                            <PillText className="mt-1 text-muted">
-                              {entry.stagedStatus === " " ? "—" : entry.stagedStatus} {t(translation.GitStatus.Staged)}
-                              {" · "}
-                              {entry.unstagedStatus === " " ? "—" : entry.unstagedStatus} {t(translation.GitStatus.Unstaged)}
-                            </PillText>
-                          </div>
-                          <PillText
-                            as="span"
-                            className={clsx(
-                              "shrink-0 rounded-full border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em]",
-                              getStatusTone(entry)
-                            )}
-                          >
-                            {entry.statusLabel}
-                          </PillText>
-                        </div>
-                      </button>
+              <div className="mt-1 min-h-0 flex-1 space-y-1 overflow-y-auto">
+                {(() => {
+                  const groups = groupEntries(gitStatus.entries);
+
+                  const renderEntries = (
+                    entries: GitStatusEntry[],
+                    group: "staged" | "unstaged"
+                  ) => {
+                    const shared = {
+                      entries,
+                      selectedPath,
+                      group,
+                      onSelect,
+                      onStage: (entry: GitStatusEntry) => stage([entry]),
+                      onUnstage: (entry: GitStatusEntry) => unstage([entry]),
+                      onDiscard: (entry: GitStatusEntry) => setPendingDiscard([entry])
+                    };
+
+                    return viewMode === "list" ? (
+                      <GitStatusList {...shared} />
+                    ) : (
+                      <GitStatusTree {...shared} />
                     );
-                  })}
-                </div>
+                  };
+
+                  return (
+                    <>
+                      <GitStatusGroup
+                        label={t(translation.GitStatus.StagedChanges)}
+                        count={groups.staged.length}
+                        actions={
+                          <RowAction
+                            icon="arrow-left"
+                            label={translation.GitStatus.UnstageAll}
+                            onClick={() => unstage(groups.staged)}
+                          />
+                        }
+                      >
+                        {renderEntries(groups.staged, "staged")}
+                      </GitStatusGroup>
+
+                      <GitStatusGroup
+                        label={t(translation.GitStatus.Changes)}
+                        count={groups.unstaged.length}
+                        actions={
+                          <RowAction
+                            icon="plus"
+                            label={translation.GitStatus.StageAll}
+                            onClick={() => stage(groups.unstaged)}
+                          />
+                        }
+                      >
+                        {renderEntries(groups.unstaged, "unstaged")}
+                      </GitStatusGroup>
+                    </>
+                  );
+                })()}
               </div>
             )}
           </>
         )}
       </div>
+
+      <ConfirmModal
+        open={pendingDiscard !== null}
+        title={t(translation.GitStatus.DiscardTitle)}
+        description={t(translation.GitStatus.DiscardDesc, {
+          name: pendingDiscard?.map((entry) => entry.path).join(", ") ?? ""
+        })}
+        confirmLabel={t(translation.GitStatus.Discard)}
+        destructive
+        onConfirm={() => {
+          if (pendingDiscard) discard(pendingDiscard);
+          setPendingDiscard(null);
+        }}
+        onCancel={() => setPendingDiscard(null)}
+      />
     </div>
   );
 }

@@ -1,6 +1,7 @@
-import { atom, useAtom } from "jotai";
+import { atom, useAtom, useAtomValue } from "jotai";
 
 export type ThemePreference = "dark" | "light" | "system";
+export type ResolvedTheme = "dark" | "light";
 
 const THEME_STORAGE_KEY = "lazify-theme";
 
@@ -14,6 +15,22 @@ function readStoredTheme(): ThemePreference {
 }
 
 const themePreferenceAtom = atom<ThemePreference>(readStoredTheme());
+
+/**
+ * What "system" actually resolved to. The shell owns it; anything that has to
+ * colour itself in JS rather than CSS — the terminal — reads it from here.
+ */
+const resolvedThemeAtom = atom<ResolvedTheme>("dark");
+
+export function useResolvedTheme() {
+  return useAtomValue(resolvedThemeAtom);
+}
+
+export function useSetResolvedTheme() {
+  const [, setResolved] = useAtom(resolvedThemeAtom);
+
+  return setResolved;
+}
 
 export function useTheme() {
   const [themePreference, setThemePreferenceAtom] = useAtom(themePreferenceAtom);

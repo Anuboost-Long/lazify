@@ -11,72 +11,11 @@ import type {
   TreeContextMenuState,
 } from "@renderer/shared/ui/project-tree-optimized/types";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-
-function updateNodeTree(
-  nodes: ImportedProjectIndexNode[],
-  targetId: string,
-  updater: (node: ImportedProjectIndexNode) => ImportedProjectIndexNode | null,
-): ImportedProjectIndexNode[] {
-  return nodes.flatMap((node) => {
-    if (node.id === targetId) {
-      const updated = updater(node);
-      return updated ? [updated] : [];
-    }
-
-    if (node.children.length === 0) {
-      return [node];
-    }
-
-    return [
-      {
-        ...node,
-        children: updateNodeTree(node.children, targetId, updater),
-      },
-    ];
-  });
-}
-
-function buildPath(parentPath: string, name: string) {
-  return parentPath ? `${parentPath}/${name}` : name;
-}
-
-function renameNodeWithPaths(
-  node: ImportedProjectIndexNode,
-  nextName: string,
-): ImportedProjectIndexNode {
-  const previousRelativePath = node.relativePath;
-  const previousAbsolutePath = node.absolutePath;
-  const relativeSegments = previousRelativePath.split("/");
-  const absoluteSegments = previousAbsolutePath.split("/");
-  relativeSegments[relativeSegments.length - 1] = nextName;
-  absoluteSegments[absoluteSegments.length - 1] = nextName;
-  const nextRelativePath = relativeSegments.join("/");
-  const nextAbsolutePath = absoluteSegments.join("/");
-
-  const rewriteChildren = (
-    children: ImportedProjectIndexNode[],
-  ): ImportedProjectIndexNode[] =>
-    children.map((child) => ({
-      ...child,
-      relativePath: child.relativePath.replace(
-        previousRelativePath,
-        nextRelativePath,
-      ),
-      absolutePath: child.absolutePath.replace(
-        previousAbsolutePath,
-        nextAbsolutePath,
-      ),
-      children: rewriteChildren(child.children),
-    }));
-
-  return {
-    ...node,
-    name: nextName,
-    relativePath: nextRelativePath,
-    absolutePath: nextAbsolutePath,
-    children: rewriteChildren(node.children),
-  };
-}
+import {
+  buildPath,
+  renameNodeWithPaths,
+  updateNodeTree
+} from "@renderer/shared/ui/project-tree/tree-edits";
 
 export function useImportedProjectTree({
   initialConfirmedStack,

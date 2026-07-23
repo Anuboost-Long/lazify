@@ -13,15 +13,21 @@ export function FileStructureSetupPanel({
   onBackToConfig,
   onCreateProject,
   onTreeChange,
-  onToggleStructurePath
-}: FileStructureSetupPanelProps) {
+  onToggleStructurePath,
+}: Readonly<FileStructureSetupPanelProps>) {
   const { t } = useTranslation();
   const [moduleSheetOpen, setModuleSheetOpen] = useState(false);
   const templateLabel =
     savedConfig.sourceMode === "imported"
-      ? savedConfig.importedTemplateName ?? t(translation.Templates.ImportedTemplate)
-      : templateOptions.find((template) => template.id === savedConfig.templateId)?.label ?? t(translation.FileStructure.Template);
-  const templateId = savedConfig.sourceMode === "imported" ? "imported-template" : savedConfig.templateId ?? "";
+      ? (savedConfig.importedTemplateName ??
+        t(translation.Templates.ImportedTemplate))
+      : (templateOptions.find(
+          (template) => template.id === savedConfig.templateId,
+        )?.label ?? t(translation.FileStructure.Template));
+  const templateId =
+    savedConfig.sourceMode === "imported"
+      ? "imported-template"
+      : (savedConfig.templateId ?? "");
 
   return (
     <ProjectTreeEditorPanel
@@ -45,7 +51,7 @@ export function FileStructureSetupPanel({
         open: moduleSheetOpen,
         onOpen: () => setModuleSheetOpen(true),
         onClose: () => setModuleSheetOpen(false),
-        onToggleStructurePath
+        onToggleStructurePath,
       }}
     />
   );

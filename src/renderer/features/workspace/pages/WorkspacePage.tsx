@@ -9,7 +9,6 @@ import {
   OverlineText,
   SectionTitle,
 } from "@renderer/shared/typography";
-import { PageHeader } from "@renderer/shared/ui/PageHeader";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import { Toast } from "@renderer/shared/ui/toast/Toast";
 import { useState } from "react";
@@ -55,13 +54,6 @@ export function WorkspacePage({
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader
-        eyebrow={t(translation.Workspace.Eyebrow)}
-        title={t(translation.Workspace.Title)}
-        description={t(translation.Workspace.Description)}
-        icon="folder"
-      />
-
       <section className="relative overflow-hidden rounded-[30px] border border-border bg-soft p-6 shadow-panel">
         <div
           className="pointer-events-none absolute inset-0 opacity-80"

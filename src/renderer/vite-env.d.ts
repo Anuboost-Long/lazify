@@ -28,6 +28,9 @@ import type { VersionMatchReport } from "./shared/types/lazify";
 import type { AgentDescriptor } from "../main/agents/agent-registry";
 
 declare global {
+  /** Injected by vite from package.json — see `define` in vite.config.ts. */
+  const __APP_VERSION__: string;
+
   interface Window {
     lazify: {
       runCommand: (command: string, args: string[], cwd?: string) => Promise<CommandResult>;
@@ -60,7 +63,11 @@ declare global {
       readImportedProjectFile: (filePath: string) => Promise<string>;
       getProjectGitStatus: (projectPath: string) => Promise<ProjectGitStatusResult>;
       getWorkingChanges: (projectPath: string) => Promise<AgentFileChange[]>;
-      getFileDiff: (projectPath: string, filePath: string) => Promise<string>;
+      getFileDiff: (
+        projectPath: string,
+        filePath: string,
+        fullFile?: boolean
+      ) => Promise<string>;
       getNpmOutdated: (projectPath: string) => Promise<NpmOutdatedResult>;
       getNpmAudit: (projectPath: string) => Promise<NpmAuditResult>;
       listSessions: () => Promise<import("./shared/types/lazify").PtySession[]>;
@@ -91,7 +98,32 @@ declare global {
         input: import("../main/agents/custom-agents-store").CustomAgentInput
       ) => Promise<import("../main/agents/custom-agents-store").CustomAgent>;
       removeCustomAgent: (agentId: string) => Promise<void>;
-      getAgentUsage: (sinceIso?: string) => Promise<AgentUsageReport>;
+      checkoutBranch: (
+        projectPath: string,
+        branch: string,
+      ) => Promise<import("../main/project-git-status").GitCheckoutResult>;
+      stageFiles: (
+        projectPath: string,
+        paths: string[],
+      ) => Promise<import("../main/git-actions").GitActionResult>;
+      unstageFiles: (
+        projectPath: string,
+        paths: string[],
+      ) => Promise<import("../main/git-actions").GitActionResult>;
+      discardChanges: (
+        projectPath: string,
+        paths: string[],
+      ) => Promise<import("../main/git-actions").GitActionResult>;
+      commitChanges: (
+        projectPath: string,
+        message: string,
+      ) => Promise<import("../main/git-actions").GitActionResult>;
+      pushBranch: (
+        projectPath: string,
+      ) => Promise<import("../main/git-actions").GitActionResult>;
+      listHighlightingAssets: () => Promise<import("../main/highlighting-store").HighlightingAssets>;
+      openHighlightingFolder: () => Promise<void>;
+      getAgentUsage: (sinceIso?: string, agentIds?: string[]) => Promise<AgentUsageReport>;
       setAgentBudget: (agentId: string, weeklyTokens: number) => Promise<Record<string, number>>;
       openAgentTerminal: (
         agentId: string,
@@ -100,6 +132,10 @@ declare global {
         rows?: number
       ) => Promise<{ runId: string }>;
       onLog: (callback: (event: LogEvent) => void) => () => void;
+      /** Fires once an agent's transcript goes quiet — i.e. that agent's turn finished. */
+      onAgentActivity: (
+        callback: (event: import("../main/agents/agent-activity-watcher").AgentActivityEvent) => void
+      ) => () => void;
       onWorkflowProgress: (callback: (event: WorkflowProgressEvent) => void) => () => void;
     };
   }

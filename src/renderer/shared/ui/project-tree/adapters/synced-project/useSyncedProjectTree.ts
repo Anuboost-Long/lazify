@@ -3,6 +3,7 @@ import {
   collectDescendantFilePaths,
   findNodeById,
 } from "@renderer/shared/ui/project-tree-optimized/tree-utils";
+import type { EditorTab } from "@renderer/shared/ui/code/EditorTabBar";
 import type {
   FileContentState,
   TreeContextMenuState,
@@ -13,6 +14,11 @@ import type {
   ImportedProjectIndexResult,
   ProjectGitStatusResult,
 } from "@renderer/shared/types/lazify";
+import {
+  buildPath,
+  renameNodeWithPaths,
+  updateNodeTree
+} from "@renderer/shared/ui/project-tree/tree-edits";
 
 function buildAncestorIds(tree: ImportedProjectIndexNode[], targetId: string, trail: string[] = []): string[] {
   for (const node of tree) {
@@ -57,59 +63,6 @@ function findNodeByAbsolutePath(
   return visit(tree);
 }
 
-function updateNodeTree(
-  nodes: ImportedProjectIndexNode[],
-  targetId: string,
-  updater: (node: ImportedProjectIndexNode) => ImportedProjectIndexNode | null
-): ImportedProjectIndexNode[] {
-  return nodes.flatMap((node) => {
-    if (node.id === targetId) {
-      const updated = updater(node);
-      return updated ? [updated] : [];
-    }
-
-    if (node.children.length === 0) {
-      return [node];
-    }
-
-    return [{
-      ...node,
-      children: updateNodeTree(node.children, targetId, updater)
-    }];
-  });
-}
-
-function buildPath(parentPath: string, name: string) {
-  return parentPath ? `${parentPath}/${name}` : name;
-}
-
-function renameNodeWithPaths(node: ImportedProjectIndexNode, nextName: string): ImportedProjectIndexNode {
-  const previousRelativePath = node.relativePath;
-  const previousAbsolutePath = node.absolutePath;
-  const relativeSegments = previousRelativePath.split("/");
-  const absoluteSegments = previousAbsolutePath.split("/");
-  relativeSegments[relativeSegments.length - 1] = nextName;
-  absoluteSegments[absoluteSegments.length - 1] = nextName;
-  const nextRelativePath = relativeSegments.join("/");
-  const nextAbsolutePath = absoluteSegments.join("/");
-
-  const rewriteChildren = (children: ImportedProjectIndexNode[]): ImportedProjectIndexNode[] =>
-    children.map((child) => ({
-      ...child,
-      relativePath: child.relativePath.replace(previousRelativePath, nextRelativePath),
-      absolutePath: child.absolutePath.replace(previousAbsolutePath, nextAbsolutePath),
-      children: rewriteChildren(child.children)
-    }));
-
-  return {
-    ...node,
-    name: nextName,
-    relativePath: nextRelativePath,
-    absolutePath: nextAbsolutePath,
-    children: rewriteChildren(node.children)
-  };
-}
-
 export function useSyncedProjectTree({
   allowGitStatus = false,
   editable = false,
@@ -125,6 +78,8 @@ export function useSyncedProjectTree({
   const [expandedIds, setExpandedIds] = useState<string[]>(() => []);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [activeFilePath, setActiveFilePath] = useState<string | null>(null);
+  /** Files with an open tab, in tab order. */
+  const [openFiles, setOpenFiles] = useState<EditorTab[]>([]);
   const [includedFilePaths, setIncludedFilePaths] = useState<Set<string>>(() => new Set());
   const [fileCache, setFileCache] = useState<Record<string, FileContentState>>({});
   const [contextMenu, setContextMenu] = useState<TreeContextMenuState | null>(null);
@@ -132,6 +87,8 @@ export function useSyncedProjectTree({
   const [renameValue, setRenameValue] = useState("");
   const [gitStatus, setGitStatus] = useState<ProjectGitStatusResult | null>(null);
   const [gitStatusLoading, setGitStatusLoading] = useState(false);
+  /** Bumped to re-run the git status effect after the tree moves. */
+  const [gitStatusNonce, setGitStatusNonce] = useState(0);
   const activeRequestIdRef = useRef(0);
 
   useEffect(() => {
@@ -141,6 +98,7 @@ export function useSyncedProjectTree({
     setExpandedIds([]);
     setSelectedId(null);
     setActiveFilePath(null);
+    setOpenFiles([]);
     setIncludedFilePaths(new Set(project.tree.flatMap((node) => collectDescendantFilePaths(node))));
     setFileCache({});
     setContextMenu(null);
@@ -191,11 +149,21 @@ export function useSyncedProjectTree({
     return () => {
       cancelled = true;
     };
-  }, [allowGitStatus, project.projectPath]);
+  }, [allowGitStatus, project.projectPath, gitStatusNonce]);
 
   const selectedNode = useMemo(
     () => (selectedId ? findNodeById(editableTree, selectedId) : null),
     [editableTree, selectedId]
+  );
+
+  const activeTab = useMemo(
+    () => openFiles.find((tab) => tab.path === activeFilePath) ?? null,
+    [openFiles, activeFilePath]
+  );
+
+  const activeFileNode = useMemo(
+    () => (activeTab ? findNodeByAbsolutePath(editableTree, activeTab.filePath) : null),
+    [editableTree, activeTab]
   );
 
   const selectedFileState = activeFilePath
@@ -224,7 +192,14 @@ export function useSyncedProjectTree({
       }
     }));
 
-    void globalThis.lazify.readImportedProjectFile(activeFilePath)
+    const load =
+      activeTab?.kind === "diff"
+        ? // Full-file context: the changes read in place inside the whole
+          // source rather than as detached hunks.
+          globalThis.lazify.getFileDiff(project.projectPath, activeTab.filePath, true)
+        : globalThis.lazify.readImportedProjectFile(activeTab?.filePath ?? activeFilePath);
+
+    void load
       .then((content) => {
         if (activeRequestIdRef.current !== requestId) {
           return;
@@ -251,16 +226,104 @@ export function useSyncedProjectTree({
           }
         }));
       });
-  }, [activeFilePath]);
+  }, [activeFilePath, activeTab, project.projectPath]);
 
   const handleSelectNode = (node: ImportedProjectIndexNode) => {
     setSelectedId(node.id);
 
-    if (node.type === "file") {
-      setActiveFilePath(node.absolutePath);
-    } else {
-      setActiveFilePath(null);
-    }
+    // Selecting a folder only moves the tree highlight. The editor keeps
+    // whatever file is open — closing it would throw away the user's place
+    // just for expanding a directory.
+    if (node.type !== "file") return;
+
+    setOpenFiles((current) =>
+      current.some((tab) => tab.path === node.absolutePath)
+        ? current
+        : [
+            ...current,
+            {
+              path: node.absolutePath,
+              name: node.name,
+              kind: "file" as const,
+              filePath: node.absolutePath
+            }
+          ]
+    );
+    setActiveFilePath(node.absolutePath);
+  };
+
+  /**
+   * Opens a file's working-tree diff as its own tab, so the change and the
+   * file itself can be open side by side rather than replacing each other.
+   */
+  const handleOpenDiff = (entry: GitStatusEntry) => {
+    const tabPath = `diff:${entry.absolutePath}`;
+    const name = entry.path.slice(entry.path.lastIndexOf("/") + 1);
+
+    setOpenFiles((current) =>
+      current.some((tab) => tab.path === tabPath)
+        ? current
+        : [
+            ...current,
+            { path: tabPath, name, kind: "diff" as const, filePath: entry.absolutePath }
+          ]
+    );
+    setActiveFilePath(tabPath);
+
+    const node = findNodeByAbsolutePath(editableTree, entry.absolutePath);
+    if (node) setSelectedId(node.id);
+  };
+
+  const handleSelectOpenFile = (path: string) => {
+    setActiveFilePath(path);
+
+    const tab = openFiles.find((candidate) => candidate.path === path);
+    const node = tab ? findNodeByAbsolutePath(editableTree, tab.filePath) : null;
+    if (node) setSelectedId(node.id);
+  };
+
+  /** Closing the active tab falls back to its left neighbour, then its right. */
+  const handleCloseOpenFile = (path: string) => {
+    setOpenFiles((current) => {
+      const index = current.findIndex((tab) => tab.path === path);
+      if (index === -1) return current;
+
+      const next = current.filter((tab) => tab.path !== path);
+
+      if (path === activeFilePath) {
+        const fallback = next[index - 1] ?? next[index] ?? null;
+        setActiveFilePath(fallback?.path ?? null);
+        if (fallback) {
+          const node = findNodeByAbsolutePath(editableTree, fallback.filePath);
+          if (node) setSelectedId(node.id);
+        }
+      }
+
+      return next;
+    });
+  };
+
+  /**
+   * Empties the editor. The tree highlight stays where it is — the selection
+   * is about the explorer, and closing tabs is no reason to lose your place.
+   */
+  const handleCloseAllOpenFiles = () => {
+    setOpenFiles([]);
+    setActiveFilePath(null);
+  };
+
+  const handleReorderOpenFiles = (fromPath: string, toPath: string) => {
+    setOpenFiles((current) => {
+      const from = current.findIndex((tab) => tab.path === fromPath);
+      const to = current.findIndex((tab) => tab.path === toPath);
+      if (from === -1 || to === -1 || from === to) return current;
+
+      const next = [...current];
+      const [moved] = next.splice(from, 1);
+      next.splice(to, 0, moved);
+
+      return next;
+    });
   };
 
   const handleOpenGitEntry = (entry: GitStatusEntry) => {
@@ -393,16 +456,25 @@ export function useSyncedProjectTree({
   };
 
   return {
+    activeFileNode,
     activeFilePath,
+    activeTab,
     activePanel,
+    handleCloseAllOpenFiles,
+    handleCloseOpenFile,
+    handleReorderOpenFiles,
+    handleSelectOpenFile,
+    openFiles,
     contextMenu,
     editableTree,
     expandedIds,
     gitStatus,
     gitStatusLoading,
+    refreshGitStatus: () => setGitStatusNonce((current) => current + 1),
     handleCommitRename,
     handleCreateEntry,
     handleDeleteNode,
+    handleOpenDiff,
     handleOpenGitEntry,
     handleSelectNode,
     handleStartRename,

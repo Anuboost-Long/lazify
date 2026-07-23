@@ -617,8 +617,18 @@ function summarize(
   // which is only as recent as the last time the agent happened to run.
   if (liveRateLimit) rateLimit = liveRateLimit;
 
-  // A reported weekly window beats anything we could infer locally.
-  if (reported?.sevenDay && typeof reported.sevenDay.utilization === "number") {
+  // A reported weekly window beats anything we could infer locally — unless it
+  // has already reset, in which case its percentage is about a past week.
+  const weeklyResetsMs = reported?.sevenDay?.resets_at
+    ? Date.parse(reported.sevenDay.resets_at)
+    : 0;
+  const weeklyExpired = !!weeklyResetsMs && weeklyResetsMs <= Date.now();
+
+  if (
+    reported?.sevenDay &&
+    !weeklyExpired &&
+    typeof reported.sevenDay.utilization === "number"
+  ) {
     rateLimit = {
       source: "reported",
       usedPercent: reported.sevenDay.utilization,
@@ -662,16 +672,29 @@ function summarize(
  * @param sinceIso when set, each agent's `session` totals cover only usage
  * recorded at or after that moment — the app passes the time the agent tab was
  * opened.
+ * @param agentIds when set, only these agents are scanned. Walking a
+ * transcript tree and asking an account API both cost real time, so the app
+ * passes the agents it actually has open; an empty list means "all of them".
  */
 export async function getAgentUsage(
   sinceIso?: string,
+  agentIds?: string[],
 ): Promise<AgentUsageReport> {
-  const claudePaths = claudeFiles();
-  const codexPaths = codexFiles();
+  const wanted = agentIds && agentIds.length > 0 ? new Set(agentIds) : null;
+  const includes = (agentId: string) => !wanted || wanted.has(agentId);
 
+  const claudePaths = includes("claude") ? claudeFiles() : [];
+  const codexPaths = includes("codex") ? codexFiles() : [];
+
+  // Skipped agents are skipped entirely: scanning them with no files would
+  // prune their cached slices and make the next scan a full re-read.
   const [claudeSlices, codexSlices] = await Promise.all([
-    scanAgent("claude", claudePaths, parseClaudeLine),
-    scanAgent("codex", codexPaths, parseCodexLine),
+    includes("claude")
+      ? scanAgent("claude", claudePaths, parseClaudeLine)
+      : Promise.resolve<FileSlice[]>([]),
+    includes("codex")
+      ? scanAgent("codex", codexPaths, parseCodexLine)
+      : Promise.resolve<FileSlice[]>([]),
   ]);
 
   const [claudeSession, codexSession] = sinceIso
@@ -687,45 +710,55 @@ export async function getAgentUsage(
   // Both accounts are asked once per refresh, together, and neither call
   // outlives it.
   const [claudeUtilization, codexRateLimit] = await Promise.all([
-    getClaudeUtilization(),
-    getCodexRateLimit(),
+    includes("claude") ? getClaudeUtilization() : null,
+    includes("codex") ? getCodexRateLimit() : null,
   ]);
 
   // Custom agents are arbitrary commands, so nothing local reports their usage.
-  const customs = listCustomAgents().map(({ id, label }) =>
-    summarize(
-      id,
-      label,
-      [],
-      null,
-      budgets[id] ?? null,
-      budgets[`${id}#5h`] ?? null,
-    ),
-  );
+  const customs = listCustomAgents()
+    .filter(({ id }) => includes(id))
+    .map(({ id, label }) =>
+      summarize(
+        id,
+        label,
+        [],
+        null,
+        budgets[id] ?? null,
+        budgets[`${id}#5h`] ?? null,
+      ),
+    );
 
   return {
     generatedAt: new Date().toISOString(),
     since: sinceIso ?? null,
     agents: [
-      summarize(
-        "claude",
-        "Claude",
-        claudeSlices,
-        claudeSession,
-        budgets.claude ?? null,
-        budgets["claude#5h"] ?? null,
-        claudeUtilization,
-      ),
-      summarize(
-        "codex",
-        "Codex",
-        codexSlices,
-        codexSession,
-        budgets.codex ?? null,
-        budgets["codex#5h"] ?? null,
-        null,
-        codexRateLimit,
-      ),
+      ...(includes("claude")
+        ? [
+            summarize(
+              "claude",
+              "Claude",
+              claudeSlices,
+              claudeSession,
+              budgets.claude ?? null,
+              budgets["claude#5h"] ?? null,
+              claudeUtilization,
+            ),
+          ]
+        : []),
+      ...(includes("codex")
+        ? [
+            summarize(
+              "codex",
+              "Codex",
+              codexSlices,
+              codexSession,
+              budgets.codex ?? null,
+              budgets["codex#5h"] ?? null,
+              null,
+              codexRateLimit,
+            ),
+          ]
+        : []),
       ...customs,
     ],
   };

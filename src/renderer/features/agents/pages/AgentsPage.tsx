@@ -5,9 +5,9 @@ import { useTranslation } from "react-i18next";
 import { XTermPanel } from "@renderer/features/workspace/components/XTermPanel";
 import { translation } from "@renderer/i18n/translation";
 import type { SyncedWorkspaceProject } from "@renderer/shared/types/lazify";
-import { PageHeader } from "@renderer/shared/ui/PageHeader";
 import { Toast } from "@renderer/shared/ui/toast/Toast";
 import { AgentChangesPanel } from "../components/AgentChangesPanel";
+import { AgentFilesPanel } from "../components/AgentFilesPanel";
 import { AgentUsagePanel } from "../components/AgentUsagePanel";
 import { AgentEmptyState } from "../components/AgentEmptyState";
 import { AgentNoProjectState } from "../components/AgentNoProjectState";
@@ -36,19 +36,16 @@ export function AgentsPage({
   const [syncing, setSyncing] = useState(false);
   const [syncError, setSyncError] = useState<string | null>(null);
   // One rail, two tabs: clicking the open tab's button closes it again.
-  const [railTab, setRailTab] = useState<"changes" | "usage" | null>(null);
+  const [railTab, setRailTab] = useState<"changes" | "usage" | "files" | null>(
+    null,
+  );
   const { sessionChanges, loading, refresh, resetBaseline } = useAgentChanges(
     projectPath,
     railTab === "changes",
   );
   const {
-    report: usageReport,
-    loading: usageLoading,
-    refresh: refreshUsage,
-    setBudget,
-  } = useAgentUsage(railTab === "usage");
-  const {
     availableAgents,
+    openAgentIds,
     runningCountByProject,
     terminals,
     activeTerminal,
@@ -62,6 +59,23 @@ export function AgentsPage({
     createAgent,
     deleteAgent,
   } = useAgentTerminals(projectPath);
+  // Only the agents with a tab open get scanned; nothing open means everything.
+  const {
+    report: usageReport,
+    loading: usageLoading,
+    refresh: refreshUsage,
+    setBudget,
+  } = useAgentUsage(railTab === "usage", openAgentIds);
+
+  /**
+   * Types a path straight into the running agent instead of into the shell, so
+   * the user can point at a component mid-conversation. No newline: it is the
+   * user's to send once they have finished the sentence around it.
+   */
+  const activeRunId = activeTerminal?.runId ?? null;
+  const sendToTerminal = activeRunId
+    ? (text: string) => globalThis.lazify.ptyWrite(activeRunId, text)
+    : null;
 
   /** Syncs from here, then selects the new project so agents can open in it. */
   const handleSyncProject = async () => {
@@ -85,13 +99,6 @@ export function AgentsPage({
 
   return (
     <div className="flex h-[calc(100vh-6.5rem)] min-h-0 flex-col gap-6">
-      <PageHeader
-        eyebrow={t(translation.Agents.Eyebrow)}
-        title={t(translation.Agents.Title)}
-        description={t(translation.Agents.Description)}
-        icon="code"
-      />
-
       {/* Syncing is reachable from both branches, so the error is shown once here. */}
       {syncError ? (
         <Toast
@@ -128,7 +135,7 @@ export function AgentsPage({
           <div
             className={clsx(
               "flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden",
-              "rounded-2xl border border-border bg-[#0a0e17]",
+              "rounded-2xl border border-border bg-soft",
             )}
           >
             <AgentTabBar
@@ -183,6 +190,14 @@ export function AgentsPage({
                   loading={loading}
                   onRefresh={refresh}
                   onReset={resetBaseline}
+                  onClose={() => setRailTab(null)}
+                />
+              ) : null}
+
+              {railTab === "files" ? (
+                <AgentFilesPanel
+                  projectPath={projectPath}
+                  onSendToTerminal={sendToTerminal}
                   onClose={() => setRailTab(null)}
                 />
               ) : null}

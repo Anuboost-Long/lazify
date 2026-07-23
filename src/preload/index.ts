@@ -1,5 +1,6 @@
 import { contextBridge, ipcRenderer } from "electron";
 
+import type { AgentActivityEvent } from "../main/agents/agent-activity-watcher";
 import type { LogEvent } from "../main/command-runner";
 import type { TemplateDefinition } from "../main/harmonizer";
 import type { NpmPackageSearchResult } from "../main/npm-registry";
@@ -23,6 +24,9 @@ import type { ToolScanReport, NvmVersionList, NvmInstallResult, NvmActionResult,
 import type { TemplatePackageEntry } from "../main/template-package-manifest";
 import type { AgentDescriptor } from "../main/agents/agent-registry";
 import type { CustomAgent, CustomAgentInput } from "../main/agents/custom-agents-store";
+import type { HighlightingAssets } from "../main/highlighting-store";
+import type { GitCheckoutResult } from "../main/project-git-status";
+import type { GitActionResult } from "../main/git-actions";
 import type { VersionMatchReport } from "../brain/package-version-matcher";
 import type {
   AddProjectPackagePayload,
@@ -78,8 +82,8 @@ const lazifyApi = {
     ipcRenderer.invoke("lazify:project-git-status", projectPath),
   getWorkingChanges: (projectPath: string): Promise<AgentFileChange[]> =>
     ipcRenderer.invoke("lazify:working-changes", projectPath),
-  getFileDiff: (projectPath: string, filePath: string): Promise<string> =>
-    ipcRenderer.invoke("lazify:file-diff", projectPath, filePath),
+  getFileDiff: (projectPath: string, filePath: string, fullFile?: boolean): Promise<string> =>
+    ipcRenderer.invoke("lazify:file-diff", projectPath, filePath, fullFile),
   getNpmOutdated: (projectPath: string): Promise<NpmOutdatedResult> =>
     ipcRenderer.invoke("lazify:npm-outdated", projectPath),
   getNpmAudit: (projectPath: string): Promise<NpmAuditResult> =>
@@ -113,8 +117,24 @@ const lazifyApi = {
     ipcRenderer.invoke("lazify:add-custom-agent", input),
   removeCustomAgent: (agentId: string): Promise<void> =>
     ipcRenderer.invoke("lazify:remove-custom-agent", agentId),
-  getAgentUsage: (sinceIso?: string): Promise<AgentUsageReport> =>
-    ipcRenderer.invoke("lazify:agent-usage", sinceIso),
+  checkoutBranch: (projectPath: string, branch: string): Promise<GitCheckoutResult> =>
+    ipcRenderer.invoke("lazify:checkout-branch", projectPath, branch),
+  stageFiles: (projectPath: string, paths: string[]): Promise<GitActionResult> =>
+    ipcRenderer.invoke("lazify:stage-files", projectPath, paths),
+  unstageFiles: (projectPath: string, paths: string[]): Promise<GitActionResult> =>
+    ipcRenderer.invoke("lazify:unstage-files", projectPath, paths),
+  discardChanges: (projectPath: string, paths: string[]): Promise<GitActionResult> =>
+    ipcRenderer.invoke("lazify:discard-changes", projectPath, paths),
+  commitChanges: (projectPath: string, message: string): Promise<GitActionResult> =>
+    ipcRenderer.invoke("lazify:commit-changes", projectPath, message),
+  pushBranch: (projectPath: string): Promise<GitActionResult> =>
+    ipcRenderer.invoke("lazify:push-branch", projectPath),
+  listHighlightingAssets: (): Promise<HighlightingAssets> =>
+    ipcRenderer.invoke("lazify:highlighting-assets"),
+  openHighlightingFolder: (): Promise<void> =>
+    ipcRenderer.invoke("lazify:open-highlighting-folder"),
+  getAgentUsage: (sinceIso?: string, agentIds?: string[]): Promise<AgentUsageReport> =>
+    ipcRenderer.invoke("lazify:agent-usage", sinceIso, agentIds),
   setAgentBudget: (agentId: string, weeklyTokens: number): Promise<Record<string, number>> =>
     ipcRenderer.invoke("lazify:set-agent-budget", agentId, weeklyTokens),
   openAgentTerminal: (
@@ -153,6 +173,11 @@ const lazifyApi = {
     const listener = (_event: Electron.IpcRendererEvent, payload: LogEvent) => callback(payload);
     ipcRenderer.on("lazify:log", listener);
     return () => ipcRenderer.removeListener("lazify:log", listener);
+  },
+  onAgentActivity: (callback: (event: AgentActivityEvent) => void) => {
+    const listener = (_event: Electron.IpcRendererEvent, payload: AgentActivityEvent) => callback(payload);
+    ipcRenderer.on("lazify:agent-activity", listener);
+    return () => ipcRenderer.removeListener("lazify:agent-activity", listener);
   },
   onWorkflowProgress: (callback: (event: WorkflowProgressEvent) => void) => {
     const listener = (_event: Electron.IpcRendererEvent, payload: WorkflowProgressEvent) => callback(payload);

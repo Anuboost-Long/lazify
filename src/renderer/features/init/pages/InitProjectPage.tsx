@@ -1,20 +1,20 @@
 import { translation } from "@renderer/i18n/translation";
-import { PageHeader } from "@renderer/shared/ui/PageHeader";
-import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import type {
   ImportedTemplateOption,
   ImportedTemplateSnapshot,
   ProjectTreeNode,
   SavedInitWorkflowConfig,
-  TemplateOption
+  TemplateOption,
 } from "@renderer/shared/types/lazify";
+import UiIcon from "@renderer/shared/ui/icons/UiIcon";
+import { BodyText } from "@renderer/shared/typography";
+import { useTranslation } from "react-i18next";
 import { FileStructureSetupPanel } from "../components/file-structure-setup/FileStructureSetupPanel";
-import { WorkflowForm } from "../components/WorkflowForm";
+import { ImportedTemplatePicker } from "../components/ImportedTemplatePicker";
+import { SourceModeCard } from "../components/SourceModeCard";
 import { StackPicker } from "../components/StackPicker";
 import { TemplateOptionsPanel } from "../components/TemplateOptionsPanel";
-import { SourceModeCard } from "../components/SourceModeCard";
-import { ImportedTemplatePicker } from "../components/ImportedTemplatePicker";
-import { useTranslation } from "react-i18next";
+import { WorkflowForm } from "../components/WorkflowForm";
 
 interface InitProjectPageProps {
   busy: boolean;
@@ -73,31 +73,32 @@ export function InitProjectPage({
   onBackToConfig,
   onStructureTreeChange,
   createOptionValues,
-  onCreateOptionChange
-}: InitProjectPageProps) {
+  onCreateOptionChange,
+}: Readonly<InitProjectPageProps>) {
   const { t } = useTranslation();
   const hasSelection =
-    initSourceMode === "stack" ? Boolean(selectedTemplateId) : Boolean(selectedImportedTemplateId);
+    initSourceMode === "stack"
+      ? Boolean(selectedTemplateId)
+      : Boolean(selectedImportedTemplateId);
   const inStructureStage = initWorkflowStage === "structure";
   const selectedLabel =
     initSourceMode === "stack"
-      ? templateOptions.find((template) => template.id === selectedTemplateId)?.label ?? t(translation.InitProject.SelectedStack)
-      : selectedImportedTemplate?.name ?? t(translation.Templates.ImportedTemplate);
+      ? (templateOptions.find((template) => template.id === selectedTemplateId)
+          ?.label ?? t(translation.InitProject.SelectedStack))
+      : (selectedImportedTemplate?.name ??
+        t(translation.Templates.ImportedTemplate));
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader
-        eyebrow={t(translation.InitProject.Eyebrow)}
-        title={t(translation.InitProject.Title)}
-        description={
-          inStructureStage
-            ? t(translation.InitProject.DescriptionStructure)
-            : initSourceMode === "imported"
-              ? t(translation.InitProject.DescriptionImported)
-              : t(translation.InitProject.DescriptionStack)
-        }
-        icon="play"
-      />
+      {/* The page's name and icon are in the shell's top bar. What is not up
+          there is which stage you are in, so that line alone stays. */}
+      <BodyText className="text-muted">
+        {inStructureStage
+          ? t(translation.InitProject.DescriptionStructure)
+          : initSourceMode === "imported"
+            ? t(translation.InitProject.DescriptionImported)
+            : t(translation.InitProject.DescriptionStack)}
+      </BodyText>
 
       {!inStructureStage && !hasSelection ? (
         <section className="grid gap-4 lg:grid-cols-2">
@@ -170,8 +171,9 @@ export function InitProjectPage({
           {!inStructureStage && initSourceMode === "stack" ? (
             <TemplateOptionsPanel
               options={
-                templateOptions.find((template) => template.id === selectedTemplateId)
-                  ?.createOptions ?? []
+                templateOptions.find(
+                  (template) => template.id === selectedTemplateId,
+                )?.createOptions ?? []
               }
               values={createOptionValues}
               busy={busy}

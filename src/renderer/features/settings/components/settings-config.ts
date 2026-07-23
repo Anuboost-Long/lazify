@@ -70,10 +70,25 @@ export const languages: {
   { code: "cn", label: translation.Settings.Chinese, native: "中文", region: translation.Settings.China }
 ];
 
+/**
+ * Reported from the running build rather than hardcoded, so a packaged app on
+ * any platform says what it actually is. `import.meta.env.PROD` is set by the
+ * renderer build that both `package:mac` and `package:win` run through.
+ */
+function currentPlatform(): string {
+  const agent = globalThis.navigator?.userAgent ?? "";
+
+  if (/Windows/i.test(agent)) return "Windows";
+  if (/Mac OS X|Macintosh/i.test(agent)) return "macOS";
+  if (/Linux/i.test(agent)) return "Linux";
+
+  return "Unknown";
+}
+
 export const applicationInfoItems = [
-  { label: translation.Settings.Version, value: "0.1.0" },
-  { label: translation.Settings.Build, value: "development" },
-  { label: translation.Settings.Platform, value: "macOS" }
+  { label: translation.Settings.Version, value: __APP_VERSION__ },
+  { label: translation.Settings.Build, value: import.meta.env.PROD ? "production" : "development" },
+  { label: translation.Settings.Platform, value: currentPlatform() }
 ];
 
 export const legalItems = [

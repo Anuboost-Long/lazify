@@ -4,6 +4,7 @@ import { useTheme } from "@renderer/shared/hooks/use-theme";
 import type { ThemePreference } from "@renderer/shared/hooks/use-theme";
 import { themeOptions } from "./settings-config";
 import { AccentColorSection } from "./AccentColorSection";
+import { CodeThemeSection } from "./CodeThemeSection";
 import { InterfaceSection } from "./InterfaceSection";
 import { JsToolsSection } from "./JsToolsSection";
 import { SectionLabel } from "./SectionLabel";
@@ -32,6 +33,7 @@ export function AppearanceSection() {
       </div>
 
       <AccentColorSection />
+      <CodeThemeSection />
       <InterfaceSection />
       <JsToolsSection />
     </div>

@@ -1,6 +1,6 @@
 import { translation } from "@renderer/i18n/translation";
 import type { ScriptStatusEvent } from "@renderer/shared/types/lazify";
-import { MonoText, OverlineText, PillText } from "@renderer/shared/typography";
+import { MonoText, PillText } from "@renderer/shared/typography";
 import { IconButton } from "@renderer/shared/ui/IconButton";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import { LabelButton } from "@renderer/shared/ui/LabelButton";
@@ -368,13 +368,9 @@ export function ScriptsPane({ projectPath }: ScriptsPaneProps) {
   const runningCount = tabs.filter((t) => t.status === "running").length;
 
   return (
-    <div className="overflow-hidden rounded-[26px] border border-border bg-bg shadow-panel">
+    <div>
       {/* ── Header ── */}
-      <div className="flex items-center gap-2 border-b border-border bg-soft px-5 py-3.5">
-        <UiIcon name="play" className="h-4 w-4 text-muted" />
-        <OverlineText className="min-w-0 flex-1 text-muted">
-          {t(translation.ScriptsPane.Title)}
-        </OverlineText>
+      <div className="flex items-center justify-end gap-2 border-b border-border bg-soft px-4 py-2">
         <div className="flex items-center gap-2">
           {!loading && scriptEntries.length > 0 && (
             <PillText
@@ -461,7 +457,7 @@ export function ScriptsPane({ projectPath }: ScriptsPaneProps) {
         {/* ── Terminal panel — always visible, tabs separate from script runs ── */}
         <div className="overflow-hidden rounded-[20px] border border-black/[0.06] dark:border-white/[0.04]">
           {/* ── Tab bar ── */}
-          <div className="flex items-center border-b border-white/[0.05] bg-[#070b12]">
+          <div className="flex items-center border-b border-border bg-soft">
             <div className="flex min-w-0 flex-1 items-center gap-0.5 overflow-x-auto px-2 py-1.5 scrollbar-none">
               {tabs.map((tab) => {
                 const isActive = tab.tabId === activeTabId;
@@ -470,8 +466,8 @@ export function ScriptsPane({ projectPath }: ScriptsPaneProps) {
                   <div
                     key={tab.tabId}
                     className={clsx(
-                      "flex shrink-0 items-center rounded-lg text-white transition-colors",
-                      isActive ? "bg-white/[0.10]" : "hover:bg-white/[0.06]"
+                      "flex shrink-0 items-center rounded-lg text-text transition-colors",
+                      isActive ? "bg-text/[0.10]" : "hover:bg-text/[0.06]"
                     )}
                   >
                     {/* Tab label — click to select */}
@@ -506,7 +502,7 @@ export function ScriptsPane({ projectPath }: ScriptsPaneProps) {
                       )}
                       <MonoText
                         as="span"
-                        className="text-[11px] font-medium !text-white"
+                        className="text-[11px] font-medium !text-text"
                       >
                         {label}
                       </MonoText>
@@ -522,10 +518,10 @@ export function ScriptsPane({ projectPath }: ScriptsPaneProps) {
                           : t(translation.GlobalTerm.Close)
                       }
                       className={clsx(
-                        "mr-1 hover:bg-white/15",
+                        "mr-1 hover:bg-text/15",
                         tab.status === "running"
                           ? "text-error hover:text-error"
-                          : "text-white hover:text-white"
+                          : "text-text hover:text-text"
                       )}
                       iconClassName="h-2.5 w-2.5"
                     />
@@ -541,7 +537,7 @@ export function ScriptsPane({ projectPath }: ScriptsPaneProps) {
               title="New terminal tab"
               className={clsx(
                 "mx-2 shrink-0 flex items-center gap-1 rounded-md border px-2 py-1 text-[10px] font-semibold transition-colors",
-                "border-white/[0.20] bg-white/[0.08] text-white",
+                "border-border bg-text/[0.08] text-text",
                 "hover:border-accent/50 hover:bg-accent/15 hover:text-accent"
               )}
             >
@@ -553,7 +549,8 @@ export function ScriptsPane({ projectPath }: ScriptsPaneProps) {
           {/* ── Terminal bodies — all mounted, active tab visible ── */}
           <div
             data-pty-container
-            style={{ height: termHeight, backgroundColor: "#0a0e17" }}
+            className="bg-soft"
+            style={{ height: termHeight }}
           >
             {tabs.map((tab) => {
               const isVisible = tab.tabId === activeTabId;
@@ -568,9 +565,9 @@ export function ScriptsPane({ projectPath }: ScriptsPaneProps) {
                     <div className="flex h-full flex-col items-center justify-center gap-2">
                       <UiIcon
                         name="terminal"
-                        className="h-5 w-5 text-white/15"
+                        className="h-5 w-5 text-muted/40"
                       />
-                      <MonoText as="p" className="text-[11px] text-white/20">
+                      <MonoText as="p" className="text-[11px] text-muted">
                         Select a script above to run it here
                       </MonoText>
                     </div>
@@ -583,7 +580,7 @@ export function ScriptsPane({ projectPath }: ScriptsPaneProps) {
                         name="refresh-circle"
                         className="h-3.5 w-3.5 animate-spin text-accent/60"
                       />
-                      <MonoText as="span" className="text-[12px] text-white/30">
+                      <MonoText as="span" className="text-[12px] text-muted">
                         Starting…
                       </MonoText>
                     </div>
@@ -609,12 +606,12 @@ export function ScriptsPane({ projectPath }: ScriptsPaneProps) {
             onMouseDown={handleDragStart}
             className={clsx(
               "flex h-[11px] cursor-ns-resize select-none items-center justify-center",
-              "border-t border-white/[0.05] bg-[#070b12]",
-              isDragging ? "bg-accent/20" : "hover:bg-white/[0.04]",
+              "border-t border-border bg-soft",
+              isDragging ? "bg-accent/20" : "hover:bg-text/[0.04]",
               "transition-colors duration-100"
             )}
           >
-            <div className="h-px w-8 rounded-full bg-white/25" />
+            <div className="h-px w-8 rounded-full bg-text/25" />
           </div>
         </div>
       </div>

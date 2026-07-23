@@ -1,6 +1,5 @@
 import { translation } from "@renderer/i18n/translation";
 import { LogPanel } from "@renderer/shared/ui/LogPanel";
-import { PageHeader } from "@renderer/shared/ui/PageHeader";
 import { StatusStrip } from "@renderer/shared/ui/StatusStrip";
 import { Toast } from "@renderer/shared/ui/toast/Toast";
 import type {
@@ -37,13 +36,6 @@ export function ConsolePage({
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader
-        eyebrow={t(translation.Console.Eyebrow)}
-        title={t(translation.Console.Title)}
-        description={t(translation.Console.Description)}
-        icon="terminal"
-      />
-
       <StatusStrip
         environment={environment}
         workflowStatus={workflowStatus}

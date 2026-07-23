@@ -1,7 +1,7 @@
 import clsx from "clsx";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { PageHeader } from "@renderer/shared/ui/PageHeader";
+import { PageActions } from "@renderer/app/components/PageChrome";
 import { BodyText } from "@renderer/shared/typography";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import type { ToolCategory, ToolScanReport } from "@renderer/shared/types/lazify";
@@ -66,32 +66,31 @@ export function EnvironmentPage({ report, loading, onRefresh }: EnvironmentPageP
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <PageHeader
-          eyebrow={t(translation.Environment.Eyebrow)}
-          title={t(translation.Environment.Title)}
-          description={t(translation.Environment.Description)}
-          icon="activity"
-        />
+      {/* The page's name and icon are already in the shell's top bar, so the
+          only thing worth putting up there is the action. */}
+      <PageActions>
         <button
           type="button"
           onClick={onRefresh}
           disabled={loading}
           className={clsx(
-            "group flex items-center gap-2",
-            "rounded-[20px] border border-border bg-bg px-4 py-3",
-            "text-sm font-semibold text-muted",
+            "group inline-flex items-center gap-1.5",
+            "rounded-[8px] border border-border bg-bg px-3 py-1",
+            "text-xs font-semibold text-muted",
             "hover:border-accent hover:text-text",
             "disabled:cursor-not-allowed disabled:opacity-60"
           )}
         >
           <UiIcon
             name="refresh-circle"
-            className={clsx("h-5 w-5 text-muted group-hover:text-accent", loading && "animate-spin")}
+            className={clsx(
+              "h-3.5 w-3.5 text-muted group-hover:text-accent",
+              loading && "animate-spin"
+            )}
           />
           {loading ? t(translation.GlobalTerm.Scanning) : t(translation.GlobalTerm.Refresh)}
         </button>
-      </div>
+      </PageActions>
 
       {loading && !report && (
         <div className="flex items-center gap-3 text-sm text-muted">
@@ -107,7 +106,7 @@ export function EnvironmentPage({ report, loading, onRefresh }: EnvironmentPageP
       )}
 
       {report && (
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-10">
           {categoryOrder.map((category) =>
             groupedTools[category].length > 0 ? (
               <CategorySection

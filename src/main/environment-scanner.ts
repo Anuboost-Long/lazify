@@ -196,6 +196,16 @@ function getInstallInfo(name: string): { command: string; note?: string } | null
   }
 }
 
+// Probes return whatever the tool prints (`pip 25.3 from /Library/…`,
+// `go version go1.21 darwin/arm64`, …). Keep only the version token so the UI
+// never has to render a full sentence.
+function extractVersion(raw: string | null): string | null {
+  const value = raw?.trim();
+  if (!value) return null;
+  const firstLine = value.split("\n")[0].trim();
+  return firstLine.match(/\d[\w.+-]*/)?.[0] ?? firstLine;
+}
+
 function tool(
   name: string,
   displayName: string,
@@ -208,6 +218,7 @@ function tool(
     displayName,
     category,
     ...status,
+    version: extractVersion(status.version),
     installCommand: installInfo?.command ?? null,
     installNote: installInfo?.note ?? null,
     updateCommand: status.available ? getUpdateCommand(name) : null

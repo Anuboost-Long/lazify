@@ -45,6 +45,9 @@ function formatReset(resetsAt: string | null): string | null {
   return restHours === 0 ? `${days}d` : `${days}d ${restHours}h`;
 }
 
+/** Past this age a reported window is shown as a last-known reading, not live. */
+const STALE_READING_MS = 10 * 60_000;
+
 /** Fill colour for a remaining-allowance bar: warns as the allowance runs out. */
 function barToneClass(remainingPercent: number): string {
   if (remainingPercent <= 10) return "bg-rose-400";
@@ -62,10 +65,10 @@ function remainingOf(usedPercent: number | null): number | null {
 function Stat({ label, value }: Readonly<{ label: string; value: number }>) {
   return (
     <div className="min-w-0 flex-1">
-      <SmallText as="span" className="!text-white/35 block truncate">
+      <SmallText as="span" className="!text-muted block truncate">
         {label}
       </SmallText>
-      <MonoText as="span" className="!text-white block text-[11px]">
+      <MonoText as="span" className="!text-text block text-[11px]">
         {formatTokens(value)}
       </MonoText>
     </div>
@@ -112,7 +115,7 @@ function ResetLine({ resetsAt }: Readonly<{ resetsAt: string | null }>) {
   const countdown = formatReset(resetsAt);
 
   return (
-    <SmallText as="span" className="!text-white/35 mt-1.5 block truncate">
+    <SmallText as="span" className="!text-muted mt-1.5 block truncate">
       {`${t(translation.Agents.ResetsAt)} ${formatResetMoment(resetsAt)}${countdown ? ` · ${countdown}` : ""}`}
     </SmallText>
   );
@@ -144,17 +147,17 @@ function BlockRow({ agent }: Readonly<{ agent: AgentUsageSummary }>) {
   return (
     <div title={resetTooltip}>
       <div className="flex items-center justify-between gap-2">
-        <SmallText as="span" className="!text-white/35 truncate">
+        <SmallText as="span" className="!text-muted truncate">
           {windowLabel}
         </SmallText>
-        <MonoText as="span" className="!text-white/60 shrink-0 text-[11px]">
+        <MonoText as="span" className="!text-muted shrink-0 text-[11px]">
           {windowValue}
         </MonoText>
       </div>
 
       {/* The bar shows what is left, so it drains as the window fills up. */}
       {block && remainingPercent !== null ? (
-        <div className="mt-1 h-1 overflow-hidden rounded-full bg-white/10">
+        <div className="mt-1 h-1 overflow-hidden rounded-full bg-text/10">
           <div
             className={clsx("h-full rounded-full", barToneClass(remainingPercent))}
             style={{ width: `${Math.max(remainingPercent, 2)}%` }}
@@ -192,15 +195,15 @@ function LimitBar({
           onChange={(event) => setDraft(event.target.value)}
           placeholder={t(translation.Agents.BudgetPlaceholder)}
           className={clsx(
-            "min-w-0 flex-1 rounded border border-white/15 bg-white/[0.06] px-1.5 py-0.5",
-            "text-[11px] text-white outline-none placeholder:text-white/30"
+            "min-w-0 flex-1 rounded border border-border bg-text/[0.06] px-1.5 py-0.5",
+            "text-[11px] text-text outline-none placeholder:text-muted"
           )}
         />
         <IconButton
           icon="check-circle"
           type="submit"
           aria-label={t(translation.GlobalTerm.Save)}
-          className="text-white hover:bg-white/10 dark:hover:bg-white/10"
+          className="text-text"
         />
       </form>
     );
@@ -216,23 +219,37 @@ function LimitBar({
         }}
         className="text-left"
       >
-        <SmallText as="span" className="!text-white/35 hover:!text-white/60">
+        <SmallText as="span" className="!text-muted hover:!text-muted">
           {t(translation.Agents.SetBudget)}
         </SmallText>
       </button>
     );
   }
 
-  const { usedPercent, source, resetsAt, planType } = agent.rateLimit;
+  const { usedPercent, source, resetsAt, planType, observedAt } = agent.rateLimit;
   const remainingPercent = remainingOf(usedPercent) ?? 0;
   const planSuffix = planType ? ` · ${planType}` : "";
   const limitLabel =
     source === "reported"
       ? `${t(translation.Agents.LimitLeft)}${planSuffix}`
       : t(translation.Agents.BudgetLeft);
-  const resetTooltip = resetsAt
-    ? `${t(translation.Agents.ResetsAt)} ${formatResetMoment(resetsAt)}`
-    : undefined;
+  // A reported window can only be as current as the reading behind it: when the
+  // account cannot be reached we fall back to whatever the agent last cached,
+  // and that number must not pass for the live one.
+  const observedMs = observedAt ? Date.parse(observedAt) : NaN;
+  const staleSince =
+    source === "reported" &&
+    Number.isFinite(observedMs) &&
+    Date.now() - observedMs > STALE_READING_MS
+      ? formatResetMoment(observedAt as string)
+      : null;
+  const resetTooltip =
+    [
+      resetsAt ? `${t(translation.Agents.ResetsAt)} ${formatResetMoment(resetsAt)}` : null,
+      staleSince ? `${t(translation.Agents.ReadingStale)} ${staleSince}` : null
+    ]
+      .filter(Boolean)
+      .join(" · ") || undefined;
   const limitValue = `${Math.round(remainingPercent)}% ${t(translation.Agents.Left)}`;
 
   return (
@@ -250,16 +267,20 @@ function LimitBar({
       className="w-full text-left disabled:cursor-default"
     >
       <div className="flex items-center justify-between gap-2">
-        <SmallText as="span" className="!text-white/35 truncate">
+        <SmallText as="span" className="!text-muted truncate">
           {limitLabel}
         </SmallText>
-        <MonoText as="span" className="!text-white/60 shrink-0 text-[11px]">
-          {limitValue}
+        <MonoText as="span" className="!text-muted shrink-0 text-[11px]">
+          {staleSince ? `~${limitValue}` : limitValue}
         </MonoText>
       </div>
-      <div className="mt-1 h-1 overflow-hidden rounded-full bg-white/10">
+      <div className="mt-1 h-1 overflow-hidden rounded-full bg-text/10">
         <div
-          className={clsx("h-full rounded-full", barToneClass(remainingPercent))}
+          className={clsx(
+            "h-full rounded-full",
+            barToneClass(remainingPercent),
+            staleSince && "opacity-50"
+          )}
           style={{ width: `${Math.max(remainingPercent, 2)}%` }}
         />
       </div>
@@ -285,13 +306,13 @@ export function AgentUsagePanel({
   return (
     <aside
       className={clsx(
-        "flex w-72 shrink-0 flex-col overflow-hidden border-l border-white/10",
-        "bg-white/[0.02]"
+        "flex w-72 shrink-0 flex-col overflow-hidden border-l border-border",
+        "bg-text/[0.02]"
       )}
     >
-      <header className="flex items-center gap-1 border-b border-white/10 px-2 py-1.5">
-        <UiIcon name="activity" className="ml-1 h-3.5 w-3.5 text-white/70" />
-        <SmallText as="span" className="!text-white truncate">
+      <header className="flex items-center gap-1 border-b border-border px-2 py-1.5">
+        <UiIcon name="activity" className="ml-1 h-3.5 w-3.5 text-muted" />
+        <SmallText as="span" className="!text-text truncate">
           {t(translation.Agents.Usage)}
         </SmallText>
 
@@ -301,34 +322,34 @@ export function AgentUsagePanel({
             aria-label={t(translation.GlobalTerm.Refresh)}
             onClick={onRefresh}
             iconClassName={loading ? "animate-spin" : undefined}
-            className="text-white hover:bg-white/10 dark:hover:bg-white/10"
+            className="text-text"
           />
           <IconButton
             icon="xmark"
             aria-label={t(translation.GlobalTerm.Close)}
             onClick={onClose}
-            className="text-white hover:bg-white/10 dark:hover:bg-white/10"
+            className="text-text"
           />
         </div>
       </header>
 
       <div className="min-h-0 flex-1 space-y-2 overflow-auto p-2">
         {report === null ? (
-          <SmallText className="!text-white/40 px-1 py-2">
+          <SmallText className="!text-muted px-1 py-2">
             {t(translation.GlobalTerm.Loading)}
           </SmallText>
         ) : (
           report.agents.map((agent) => (
             <section
               key={agent.agentId}
-              className="space-y-2 rounded-xl border border-white/10 bg-white/[0.03] p-2"
+              className="space-y-2 rounded-xl border border-border bg-text/[0.03] p-2"
             >
               <div className="flex items-center gap-2">
                 <AgentGlyph agentId={agent.agentId} className="h-3.5 w-3.5" />
-                <SmallText as="span" className="!text-white truncate">
+                <SmallText as="span" className="!text-text truncate">
                   {agent.label}
                 </SmallText>
-                <MonoText as="span" className="!text-white/40 ml-auto shrink-0 text-[11px]">
+                <MonoText as="span" className="!text-muted ml-auto shrink-0 text-[11px]">
                   {`${formatTokens(agent.allTime.total)} ${t(translation.Agents.AllTime)}`}
                 </MonoText>
               </div>
@@ -344,7 +365,7 @@ export function AgentUsagePanel({
                   </div>
                 </>
               ) : (
-                <SmallText as="span" className="!text-white/35 block">
+                <SmallText as="span" className="!text-muted block">
                   {t(translation.Agents.NoUsageData)}
                 </SmallText>
               )}

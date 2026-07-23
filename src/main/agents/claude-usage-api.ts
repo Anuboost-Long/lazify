@@ -23,6 +23,13 @@ const KEYCHAIN_SERVICE = "Claude Code-credentials";
 const CREDENTIALS_FILE = path.join(os.homedir(), ".claude", ".credentials.json");
 const CLAUDE_CONFIG = path.join(os.homedir(), ".claude.json");
 const REQUEST_TIMEOUT_MS = 8_000;
+/**
+ * The panel refreshes every 15s, but the endpoint is metered and answers 429
+ * long before that pays off — the percentages only move once per turn anyway.
+ */
+const LIVE_TTL_MS = 60_000;
+/** How long to stop asking after the account turns us away. */
+const COOLDOWN_MS = 5 * 60_000;
 
 const run = promisify(execFile);
 
@@ -49,6 +56,15 @@ interface StoredCredentials {
  * refreshes, and each refresh reports the account as it is right then.
  */
 let inFlight: Promise<ClaudeUtilization | null> | null = null;
+
+/**
+ * The last reading the account itself gave us, and the moment we may ask again.
+ * Kept across refreshes: a 429 says nothing about the numbers, so the previous
+ * live answer stays a far better report than the copy Claude Code left on disk
+ * hours ago.
+ */
+let lastLive: ClaudeUtilization | null = null;
+let nextAttemptMs = 0;
 
 /**
  * The CLI's own OAuth token: Keychain on macOS, a plain file elsewhere. Read
@@ -110,10 +126,17 @@ function readCachedUtilization(): ClaudeUtilization | null {
 
     if (!cachedUsage?.utilization) return null;
 
+    // A window that has already reset says nothing about the one running now.
+    const unexpired = (window: UtilizationWindow | null | undefined) => {
+      if (!window) return null;
+      const resetsMs = window.resets_at ? Date.parse(window.resets_at) : 0;
+      return resetsMs && resetsMs <= Date.now() ? null : window;
+    };
+
     return {
       observedAt: new Date(cachedUsage.fetchedAtMs ?? Date.now()).toISOString(),
-      fiveHour: cachedUsage.utilization.five_hour ?? null,
-      sevenDay: cachedUsage.utilization.seven_day ?? null,
+      fiveHour: unexpired(cachedUsage.utilization.five_hour),
+      sevenDay: unexpired(cachedUsage.utilization.seven_day),
       live: false,
     };
   } catch {
@@ -134,7 +157,17 @@ async function fetchUtilization(): Promise<ClaudeUtilization | null> {
       signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
     });
 
-    if (!response.ok) return null;
+    if (!response.ok) {
+      // Rate limited or rejected: stand down for a while rather than spending
+      // every 15s refresh on another refusal.
+      const retryAfter = Number(response.headers.get("retry-after"));
+      nextAttemptMs =
+        Date.now() +
+        (Number.isFinite(retryAfter) && retryAfter > 0
+          ? retryAfter * 1_000
+          : COOLDOWN_MS);
+      return null;
+    }
 
     const body = (await response.json()) as {
       five_hour?: UtilizationWindow | null;
@@ -148,9 +181,17 @@ async function fetchUtilization(): Promise<ClaudeUtilization | null> {
       live: true,
     };
   } catch {
-    // Offline, rate limited, or the token was rejected.
+    // Offline or timed out.
+    nextAttemptMs = Date.now() + COOLDOWN_MS;
     return null;
   }
+}
+
+/** True once a reading is old enough that the account may have moved on. */
+function isFresh(reading: ClaudeUtilization | null, ttlMs: number): boolean {
+  if (!reading) return false;
+  const observedMs = Date.parse(reading.observedAt);
+  return Number.isFinite(observedMs) && Date.now() - observedMs < ttlMs;
 }
 
 /**
@@ -158,8 +199,20 @@ async function fetchUtilization(): Promise<ClaudeUtilization | null> {
  * Code last cached on disk. Null only when neither is available.
  */
 export function getClaudeUtilization(): Promise<ClaudeUtilization | null> {
+  // Still within the TTL, or told to back off: answer from what we already have
+  // instead of asking again.
+  if (isFresh(lastLive, LIVE_TTL_MS) || Date.now() < nextAttemptMs) {
+    return Promise.resolve(lastLive ?? readCachedUtilization());
+  }
+
   inFlight ??= fetchUtilization()
-    .then((live) => live ?? readCachedUtilization())
+    .then((live) => {
+      if (live) {
+        lastLive = live;
+        nextAttemptMs = 0;
+      }
+      return live ?? lastLive ?? readCachedUtilization();
+    })
     .finally(() => {
       inFlight = null;
     });

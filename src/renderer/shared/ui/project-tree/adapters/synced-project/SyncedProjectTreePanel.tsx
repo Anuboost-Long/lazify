@@ -2,9 +2,13 @@ import type { ReactNode } from "react";
 import { translation } from "@renderer/i18n/translation";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import { ProjectTreeEditorPanel } from "@renderer/shared/ui/project-tree/core/ProjectTreeEditorPanel";
-import { OptimizedContextMenu } from "@renderer/shared/ui/project-tree-optimized/OptimizedContextMenu";
+import { TreeContextMenu } from "@renderer/shared/ui/project-tree/TreeContextMenu";
+import { EditorTabBar } from "@renderer/shared/ui/code/EditorTabBar";
+import { ExplorerActions } from "@renderer/shared/ui/project-tree-optimized/ExplorerActions";
 import { OptimizedEditorPane } from "@renderer/shared/ui/project-tree-optimized/OptimizedEditorPane";
+import { WorkbenchSidebar } from "@renderer/shared/ui/project-tree/sidebar/WorkbenchSidebar";
 import { findNodeById } from "@renderer/shared/ui/project-tree-optimized/tree-utils";
+import type { SidebarView } from "@renderer/shared/ui/project-tree/sidebar/types";
 import type {
   GitStatusEntry,
   ImportedProjectIndexResult,
@@ -18,9 +22,14 @@ interface SyncedProjectTreePanelProps {
   busy: boolean;
   editable?: boolean;
   project: ImportedProjectIndexResult;
+  /** Project tools shown in the workbench's right-hand rail. */
+  toolViews?: SidebarView[];
   renderGitInfo?: (props: {
     gitStatus: ProjectGitStatusResult | null;
     loading: boolean;
+    /** Rendered unconditionally now, because it is an overlay. */
+    open: boolean;
+    onClose: () => void;
   }) => ReactNode;
   renderGitPane?: (props: {
     busy: boolean;
@@ -28,6 +37,8 @@ interface SyncedProjectTreePanelProps {
     loading: boolean;
     selectedPath: string | null;
     onSelect: (entry: GitStatusEntry) => void;
+    projectPath: string;
+    onBranchSwitched: () => void;
   }) => ReactNode;
 }
 
@@ -36,6 +47,7 @@ export function SyncedProjectTreePanel({
   busy,
   editable = false,
   project,
+  toolViews,
   renderGitInfo,
   renderGitPane,
 }: SyncedProjectTreePanelProps) {
@@ -55,7 +67,8 @@ export function SyncedProjectTreePanel({
       description={t(translation.ProjectTree.ProjectContentsDesc)}
       projectName={project.projectName}
       subLabel={project.projectPath}
-      gridClassName="xl:grid-cols-[320px_minmax(0,1fr)]"
+      layout="workbench"
+      toolViews={toolViews}
       tree={adapter.editableTree}
       expandedIds={adapter.expandedIds}
       selectedId={adapter.selectedId}
@@ -81,79 +94,88 @@ export function SyncedProjectTreePanel({
         if (node) adapter.handleSelectNode(node);
       }}
       onToggleExpand={adapter.handleToggleExpand}
-      headerAccessory={
-        <div className="inline-flex items-center gap-2 rounded-full border border-border bg-bg px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-muted">
-          <UiIcon name="folder" className="h-4 w-4 text-accent" />
-          {editable ? t(translation.ProjectTree.EditableWorkspaceView) : t(translation.ProjectTree.ReadOnlyWorkspaceView)}
-        </div>
+      renderSidebar={
+        allowGitStatus && renderGitPane
+          ? (explorer) => (
+              <WorkbenchSidebar
+                activeId={adapter.activePanel}
+                onChange={(id) => adapter.setActivePanel(id as "explorer" | "git")}
+                views={[
+                  {
+                    id: "explorer",
+                    label: t(translation.ProjectTree.Explorer),
+                    icon: "folder",
+                    actions: editable ? (
+                      <ExplorerActions compact onCreateEntry={adapter.handleCreateEntry} />
+                    ) : null,
+                    content: explorer,
+                  },
+                  {
+                    id: "git",
+                    label: t(translation.GitStatus.Title),
+                    icon: "activity",
+                    actions: (
+                      <button
+                        type="button"
+                        onClick={() => adapter.setShowGitInfo(true)}
+                        title={t(translation.ProjectTree.GitInfo)}
+                        aria-label={t(translation.ProjectTree.GitInfo)}
+                        className="flex h-6 w-6 items-center justify-center rounded-md text-muted transition-colors hover:bg-accent/10 hover:text-accent"
+                      >
+                        <UiIcon name="journal-page" className="h-3.5 w-3.5" />
+                      </button>
+                    ),
+                    content: renderGitPane({
+                      busy,
+                      gitStatus: adapter.gitStatus,
+                      loading: adapter.gitStatusLoading,
+                      selectedPath: adapter.activeTab?.filePath ?? null,
+                      onSelect: adapter.handleOpenDiff,
+                      projectPath: project.projectPath,
+                      onBranchSwitched: adapter.refreshGitStatus,
+                    }),
+                  },
+                ]}
+              />
+            )
+          : undefined
       }
-      extraContent={
-        allowGitStatus ? (
-          <div className="mt-5 flex flex-col gap-4">
-            <div className="flex flex-wrap gap-3">
-              <button
-                type="button"
-                onClick={() => adapter.setShowGitInfo((current) => !current)}
-                className={
-                  adapter.showGitInfo
-                    ? "inline-flex items-center gap-2 rounded-full border border-accent bg-accentSoft px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-accent"
-                    : "inline-flex items-center gap-2 rounded-full border border-border bg-bg px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-muted"
-                }
-              >
-                <UiIcon name="activity" className="h-4 w-4" />
-                {t(translation.ProjectTree.GitInfo)}
-              </button>
-            </div>
-            {adapter.showGitInfo && renderGitInfo ? renderGitInfo({
+      overlays={
+        renderGitInfo
+          ? renderGitInfo({
               gitStatus: adapter.gitStatus,
               loading: adapter.gitStatusLoading,
-            }) : null}
-            <div className="inline-flex rounded-full border border-border bg-bg p-1">
-              <button
-                type="button"
-                onClick={() => adapter.setActivePanel("explorer")}
-                className={
-                  adapter.activePanel === "explorer"
-                    ? "rounded-full bg-accent px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-white"
-                    : "rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-muted"
-                }
-              >
-                {t(translation.ProjectTree.Explorer)}
-              </button>
-              <button
-                type="button"
-                onClick={() => adapter.setActivePanel("git")}
-                className={
-                  adapter.activePanel === "git"
-                    ? "rounded-full bg-accent px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-white"
-                    : "rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-muted"
-                }
-              >
-                {t(translation.GitStatus.Title)}
-              </button>
-            </div>
-          </div>
-        ) : null
-      }
-      leftPane={
-        adapter.activePanel === "git" && allowGitStatus && renderGitPane ? renderGitPane({
-          busy,
-          gitStatus: adapter.gitStatus,
-          loading: adapter.gitStatusLoading,
-          selectedPath: adapter.activeFilePath,
-          onSelect: adapter.handleOpenGitEntry,
-        }) : undefined
+              open: adapter.showGitInfo,
+              onClose: () => adapter.setShowGitInfo(false),
+            })
+          : null
       }
       editor={
         <OptimizedEditorPane
-          selectedNode={adapter.selectedNode}
+          chrome="flush"
+          /* With nothing open the shell keeps its "no file selected" title. */
+          tabs={
+            adapter.openFiles.length > 0 ? (
+              <EditorTabBar
+                tabs={adapter.openFiles}
+                activePath={adapter.activeFilePath}
+                onSelect={adapter.handleSelectOpenFile}
+                onClose={adapter.handleCloseOpenFile}
+                onReorder={adapter.handleReorderOpenFiles}
+              />
+            ) : undefined
+          }
+          activeTab={adapter.activeTab}
+          onCloseAll={adapter.handleCloseAllOpenFiles}
+          openTabCount={adapter.openFiles.length}
+          selectedNode={adapter.activeFileNode}
           selectedFileState={adapter.selectedFileState}
         />
       }
       contextMenu={
         editable ? (
-          <OptimizedContextMenu
-            contextMenu={adapter.contextMenu}
+          <TreeContextMenu
+            position={adapter.contextMenu}
             onNewFile={() => adapter.handleCreateEntry("file")}
             onNewFolder={() => adapter.handleCreateEntry("folder")}
             onRename={adapter.handleStartRename}

@@ -19,8 +19,15 @@ import {
   importProjectIndexFromDirectory,
   readImportedProjectFile
 } from "./project-importer-optimized";
-import { getProjectGitStatus } from "./project-git-status";
-import { getFileDiff, getWorkingChanges } from "./agent-changes";
+import { checkoutProjectBranch, getProjectGitStatus } from "./project-git-status";
+import {
+  commitChanges,
+  discardChanges,
+  pushCurrentBranch,
+  stageFiles,
+  unstageFiles
+} from "./git-actions";
+import { cleanupShadowRepos, getFileDiff, getWorkingChanges } from "./agent-changes";
 import { getNpmOutdated, getNpmAudit } from "./project-health";
 import { choosePackageManager, scanEnvironment } from "./scanner";
 import { resolveDevPortInjection } from "./dev-port";
@@ -30,11 +37,14 @@ import { WorkflowEngine } from "./workflow-engine";
 import { getAgentDefinition, listAgents } from "./agents/agent-registry";
 import { addCustomAgent, removeCustomAgent, type CustomAgentInput } from "./agents/custom-agents-store";
 import { getAgentUsage } from "./agents/agent-usage";
+import { watchAgentActivity } from "./agents/agent-activity-watcher";
 import { setAgentBudget } from "./agents/agent-limits-store";
+import { listHighlightingAssets, openHighlightingFolder } from "./highlighting-store";
 import { matchPackageVersions } from "../brain/package-version-matcher";
 import { normalizeRuntimePath } from "./runtime-path";
 
 let mainWindow: BrowserWindow | null = null;
+let stopAgentActivityWatch: (() => void) | null = null;
 
 const emitToRenderer = (channel: string, payload: unknown) => {
   mainWindow?.webContents.send(channel, payload);
@@ -159,8 +169,10 @@ function registerIpcHandlers() {
     getWorkingChanges(projectPath)
   );
 
-  ipcMain.handle("lazify:file-diff", async (_event, projectPath: string, filePath: string) =>
-    getFileDiff(projectPath, filePath)
+  ipcMain.handle(
+    "lazify:file-diff",
+    async (_event, projectPath: string, filePath: string, fullFile?: boolean) =>
+      getFileDiff(projectPath, filePath, fullFile)
   );
 
   ipcMain.handle("lazify:npm-outdated", async (_event, projectPath: string) =>
@@ -239,8 +251,10 @@ function registerIpcHandlers() {
     addCustomAgent(input)
   );
 
-  ipcMain.handle("lazify:agent-usage", async (_event, sinceIso?: string) =>
-    getAgentUsage(sinceIso)
+  ipcMain.handle(
+    "lazify:agent-usage",
+    async (_event, sinceIso?: string, agentIds?: string[]) =>
+      getAgentUsage(sinceIso, agentIds)
   );
 
   ipcMain.handle(
@@ -252,6 +266,34 @@ function registerIpcHandlers() {
   ipcMain.handle("lazify:remove-custom-agent", async (_event, agentId: string) =>
     removeCustomAgent(agentId)
   );
+
+  ipcMain.handle("lazify:checkout-branch", async (_event, projectPath: string, branch: string) =>
+    checkoutProjectBranch(projectPath, branch)
+  );
+
+  ipcMain.handle("lazify:stage-files", async (_event, projectPath: string, paths: string[]) =>
+    stageFiles(projectPath, paths)
+  );
+
+  ipcMain.handle("lazify:unstage-files", async (_event, projectPath: string, paths: string[]) =>
+    unstageFiles(projectPath, paths)
+  );
+
+  ipcMain.handle("lazify:discard-changes", async (_event, projectPath: string, paths: string[]) =>
+    discardChanges(projectPath, paths)
+  );
+
+  ipcMain.handle("lazify:commit-changes", async (_event, projectPath: string, message: string) =>
+    commitChanges(projectPath, message)
+  );
+
+  ipcMain.handle("lazify:push-branch", async (_event, projectPath: string) =>
+    pushCurrentBranch(projectPath)
+  );
+
+  ipcMain.handle("lazify:highlighting-assets", async () => listHighlightingAssets());
+
+  ipcMain.handle("lazify:open-highlighting-folder", async () => openHighlightingFolder());
 
   // Agents are plain interactive CLIs: run them in a PTY and let xterm render.
   // Input, resize, and teardown reuse the existing pty-write/resize/stop-script channels.
@@ -338,6 +380,8 @@ function registerIpcHandlers() {
 
 app.whenReady().then(() => {
   normalizeRuntimePath();
+  // Sweeps up anything a previous run was killed before it could delete.
+  cleanupShadowRepos();
 
   if (process.platform === "darwin") {
     app.dock.setIcon(path.join(app.getAppPath(), "build/icon.png"));
@@ -346,11 +390,23 @@ app.whenReady().then(() => {
   registerIpcHandlers();
   mainWindow = createMainWindow();
 
+  // The usage panel listens for this instead of polling on a timer.
+  stopAgentActivityWatch = watchAgentActivity((event) =>
+    emitToRenderer("lazify:agent-activity", event)
+  );
+
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) {
       mainWindow = createMainWindow();
     }
   });
+});
+
+// The shadow repos are session scratch space, so they leave with the session.
+app.on("will-quit", () => {
+  cleanupShadowRepos();
+  stopAgentActivityWatch?.();
+  stopAgentActivityWatch = null;
 });
 
 app.on("window-all-closed", () => {
