@@ -12,7 +12,7 @@ import { BrowserGuest, type GuestStatus } from "./BrowserGuest";
 import { BrowserStartPage } from "./BrowserStartPage";
 import { LazyShieldPanel } from "./LazyShieldPanel";
 import { SendToAgentButton } from "./SendToAgentButton";
-import { useBrowserTabs } from "../hooks/use-browser-tabs";
+import { useBrowserTabs, type BrowserTab } from "../hooks/use-browser-tabs";
 import { useLazyShield } from "../hooks/use-lazy-shield";
 import { tabLabel } from "../lib/browser-url";
 
@@ -72,8 +72,17 @@ interface BrowserSurfaceProps {
  */
 export function BrowserSurface({ visible }: Readonly<BrowserSurfaceProps>) {
   const { t } = useTranslation();
-  const { tabs, activeTab, activeId, setActiveId, openTab, closeTab, patchTab, navigateActive } =
-    useBrowserTabs();
+  const {
+    tabs,
+    activeTab,
+    activeId,
+    setActiveId,
+    openTab,
+    closeTab,
+    reorderTab,
+    patchTab,
+    navigateActive
+  } = useBrowserTabs();
 
   const shield = useLazyShield();
   const pagePip = usePictureInPicture("browser");
@@ -83,6 +92,34 @@ export function BrowserSurface({ visible }: Readonly<BrowserSurfaceProps>) {
   const [address, setAddress] = useState("");
   /** True while the user is editing, so the guest does not overwrite them. */
   const editingRef = useRef(false);
+  /** Tab being dragged in the strip, and the one it would drop onto. */
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [dropTargetId, setDropTargetId] = useState<string | null>(null);
+
+  const endDrag = () => {
+    setDraggingId(null);
+    setDropTargetId(null);
+  };
+
+  /**
+   * The order the guests are rendered in, which is deliberately NOT the strip's.
+   *
+   * Reordering a keyed list makes React move the DOM nodes, and moving a
+   * <webview> detaches it — the page reloads and whatever it was playing stops.
+   * Guests are absolutely positioned and stacked by z-index, so their order is
+   * invisible anyway: each one keeps the slot it first mounted in for as long
+   * as its tab exists, however the strip above is rearranged.
+   */
+  const guestOrder = useRef<string[]>([]);
+  for (const tab of tabs) {
+    if (!guestOrder.current.includes(tab.id)) guestOrder.current.push(tab.id);
+  }
+  guestOrder.current = guestOrder.current.filter((id) =>
+    tabs.some((tab) => tab.id === id)
+  );
+  const guestTabs = guestOrder.current
+    .map((id) => tabs.find((tab) => tab.id === id))
+    .filter((tab): tab is BrowserTab => Boolean(tab?.url));
 
   const views = useRef(new Map<string, LazifyWebviewElement>());
   const registerView = useCallback((tabId: string, view: LazifyWebviewElement | null) => {
@@ -146,16 +183,56 @@ export function BrowserSurface({ visible }: Readonly<BrowserSurfaceProps>) {
     >
       {/* Tab strip */}
       <div className="flex items-center gap-1 overflow-x-auto border-b border-border px-2 py-1.5">
-        {tabs.map((tab) => {
+        {tabs.map((tab, index) => {
           const isActive = tab.id === activeId;
+          const isDragging = tab.id === draggingId;
+          const isDropTarget = tab.id === dropTargetId && !isDragging;
+          // The insertion line sits on the edge the tab would arrive from.
+          const draggingIndex = tabs.findIndex((candidate) => candidate.id === draggingId);
+          const dropsAfter = draggingIndex !== -1 && draggingIndex < index;
+
           return (
             <div
               key={tab.id}
+              draggable
+              onDragStart={(event) => {
+                setDraggingId(tab.id);
+                event.dataTransfer.effectAllowed = "move";
+                // Firefox refuses to start a drag without payload.
+                event.dataTransfer.setData("text/plain", tab.id);
+              }}
+              onDragOver={(event) => {
+                if (!draggingId) return;
+                // Preventing the default is what marks this a valid drop target.
+                event.preventDefault();
+                event.dataTransfer.dropEffect = "move";
+                setDropTargetId(tab.id);
+              }}
+              onDragLeave={() => {
+                setDropTargetId((current) => (current === tab.id ? null : current));
+              }}
+              onDrop={(event) => {
+                event.preventDefault();
+                if (draggingId) reorderTab(draggingId, tab.id);
+                endDrag();
+              }}
+              onDragEnd={endDrag}
               className={clsx(
-                "flex shrink-0 items-center gap-2 rounded-lg px-3 py-1.5",
-                isActive ? "bg-text/[0.10]" : "hover:bg-text/[0.06]"
+                "relative flex shrink-0 items-center gap-2 rounded-lg px-3 py-1.5",
+                "cursor-grab active:cursor-grabbing",
+                isActive ? "bg-text/[0.10]" : "hover:bg-text/[0.06]",
+                isDragging && "opacity-40"
               )}
             >
+              {isDropTarget ? (
+                <span
+                  aria-hidden
+                  className={clsx(
+                    "absolute inset-y-1 w-0.5 rounded-full bg-accent",
+                    dropsAfter ? "-right-0.5" : "-left-0.5"
+                  )}
+                />
+              ) : null}
               <button
                 type="button"
                 onClick={() => setActiveId(tab.id)}
@@ -294,19 +371,17 @@ export function BrowserSurface({ visible }: Readonly<BrowserSurfaceProps>) {
           A tab still on its start page has no guest, so an idle tab costs no
           renderer process at all. */}
       <div className="relative min-h-0 flex-1">
-        {tabs
-          .filter((tab) => tab.url)
-          .map((tab) => (
-            <BrowserGuest
-              key={tab.id}
-              tab={tab}
-              active={tab.id === activeId}
-              surfaceVisible={visible}
-              onRegister={registerView}
-              onStatus={handleStatus}
-              onNavigate={handleNavigate}
-            />
-          ))}
+        {guestTabs.map((tab) => (
+          <BrowserGuest
+            key={tab.id}
+            tab={tab}
+            active={tab.id === activeId}
+            surfaceVisible={visible}
+            onRegister={registerView}
+            onStatus={handleStatus}
+            onNavigate={handleNavigate}
+          />
+        ))}
 
         {activeTab && !activeTab.url ? (
           <div className="absolute inset-0 z-10 bg-bg">

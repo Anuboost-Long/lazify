@@ -11,6 +11,7 @@ import { CategorySection } from "../components/CategorySection";
 import { NodeVersionModal } from "../components/NodeVersionModal";
 import { InstallToolModal } from "../components/InstallToolModal";
 import { UpdateToolModal } from "../components/UpdateToolModal";
+import { UninstallToolModal } from "../components/UninstallToolModal";
 import { PortReaperSection } from "../components/PortReaperSection";
 
 interface EnvironmentPageProps {
@@ -19,7 +20,9 @@ interface EnvironmentPageProps {
   onRefresh: () => void;
 }
 
-const categoryOrder: ToolCategory[] = ["nodejs", "python", "dotnet", "system"];
+// Agents lead: they are what the app is for, and the only group whose members
+// are meant to be added and dropped rather than simply present.
+const categoryOrder: ToolCategory[] = ["agents", "nodejs", "python", "dotnet", "system"];
 
 export function EnvironmentPage({ report, loading, onRefresh }: EnvironmentPageProps) {
   const { t } = useTranslation();
@@ -57,12 +60,25 @@ export function EnvironmentPage({ report, loading, onRefresh }: EnvironmentPageP
     setTimeout(() => { setUpdateTarget(null); setUpdateInfo(null); }, 350);
   };
 
+  const [uninstallTarget, setUninstallTarget] = useState<ToolScanReport["tools"][number] | null>(null);
+  const [uninstallOpen, setUninstallOpen] = useState(false);
+
+  const openUninstall = (tool: ToolScanReport["tools"][number]) => {
+    setUninstallTarget(tool);
+    setUninstallOpen(true);
+  };
+
+  const closeUninstall = () => {
+    setUninstallOpen(false);
+    setTimeout(() => setUninstallTarget(null), 350);
+  };
+
   const groupedTools = categoryOrder.reduce<Record<ToolCategory, ToolScanReport["tools"]>>(
     (acc, category) => {
       acc[category] = report?.tools.filter((t) => t.category === category) ?? [];
       return acc;
     },
-    { nodejs: [], python: [], dotnet: [], system: [] }
+    { agents: [], nodejs: [], python: [], dotnet: [], system: [] }
   );
 
   return (
@@ -118,6 +134,7 @@ export function EnvironmentPage({ report, loading, onRefresh }: EnvironmentPageP
                 onNvmAction={() => setNodeModalOpen(true)}
                 onInstall={openInstall}
                 onUpdate={openUpdate}
+                onUninstall={openUninstall}
               />
             ) : null
           )}
@@ -143,6 +160,13 @@ export function EnvironmentPage({ report, loading, onRefresh }: EnvironmentPageP
         open={installOpen}
         onClose={closeInstall}
         onInstalled={(toolName) => { closeInstall(); void refreshSingleTool(toolName); }}
+      />
+
+      <UninstallToolModal
+        tool={uninstallTarget}
+        open={uninstallOpen}
+        onClose={closeUninstall}
+        onUninstalled={(toolName) => { closeUninstall(); void refreshSingleTool(toolName); }}
       />
 
       <UpdateToolModal

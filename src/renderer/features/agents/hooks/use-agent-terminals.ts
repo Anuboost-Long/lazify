@@ -61,6 +61,31 @@ const waitingProjectByRunIdAtom = atom<Record<string, string>>({});
  */
 let sessionsHydrated = false;
 
+/**
+ * Selects the tab a run is showing in, from outside the agents page.
+ *
+ * The done alert — and the OS banner behind it — has a run id, not a tab, so
+ * this is how clicking either lands the user on the terminal that finished
+ * rather than on whatever tab that project last had open.
+ */
+export function useFocusAgentRun() {
+  const terminals = useAtomValue(terminalsAtom);
+  const setActiveByProject = useSetAtom(activeTabIdAtom);
+
+  return useCallback(
+    (runId: string) => {
+      const target = terminals.find((terminal) => terminal.runId === runId);
+      if (!target) return;
+
+      setActiveByProject((current) => ({
+        ...current,
+        [target.projectPath]: target.tabId,
+      }));
+    },
+    [terminals, setActiveByProject],
+  );
+}
+
 export function useAgentTerminals(projectPath: string) {
   const [terminals, setTerminals] = useAtom(terminalsAtom);
   const [activeByProject, setActiveByProject] = useAtom(activeTabIdAtom);
@@ -307,7 +332,8 @@ export function useAgentTerminals(projectPath: string) {
   );
 
   const openTerminal = useCallback(
-    async (agentId: string) => {
+    /** With a session id, the agent picks that conversation up where it stopped. */
+    async (agentId: string, resumeSessionId?: string) => {
       const agent = availableAgents.find(
         (candidate) => candidate.id === agentId,
       );
@@ -318,6 +344,9 @@ export function useAgentTerminals(projectPath: string) {
           const { runId } = await globalThis.lazify.openAgentTerminal(
             agentId,
             projectPath,
+            undefined,
+            undefined,
+            resumeSessionId,
           );
           return runId;
         },

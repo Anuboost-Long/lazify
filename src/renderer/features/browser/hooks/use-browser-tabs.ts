@@ -99,6 +99,28 @@ export function useBrowserTabs() {
     });
   }, []);
 
+  /**
+   * Drops the dragged tab onto the target's position, shifting the rest.
+   *
+   * Only the strip's order changes. The guests are rendered from their own
+   * stable order for good reason — see the note in BrowserSurface.
+   */
+  const reorderTab = useCallback((fromId: string, toId: string) => {
+    if (fromId === toId) return;
+
+    setTabs((current) => {
+      const from = current.findIndex((tab) => tab.id === fromId);
+      const to = current.findIndex((tab) => tab.id === toId);
+
+      if (from === -1 || to === -1) return current;
+
+      const next = [...current];
+      next.splice(to, 0, next.splice(from, 1)[0]);
+
+      return next;
+    });
+  }, []);
+
   /** Points the active tab at a new address, from the bar or a shortcut. */
   const navigateActive = useCallback(
     (rawInput: string) => {
@@ -127,6 +149,7 @@ export function useBrowserTabs() {
     setActiveId,
     openTab,
     closeTab,
+    reorderTab,
     patchTab,
     navigateActive
   };

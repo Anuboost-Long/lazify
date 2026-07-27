@@ -16,6 +16,15 @@
 const TAIL_LIMIT = 4000;
 
 /**
+ * Silence that means a working agent has finished its turn.
+ *
+ * Agents animate a status line for as long as they are working, so their output
+ * never goes quiet mid-task. A gap this long after a working spell — with no
+ * prompt on screen — is the agent having handed the work back.
+ */
+const IDLE_SETTLE_MS = 3000;
+
+/**
  * Prompt shapes, matched against ANSI-stripped output.
  *
  * The goal is to catch *any* point where the agent has stopped and is waiting
@@ -96,17 +105,30 @@ function lastMatchEnd(text: string, patterns: RegExp[]): number {
 interface SessionState {
   tail: string;
   waiting: boolean;
+  /** True once the agent has been seen working, until its turn is reported. */
+  busy: boolean;
+  /** Pending "the output has gone quiet" check for the current turn. */
+  idleTimer: NodeJS.Timeout | null;
 }
 
 export class AttentionDetector {
   private readonly sessions = new Map<string, SessionState>();
 
+  /**
+   * @param onTurnDone Called once per turn, when an agent that was working goes
+   * quiet without a prompt on screen — it finished what it was asked for.
+   */
+  constructor(private readonly onTurnDone?: (runId: string) => void) {}
+
   /** Registers a session to watch. Only agent runs should be tracked. */
   track(runId: string): void {
-    this.sessions.set(runId, { tail: "", waiting: false });
+    this.sessions.set(runId, { tail: "", waiting: false, busy: false, idleTimer: null });
   }
 
   forget(runId: string): void {
+    const session = this.sessions.get(runId);
+    if (session?.idleTimer) clearTimeout(session.idleTimer);
+
     this.sessions.delete(runId);
   }
 
@@ -156,6 +178,12 @@ export class AttentionDetector {
       );
     }
 
+    // The end of a turn is a working agent going quiet. Arm on the working
+    // status line, then let every further chunk push the check back, so it is
+    // the moment the redraws stop that counts as the work having landed.
+    if (resumedAt > promptAt) session.busy = true;
+    if (session.busy) this.scheduleIdleCheck(runId, session);
+
     if (prompting === session.waiting) return null;
 
     session.waiting = prompting;
@@ -166,6 +194,22 @@ export class AttentionDetector {
     // straight back off. Leaving the prompt in the rolling window keeps it
     // detected; a real answer (clear()) or a later "resumed" line turns it off.
     return prompting;
+  }
+
+  /** (Re)starts the quiet-output check that reports the end of a turn. */
+  private scheduleIdleCheck(runId: string, session: SessionState): void {
+    if (session.idleTimer) clearTimeout(session.idleTimer);
+
+    session.idleTimer = setTimeout(() => {
+      session.idleTimer = null;
+
+      // A prompt on screen is the agent asking rather than finishing — that is
+      // the bell's job, and output resuming re-arms this check for the real end.
+      if (!session.busy || session.waiting) return;
+
+      session.busy = false;
+      this.onTurnDone?.(runId);
+    }, IDLE_SETTLE_MS);
   }
 
   /**

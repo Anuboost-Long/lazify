@@ -6,6 +6,7 @@ import { XTermPanel } from "@renderer/features/workspace/components/XTermPanel";
 import { translation } from "@renderer/i18n/translation";
 import type { SyncedWorkspaceProject } from "@renderer/shared/types/lazify";
 import { Toast } from "@renderer/shared/ui/toast/Toast";
+import { AgentActivityPanel } from "../components/AgentActivityPanel";
 import { AgentChangesPanel } from "../components/AgentChangesPanel";
 import { AgentFilesPanel } from "../components/AgentFilesPanel";
 import { AgentUsagePanel } from "../components/AgentUsagePanel";
@@ -15,10 +16,11 @@ import { AgentProjectPicker } from "../components/AgentProjectPicker";
 import { AgentTabBar, type AgentRailTab } from "../components/AgentTabBar";
 import { AgentDebugPanel } from "../components/AgentDebugPanel";
 import { AgentPreviewPanel } from "../components/AgentPreviewPanel";
+import { useAgentActivity } from "../hooks/use-agent-activity";
 import { useAgentChanges } from "../hooks/use-agent-changes";
 import { useAgentUsage } from "../hooks/use-agent-usage";
 import { usePreviewUrl } from "../hooks/use-preview-url";
-import { useAgentTerminals } from "../hooks/use-agent-terminals";
+import { useAgentTerminals, useFocusAgentRun } from "../hooks/use-agent-terminals";
 
 /**
  * Tab id the preview answers to. It is not a PTY, so it never enters the
@@ -73,6 +75,14 @@ export function AgentsPage({
     projectPath,
     railTab === "changes",
   );
+  // The alerts, kept: which agent asked, which finished, and when.
+  const {
+    entries: activityEntries,
+    unreadCount: activityUnread,
+    markRead: markActivityRead,
+    clear: clearActivity,
+  } = useAgentActivity();
+  const focusAgentRun = useFocusAgentRun();
   const {
     availableAgents,
     openAgentIds,
@@ -245,6 +255,7 @@ export function AgentsPage({
               showDebug={Boolean(scriptTerminal)}
               waitingTabIds={waitingTabIds}
               changeCount={sessionChanges.length}
+              activityUnread={activityUnread}
               railTab={railTab}
               onToggleRail={(tab) => {
                 setRailTab((current) => (current === tab ? null : tab));
@@ -257,6 +268,7 @@ export function AgentsPage({
               onClose={closeTerminal}
               onReorder={reorderTerminal}
               onOpen={openTerminal}
+              projectPath={projectPath}
               onRun={runProject}
               onCreateAgent={createAgent}
               onDeleteAgent={deleteAgent}
@@ -319,6 +331,22 @@ export function AgentsPage({
                   loading={loading}
                   onRefresh={refresh}
                   onReset={resetBaseline}
+                  onClose={() => setRailTab(null)}
+                />
+              ) : null}
+
+              {railTab === "activity" ? (
+                <AgentActivityPanel
+                  entries={activityEntries}
+                  projectPath={projectPath}
+                  onMarkRead={markActivityRead}
+                  onClear={clearActivity}
+                  onOpenRun={(entry) => {
+                    // A row can point at any project, so the selection follows
+                    // it before the tab underneath is picked.
+                    setProjectPath(entry.projectPath);
+                    focusAgentRun(entry.runId);
+                  }}
                   onClose={() => setRailTab(null)}
                 />
               ) : null}

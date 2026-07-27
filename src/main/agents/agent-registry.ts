@@ -31,6 +31,9 @@ export interface AgentDescriptor {
 const AGENTS: AgentDefinition[] = [
   { id: "claude", label: "Claude", binary: "claude", args: [] },
   { id: "codex", label: "Codex", binary: "codex", args: [] },
+  { id: "gemini", label: "Gemini", binary: "gemini", args: [] },
+  { id: "copilot", label: "Copilot", binary: "copilot", args: [] },
+  { id: "cursor", label: "Cursor", binary: "cursor-agent", args: [] },
 ];
 
 /** Runs an arbitrary command string through the platform shell inside the PTY. */
@@ -48,6 +51,17 @@ export function getAgentDefinition(agentId: string): AgentDefinition | null {
 
   const custom = getCustomAgent(agentId);
   if (custom) return shellCommandDefinition(custom.id, custom.label, custom.command);
+
+  return null;
+}
+
+/**
+ * How each built-in agent is told to pick a past session back up. Custom agents
+ * run an arbitrary command and have no session to resume, so they answer null.
+ */
+export function resumeArgs(agentId: string, sessionId: string): string[] | null {
+  if (agentId === "claude") return ["--resume", sessionId];
+  if (agentId === "codex") return ["resume", sessionId];
 
   return null;
 }

@@ -22,6 +22,13 @@ interface ToolCardProps {
   tool: DetectedTool;
   onAction?: () => void;
   actionLabel?: string;
+  /**
+   * A second, destructive action (uninstall). A card that is itself a button
+   * cannot hold one, so offering it turns the card into a plain surface with
+   * both actions spelled out in the footer.
+   */
+  onSecondaryAction?: () => void;
+  secondaryActionLabel?: string;
   loading?: boolean;
 }
 
@@ -29,11 +36,13 @@ export function ToolCard({
   tool,
   onAction,
   actionLabel,
+  onSecondaryAction,
+  secondaryActionLabel,
   loading,
 }: ToolCardProps) {
   const { t } = useTranslation();
-  const Tag = onAction ? "button" : "article";
-  const isClickable = !!onAction && !loading;
+  const Tag = onAction && !onSecondaryAction ? "button" : "article";
+  const isClickable = !!onAction && !onSecondaryAction && !loading;
 
   return (
     <Tag
@@ -42,7 +51,7 @@ export function ToolCard({
       className={clsx(
         "group relative flex w-full flex-col overflow-hidden text-left",
         "rounded-2xl border border-border bg-soft px-4 py-3.5 shadow-panel",
-        "transition-[transform,border-color,box-shadow] duration-200",
+        "transition-[transform,box-shadow] duration-200",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40",
         loading && "cursor-wait",
         isClickable && "hover:-translate-y-0.5 hover:border-accent hover:shadow-accent-md",
@@ -66,7 +75,6 @@ export function ToolCard({
         <div
           className={clsx(
             "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border",
-            "transition-colors duration-200",
             tool.available
               ? "border-accent/20 bg-accent/10 text-accent"
               : "border-border bg-soft text-muted",
@@ -117,18 +125,49 @@ export function ToolCard({
               className="h-3.5 w-3.5 animate-spin text-accent"
             />
           </span>
+        ) : onSecondaryAction ? (
+          /* Two explicit controls: the card is not the button here, so each
+             action has to name itself. Removal stays quiet until hovered — it
+             is the rarer of the two and the one that cannot be undone. */
+          <span className="ml-auto flex shrink-0 items-center gap-1.5">
+            {onAction ? (
+              <button
+                type="button"
+                onClick={onAction}
+                className={clsx(
+                  "rounded-full border border-border bg-soft px-2.5 py-1",
+                  "text-[10px] font-semibold uppercase tracking-[0.12em] text-muted",
+                  "hover:border-accent/40 hover:text-accent",
+                )}
+              >
+                {actionLabel ?? t(translation.GlobalTerm.Open)}
+              </button>
+            ) : null}
+
+            <button
+              type="button"
+              onClick={onSecondaryAction}
+              className={clsx(
+                "rounded-full border border-border bg-soft px-2.5 py-1",
+                "text-[10px] font-semibold uppercase tracking-[0.12em] text-muted",
+                "hover:border-error/40 hover:text-error",
+              )}
+            >
+              {secondaryActionLabel ?? t(translation.GlobalTerm.Uninstall)}
+            </button>
+          </span>
         ) : onAction ? (
           <span className="ml-auto flex shrink-0 items-center gap-1.5">
             <PillText
               as="span"
-              className="text-[10px] font-semibold uppercase tracking-[0.12em] !text-muted transition-colors duration-150 group-hover:!text-accent"
+              className="text-[10px] font-semibold uppercase tracking-[0.12em] !text-muted group-hover:!text-accent"
             >
               {actionLabel ?? t(translation.GlobalTerm.Open)}
             </PillText>
             <span
               className={clsx(
                 "flex h-6 w-6 items-center justify-center rounded-full border border-border bg-soft text-muted",
-                "transition-[transform,color,border-color] duration-200",
+                "transition-[transform] duration-200",
                 "group-hover:translate-x-0.5 group-hover:border-accent/40 group-hover:text-accent",
               )}
             >

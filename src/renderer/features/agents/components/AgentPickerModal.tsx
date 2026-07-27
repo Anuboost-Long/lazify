@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { translation } from "@renderer/i18n/translation";
@@ -8,6 +8,7 @@ import { TextInput } from "@renderer/shared/ui/form/FormInput";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import { BaseModal } from "@renderer/shared/ui/modal/BaseModal";
 import type { AgentDescriptor } from "../../../../main/agents/agent-registry";
+import type { AgentSessionSummary } from "../../../../main/agents/agent-sessions";
 import { AgentGlyph } from "./AgentGlyph";
 
 interface CustomAgentInput {
@@ -19,7 +20,10 @@ interface CustomAgentInput {
 interface AgentPickerModalProps {
   open: boolean;
   agents: AgentDescriptor[];
-  onSelect: (agentId: string) => void;
+  /** Project whose past sessions can be resumed. */
+  projectPath: string;
+  /** With a session id, the agent carries that conversation on. */
+  onSelect: (agentId: string, resumeSessionId?: string) => void;
   onClose: () => void;
   onCreate: (input: CustomAgentInput) => Promise<void>;
   onDelete: (agentId: string) => Promise<void>;
@@ -33,6 +37,7 @@ const ACCENT_LINE = {
 export function AgentPickerModal({
   open,
   agents,
+  projectPath,
   onSelect,
   onClose,
   onCreate,
@@ -40,6 +45,9 @@ export function AgentPickerModal({
 }: Readonly<AgentPickerModalProps>) {
   const { t } = useTranslation();
   const [creating, setCreating] = useState(false);
+  /** True while the past-sessions list has taken over the body. */
+  const [browsing, setBrowsing] = useState(false);
+  const [sessions, setSessions] = useState<AgentSessionSummary[] | null>(null);
   const [label, setLabel] = useState("");
   const [command, setCommand] = useState("");
   const [image, setImage] = useState<string | undefined>(undefined);
@@ -48,6 +56,7 @@ export function AgentPickerModal({
 
   const resetForm = () => {
     setCreating(false);
+    setBrowsing(false);
     setLabel("");
     setCommand("");
     setImage(undefined);
@@ -59,10 +68,33 @@ export function AgentPickerModal({
     onClose();
   };
 
-  const handleSelect = (agentId: string) => {
-    onSelect(agentId);
+  const handleSelect = (agentId: string, resumeSessionId?: string) => {
+    onSelect(agentId, resumeSessionId);
     handleClose();
   };
+
+  // Read on entering the list rather than on opening the modal: it walks the
+  // agents' transcript directories, which is not work to do for a user who
+  // only ever starts fresh sessions.
+  useEffect(() => {
+    if (!browsing || !projectPath) return;
+
+    let cancelled = false;
+    setSessions(null);
+
+    void globalThis.lazify.listAgentSessions(projectPath).then((result) => {
+      if (!cancelled) setSessions(result);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [browsing, projectPath]);
+
+  /** Only sessions whose CLI is actually installed can be resumed. */
+  const resumable = (sessions ?? []).filter((session) =>
+    agents.some((agent) => agent.id === session.agentId && agent.available)
+  );
 
   const handlePickImage = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -104,7 +136,7 @@ export function AgentPickerModal({
           <div className="pointer-events-none absolute inset-x-0 top-0 h-px" style={ACCENT_LINE} />
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              {creating ? (
+              {creating || browsing ? (
                 <button
                   type="button"
                   onClick={resetForm}
@@ -122,7 +154,9 @@ export function AgentPickerModal({
                 <SectionTitle className="mt-1 text-2xl">
                   {creating
                     ? t(translation.Agents.CustomAgentTitle)
-                    : t(translation.Agents.ChooseAgent)}
+                    : browsing
+                      ? t(translation.Agents.ResumeSession)
+                      : t(translation.Agents.ChooseAgent)}
                 </SectionTitle>
               </div>
             </div>
@@ -225,6 +259,54 @@ export function AgentPickerModal({
               </button>
             </div>
           </div>
+        ) : browsing ? (
+          <div className="flex max-h-[60vh] flex-col gap-2 overflow-y-auto px-6 py-5">
+            <CaptionText tone="muted">{t(translation.Agents.ResumeSessionDesc)}</CaptionText>
+
+            {sessions === null ? (
+              <CaptionText tone="muted">{t(translation.GlobalTerm.Loading)}</CaptionText>
+            ) : resumable.length === 0 ? (
+              <CaptionText tone="muted">{t(translation.Agents.ResumeSessionEmpty)}</CaptionText>
+            ) : (
+              resumable.map((session) => (
+                <button
+                  key={`${session.agentId}-${session.sessionId}`}
+                  type="button"
+                  onClick={() => handleSelect(session.agentId, session.sessionId)}
+                  className={clsx(
+                    "flex items-center gap-3 rounded-2xl border px-4 py-3 text-left",
+                    "border-border bg-bg transition-colors duration-150",
+                    "hover:border-accent/50 hover:bg-accent/[0.06]"
+                  )}
+                >
+                  <div
+                    className={clsx(
+                      "flex h-9 w-9 shrink-0 items-center justify-center",
+                      "rounded-xl border border-border bg-soft"
+                    )}
+                  >
+                    <AgentGlyph agentId={session.agentId} className="h-[18px] w-[18px]" />
+                  </div>
+
+                  <div className="min-w-0 flex-1">
+                    <BodyText className="truncate">
+                      {session.title || t(translation.Agents.ResumeSessionUntitled)}
+                    </BodyText>
+                    <CaptionText tone="muted">
+                      {new Date(session.updatedAt).toLocaleString([], {
+                        month: "short",
+                        day: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit"
+                      })}
+                    </CaptionText>
+                  </div>
+
+                  <UiIcon name="arrow-right" className="h-4 w-4 shrink-0 text-muted" />
+                </button>
+              ))
+            )}
+          </div>
         ) : (
           <div className="flex flex-col gap-2 px-6 py-5">
             <CaptionText tone="muted">{t(translation.Agents.ChooseAgentDesc)}</CaptionText>
@@ -284,6 +366,22 @@ export function AgentPickerModal({
                 ) : null}
               </div>
             ))}
+
+            {/* Only worth offering where there is a project to have a history. */}
+            {projectPath ? (
+              <button
+                type="button"
+                onClick={() => setBrowsing(true)}
+                className={clsx(
+                  "mt-1 flex items-center justify-center gap-2 rounded-2xl border px-4 py-3",
+                  "border-border text-muted transition-colors duration-150",
+                  "hover:border-accent/50 hover:text-accent"
+                )}
+              >
+                <UiIcon name="refresh-circle" className="h-4 w-4" />
+                <BodyText>{t(translation.Agents.ResumeSession)}</BodyText>
+              </button>
+            ) : null}
 
             <button
               type="button"

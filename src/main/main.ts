@@ -32,10 +32,11 @@ import { getNpmOutdated, getNpmAudit } from "./project-health";
 import { choosePackageManager, scanEnvironment } from "./scanner";
 import { resolveDevPortInjection } from "./dev-port";
 import { isDotnetScript, listDotnetScripts, resolveDotnetLaunch, waitForDotnetPortsFree } from "./dotnet-runner";
-import { scanTools, probeSingleTool, listNvmVersions, installNvm, nvmSetDefault, nvmUse, installTool, checkToolUpdate, updateTool, scanListeningPorts, buildProcessTree, getDescendantPids } from "./environment-scanner";
+import { scanTools, probeSingleTool, listNvmVersions, installNvm, nvmSetDefault, nvmUse, installTool, uninstallTool, checkToolUpdate, updateTool, scanListeningPorts, buildProcessTree, getDescendantPids } from "./environment-scanner";
 import { listTemplatePackageEntries } from "./template-package-manifest";
 import { WorkflowEngine } from "./workflow-engine";
-import { getAgentDefinition, listAgents } from "./agents/agent-registry";
+import { getAgentDefinition, listAgents, resumeArgs } from "./agents/agent-registry";
+import { listAgentSessions } from "./agents/agent-sessions";
 import { AttentionDetector } from "./agents/attention-detector";
 import { addCustomAgent, removeCustomAgent, type CustomAgentInput } from "./agents/custom-agents-store";
 import { getAgentUsage } from "./agents/agent-usage";
@@ -68,7 +69,7 @@ const commandRunner = new CommandRunner((event) => emitToRenderer("lazify:log", 
 const workflowEngine = new WorkflowEngine(commandRunner, (event) =>
   emitToRenderer("lazify:workflow-progress", event)
 );
-const attentionDetector = new AttentionDetector();
+const attentionDetector = new AttentionDetector((runId) => emitTurnDone(runId));
 
 /**
  * Reports a run that has started (or stopped) waiting on the user. Two distinct
@@ -106,6 +107,50 @@ const emitAttention = (runId: string, waiting: boolean) => {
   }
 
   // Bounces the dock icon until the user comes back to the app.
+  app.dock?.bounce("informational");
+};
+
+/** Brings the window forward and points the renderer at a specific run. */
+const focusRun = (payload: { runId: string; projectPath: string }) => {
+  if (mainWindow?.isMinimized()) mainWindow.restore();
+  mainWindow?.show();
+  mainWindow?.focus();
+
+  emitToRenderer("lazify:agent-focus", payload);
+};
+
+/**
+ * Reports a run that has finished what the user asked of it — the counterpart
+ * to the waiting alert above, and the same split: the in-app toast is always
+ * sent, while the OS banner only fires when the window is not focused. Its
+ * click handler is the point of the banner: it lands the user on the terminal
+ * that finished rather than merely raising the app.
+ */
+const emitTurnDone = (runId: string) => {
+  const session = ptyRunner.getSessions().find((entry) => entry.runId === runId);
+  if (!session) return;
+
+  const payload = {
+    runId,
+    projectPath: session.projectPath,
+    projectName: session.projectName,
+    agentLabel: session.scriptName
+  };
+
+  emitToRenderer("lazify:agent-done", payload);
+
+  if (mainWindow?.isFocused()) return;
+
+  if (Notification.isSupported()) {
+    const notification = new Notification({
+      title: `${session.scriptName} is done`,
+      body: `${session.projectName} finished the task you gave it.`
+    });
+
+    notification.on("click", () => focusRun(payload));
+    notification.show();
+  }
+
   app.dock?.bounce("informational");
 };
 
@@ -176,6 +221,7 @@ function registerIpcHandlers() {
   ipcMain.handle("lazify:nvm-set-default", async (_event, version: string) => nvmSetDefault(version));
   ipcMain.handle("lazify:nvm-use", async (_event, version: string) => nvmUse(version));
   ipcMain.handle("lazify:install-tool", async (_event, toolName: string) => installTool(toolName));
+  ipcMain.handle("lazify:uninstall-tool", async (_event, toolName: string) => uninstallTool(toolName));
   ipcMain.handle("lazify:check-tool-update", async (_event, toolName: string, currentVersion: string) => checkToolUpdate(toolName, currentVersion));
   ipcMain.handle("lazify:update-tool", async (_event, toolName: string) => updateTool(toolName));
   ipcMain.handle("lazify:relaunch", () => { app.relaunch(); app.exit(0); });
@@ -374,6 +420,12 @@ function registerIpcHandlers() {
 
   ipcMain.handle("lazify:list-agents", async () => listAgents());
 
+  // Past conversations for this project, so one can be resumed rather than
+  // started from nothing.
+  ipcMain.handle("lazify:list-agent-sessions", async (_event, projectPath: string) =>
+    listAgentSessions(projectPath)
+  );
+
   ipcMain.handle("lazify:add-custom-agent", async (_event, input: CustomAgentInput) =>
     addCustomAgent(input)
   );
@@ -473,7 +525,14 @@ function registerIpcHandlers() {
   // Input, resize, and teardown reuse the existing pty-write/resize/stop-script channels.
   ipcMain.handle(
     "lazify:open-agent-terminal",
-    async (_event, agentId: string, projectPath: string, cols = 120, rows = 30): Promise<{ runId: string }> => {
+    async (
+      _event,
+      agentId: string,
+      projectPath: string,
+      cols = 120,
+      rows = 30,
+      resumeSessionId?: string
+    ): Promise<{ runId: string }> => {
       const definition = getAgentDefinition(agentId);
 
       if (!definition) {
@@ -484,9 +543,13 @@ function registerIpcHandlers() {
         throw new Error("node-pty is not available. Run: npm run rebuild");
       }
 
+      // Resuming is the same launch with the CLI's own flag appended; an agent
+      // that has no such flag simply starts fresh.
+      const resume = resumeSessionId ? resumeArgs(agentId, resumeSessionId) : null;
+
       const runId = ptyRunner.start(
         definition.binary,
-        definition.args,
+        resume ? [...definition.args, ...resume] : definition.args,
         projectPath,
         definition.label,
         cols as number,

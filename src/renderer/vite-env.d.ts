@@ -44,6 +44,7 @@ declare global {
       nvmSetDefault: (version: string) => Promise<NvmActionResult>;
       nvmUse: (version: string) => Promise<NvmActionResult>;
       installTool: (toolName: string) => Promise<NvmActionResult>;
+      uninstallTool: (toolName: string) => Promise<NvmActionResult>;
       checkToolUpdate: (toolName: string, currentVersion: string) => Promise<ToolUpdateInfo>;
       updateTool: (toolName: string) => Promise<NvmActionResult>;
       relaunchApp: () => Promise<void>;
@@ -87,6 +88,17 @@ declare global {
           waiting: boolean;
         }) => void
       ) => () => void;
+      onAgentDone: (
+        callback: (event: {
+          runId: string;
+          projectPath: string;
+          projectName: string;
+          agentLabel: string;
+        }) => void
+      ) => () => void;
+      onAgentFocus: (
+        callback: (event: { runId: string; projectPath: string }) => void
+      ) => () => void;
       onPtyData: (
         callback: (event: { runId: string; data: string; seq?: number }) => void
       ) => () => void;
@@ -105,6 +117,9 @@ declare global {
       matchPackageVersions: (projectPath: string) => Promise<VersionMatchReport>;
       fixProjectPackageVersions: (projectPath: string) => Promise<WorkflowResult>;
       listAgents: () => Promise<AgentDescriptor[]>;
+      listAgentSessions: (
+        projectPath: string
+      ) => Promise<import("../main/agents/agent-sessions").AgentSessionSummary[]>;
       addCustomAgent: (
         input: import("../main/agents/custom-agents-store").CustomAgentInput
       ) => Promise<import("../main/agents/custom-agents-store").CustomAgent>;
@@ -175,7 +190,8 @@ declare global {
         agentId: string,
         projectPath: string,
         cols?: number,
-        rows?: number
+        rows?: number,
+        resumeSessionId?: string
       ) => Promise<{ runId: string }>;
       onLog: (callback: (event: LogEvent) => void) => () => void;
       /** Fires once an agent's transcript goes quiet — i.e. that agent's turn finished. */

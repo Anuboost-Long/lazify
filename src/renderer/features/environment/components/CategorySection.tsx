@@ -13,9 +13,12 @@ interface CategorySectionProps {
   onNvmAction: () => void;
   onInstall: (tool: DetectedTool) => void;
   onUpdate: (tool: DetectedTool) => void;
+  /** Only ever passed for tools that report an uninstall command. */
+  onUninstall: (tool: DetectedTool) => void;
 }
 
 const categoryLabels: Record<ToolCategory, string> = {
+  agents: translation.Environment.CategoryAgents,
   nodejs: translation.Environment.CategoryNode,
   python: translation.Environment.CategoryPython,
   dotnet: translation.Environment.CategoryDotnet,
@@ -23,13 +26,14 @@ const categoryLabels: Record<ToolCategory, string> = {
 };
 
 const categoryIcons: Record<ToolCategory, UiIconName> = {
+  agents: "terminal",
   nodejs: "package",
   python: "code",
   dotnet: "database",
   system: "settings",
 };
 
-export function CategorySection({ category, tools, loadingTool, onNvmAction, onInstall, onUpdate }: CategorySectionProps) {
+export function CategorySection({ category, tools, loadingTool, onNvmAction, onInstall, onUpdate, onUninstall }: CategorySectionProps) {
   const { t } = useTranslation();
   const availableCount = tools.filter((tool) => tool.available).length;
 
@@ -108,12 +112,15 @@ export function CategorySection({ category, tools, loadingTool, onNvmAction, onI
           const isNodeEntry = tool.name === "node";
           const canInstall = !tool.available && !!tool.installCommand;
           const canUpdate = tool.available && !!tool.updateCommand && !isNodeEntry;
+          const canUninstall = tool.available && !!tool.uninstallCommand;
 
           return (
             <ToolCard
               key={tool.name}
               tool={tool}
               loading={loadingTool === tool.name}
+              onSecondaryAction={canUninstall ? () => onUninstall(tool) : undefined}
+              secondaryActionLabel={t(translation.GlobalTerm.Uninstall)}
               onAction={
                 isNodeEntry ? onNvmAction :
                 canUpdate ? () => onUpdate(tool) :

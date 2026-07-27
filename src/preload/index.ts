@@ -23,6 +23,7 @@ import type { EnvironmentScan } from "../main/scanner";
 import type { ToolScanReport, NvmVersionList, NvmInstallResult, NvmActionResult, ToolUpdateInfo } from "../main/environment-scanner";
 import type { TemplatePackageEntry } from "../main/template-package-manifest";
 import type { AgentDescriptor } from "../main/agents/agent-registry";
+import type { AgentSessionSummary } from "../main/agents/agent-sessions";
 import type { CustomAgent, CustomAgentInput } from "../main/agents/custom-agents-store";
 import type { HighlightingAssets } from "../main/highlighting-store";
 import type { GitCheckoutResult } from "../main/project-git-status";
@@ -52,6 +53,7 @@ const lazifyApi = {
   nvmSetDefault: (version: string): Promise<NvmActionResult> => ipcRenderer.invoke("lazify:nvm-set-default", version),
   nvmUse: (version: string): Promise<NvmActionResult> => ipcRenderer.invoke("lazify:nvm-use", version),
   installTool: (toolName: string): Promise<NvmActionResult> => ipcRenderer.invoke("lazify:install-tool", toolName),
+  uninstallTool: (toolName: string): Promise<NvmActionResult> => ipcRenderer.invoke("lazify:uninstall-tool", toolName),
   checkToolUpdate: (toolName: string, currentVersion: string): Promise<ToolUpdateInfo> => ipcRenderer.invoke("lazify:check-tool-update", toolName, currentVersion),
   updateTool: (toolName: string): Promise<NvmActionResult> => ipcRenderer.invoke("lazify:update-tool", toolName),
   relaunchApp: (): Promise<void> => ipcRenderer.invoke("lazify:relaunch"),
@@ -117,6 +119,25 @@ const lazifyApi = {
     ipcRenderer.on("lazify:agent-attention", listener);
     return () => ipcRenderer.removeListener("lazify:agent-attention", listener);
   },
+  onAgentDone: (
+    callback: (event: {
+      runId: string;
+      projectPath: string;
+      projectName: string;
+      agentLabel: string;
+    }) => void
+  ) => {
+    const listener = (_event: unknown, payload: Parameters<typeof callback>[0]) => callback(payload);
+    ipcRenderer.on("lazify:agent-done", listener);
+    return () => ipcRenderer.removeListener("lazify:agent-done", listener);
+  },
+  onAgentFocus: (
+    callback: (event: { runId: string; projectPath: string }) => void
+  ) => {
+    const listener = (_event: unknown, payload: Parameters<typeof callback>[0]) => callback(payload);
+    ipcRenderer.on("lazify:agent-focus", listener);
+    return () => ipcRenderer.removeListener("lazify:agent-focus", listener);
+  },
   onPtyData: (callback: (event: { runId: string; data: string }) => void) => {
     const listener = (_event: Electron.IpcRendererEvent, payload: { runId: string; data: string }) => callback(payload);
     ipcRenderer.on("lazify:pty-data", listener);
@@ -133,6 +154,8 @@ const lazifyApi = {
     return () => ipcRenderer.removeListener("lazify:session-killed", listener);
   },
   listAgents: (): Promise<AgentDescriptor[]> => ipcRenderer.invoke("lazify:list-agents"),
+  listAgentSessions: (projectPath: string): Promise<AgentSessionSummary[]> =>
+    ipcRenderer.invoke("lazify:list-agent-sessions", projectPath),
   addCustomAgent: (input: CustomAgentInput): Promise<CustomAgent> =>
     ipcRenderer.invoke("lazify:add-custom-agent", input),
   removeCustomAgent: (agentId: string): Promise<void> =>
@@ -211,9 +234,18 @@ const lazifyApi = {
     agentId: string,
     projectPath: string,
     cols?: number,
-    rows?: number
+    rows?: number,
+    /** Past session to carry on with, instead of starting a new conversation. */
+    resumeSessionId?: string
   ): Promise<{ runId: string }> =>
-    ipcRenderer.invoke("lazify:open-agent-terminal", agentId, projectPath, cols, rows),
+    ipcRenderer.invoke(
+      "lazify:open-agent-terminal",
+      agentId,
+      projectPath,
+      cols,
+      rows,
+      resumeSessionId
+    ),
   listProjectPackages: (projectPath: string): Promise<InstalledPackage[]> =>
     ipcRenderer.invoke("lazify:list-project-packages", projectPath),
   addProjectPackage: (payload: AddProjectPackagePayload): Promise<WorkflowResult> =>

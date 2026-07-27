@@ -89,15 +89,69 @@ function CodexMark({ className }: Readonly<{ className?: string }>) {
   );
 }
 
+/** Gemini's four-pointed spark, drawn as two crossed curves. */
+function GeminiMark({ className }: Readonly<{ className?: string }>) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path
+        d="M12 2.5c0 5.1 4.4 9.5 9.5 9.5-5.1 0-9.5 4.4-9.5 9.5 0-5.1-4.4-9.5-9.5-9.5 5.1 0 9.5-4.4 9.5-9.5Z"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+/** A pilot's visor: enough to read as Copilot without copying the mark. */
+function CopilotMark({ className }: Readonly<{ className?: string }>) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect
+        x="3"
+        y="7.5"
+        width="18"
+        height="11"
+        rx="5.5"
+        stroke="currentColor"
+        strokeWidth="1.6"
+      />
+      <path d="M8 4.5c1.6 1.4 6.4 1.4 8 0" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+      <circle cx="9" cy="13" r="1.4" fill="currentColor" />
+      <circle cx="15" cy="13" r="1.4" fill="currentColor" />
+    </svg>
+  );
+}
+
+/** The pointer the editor is named for. */
+function CursorMark({ className }: Readonly<{ className?: string }>) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path
+        d="M5.5 3.2 19 11.4l-5.9 1.5-2.4 5.7L5.5 3.2Z"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 const MARKS: Record<string, (props: { className?: string }) => JSX.Element> = {
   claude: ClaudeMark,
   codex: CodexMark,
+  gemini: GeminiMark,
+  copilot: CopilotMark,
+  cursor: CursorMark,
 };
 
-/** Brand tints, so the two agents stay distinguishable at a glance. */
+/** Brand tints, so the agents stay distinguishable at a glance. */
 const TINTS: Record<string, string> = {
   claude: "text-[#D97757]",
   codex: "text-text",
+  gemini: "text-[#4285F4]",
+  copilot: "text-text",
+  cursor: "text-text",
 };
 
 export function AgentGlyph({ agentId, className, image }: Readonly<AgentGlyphProps>) {

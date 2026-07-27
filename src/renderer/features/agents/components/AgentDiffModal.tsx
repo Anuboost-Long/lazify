@@ -120,7 +120,15 @@ export function AgentDiffModal({
           </div>
         </header>
 
-        <DiffView diff={diff} mode={viewMode} showHunkHeaders={false} collapseUnchanged />
+        {/* The file name is what picks the language: without it the diff is
+            tokenised as plain text and comes out uncoloured. */}
+        <DiffView
+          diff={diff}
+          mode={viewMode}
+          fileName={name}
+          showHunkHeaders={false}
+          collapseUnchanged
+        />
       </div>
     </BaseModal>
   );

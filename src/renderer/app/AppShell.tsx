@@ -13,6 +13,8 @@ import { useTranslation } from "react-i18next";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { appRoute } from "./app-routes";
 import { appSidebarPages, type AppPageId } from "./app-sidebar.constant";
+import { AgentDoneToast } from "@renderer/features/agents/components/AgentDoneToast";
+import { useAgentActivityRecorder } from "@renderer/features/agents/hooks/use-agent-activity";
 import { BrowserSurface } from "@renderer/features/browser/components/BrowserSurface";
 import { ContentBackdrop } from "./components/ContentBackdrop";
 import { PageChromeContext } from "./components/PageChrome";
@@ -34,6 +36,10 @@ export function AppShell() {
     return stored === null ? true : stored === "true";
   });
   const { bootstrap, bindEvents } = useLazifyStore();
+
+  // Recorded here rather than on the agents page: an agent asks or finishes
+  // while the user is wherever they happen to be, and the feed has to have it.
+  useAgentActivityRecorder();
 
   const sysPreference = systemPrefersDark ? "dark" : "light";
 
@@ -203,6 +209,10 @@ export function AppShell() {
               area — including the breadcrumb bar, which a browser does not
               need — whenever the browser page is the one being shown. */}
           <BrowserSurface visible={location.pathname === appRoute.browser} />
+
+          {/* Shell-level so a turn that ends while the user is on another page
+              still announces itself, and can take them back to the tab. */}
+          <AgentDoneToast />
         </section>
       </div>
     </main>

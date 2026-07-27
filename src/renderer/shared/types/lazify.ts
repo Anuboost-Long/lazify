@@ -321,7 +321,7 @@ export interface EnvironmentSummary {
 
 export type WorkflowStatus = "idle" | "running" | "success" | "error";
 
-export type ToolCategory = "nodejs" | "python" | "dotnet" | "system";
+export type ToolCategory = "agents" | "nodejs" | "python" | "dotnet" | "system";
 
 export interface DetectedTool {
   name: string;
@@ -332,6 +332,8 @@ export interface DetectedTool {
   installCommand: string | null;
   installNote: string | null;
   updateCommand: string | null;
+  /** Null for everything the app will not take off the machine. */
+  uninstallCommand: string | null;
 }
 
 export interface ToolUpdateInfo {

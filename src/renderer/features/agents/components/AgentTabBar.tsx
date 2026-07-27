@@ -13,7 +13,7 @@ import { AgentGlyph } from "./AgentGlyph";
 import { AgentPickerModal } from "./AgentPickerModal";
 import { RunScriptPicker } from "./RunScriptPicker";
 
-export type AgentRailTab = "changes" | "usage" | "files" | "debug";
+export type AgentRailTab = "changes" | "usage" | "files" | "debug" | "activity";
 
 interface AgentTabBarProps {
   terminals: AgentTerminal[];
@@ -33,6 +33,8 @@ interface AgentTabBarProps {
   waitingTabIds: string[];
   /** Files touched since this project's agent session started. */
   changeCount: number;
+  /** Alerts recorded since the activity feed was last looked at. */
+  activityUnread: number;
   /** Which side rail is open, if any. */
   railTab: AgentRailTab | null;
   onToggleRail: (tab: AgentRailTab) => void;
@@ -47,7 +49,10 @@ interface AgentTabBarProps {
   onClose: (tabId: string) => void;
   /** Moves the dragged tab to the target tab's position. */
   onReorder: (fromTabId: string, toTabId: string) => void;
-  onOpen: (agentId: string) => void;
+  /** Opens an agent, optionally resuming one of its past sessions. */
+  onOpen: (agentId: string, resumeSessionId?: string) => void;
+  /** Project the picker offers past sessions from. */
+  projectPath: string;
   onRun: () => void;
   onCreateAgent: (input: { label: string; command: string; image?: string }) => Promise<void>;
   onDeleteAgent: (agentId: string) => Promise<void>;
@@ -64,6 +69,7 @@ export function AgentTabBar({
   showDebug,
   waitingTabIds,
   changeCount,
+  activityUnread,
   railTab,
   onToggleRail,
   previewOpen,
@@ -74,6 +80,7 @@ export function AgentTabBar({
   onClose,
   onReorder,
   onOpen,
+  projectPath,
   onRun,
   onCreateAgent,
   onDeleteAgent,
@@ -321,6 +328,22 @@ export function AgentTabBar({
 
         <button
           type="button"
+          onClick={() => onToggleRail("activity")}
+          className={clsx(
+            "flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5",
+            "text-text transition-colors hover:bg-text/[0.06]",
+            railTab === "activity" && "bg-text/[0.10]"
+          )}
+        >
+          <UiIcon name="bell" className="h-3.5 w-3.5" />
+          <SmallText className="!text-text">{t(translation.Agents.Activity)}</SmallText>
+          {activityUnread > 0 ? (
+            <SmallText className="!text-accent">{activityUnread}</SmallText>
+          ) : null}
+        </button>
+
+        <button
+          type="button"
           onClick={() => onToggleRail("usage")}
           className={clsx(
             "flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5",
@@ -354,6 +377,7 @@ export function AgentTabBar({
       <AgentPickerModal
         open={pickerOpen}
         agents={availableAgents}
+        projectPath={projectPath}
         onSelect={onOpen}
         onClose={() => setPickerOpen(false)}
         onCreate={onCreateAgent}

@@ -28,10 +28,12 @@ interface ToastProps {
   title: string;
   message: string;
   variant?: ToastVariant;
+  /** Makes the body clickable — used to send the user where the toast points. */
+  onClick?: () => void;
   onClose: () => void;
 }
 
-export function Toast({ title, message, variant = "warning", onClose }: ToastProps) {
+export function Toast({ title, message, variant = "warning", onClick, onClose }: ToastProps) {
   const { t } = useTranslation();
   const [visible, setVisible] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -64,7 +66,10 @@ export function Toast({ title, message, variant = "warning", onClose }: ToastPro
         visible ? "translate-x-0 opacity-100" : "translate-x-6 opacity-0",
       ].join(" ")}
     >
-      <div className="flex items-start gap-3 px-4 py-4">
+      <div
+        className={`flex items-start gap-3 px-4 py-4 ${onClick ? "cursor-pointer" : ""}`}
+        onClick={onClick}
+      >
         <span className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${styles.iconBg} ${styles.icon}`}>
           <UiIcon
             name={variant === "success" ? "check-circle" : "warning-triangle"}
@@ -79,7 +84,11 @@ export function Toast({ title, message, variant = "warning", onClose }: ToastPro
 
         <button
           type="button"
-          onClick={dismiss}
+          onClick={(event) => {
+            // Dismissing must not also follow the toast to wherever it points.
+            event.stopPropagation();
+            dismiss();
+          }}
           aria-label={t(translation.GlobalTerm.Dismiss)}
           className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-muted transition-colors hover:bg-border hover:text-text"
         >
