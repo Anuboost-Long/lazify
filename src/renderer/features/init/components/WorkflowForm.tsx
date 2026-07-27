@@ -7,11 +7,13 @@ import {
   PillText,
   SectionTitle,
 } from "@renderer/shared/typography";
+import { BackButton } from "@renderer/shared/ui/BackButton";
 import { TextInput } from "@renderer/shared/ui/form/FormInput";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import clsx from "clsx";
 import { useTranslation } from "react-i18next";
 import { PackageSearchPicker } from "./PackageSearchPicker";
+import { TemplateOptionsPanel } from "./TemplateOptionsPanel";
 
 interface WorkflowFormProps {
   sourceMode: "stack" | "imported";
@@ -26,6 +28,10 @@ interface WorkflowFormProps {
   onPackageNameChange: (value: string) => void;
   onBrowseDirectory: () => void;
   onContinue: () => void;
+  createOptionValues: Record<string, boolean>;
+  onCreateOptionChange: (key: string, value: boolean) => void;
+  onBack?: () => void;
+  backLabel?: string;
 }
 
 export function WorkflowForm({
@@ -41,10 +47,14 @@ export function WorkflowForm({
   onPackageNameChange,
   onBrowseDirectory,
   onContinue,
-}: WorkflowFormProps) {
+  createOptionValues,
+  onCreateOptionChange,
+  onBack,
+  backLabel,
+}: Readonly<WorkflowFormProps>) {
   const { t } = useTranslation();
   const selectedTemplate = templateOptions.find(
-    (template) => template.id === selectedTemplateId
+    (template) => template.id === selectedTemplateId,
   );
   const canContinue =
     Boolean(projectName.trim() && projectDirectory.trim()) && !busy;
@@ -53,32 +63,33 @@ export function WorkflowForm({
 
   return (
     <div className="flex flex-col gap-5 animate-fadeIn opacity-0">
-      <section className="relative overflow-hidden rounded-[30px] border border-border bg-soft p-6 shadow-panel">
-        <div
-          className="pointer-events-none absolute inset-x-0 top-0 h-24 opacity-80"
-          style={{
-            background:
-              "linear-gradient(135deg, rgb(var(--color-accent) / 0.18) 0%, rgb(var(--color-accent) / 0.04) 42%, transparent 85%)",
-          }}
-        />
+      <section className="rounded-[30px] border border-border bg-soft p-6 shadow-panel">
+        <div>
+          {/* Header bar: back link on the left, stack pill on the right. */}
+          <div className="flex flex-wrap items-center gap-4">
+            {onBack ? (
+              <BackButton
+                label={backLabel ?? t(translation.GlobalTerm.Back)}
+                onClick={onBack}
+              />
+            ) : null}
 
-        <div className="relative">
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div className="max-w-2xl">
-              <OverlineText>{t(translation.WorkflowForm.Title)}</OverlineText>
-              <SectionTitle className="mt-3">{sourceLabel}</SectionTitle>
-              <BodyText tone="muted" className="mt-3 leading-6">
-                {t(translation.WorkflowForm.Subtitle)}
-              </BodyText>
-            </div>
-
-            <div className="flex flex-wrap gap-2">
+            <div className="ml-auto flex flex-wrap gap-2">
               <PillText tone="accent" className={pillClassName}>
                 {sourceMode === "stack"
-                  ? selectedTemplate?.label ?? t(translation.WorkflowForm.Stack)
+                  ? (selectedTemplate?.label ??
+                    t(translation.WorkflowForm.Stack))
                   : t(translation.WorkflowForm.ImportedTemplateLabel)}
               </PillText>
             </div>
+          </div>
+
+          <div className="mt-6 max-w-2xl">
+            <OverlineText>{t(translation.WorkflowForm.Title)}</OverlineText>
+            <SectionTitle className="mt-3">{sourceLabel}</SectionTitle>
+            <BodyText tone="muted" className="mt-3 leading-6">
+              {t(translation.WorkflowForm.Subtitle)}
+            </BodyText>
           </div>
 
           <div className="mt-6 grid gap-4 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]">
@@ -117,7 +128,7 @@ export function WorkflowForm({
                     "rounded-[20px] border border-border bg-bg px-4 py-3",
                     "text-sm font-semibold text-muted",
                     "hover:border-accent hover:text-text",
-                    "disabled:cursor-not-allowed disabled:opacity-60"
+                    "disabled:cursor-not-allowed disabled:opacity-60",
                   )}
                 >
                   <UiIcon
@@ -141,6 +152,16 @@ export function WorkflowForm({
             onChange={onPackageNameChange}
           />
         </div>
+      ) : null}
+
+      {/* Stack-only: extra create options for the chosen stack. */}
+      {sourceMode === "stack" ? (
+        <TemplateOptionsPanel
+          options={selectedTemplate?.createOptions ?? []}
+          values={createOptionValues}
+          busy={busy}
+          onChange={onCreateOptionChange}
+        />
       ) : null}
 
       <div className="rounded-[30px] border border-border bg-soft p-6 shadow-panel">
@@ -171,7 +192,7 @@ export function WorkflowForm({
             className={clsx(
               "inline-flex self-end items-center justify-center gap-2 rounded-[18px] border border-transparent bg-accent px-5 py-3",
               "text-sm font-semibold text-white shadow-glow hover:-translate-y-0.5 hover:bg-accentHover",
-              "disabled:cursor-not-allowed disabled:opacity-60"
+              "disabled:cursor-not-allowed disabled:opacity-60",
             )}
           >
             {t(translation.GlobalTerm.Continue)}

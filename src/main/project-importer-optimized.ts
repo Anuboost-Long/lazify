@@ -17,6 +17,11 @@ const IGNORED_DIRECTORY_NAMES = new Set([
   ".expo",
   ".turbo",
   "coverage",
+  // .NET build output
+  "bin",
+  "obj",
+  ".vs",
+  "TestResults",
 ]);
 const MAX_PREVIEW_BYTES = 256 * 1024;
 

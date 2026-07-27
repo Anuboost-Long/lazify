@@ -91,10 +91,10 @@ export const applicationInfoItems = [
   { label: translation.Settings.Platform, value: currentPlatform() }
 ];
 
-export const legalItems = [
-  translation.Settings.PrivacyPolicy,
-  translation.Settings.TermsOfService,
-  translation.Settings.OpenSourceLicenses
+export const legalItems: { slug: string; label: string }[] = [
+  { slug: "privacy-policy", label: translation.Settings.PrivacyPolicy },
+  { slug: "terms-of-service", label: translation.Settings.TermsOfService },
+  { slug: "open-source-licenses", label: translation.Settings.OpenSourceLicenses }
 ];
 
 export const DATE_FORMAT_OPTIONS = [

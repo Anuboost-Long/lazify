@@ -29,6 +29,10 @@ interface OptimizedEditorPaneProps {
   onCloseAll?: () => void;
   /** How many tabs closing all would take, named in the confirmation. */
   openTabCount?: number;
+  /** Clicking an identifier in the file asks to go to its declaration. */
+  onOpenSymbol?: (symbol: string) => void;
+  /** 1-based line to reveal and mark once the file is showing. */
+  focusLine?: number | null;
 }
 
 /** The read-only pane: a file loaded on demand, so it also has load states. */
@@ -40,6 +44,8 @@ export function OptimizedEditorPane({
   chrome = "card",
   onCloseAll,
   openTabCount = 0,
+  onOpenSymbol,
+  focusLine,
 }: Readonly<OptimizedEditorPaneProps>) {
   const { t } = useTranslation();
   const flush = chrome === "flush";
@@ -110,6 +116,10 @@ export function OptimizedEditorPane({
         variant={flush ? "flush" : "panel"}
         content={selectedFileState.content ?? ""}
         fileName={selectedNode.name}
+        // Only the file view resolves symbols; a diff's line numbers belong to
+        // the patch, not the file, so a jump into one would land nowhere.
+        onOpenSymbol={onOpenSymbol}
+        focusLine={focusLine}
       />
     );
   };

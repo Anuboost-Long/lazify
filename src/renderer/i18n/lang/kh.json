@@ -45,7 +45,9 @@
     "environment": "បរិស្ថាន",
     "environment_desc": "ស្កែន runtime និង package managers ដែលបានដំឡើង។",
     "agents": "ភ្នាក់ងារ AI",
-    "agents_desc": "ជជែកជាមួយ Claude ឬ Codex ក្នុងគម្រោងរបស់អ្នក។"
+    "agents_desc": "ជជែកជាមួយ Claude ឬ Codex ក្នុងគម្រោងរបស់អ្នក។",
+    "browser": "កម្មវិធីរុករក",
+    "browser_desc": "រុករកអ៊ីនធឺណិតដោយមិនចាកចេញពីកន្លែងធ្វើការ។"
   },
   "agents": {
     "eyebrow": "ភ្នាក់ងារ AI",
@@ -69,6 +71,8 @@
     "not_installed": "មិនទាន់ដំឡើង",
     "no_session_hint": "Claude ឬ Codex ដំណើរការនៅទីនេះ សម្រាប់គម្រោងនេះ។",
     "run": "ដំណើរការ",
+    "run_pick": "ជ្រើសរើសស្គ្រីបដើម្បីដំណើរការ",
+    "run_choose": "ជ្រើសរើសស្គ្រីបដែលប៊ូតុងដំណើរការនឹងចាប់ផ្តើម",
     "projects": "គម្រោង",
     "running": "កំពុងដំណើរការ",
     "idle": "ទំនេរ",
@@ -106,7 +110,28 @@
     "resets_at": "កំណត់ឡើងវិញ",
     "close_terminal_title": "បិទស្ថានីយនេះ?",
     "close_terminal_desc": "“{{label}}” កំពុងដំណើរការ។ ការបិទផ្ទាំងនឹងបញ្ឈប់ដំណើរការ និងលុបលទ្ធផលរបស់វា។",
-    "close_terminal_exited_desc": "“{{label}}” បានបញ្ចប់។ ការបិទផ្ទាំងនឹងលុបលទ្ធផលរបស់វា។"
+    "close_terminal_exited_desc": "“{{label}}” បានបញ្ចប់។ ការបិទផ្ទាំងនឹងលុបលទ្ធផលរបស់វា។",
+    "preview": "មើលជាមុន",
+    "preview_address": "អាសយដ្ឋានមើលជាមុន",
+    "preview_address_placeholder": "localhost:3000",
+    "preview_forward": "ទៅមុខ",
+    "preview_stop": "ឈប់ផ្ទុក",
+    "preview_open_external": "បើកក្នុងកម្មវិធីរុករក",
+    "preview_expand": "ពង្រីកការមើលជាមុន",
+    "preview_collapse": "បង្រួមការមើលជាមុន",
+    "preview_resize": "ប្តូរទំហំការមើលជាមុន",
+    "preview_blocked": "អាចបើកបានតែអាសយដ្ឋាន localhost ប៉ុណ្ណោះ។",
+    "preview_waiting": "កំពុងរង់ចាំ dev server ភ្ជាប់ port…",
+    "preview_no_run": "ដំណើរការគម្រោង ដើម្បីមើលជាមុននៅទីនេះ។",
+    "preview_failed": "មិនអាចផ្ទុក {{url}} បានទេ។",
+    "collapse_projects": "បង្រួមបញ្ជីគម្រោង",
+    "expand_projects": "ពង្រីកបញ្ជីគម្រោង",
+    "preview_devtools": "ឧបករណ៍អ្នកអភិវឌ្ឍន៍",
+    "preview_pip_media": "រូបក្នុងរូប",
+    "preview_pip_page": "បើកបង្អួចទំព័រ",
+    "preview_pip_page_close": "បិទបង្អួចទំព័រ",
+    "preview_pip_no_media": "គ្មានវីដេអូនៅទំព័រនេះសម្រាប់អោយអណ្តែតទេ។",
+    "preview_pip_unsupported": "ទំព័រនេះមិនអនុញ្ញាតរូបក្នុងរូបទេ។"
   },
   "sidebar": {
     "app_name": "Lazify",
@@ -537,5 +562,53 @@
   "template_card": {
     "delete": "លុបគំរូ",
     "selected": "បានជ្រើស"
+  },
+  "command_palette": {
+    "search_files_placeholder": "ស្វែងរកឯកសារតាមឈ្មោះ…",
+    "no_matching_files": "រកមិនឃើញឯកសារ"
+  },
+  "browser": {
+    "title": "កម្មវិធីរុករក",
+    "new_tab": "ផ្ទាំងថ្មី",
+    "forward": "ទៅមុខ",
+    "stop": "ឈប់ផ្ទុក",
+    "address": "អាសយដ្ឋាន",
+    "address_placeholder": "ស្វែងរក ឬបញ្ចូលអាសយដ្ឋាន",
+    "open_external": "បើកក្នុងកម្មវិធីរុករករបស់ប្រព័ន្ធ",
+    "pip_media": "រូបក្នុងរូប",
+    "pip_page": "បើកបង្អួចទំព័រ",
+    "pip_page_close": "បិទបង្អួចទំព័រ",
+    "pip_no_media": "គ្មានវីដេអូនៅទំព័រនេះសម្រាប់អោយអណ្តែតទេ។",
+    "pip_unsupported": "ទំព័រនេះមិនអនុញ្ញាតរូបក្នុងរូបទេ។",
+    "start_title": "ទៅណា?",
+    "start_hint": "ស្វែងរកលើអ៊ីនធឺណិត ឬចូលទៅគេហទំព័រដោយផ្ទាល់។",
+    "start_search": "ស្វែងរកលើអ៊ីនធឺណិត",
+    "send_to_agent": "ផ្ញើទៅភ្នាក់ងារ",
+    "no_agents_running": "គ្មានភ្នាក់ងារកំពុងដំណើរការ។ សូមបើកមួយពីទំព័រភ្នាក់ងារ។",
+    "send_to_agent_hint": "វាយអាសយដ្ឋានចូលក្នុងភ្នាក់ងារ ដោយមិនផ្ញើភ្លាម។"
+  },
+  "lazy_shield": {
+    "title": "Lazy Shield",
+    "toggle": "ᐛួរ Lazy Shield",
+    "on": "កំពុងទប់កាតការផសព្វផ្សាយ",
+    "off": "បានបិទ",
+    "blocked_label": "បានទប់ស្កាត់នេះ",
+    "description": "ការផសព្វផ្សាយ និងឧបករណ៍តាមដាន ត្រូវបានទប់ស្កាត់។",
+    "off_description": "ទំព័រផ្ទុកដោយមិនចម្រោះ។ បើកព្រោះដើម្បីទប់ស្កាត់។",
+    "loading": "កំពុងរៀបចំបញ្ជីចម្រោះ…",
+    "scope_note": "តែក្នុងកម្មវិធីរុករកប៉ុណ្ណោះ។ ការមើលជាមុនគម្រោងមិនត្រូវបានចម្រោះ។"
+  },
+  "port_reaper": {
+    "title": "ច្រកដែលកំពុងស្តាប់",
+    "description": "អ្វីៗដែលកំពុងកាន់ច្រកឥឡូវនេះ។ បញ្ឈប់អ្វីដែលរារាំង dev server របស់អ្នក។",
+    "empty": "គ្មានអ្វីកំពុងស្តាប់ទេ។",
+    "kill": "បញ្ឈប់ដំណើរការ",
+    "badge_lazify": "Lazify",
+    "badge_managed": "ចាប់ផ្តើមពីទីនេះ",
+    "protected_hint": "នេះជា Lazify ខ្លួនឯង មិនអាចបញ្ឈប់ពីទីនេះបានទេ។",
+    "confirm_title": "បញ្ឈប់ដំណើរការនេះ?",
+    "confirm_desc": "“{{command}}” កំពុងកាន់ច្រក {{port}}។ វានឹងត្រូវបញ្ឈប់ជាមួយដំណើរការកូនរបស់វា។",
+    "confirm_managed_desc": "“{{command}}” នៅច្រក {{port}} ត្រូវបានចាប់ផ្តើមដោយ Lazify។ ការបញ្ឈប់នឹងបិទ terminal session ផងដែរ។",
+    "show_system": "បង្ហាញច្រកប្រព័ន្ធ {{count}}"
   }
 }

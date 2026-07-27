@@ -63,6 +63,48 @@ function findNodeByAbsolutePath(
   return visit(tree);
 }
 
+// Open editor tabs and the active one, kept per project so leaving the
+// workbench and returning restores the same files in the same order.
+const EDITOR_TABS_STORAGE_KEY = "lazify-editor-tabs";
+
+interface StoredEditorTabs {
+  openFiles: EditorTab[];
+  activeFilePath: string | null;
+}
+
+function readStoredEditorTabs(projectPath: string): StoredEditorTabs | null {
+  if (typeof window === "undefined" || !projectPath) {
+    return null;
+  }
+
+  try {
+    const all = JSON.parse(
+      globalThis.localStorage.getItem(EDITOR_TABS_STORAGE_KEY) ?? "{}"
+    ) as Record<string, StoredEditorTabs>;
+
+    return all[projectPath] ?? null;
+  } catch {
+    return null;
+  }
+}
+
+function persistEditorTabs(projectPath: string, value: StoredEditorTabs) {
+  if (typeof window === "undefined" || !projectPath) {
+    return;
+  }
+
+  try {
+    const all = JSON.parse(
+      globalThis.localStorage.getItem(EDITOR_TABS_STORAGE_KEY) ?? "{}"
+    ) as Record<string, StoredEditorTabs>;
+
+    all[projectPath] = value;
+    globalThis.localStorage.setItem(EDITOR_TABS_STORAGE_KEY, JSON.stringify(all));
+  } catch {
+    // A write that fails only costs the restore; the session keeps working.
+  }
+}
+
 export function useSyncedProjectTree({
   allowGitStatus = false,
   editable = false,
@@ -89,6 +131,14 @@ export function useSyncedProjectTree({
   const [gitStatusLoading, setGitStatusLoading] = useState(false);
   /** Bumped to re-run the git status effect after the tree moves. */
   const [gitStatusNonce, setGitStatusNonce] = useState(0);
+  /** The project whose tabs have been restored, gating the persist effect so
+   *  it never writes the previous project's tabs under the new one's key. */
+  const [hydratedProjectPath, setHydratedProjectPath] = useState<string | null>(null);
+  /** Where the last go-to-definition landed, so only that file is marked. */
+  const [symbolTarget, setSymbolTarget] = useState<{
+    filePath: string;
+    line: number;
+  } | null>(null);
   const activeRequestIdRef = useRef(0);
 
   useEffect(() => {
@@ -97,8 +147,22 @@ export function useSyncedProjectTree({
     setEditableTree(project.tree);
     setExpandedIds([]);
     setSelectedId(null);
-    setActiveFilePath(null);
-    setOpenFiles([]);
+
+    // Restore the tabs this project last had open, dropping any whose file has
+    // since left the tree, and keeping their saved order.
+    const stored = readStoredEditorTabs(project.projectPath);
+    const restoredTabs = (stored?.openFiles ?? []).filter((tab) =>
+      findNodeByAbsolutePath(project.tree, tab.filePath)
+    );
+    const restoredActive =
+      stored?.activeFilePath &&
+      restoredTabs.some((tab) => tab.path === stored.activeFilePath)
+        ? stored.activeFilePath
+        : restoredTabs[0]?.path ?? null;
+    setOpenFiles(restoredTabs);
+    setActiveFilePath(restoredActive);
+    setHydratedProjectPath(project.projectPath);
+
     setIncludedFilePaths(new Set(project.tree.flatMap((node) => collectDescendantFilePaths(node))));
     setFileCache({});
     setContextMenu(null);
@@ -106,7 +170,17 @@ export function useSyncedProjectTree({
     setRenameValue("");
     setGitStatus(null);
     setGitStatusLoading(false);
+    setSymbolTarget(null);
   }, [project]);
+
+  // Once this project's tabs are hydrated, mirror every change back to storage.
+  useEffect(() => {
+    if (hydratedProjectPath !== project.projectPath) {
+      return;
+    }
+
+    persistEditorTabs(project.projectPath, { openFiles, activeFilePath });
+  }, [openFiles, activeFilePath, hydratedProjectPath, project.projectPath]);
 
   useEffect(() => {
     if (!editable) {
@@ -343,6 +417,36 @@ export function useSyncedProjectTree({
     handleSelectNode(node);
   };
 
+  /**
+   * Go to definition, the workbench way: the file opens as a tab in this
+   * editor, the explorer expands to it, and the declaration is marked. The
+   * navigation never leaves the page — that is the whole point of doing it
+   * here rather than handing the path to something else.
+   *
+   * A name that resolves to nothing, or to a file outside the indexed tree, is
+   * a no-op: a click on an ordinary word must not disturb what is open.
+   */
+  const handleOpenSymbol = async (symbol: string) => {
+    const hit = await globalThis.lazify
+      .findSymbolDefinition(project.projectPath, symbol)
+      .catch(() => null);
+
+    if (!hit) return;
+
+    const node = findNodeByAbsolutePath(editableTree, hit.absolutePath);
+    if (!node) return;
+
+    const ancestorIds = buildAncestorIds(editableTree, node.id);
+
+    setExpandedIds((current) => {
+      const toAdd = ancestorIds.filter((id) => !current.includes(id));
+      return toAdd.length > 0 ? [...current, ...toAdd] : current;
+    });
+    setActivePanel("explorer");
+    handleSelectNode(node);
+    setSymbolTarget({ filePath: node.absolutePath, line: hit.line });
+  };
+
   const handleCreateEntry = (type: "file" | "folder") => {
     const parentNode = contextMenu?.node?.type === "folder" ? contextMenu.node : null;
     const seed = Date.now();
@@ -476,6 +580,12 @@ export function useSyncedProjectTree({
     handleDeleteNode,
     handleOpenDiff,
     handleOpenGitEntry,
+    handleOpenSymbol,
+    /** Line to reveal, but only while its own file is the one on screen. */
+    focusLine:
+      symbolTarget && activeTab?.kind === "file" && activeTab.filePath === symbolTarget.filePath
+        ? symbolTarget.line
+        : null,
     handleSelectNode,
     handleStartRename,
     handleToggleExpand,

@@ -1,7 +1,12 @@
 import clsx from "clsx";
 import type { ReactNode } from "react";
 
-import { BodyText, CardTitle, OverlineText, PillText } from "@renderer/shared/typography";
+import {
+  BodyText,
+  CardTitle,
+  OverlineText,
+  PillText,
+} from "@renderer/shared/typography";
 import UiIcon, { type UiIconName } from "@renderer/shared/ui/icons/UiIcon";
 
 interface EditorPaneShellProps {
@@ -38,7 +43,7 @@ export function EditorPaneShell({
   headerAction,
   tabs,
   chrome = "card",
-  children
+  children,
 }: Readonly<EditorPaneShellProps>) {
   const flush = chrome === "flush";
 
@@ -46,7 +51,9 @@ export function EditorPaneShell({
     <div
       className={clsx(
         "flex flex-col overflow-hidden bg-bg",
-        flush ? "h-full" : "h-[44rem] rounded-[26px] border border-border shadow-panel"
+        flush
+          ? "h-full"
+          : "h-[44rem] rounded-[26px] border border-border shadow-panel",
       )}
     >
       <div
@@ -56,7 +63,7 @@ export function EditorPaneShell({
           // padding of its own — each tab owns its own hit area.
           tabs
             ? "h-9 items-stretch"
-            : clsx("items-center gap-2", flush ? "px-4 py-2.5" : "px-5 py-3.5")
+            : clsx("items-center gap-2", flush ? "px-4 py-2.5" : "px-5 py-3.5"),
         )}
       >
         {tabs ? (
@@ -74,7 +81,9 @@ export function EditorPaneShell({
             <UiIcon name={icon} className="h-4 w-4 text-warning" />
             <div className="min-w-0 flex-1">
               <CardTitle className="truncate text-sm">{title}</CardTitle>
-              <OverlineText className="truncate text-muted">{subtitle}</OverlineText>
+              <OverlineText className="truncate text-muted">
+                {subtitle}
+              </OverlineText>
             </div>
             {headerAction}
             <PillText className="rounded-full border border-border bg-bg px-3 py-1 text-muted">
@@ -91,7 +100,7 @@ export function EditorPaneShell({
             ? undefined
             : {
                 background:
-                  "radial-gradient(circle at top right, rgb(var(--color-accent) / 0.06), transparent 30%), rgb(var(--color-bg))"
+                  "radial-gradient(circle at top right, rgb(var(--color-accent) / 0.06), transparent 30%), rgb(var(--color-bg))",
               }
         }
       >
@@ -113,7 +122,7 @@ export function EditorPaneNotice({
   title,
   description,
   tone = "neutral",
-  chrome = "card"
+  chrome = "card",
 }: Readonly<{
   title: string;
   description?: string;
@@ -130,14 +139,20 @@ export function EditorPaneNotice({
         !flush && "rounded-[20px] border border-dashed",
         isError
           ? clsx("bg-error/5", !flush && "border-error/25")
-          : clsx(!flush && "border-border bg-soft/30")
+          : clsx(!flush && "border-border bg-soft/30"),
       )}
     >
       <div className="max-w-md">
-        <CardTitle className={isError ? "text-lg text-error" : "text-lg"}>{title}</CardTitle>
+        <CardTitle className={isError ? "text-lg text-error" : "text-lg"}>
+          {title}
+        </CardTitle>
         {description ? (
           <BodyText
-            className={isError ? "mt-3 whitespace-pre-wrap text-text/70" : "mt-3 text-muted"}
+            className={
+              isError
+                ? "mt-3 whitespace-pre-wrap text-text/70"
+                : "mt-3 text-muted"
+            }
           >
             {description}
           </BodyText>

@@ -1,3 +1,4 @@
+import type { DotnetDetectionResult } from "./dotnet-detector";
 import type { PackageJsonContent } from "./package-json-reader";
 import type { PackageManager, StackDetectionResult } from "./types";
 
@@ -18,6 +19,8 @@ export function runScriptCommand(packageManager: PackageManager, script: string)
 
 export function installCommand(packageManager: PackageManager): string {
   switch (packageManager) {
+    case "dotnet":
+      return "dotnet restore";
     case "npm":
       return "npm install";
     case "yarn":
@@ -48,6 +51,33 @@ export function runnerCommand(packageManager: PackageManager): string {
 
 function getScriptCommand(packageManager: PackageManager, scripts: Record<string, string> | undefined, script: string) {
   return scripts?.[script] ? runScriptCommand(packageManager, script) : undefined;
+}
+
+/**
+ * `dotnet` commands are built from the project file rather than a script list,
+ * because .NET has no equivalent of package.json scripts — the verbs are fixed
+ * and only the target changes.
+ */
+export function buildDotnetCommands(dotnet: DotnetDetectionResult): StackDetectionResult["commands"] {
+  // A solution builds and tests everything; `run` always needs a single project.
+  const buildTarget = dotnet.solutionFile ?? dotnet.entryProjectFile;
+  const runTarget = dotnet.entryProjectFile;
+
+  const withTarget = (verb: string, target: string | null, flag = "") => {
+    if (!target) return `dotnet ${verb}`;
+
+    return flag ? `dotnet ${verb} ${flag} "${target}"` : `dotnet ${verb} "${target}"`;
+  };
+
+  const commands: StackDetectionResult["commands"] = {
+    install: withTarget("restore", buildTarget),
+    build: withTarget("build", buildTarget),
+    dev: runTarget ? `dotnet watch run --project "${runTarget}"` : "dotnet watch run",
+    start: withTarget("run", runTarget, "--project"),
+    test: withTarget("test", buildTarget),
+  };
+
+  return commands;
 }
 
 export function buildCommands(input: {

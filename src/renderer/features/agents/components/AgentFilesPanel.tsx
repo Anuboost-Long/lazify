@@ -67,6 +67,21 @@ function TreeRow({ node, depth, openFolders, onToggleFolder, onOpenFile }: Reado
   );
 }
 
+/** The indexed node for an absolute path, or null when it is not in the tree. */
+function findByAbsolutePath(
+  nodes: ImportedProjectIndexNode[],
+  absolutePath: string
+): ImportedProjectIndexNode | null {
+  for (const node of nodes) {
+    if (node.absolutePath === absolutePath) return node;
+
+    const nested = findByAbsolutePath(node.children, absolutePath);
+    if (nested) return nested;
+  }
+
+  return null;
+}
+
 /** Placeholder line used for loading and empty states. */
 function PanelMessage({ children }: Readonly<{ children: ReactNode }>) {
   return <SmallText className="!text-muted px-1.5 py-2">{children}</SmallText>;
@@ -118,11 +133,67 @@ export function AgentFilesPanel({
   );
   const [openFolders, setOpenFolders] = useState<string[]>([]);
   const [selected, setSelected] = useState<ImportedProjectIndexNode | null>(null);
+  /** Files jumped away from, newest last, so a jump can be walked back. */
+  const [trail, setTrail] = useState<ImportedProjectIndexNode[]>([]);
+  /** Definition the current file was opened at, if it was reached by a jump. */
+  const [symbolLine, setSymbolLine] = useState<{ path: string; line: number } | null>(null);
 
   const toggleFolder = (id: string) =>
     setOpenFolders((open) =>
       open.includes(id) ? open.filter((entry) => entry !== id) : [...open, id]
     );
+
+  /** Opening a file from the tree or a search hit starts a fresh trail. */
+  const openFile = (node: ImportedProjectIndexNode) => {
+    setSelected(node);
+    setTrail([]);
+    setSymbolLine(null);
+  };
+
+  /**
+   * Go to definition, the agents-page way: the reader here is a modal over the
+   * terminal, not a workbench, so the jump lands in that same modal and the
+   * file it came from goes on a trail the header can walk back. The agent
+   * session underneath is never navigated away from.
+   */
+  const handleOpenSymbol = async (symbol: string) => {
+    const hit = await globalThis.lazify
+      .findSymbolDefinition(projectPath, symbol)
+      .catch(() => null);
+
+    if (!hit) return;
+
+    // Normally the definition is a file the index already knows. A file added
+    // since the last scan is still worth opening, so stand one in.
+    const node: ImportedProjectIndexNode = findByAbsolutePath(tree, hit.absolutePath) ?? {
+      id: `symbol-${hit.absolutePath}`,
+      name: hit.relativePath.slice(hit.relativePath.lastIndexOf("/") + 1),
+      type: "file",
+      relativePath: hit.relativePath,
+      absolutePath: hit.absolutePath,
+      children: []
+    };
+
+    // Jumping to the file already open is only a move to its declaration.
+    if (selected && node.absolutePath !== selected.absolutePath) {
+      setTrail((current) => [...current, selected]);
+    }
+
+    setSelected(node);
+    setSymbolLine({ path: node.absolutePath, line: hit.line });
+  };
+
+  const handleBack = () => {
+    setTrail((current) => {
+      const previous = current[current.length - 1];
+      if (!previous) return current;
+
+      setSelected(previous);
+      setSymbolLine(null);
+
+      return current.slice(0, -1);
+    });
+  };
 
   /** Search results, the tree, or whichever message stands in for them. */
   const renderBody = () => {
@@ -136,7 +207,7 @@ export function AgentFilesPanel({
       }
 
       return matches.map((match) => (
-        <MatchRow key={match.node.id} match={match} onOpen={setSelected} />
+        <MatchRow key={match.node.id} match={match} onOpen={openFile} />
       ));
     }
 
@@ -214,7 +285,16 @@ export function AgentFilesPanel({
       <AgentFileModal
         file={selected}
         onSendToTerminal={onSendToTerminal}
-        onClose={() => setSelected(null)}
+        onOpenSymbol={(symbol) => void handleOpenSymbol(symbol)}
+        focusLine={
+          symbolLine && symbolLine.path === selected?.absolutePath ? symbolLine.line : null
+        }
+        onBack={trail.length > 0 ? handleBack : undefined}
+        onClose={() => {
+          setSelected(null);
+          setTrail([]);
+          setSymbolLine(null);
+        }}
       />
     </aside>
   );

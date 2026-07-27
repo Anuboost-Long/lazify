@@ -2,7 +2,7 @@ import type { UiIconName } from "@renderer/shared/ui/icons/UiIcon";
 import { appRoute } from "./app-routes";
 import { translation } from "@renderer/i18n/translation";
 
-export type AppPageId = "workspace" | "importProject" | "agents" | "console" | "templates" | "settings" | "environment";
+export type AppPageId = "workspace" | "importProject" | "agents" | "browser" | "console" | "templates" | "settings" | "environment";
 
 export interface AppPageLink {
   id: AppPageId;
@@ -33,6 +33,13 @@ export const appSidebarPages: AppPageLink[] = [
     label: translation.Navigation.Agents,
     description: translation.Navigation.AgentsDesc,
     icon: "code",
+  },
+  {
+    id: "browser",
+    path: appRoute.browser,
+    label: translation.Navigation.Browser,
+    description: translation.Navigation.BrowserDesc,
+    icon: "globe",
   },
   {
     id: "console",

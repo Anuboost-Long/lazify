@@ -47,6 +47,17 @@ const JS_KEYWORDS =
 const JS_TYPES =
   "any bigint boolean never null number object string symbol undefined unknown true false void Array Promise Record Partial Readonly Pick Omit Map Set Date RegExp Error JSON Math console window document globalThis";
 
+const CS_KEYWORDS =
+  "abstract as async await base break case catch checked class const continue default delegate do else enum event explicit extern finally fixed for foreach get goto if implicit in init interface internal is lock namespace new operator out override params partial private protected public readonly record ref required return sealed set sizeof stackalloc static struct switch this throw try typeof unchecked unsafe using virtual volatile when where while yield add remove global nameof with";
+const CS_TYPES =
+  "bool byte char decimal double dynamic float int long nint nuint object sbyte short string uint ulong ushort var void true false null value Task ValueTask List Dictionary IEnumerable IQueryable Nullable Span Guid DateTime DateTimeOffset TimeSpan Exception Console String Math Convert Enumerable HttpClient IActionResult ActionResult";
+
+const FS_KEYWORDS =
+  "let mutable rec and or not use using module namespace open type of val member abstract override interface inherit static new do done downto elif else if then for while to in yield return match with when function fun try finally exception raise failwith begin end struct class internal private public global lazy assert upcast downcast inline mutable";
+
+const VB_KEYWORDS =
+  "AddHandler AndAlso As ByRef ByVal Case Catch Class Const Continue Dim Do Each Else ElseIf End EndIf Enum Event Exit False Finally For Friend Function Get Global GoTo Handles If Implements Imports In Inherits Interface Is Let Loop Me Module MustInherit MustOverride My Namespace New Next Not Nothing NotInheritable Object On Operator Option Optional Or OrElse Overloads Overridable Overrides ParamArray Partial Private Property Protected Public RaiseEvent ReadOnly Return Select Set Shadows Shared Static Step Stop Structure Sub Then Throw To True Try TypeOf Until Using When While With WithEvents WriteOnly Xor";
+
 const PY_KEYWORDS =
   "and as assert async await break class continue def del elif else except finally for from global if import in is lambda nonlocal not or pass raise return try while with yield match case";
 
@@ -77,6 +88,26 @@ const LANGUAGES: Record<string, LanguageSpec> = {
     blockComment: ["/*", "*/"],
     quotes: ['"', "'", "`"],
     templates: true
+  }),
+  csharp: spec({
+    keywords: new Set(CS_KEYWORDS.split(" ")),
+    types: new Set(CS_TYPES.split(" ")),
+    lineComment: ["///", "//"],
+    blockComment: ["/*", "*/"],
+    // `$"…"` and `@"…"` open on the quote, so the prefix falls out as plain.
+    quotes: ['"', "'"]
+  }),
+  fsharp: spec({
+    keywords: new Set(FS_KEYWORDS.split(" ")),
+    types: new Set(CS_TYPES.split(" ")),
+    lineComment: ["//"],
+    blockComment: ["(*", "*)"]
+  }),
+  vb: spec({
+    keywords: new Set(VB_KEYWORDS.split(" ")),
+    types: new Set(CS_TYPES.split(" ")),
+    lineComment: ["'", "REM "],
+    quotes: ['"']
   }),
   json: spec({
     keywords: new Set(["true", "false", "null"]),
@@ -135,9 +166,10 @@ const FALLBACK_ALIASES: Record<string, keyof typeof LANGUAGES> = {
   toml: "yaml",
   ini: "yaml",
   mdx: "markdown",
+  // Razor is C# embedded in markup; the markup half reads better as HTML.
+  razor: "html",
   // Close enough to read at a glance until the real grammar lands.
   java: "javascript",
-  csharp: "javascript",
   kotlin: "javascript",
   swift: "javascript",
   go: "javascript",

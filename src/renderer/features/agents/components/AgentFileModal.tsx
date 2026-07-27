@@ -16,6 +16,12 @@ interface AgentFileModalProps {
   file: ImportedProjectIndexNode | null;
   /** Absent when no terminal is open, which hides the send button. */
   onSendToTerminal: ((text: string) => void) | null;
+  /** Clicking an identifier asks the panel to open where it is declared. */
+  onOpenSymbol?: (symbol: string) => void;
+  /** 1-based line to reveal, set when this file was reached by a jump. */
+  focusLine?: number | null;
+  /** Returns to the file jumped from; absent when there is nowhere back to. */
+  onBack?: () => void;
   onClose: () => void;
 }
 
@@ -23,7 +29,14 @@ interface AgentFileModalProps {
  * Read-only look at a file while an agent is working, so its path and contents
  * can be quoted back into the conversation.
  */
-export function AgentFileModal({ file, onSendToTerminal, onClose }: Readonly<AgentFileModalProps>) {
+export function AgentFileModal({
+  file,
+  onSendToTerminal,
+  onOpenSymbol,
+  focusLine,
+  onBack,
+  onClose
+}: Readonly<AgentFileModalProps>) {
   const { t } = useTranslation();
   const [content, setContent] = useState("");
 
@@ -58,6 +71,16 @@ export function AgentFileModal({ file, onSendToTerminal, onClose }: Readonly<Age
         )}
       >
         <header className="flex items-center gap-2 border-b border-border px-3 py-2">
+          {/* A jump replaces what the modal is showing, so there has to be a way
+              back to the file the symbol was clicked in. */}
+          {onBack ? (
+            <IconButton
+              icon="arrow-left"
+              aria-label={t(translation.GlobalTerm.Back)}
+              onClick={onBack}
+              className="text-text"
+            />
+          ) : null}
           <UiIcon name="page" className="h-3.5 w-3.5 shrink-0 text-muted" />
           <span className="min-w-0">
             <SmallText as="span" className="!text-text block truncate">
@@ -102,7 +125,13 @@ export function AgentFileModal({ file, onSendToTerminal, onClose }: Readonly<Age
         </header>
 
         <div className="min-h-0 flex-1">
-          <CodeSurface variant="flush" content={content} fileName={file?.name} />
+          <CodeSurface
+            variant="flush"
+            content={content}
+            fileName={file?.name}
+            onOpenSymbol={onOpenSymbol}
+            focusLine={focusLine}
+          />
         </div>
       </div>
     </BaseModal>

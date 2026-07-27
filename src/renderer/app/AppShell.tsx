@@ -13,6 +13,7 @@ import { useTranslation } from "react-i18next";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { appRoute } from "./app-routes";
 import { appSidebarPages, type AppPageId } from "./app-sidebar.constant";
+import { BrowserSurface } from "@renderer/features/browser/components/BrowserSurface";
 import { ContentBackdrop } from "./components/ContentBackdrop";
 import { PageChromeContext } from "./components/PageChrome";
 import { Sidebar } from "./components/Sidebar";
@@ -76,7 +77,9 @@ export function AppShell() {
       (page) =>
         location.pathname === page.path ||
         (page.id === "workspace" &&
-          location.pathname.startsWith("/workspace/project/")),
+          location.pathname.startsWith("/workspace/project/")) ||
+        // Legal documents are reached from Settings, so keep it highlighted.
+        (page.id === "settings" && location.pathname.startsWith("/legal/")),
     )?.id ?? null;
 
   const activePage =
@@ -104,7 +107,10 @@ export function AppShell() {
 
   return (
     <main className="flex h-screen bg-bg text-text">
-      <div className="flex min-h-0 flex-1">
+      {/* min-w-0 is load-bearing: without it this flex item cannot shrink below
+          its content's min-content width, so any page holding one long
+          unbreakable string pushes the whole window wider than the screen. */}
+      <div className="flex min-h-0 min-w-0 flex-1">
         <Sidebar
           pages={appSidebarPages}
           activePage={activePageId}
@@ -190,6 +196,13 @@ export function AppShell() {
               </div>
             </div>
           </PageChromeContext.Provider>
+
+          {/* Mounted by the shell, not by its route: leaving the page moves
+              this aside instead of unmounting it, so a video or a track keeps
+              playing while the user works elsewhere. It covers the content
+              area — including the breadcrumb bar, which a browser does not
+              need — whenever the browser page is the one being shown. */}
+          <BrowserSurface visible={location.pathname === appRoute.browser} />
         </section>
       </div>
     </main>

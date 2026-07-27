@@ -151,10 +151,81 @@ export class PtyRunner {
     }
   }
 
+  /**
+   * Signals the whole process group rather than just the process we spawned.
+   *
+   * The thing in the PTY is usually a wrapper — `dotnet watch` runs the real
+   * server as a child, as do `npm run` and friends. Killing only the wrapper
+   * orphans that child, which keeps holding the dev port and makes the next
+   * start fail with "address already in use". node-pty gives the session its
+   * own process group, so negating the pid takes the children down too.
+   */
+  private signalGroup(pid: number, signal: NodeJS.Signals): void {
+    try {
+      process.kill(-pid, signal);
+    } catch {
+      // No group (or already gone) — fall back to the single process.
+      try {
+        process.kill(pid, signal);
+      } catch {
+        // Already dead; nothing to do.
+      }
+    }
+  }
+
   kill(runId: string): void {
     const entry = this.entries.get(runId);
     if (!entry) return;
-    entry.pty.kill();
+
+    if (process.platform === "win32") {
+      entry.pty.kill();
+    } else {
+      this.signalGroup(entry.pty.pid, "SIGTERM");
+    }
+
     this.entries.delete(runId);
+  }
+
+  /**
+   * Kills and waits for the process to actually be gone, which a restart needs
+   * — respawning while the old server still holds its port fails with "address
+   * already in use". Escalates to SIGKILL if the group ignores SIGTERM, and
+   * resolves regardless once `timeoutMs` is up so a process that refuses to
+   * die cannot wedge the restart.
+   */
+  killAndWait(runId: string, timeoutMs = 5000): Promise<void> {
+    const entry = this.entries.get(runId);
+    if (!entry) return Promise.resolve();
+
+    const { pid } = entry.pty;
+    const onWindows = process.platform === "win32";
+
+    return new Promise<void>((resolve) => {
+      let settled = false;
+
+      const finish = () => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(escalateTimer);
+        clearTimeout(giveUpTimer);
+        resolve();
+      };
+
+      const escalateTimer = setTimeout(() => {
+        if (!onWindows) this.signalGroup(pid, "SIGKILL");
+      }, Math.min(2000, timeoutMs));
+
+      const giveUpTimer = setTimeout(finish, timeoutMs);
+
+      entry.pty.onExit(finish);
+
+      if (onWindows) {
+        entry.pty.kill();
+      } else {
+        this.signalGroup(pid, "SIGTERM");
+      }
+    }).then(() => {
+      this.entries.delete(runId);
+    });
   }
 }

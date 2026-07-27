@@ -74,13 +74,24 @@ declare global {
       listScripts: (projectPath: string) => Promise<Record<string, string>>;
       runScript: (projectPath: string, scriptName: string, cols?: number, rows?: number) => Promise<{ runId: string; ptyAvailable: boolean }>;
       stopScript: (runId: string) => Promise<void>;
+      restartScript: (runId: string, projectPath: string, scriptName: string, cols?: number, rows?: number) => Promise<{ runId: string; ptyAvailable: boolean }>;
       ptyWrite: (runId: string, data: string) => void;
       ptyBacklog: (runId: string) => Promise<import("../main/pty-runner").PtyBacklog>;
       ptyResize: (runId: string, cols: number, rows: number) => void;
+      onAgentAttention: (
+        callback: (event: {
+          runId: string;
+          projectPath: string;
+          projectName: string;
+          agentLabel: string;
+          waiting: boolean;
+        }) => void
+      ) => () => void;
       onPtyData: (
         callback: (event: { runId: string; data: string; seq?: number }) => void
       ) => () => void;
       onScriptStatus: (callback: (event: import("./shared/types/lazify").ScriptStatusEvent) => void) => () => void;
+      onSessionKilled: (callback: (event: { runId: string }) => void) => () => void;
       listProjectPackages: (projectPath: string) => Promise<import("./shared/types/lazify").InstalledPackage[]>;
       addProjectPackage: (payload: import("../main/workflow-engine").AddProjectPackagePayload) => Promise<import("../main/workflow-engine").WorkflowResult>;
       removeProjectPackage: (payload: import("../main/workflow-engine").RemoveProjectPackagePayload) => Promise<import("../main/workflow-engine").WorkflowResult>;
@@ -123,6 +134,41 @@ declare global {
       ) => Promise<import("../main/git-actions").GitActionResult>;
       listHighlightingAssets: () => Promise<import("../main/highlighting-store").HighlightingAssets>;
       openHighlightingFolder: () => Promise<void>;
+      openExternalUrl: (url: string) => Promise<void>;
+      listListeningProcesses: () => Promise<import("../main/port-reaper").ListeningProcess[]>;
+      killListeningProcess: (pid: number) => Promise<import("../main/port-reaper").KillResult>;
+      getLazyShieldState: () => Promise<import("../main/lazy-shield").LazyShieldState>;
+      setLazyShield: (enabled: boolean) => Promise<import("../main/lazy-shield").LazyShieldState>;
+      onLazyShieldBlocked: (callback: (event: { blocked: number }) => void) => () => void;
+      /** A guest tried to open a popup; the browser page turns it into a tab. */
+      onBrowserOpenTab: (callback: (event: { url: string }) => void) => () => void;
+      openPictureInPicture: (
+        url: string,
+        source: import("../main/picture-in-picture").PictureInPictureSource
+      ) => Promise<import("../main/picture-in-picture").PictureInPictureState>;
+      closePictureInPicture: () => Promise<
+        import("../main/picture-in-picture").PictureInPictureState
+      >;
+      getPictureInPictureState: () => Promise<
+        import("../main/picture-in-picture").PictureInPictureState
+      >;
+      /** The one floating window opened, moved surface, or went away. */
+      onPictureInPictureChanged: (
+        callback: (state: import("../main/picture-in-picture").PictureInPictureState) => void
+      ) => () => void;
+      /**
+       * Sends the guest's video to the OS mini player, or brings it back. Takes
+       * the guest's id because the video may be in a frame the renderer cannot
+       * reach on its own.
+       */
+      toggleMediaPictureInPicture: (
+        webContentsId: number
+      ) => Promise<import("../main/media-pip").MediaPipResult>;
+      /** Where a symbol is declared in a project, or null when nothing matches. */
+      findSymbolDefinition: (
+        projectPath: string,
+        symbol: string
+      ) => Promise<import("../main/symbol-finder").SymbolDefinition | null>;
       getAgentUsage: (sinceIso?: string, agentIds?: string[]) => Promise<AgentUsageReport>;
       setAgentBudget: (agentId: string, weeklyTokens: number) => Promise<Record<string, number>>;
       openAgentTerminal: (
@@ -143,6 +189,52 @@ declare global {
   // Exposed on globalThis (renderer) so `globalThis.lazify` resolves without `window`.
   // eslint-disable-next-line no-var
   var lazify: Window["lazify"];
+
+  /**
+   * The `<webview>` the agent preview browser renders. Electron ships no JSX
+   * typing for the tag, and the renderer must not pull in the electron types,
+   * so only the surface the preview toolbar actually drives is declared here.
+   */
+  interface LazifyWebviewElement extends HTMLElement {
+    src: string;
+    getURL: () => string;
+    getTitle: () => string;
+    loadURL: (url: string) => Promise<void>;
+    reload: () => void;
+    stop: () => void;
+    goBack: () => void;
+    goForward: () => void;
+    canGoBack: () => boolean;
+    canGoForward: () => boolean;
+    openDevTools: () => void;
+    closeDevTools: () => void;
+    isDevToolsOpened: () => boolean;
+    /**
+     * Runs code inside the guest. `userGesture` is what lets the page's own
+     * picture-in-picture request through — Chromium refuses one that did not
+     * come from a user action.
+     */
+    executeJavaScript: (code: string, userGesture?: boolean) => Promise<unknown>;
+    /** Identifies the guest to main, which can reach its frames. */
+    getWebContentsId: () => number;
+  }
+
+  namespace JSX {
+    interface IntrinsicElements {
+      webview: React.DetailedHTMLProps<
+        React.HTMLAttributes<HTMLElement> & {
+          src?: string;
+          /** Isolates each surface's cookies and storage from the others. */
+          partition?: string;
+          /** React's own webview typing already declares this as a boolean. */
+          allowpopups?: boolean;
+          /** Guest webPreferences, e.g. "backgroundThrottling=no". */
+          webpreferences?: string;
+        },
+        HTMLElement
+      >;
+    }
+  }
 }
 
 export {};

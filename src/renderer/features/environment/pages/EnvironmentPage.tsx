@@ -11,6 +11,7 @@ import { CategorySection } from "../components/CategorySection";
 import { NodeVersionModal } from "../components/NodeVersionModal";
 import { InstallToolModal } from "../components/InstallToolModal";
 import { UpdateToolModal } from "../components/UpdateToolModal";
+import { PortReaperSection } from "../components/PortReaperSection";
 
 interface EnvironmentPageProps {
   report: ToolScanReport | null;
@@ -122,6 +123,11 @@ export function EnvironmentPage({ report, loading, onRefresh }: EnvironmentPageP
           )}
         </div>
       )}
+
+      {/* Sits under the tool inventory: same question ("what is on this
+          machine"), but the answer changes minute to minute rather than
+          install to install, so it scans on its own. */}
+      <PortReaperSection />
 
       <NodeVersionModal
         open={nodeModalOpen}

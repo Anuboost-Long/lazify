@@ -67,9 +67,10 @@ export type ProjectStack =
   | "react-native-cli"
   | "node-api"
   | "electron"
+  | "dotnet"
   | "unknown";
 
-export type DetectedPackageManager = "npm" | "yarn" | "pnpm" | "bun" | "unknown";
+export type DetectedPackageManager = "npm" | "yarn" | "pnpm" | "bun" | "dotnet" | "unknown";
 
 export interface PackageOption {
   name: string;
@@ -128,7 +129,7 @@ export type TemplateTreeNode = TemplateFileNode | (TemplateFolderNode & { childr
 
 export interface StackDetectionResult {
   stack: ProjectStack;
-  framework: "react" | "react-native" | "node" | "electron" | "unknown";
+  framework: "react" | "react-native" | "node" | "electron" | "dotnet" | "unknown";
   metaFramework:
     | "vite"
     | "nextjs"
@@ -137,6 +138,10 @@ export interface StackDetectionResult {
     | "cra"
     | "express"
     | "electron"
+    | "aspnet"
+    | "blazor"
+    | "maui"
+    | "dotnet-console"
     | "unknown";
   packageManager: DetectedPackageManager;
   commands: {
@@ -480,4 +485,8 @@ export interface PtySession {
   pid: number;
   startedAt: string;
   ports: SessionPort[];
+  /** True when the agent is currently believed to be waiting on the user. */
+  waiting: boolean;
+  /** True for agent runs, false for scripts — only agents can be typed into. */
+  isAgent: boolean;
 }

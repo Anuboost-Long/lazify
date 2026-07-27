@@ -1,7 +1,7 @@
 import { GitInfoModal } from "@renderer/features/workspace/components/GitInfoModal";
 import { GitStatusPane } from "@renderer/features/workspace/components/GitStatusPane";
-import { SyncedProjectTreePanel } from "@renderer/shared/ui/project-tree/adapters/synced-project/SyncedProjectTreePanel";
 import type { ImportedProjectIndexResult } from "@renderer/shared/types/lazify";
+import { SyncedProjectTreePanel } from "@renderer/shared/ui/project-tree/adapters/synced-project/SyncedProjectTreePanel";
 import type { SidebarView } from "@renderer/shared/ui/project-tree/sidebar/types";
 
 interface SyncedProjectViewerProps {
@@ -12,7 +12,7 @@ interface SyncedProjectViewerProps {
   toolViews?: SidebarView[];
 }
 
-export function SyncedProjectViewer(props: SyncedProjectViewerProps) {
+export function SyncedProjectViewer(props: Readonly<SyncedProjectViewerProps>) {
   return (
     <SyncedProjectTreePanel
       {...props}

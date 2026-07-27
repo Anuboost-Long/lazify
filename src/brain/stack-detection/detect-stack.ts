@@ -1,4 +1,5 @@
-import { buildCommands } from "./command-builder";
+import { buildCommands, buildDotnetCommands } from "./command-builder";
+import { detectDotnetProject, type DotnetDetectionResult } from "./dotnet-detector";
 import { createRootFileDetector } from "./file-detector";
 import { readPackageJson } from "./package-json-reader";
 import { detectPackageManager } from "./package-manager-detector";
@@ -9,7 +10,25 @@ function hasDependency(packageJson: PackageJsonContent | null, name: string) {
   return Boolean(packageJson?.dependencies?.[name] || packageJson?.devDependencies?.[name]);
 }
 
-function detectCandidates(projectRootDetector: Awaited<ReturnType<typeof createRootFileDetector>>, packageJson: PackageJsonContent | null) {
+/**
+ * A .NET project only outranks a JS one when its marker sits at the repo root.
+ * That keeps a Next.js app that happens to vendor a sample `.csproj` deeper in
+ * the tree classified as Next.js.
+ */
+function claimsRoot(dotnet: DotnetDetectionResult, packageJson: PackageJsonContent | null) {
+  if (dotnet.projectFiles.length === 0 && !dotnet.solutionFile) return false;
+  if (!packageJson) return true;
+
+  const atRoot = (file: string | null) => Boolean(file) && !file!.includes("/");
+
+  return atRoot(dotnet.solutionFile) || dotnet.projectFiles.some((file) => atRoot(file));
+}
+
+function detectCandidates(
+  projectRootDetector: Awaited<ReturnType<typeof createRootFileDetector>>,
+  packageJson: PackageJsonContent | null,
+  dotnet: DotnetDetectionResult
+) {
   const candidates: Array<{ stack: ProjectStack; confidence: number; reasons: string[] }> = [];
 
   const push = (stack: ProjectStack, confidence: number, reasons: string[]) => {
@@ -17,6 +36,10 @@ function detectCandidates(projectRootDetector: Awaited<ReturnType<typeof createR
       candidates.push({ stack, confidence, reasons });
     }
   };
+
+  if (claimsRoot(dotnet, packageJson)) {
+    push("dotnet", dotnet.solutionFile ? 0.95 : 0.9, dotnet.reasons);
+  }
 
   const electronReasons: string[] = [];
   if (hasDependency(packageJson, "electron")) electronReasons.push("electron dependency found");
@@ -103,6 +126,8 @@ function detectCandidates(projectRootDetector: Awaited<ReturnType<typeof createR
 
 function stackPriority(stack: ProjectStack) {
   switch (stack) {
+    case "dotnet":
+      return 0;
     case "electron":
       return 1;
     case "react-native-expo":
@@ -140,9 +165,16 @@ function baseResult(): StackDetectionResult {
 export async function detectProjectStack(projectRoot: string): Promise<StackDetectionResult> {
   const rootDetector = await createRootFileDetector(projectRoot);
   const packageJsonResult = await readPackageJson(projectRoot);
+  const dotnet = await detectDotnetProject(projectRoot);
   const packageManagerResult = detectPackageManager(rootDetector.hasFile);
-  const warnings = [...packageJsonResult.warnings, ...packageManagerResult.warnings];
-  const candidates = detectCandidates(rootDetector, packageJsonResult.packageJson).sort(
+  const isDotnetOnly = claimsRoot(dotnet, packageJsonResult.packageJson) && !packageJsonResult.packageJson;
+
+  // A .NET-only repo has no lock file to find, so that warning is just noise.
+  const warnings = [
+    ...(isDotnetOnly ? [] : packageJsonResult.warnings),
+    ...(isDotnetOnly ? [] : packageManagerResult.warnings),
+  ];
+  const candidates = detectCandidates(rootDetector, packageJsonResult.packageJson, dotnet).sort(
     (left, right) => stackPriority(left.stack) - stackPriority(right.stack)
   );
 
@@ -209,15 +241,27 @@ export async function detectProjectStack(projectRoot: string): Promise<StackDete
       result.metaFramework = "unknown";
       warnings.push("React detected, but no known meta-framework was found.");
       break;
+    case "dotnet":
+      result.framework = "dotnet";
+      result.metaFramework = dotnet.flavor;
+      result.packageManager = "dotnet";
+      break;
     default:
       break;
   }
 
-  result.commands = buildCommands({
-    stack: result.stack,
-    packageManager: result.packageManager,
-    packageJson: packageJsonResult.packageJson,
-  });
+  result.commands =
+    result.stack === "dotnet"
+      ? buildDotnetCommands(dotnet)
+      : buildCommands({
+          stack: result.stack,
+          packageManager: result.packageManager,
+          packageJson: packageJsonResult.packageJson,
+        });
+
+  if (result.stack === "dotnet" && !dotnet.entryProjectFile) {
+    warnings.push("Found a solution file but no project file to run.");
+  }
 
   if (result.stack === "react-native-expo" && !result.commands.start) {
     warnings.push("Detected Expo but no expo start script found.");

@@ -106,7 +106,6 @@ export function PackageVersionPane({ projectPath }: PackageVersionPaneProps) {
     try {
       const result = await globalThis.lazify.fixProjectPackageVersions(projectPath);
       setFixMessage(result.message);
-      // Refresh the report after fix
       const refreshed = await globalThis.lazify.matchPackageVersions(projectPath);
       setReport(refreshed);
     } finally {

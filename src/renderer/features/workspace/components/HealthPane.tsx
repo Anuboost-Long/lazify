@@ -525,7 +525,6 @@ export function HealthPane({ projectPath }: Readonly<HealthPaneProps>) {
   const auditCounts = audit?.metadata?.vulnerabilities;
   const auditGroups = groupByFix(auditVulns);
 
-  // Outdated summary pill
   const outdatedPill = outdated ? (
     behind.length === 0 ? (
       <PillText
@@ -549,7 +548,6 @@ export function HealthPane({ projectPath }: Readonly<HealthPaneProps>) {
     )
   ) : null;
 
-  // Audit summary pill
   const auditPill = audit ? (
     auditVulns.length === 0 ? (
       <PillText

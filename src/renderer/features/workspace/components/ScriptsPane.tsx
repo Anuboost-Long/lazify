@@ -7,6 +7,10 @@ import { LabelButton } from "@renderer/shared/ui/LabelButton";
 import clsx from "clsx";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import {
+  useProjectScripts,
+  type ScriptTab as Tab,
+} from "../hooks/use-project-scripts";
 import { XTermPanel } from "./XTermPanel";
 
 const TERM_HEIGHT_KEY = "lazify-terminal-height";
@@ -26,16 +30,6 @@ interface ScriptsPaneProps {
   projectPath: string;
 }
 
-type TabStatus = "idle" | "pending" | "running" | "done" | "error";
-
-interface Tab {
-  tabId: string;
-  index: number;
-  runId: string | null; // null = idle, "" = PTY starting, "pty-xxx" = active
-  scriptName: string | null;
-  status: TabStatus;
-}
-
 // ─── Script row ───────────────────────────────────────────────────────────────
 
 interface ScriptRowProps {
@@ -45,6 +39,7 @@ interface ScriptRowProps {
   isDisabled: boolean; // active tab is busy with a different script
   onRun: () => void;
   onStop: () => void;
+  onRestart: () => void;
 }
 
 function ScriptRow({
@@ -54,6 +49,7 @@ function ScriptRow({
   isDisabled,
   onRun,
   onStop,
+  onRestart,
 }: ScriptRowProps) {
   const { t } = useTranslation();
   return (
@@ -122,12 +118,20 @@ function ScriptRow({
         )}
 
         {isRunningHere ? (
-          <LabelButton
-            label={translation.ScriptsPane.Stop}
-            icon="stop-circle"
-            variant="error"
-            onClick={onStop}
-          />
+          <>
+            <LabelButton
+              label={translation.ScriptsPane.Restart}
+              icon="refresh-circle"
+              variant="accent"
+              onClick={onRestart}
+            />
+            <LabelButton
+              label={translation.ScriptsPane.Stop}
+              icon="stop-circle"
+              variant="error"
+              onClick={onStop}
+            />
+          </>
         ) : (
           <LabelButton
             label={translation.ScriptsPane.Run}
@@ -151,18 +155,16 @@ export function ScriptsPane({ projectPath }: ScriptsPaneProps) {
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
 
-  const [tabs, setTabs] = useState<Tab[]>([
-    {
-      tabId: "tab-init",
-      index: 1,
-      runId: null,
-      scriptName: null,
-      status: "idle",
-    },
-  ]);
-  const [activeTabId, setActiveTabId] = useState<string>("tab-init");
+  // Tab layout lives outside the component (keyed by project) so leaving this
+  // page and returning does not forget scripts that are still running.
+  const { tabs, setTabs, activeTabId, setActiveTabId } =
+    useProjectScripts(projectPath);
 
   const unsubMapRef = useRef<Map<string, () => void>>(new Map());
+  const tabsRef = useRef(tabs);
+  useEffect(() => {
+    tabsRef.current = tabs;
+  }, [tabs]);
 
   // ── Terminal resize ──────────────────────────────────────────────────────────
   const [termHeight, setTermHeight] = useState<number>(() => {
@@ -255,6 +257,61 @@ export function ScriptsPane({ projectPath }: ScriptsPaneProps) {
     unsubMapRef.current.set(runId, stopStatus);
   };
 
+  // On (re)mount, reconcile persisted tabs with the sessions still alive in the
+  // main process: re-attach status listeners to runs that are still going, and
+  // mark as finished any that exited while this pane was unmounted.
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      let sessions;
+      try {
+        sessions = await globalThis.lazify.listSessions();
+      } catch {
+        return;
+      }
+      if (cancelled) return;
+
+      const live = new Set(
+        sessions
+          .filter((session) => session.projectPath === projectPath)
+          .map((session) => session.runId)
+      );
+
+      tabsRef.current.forEach((tab) => {
+        if (
+          tab.runId &&
+          tab.status === "running" &&
+          live.has(tab.runId) &&
+          !unsubMapRef.current.has(tab.runId)
+        ) {
+          subscribeStatus(tab.runId, tab.tabId);
+        }
+      });
+
+      const hasVanished = tabsRef.current.some(
+        (tab) =>
+          tab.runId &&
+          (tab.status === "running" || tab.status === "pending") &&
+          !live.has(tab.runId)
+      );
+      if (hasVanished) {
+        setTabs((prev) =>
+          prev.map((tab) =>
+            tab.runId &&
+            (tab.status === "running" || tab.status === "pending") &&
+            !live.has(tab.runId)
+              ? { ...tab, status: "done" }
+              : tab
+          )
+        );
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [projectPath]);
+
   const handleAddTab = () => {
     const tabId = `tab-${Date.now()}`;
     setTabs((prev) => {
@@ -267,11 +324,12 @@ export function ScriptsPane({ projectPath }: ScriptsPaneProps) {
     setActiveTabId(tabId);
   };
 
-  const handleRun = async (scriptName: string) => {
+  const handleRun = async (scriptName: string, restartRunId?: string) => {
     // Capture the target tab at call time — user may switch tabs during the await
     const targetTabId = activeTabId;
     const tab = tabs.find((t) => t.tabId === targetTabId);
-    if (!tab || tab.status === "running" || tab.status === "pending") return;
+    // A restart is the one case where launching over a running tab is intended.
+    if (!tab || (!restartRunId && (tab.status === "running" || tab.status === "pending"))) return;
 
     setTabs((prev) =>
       prev.map((t) =>
@@ -288,12 +346,20 @@ export function ScriptsPane({ projectPath }: ScriptsPaneProps) {
     const rows = container ? Math.floor(container.clientHeight / 17) : 50;
 
     try {
-      const { runId } = await globalThis.lazify.runScript(
-        projectPath,
-        scriptName,
-        Math.max(cols, 40),
-        Math.max(rows, 10)
-      );
+      const { runId } = restartRunId
+        ? await globalThis.lazify.restartScript(
+            restartRunId,
+            projectPath,
+            scriptName,
+            Math.max(cols, 40),
+            Math.max(rows, 10)
+          )
+        : await globalThis.lazify.runScript(
+            projectPath,
+            scriptName,
+            Math.max(cols, 40),
+            Math.max(rows, 10)
+          );
       setTabs((prev) =>
         prev.map((t) =>
           t.tabId === targetTabId ? { ...t, runId, status: "running" } : t
@@ -307,6 +373,20 @@ export function ScriptsPane({ projectPath }: ScriptsPaneProps) {
         )
       );
     }
+  };
+
+  /**
+   * The old run's status subscription is dropped first, so its exit event
+   * cannot mark the tab failed after the replacement has already started.
+   */
+  const handleRestart = async (scriptName: string) => {
+    const tab = tabs.find((t) => t.tabId === activeTabId);
+    if (!tab?.runId) return;
+
+    unsubMapRef.current.get(tab.runId)?.();
+    unsubMapRef.current.delete(tab.runId);
+
+    await handleRun(scriptName, tab.runId);
   };
 
   const handleStop = async () => {
@@ -449,6 +529,7 @@ export function ScriptsPane({ projectPath }: ScriptsPaneProps) {
                 isDisabled={isActiveTabBusy && activeTab?.scriptName !== name}
                 onRun={() => void handleRun(name)}
                 onStop={() => void handleStop()}
+                onRestart={() => void handleRestart(name)}
               />
             ))}
           </div>

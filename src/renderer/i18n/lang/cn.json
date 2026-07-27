@@ -45,7 +45,9 @@
     "environment": "环境",
     "environment_desc": "扫描已安装的运行时和包管理器。",
     "agents": "AI 代理",
-    "agents_desc": "在项目中与 Claude 或 Codex 对话。"
+    "agents_desc": "在项目中与 Claude 或 Codex 对话。",
+    "browser": "浏览器",
+    "browser_desc": "无需离开工作区即可浏览网页。"
   },
   "agents": {
     "eyebrow": "AI 代理",
@@ -69,6 +71,8 @@
     "not_installed": "未安装",
     "no_session_hint": "Claude 或 Codex 将在此运行，作用于当前项目。",
     "run": "运行",
+    "run_pick": "选择要运行的脚本",
+    "run_choose": "选择运行按钮启动的脚本",
     "projects": "项目",
     "running": "运行中",
     "idle": "空闲",
@@ -106,7 +110,28 @@
     "resets_at": "重置时间",
     "close_terminal_title": "关闭此终端？",
     "close_terminal_desc": "“{{label}}”仍在运行。关闭标签页将停止该进程并清除其输出。",
-    "close_terminal_exited_desc": "“{{label}}”已结束。关闭标签页将清除其输出。"
+    "close_terminal_exited_desc": "“{{label}}”已结束。关闭标签页将清除其输出。",
+    "preview": "预览",
+    "preview_address": "预览地址",
+    "preview_address_placeholder": "localhost:3000",
+    "preview_forward": "前进",
+    "preview_stop": "停止加载",
+    "preview_open_external": "在浏览器中打开",
+    "preview_expand": "展开预览",
+    "preview_collapse": "收起预览",
+    "preview_resize": "调整预览宽度",
+    "preview_blocked": "此处仅可打开 localhost 地址。",
+    "preview_waiting": "正在等待开发服务器绑定端口…",
+    "preview_no_run": "运行项目后即可在此预览。",
+    "preview_failed": "无法加载 {{url}}。",
+    "collapse_projects": "收起项目列表",
+    "expand_projects": "展开项目列表",
+    "preview_devtools": "开发者工具",
+    "preview_pip_media": "画中画",
+    "preview_pip_page": "打开页面窗口",
+    "preview_pip_page_close": "关闭页面窗口",
+    "preview_pip_no_media": "此页面没有可浮动播放的视频。",
+    "preview_pip_unsupported": "此页面不允许使用画中画。"
   },
   "sidebar": {
     "app_name": "Lazify",
@@ -537,5 +562,53 @@
   "template_card": {
     "delete": "删除模板",
     "selected": "已选择"
+  },
+  "command_palette": {
+    "search_files_placeholder": "按名称搜索文件…",
+    "no_matching_files": "没有匹配的文件"
+  },
+  "browser": {
+    "title": "浏览器",
+    "new_tab": "新标签页",
+    "forward": "前进",
+    "stop": "停止加载",
+    "address": "地址",
+    "address_placeholder": "搜索或输入网址",
+    "open_external": "在系统浏览器中打开",
+    "pip_media": "画中画",
+    "pip_page": "打开页面窗口",
+    "pip_page_close": "关闭页面窗口",
+    "pip_no_media": "此页面没有可浮动播放的视频。",
+    "pip_unsupported": "此页面不允许使用画中画。",
+    "start_title": "去哪里？",
+    "start_hint": "搜索网页，或直接前往某个网站。",
+    "start_search": "搜索网页",
+    "send_to_agent": "发送给智能体",
+    "no_agents_running": "没有正在运行的智能体。请在“智能体”页面打开一个。",
+    "send_to_agent_hint": "将网址输入智能体的提示框，但不会直接发送。"
+  },
+  "lazy_shield": {
+    "title": "Lazy Shield",
+    "toggle": "切换 Lazy Shield",
+    "on": "正在拦截广告与追踪器",
+    "off": "已关闭",
+    "blocked_label": "本次会话已拦截",
+    "description": "使用社区过滤规则拦截本页广告与追踪器，并自动更新。",
+    "off_description": "页面未经过滤。开启盾牌以拦截广告与追踪器。",
+    "loading": "正在构建过滤规则…",
+    "scope_note": "仅限浏览器。项目预览不会被过滤。"
+  },
+  "port_reaper": {
+    "title": "监听端口",
+    "description": "当前占用端口的所有进程。结束挡住开发服务器的那一个。",
+    "empty": "没有进程在监听。",
+    "kill": "结束进程",
+    "badge_lazify": "Lazify",
+    "badge_managed": "由此启动",
+    "protected_hint": "这是 Lazify 自身，无法在此结束。",
+    "confirm_title": "结束该进程？",
+    "confirm_desc": "“{{command}}”正占用端口 {{port}}。它及其子进程都会被结束。",
+    "confirm_managed_desc": "端口 {{port}} 上的“{{command}}”由 Lazify 启动。在此结束也会关闭其终端会话。",
+    "show_system": "显示 {{count}} 个系统端口"
   }
 }

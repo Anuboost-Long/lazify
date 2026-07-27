@@ -94,6 +94,8 @@ const lazifyApi = {
     ipcRenderer.invoke("lazify:run-script", projectPath, scriptName, cols, rows),
   stopScript: (runId: string): Promise<void> =>
     ipcRenderer.invoke("lazify:stop-script", runId),
+  restartScript: (runId: string, projectPath: string, scriptName: string, cols?: number, rows?: number): Promise<{ runId: string; ptyAvailable: boolean }> =>
+    ipcRenderer.invoke("lazify:restart-script", runId, projectPath, scriptName, cols, rows),
   listSessions: (): Promise<PtySession[]> =>
     ipcRenderer.invoke("lazify:list-sessions"),
   ptyWrite: (runId: string, data: string): void =>
@@ -102,6 +104,19 @@ const lazifyApi = {
     ipcRenderer.invoke("lazify:pty-backlog", runId),
   ptyResize: (runId: string, cols: number, rows: number): void =>
     ipcRenderer.send("lazify:pty-resize", runId, cols, rows),
+  onAgentAttention: (
+    callback: (event: {
+      runId: string;
+      projectPath: string;
+      projectName: string;
+      agentLabel: string;
+      waiting: boolean;
+    }) => void
+  ) => {
+    const listener = (_event: unknown, payload: Parameters<typeof callback>[0]) => callback(payload);
+    ipcRenderer.on("lazify:agent-attention", listener);
+    return () => ipcRenderer.removeListener("lazify:agent-attention", listener);
+  },
   onPtyData: (callback: (event: { runId: string; data: string }) => void) => {
     const listener = (_event: Electron.IpcRendererEvent, payload: { runId: string; data: string }) => callback(payload);
     ipcRenderer.on("lazify:pty-data", listener);
@@ -111,6 +126,11 @@ const lazifyApi = {
     const listener = (_event: Electron.IpcRendererEvent, payload: ScriptStatusEvent) => callback(payload);
     ipcRenderer.on("lazify:script-status", listener);
     return () => ipcRenderer.removeListener("lazify:script-status", listener);
+  },
+  onSessionKilled: (callback: (event: { runId: string }) => void) => {
+    const listener = (_event: Electron.IpcRendererEvent, payload: { runId: string }) => callback(payload);
+    ipcRenderer.on("lazify:session-killed", listener);
+    return () => ipcRenderer.removeListener("lazify:session-killed", listener);
   },
   listAgents: (): Promise<AgentDescriptor[]> => ipcRenderer.invoke("lazify:list-agents"),
   addCustomAgent: (input: CustomAgentInput): Promise<CustomAgent> =>
@@ -133,6 +153,56 @@ const lazifyApi = {
     ipcRenderer.invoke("lazify:highlighting-assets"),
   openHighlightingFolder: (): Promise<void> =>
     ipcRenderer.invoke("lazify:open-highlighting-folder"),
+  openExternalUrl: (url: string): Promise<void> =>
+    ipcRenderer.invoke("lazify:open-external-url", url),
+  listListeningProcesses: (): Promise<import("../main/port-reaper").ListeningProcess[]> =>
+    ipcRenderer.invoke("lazify:listening-processes"),
+  killListeningProcess: (pid: number): Promise<import("../main/port-reaper").KillResult> =>
+    ipcRenderer.invoke("lazify:kill-listening-process", pid),
+  getLazyShieldState: (): Promise<import("../main/lazy-shield").LazyShieldState> =>
+    ipcRenderer.invoke("lazify:lazy-shield-state"),
+  setLazyShield: (enabled: boolean): Promise<import("../main/lazy-shield").LazyShieldState> =>
+    ipcRenderer.invoke("lazify:set-lazy-shield", enabled),
+  onLazyShieldBlocked: (callback: (event: { blocked: number }) => void) => {
+    const listener = (_event: Electron.IpcRendererEvent, payload: { blocked: number }) => callback(payload);
+    ipcRenderer.on("lazify:lazy-shield-blocked", listener);
+    return () => ipcRenderer.removeListener("lazify:lazy-shield-blocked", listener);
+  },
+  openPictureInPicture: (
+    url: string,
+    source: import("../main/picture-in-picture").PictureInPictureSource
+  ): Promise<import("../main/picture-in-picture").PictureInPictureState> =>
+    ipcRenderer.invoke("lazify:open-picture-in-picture", url, source),
+  closePictureInPicture: (): Promise<
+    import("../main/picture-in-picture").PictureInPictureState
+  > => ipcRenderer.invoke("lazify:close-picture-in-picture"),
+  getPictureInPictureState: (): Promise<
+    import("../main/picture-in-picture").PictureInPictureState
+  > => ipcRenderer.invoke("lazify:picture-in-picture-state"),
+  onPictureInPictureChanged: (
+    callback: (state: import("../main/picture-in-picture").PictureInPictureState) => void
+  ) => {
+    const listener = (
+      _event: Electron.IpcRendererEvent,
+      payload: import("../main/picture-in-picture").PictureInPictureState
+    ) => callback(payload);
+    ipcRenderer.on("lazify:picture-in-picture-changed", listener);
+    return () => ipcRenderer.removeListener("lazify:picture-in-picture-changed", listener);
+  },
+  toggleMediaPictureInPicture: (
+    webContentsId: number
+  ): Promise<import("../main/media-pip").MediaPipResult> =>
+    ipcRenderer.invoke("lazify:toggle-media-picture-in-picture", webContentsId),
+  findSymbolDefinition: (
+    projectPath: string,
+    symbol: string
+  ): Promise<import("../main/symbol-finder").SymbolDefinition | null> =>
+    ipcRenderer.invoke("lazify:find-symbol-definition", projectPath, symbol),
+  onBrowserOpenTab: (callback: (event: { url: string }) => void) => {
+    const listener = (_event: Electron.IpcRendererEvent, payload: { url: string }) => callback(payload);
+    ipcRenderer.on("lazify:browser-open-tab", listener);
+    return () => ipcRenderer.removeListener("lazify:browser-open-tab", listener);
+  },
   getAgentUsage: (sinceIso?: string, agentIds?: string[]): Promise<AgentUsageReport> =>
     ipcRenderer.invoke("lazify:agent-usage", sinceIso, agentIds),
   setAgentBudget: (agentId: string, weeklyTokens: number): Promise<Record<string, number>> =>

@@ -1,4 +1,4 @@
-import { app, BrowserWindow, dialog, ipcMain, type OpenDialogOptions } from "electron";
+import { app, BrowserWindow, dialog, ipcMain, Notification, shell, type OpenDialogOptions } from "electron";
 import fs from "node:fs";
 import path from "node:path";
 
@@ -31,15 +31,29 @@ import { cleanupShadowRepos, getFileDiff, getWorkingChanges } from "./agent-chan
 import { getNpmOutdated, getNpmAudit } from "./project-health";
 import { choosePackageManager, scanEnvironment } from "./scanner";
 import { resolveDevPortInjection } from "./dev-port";
+import { isDotnetScript, listDotnetScripts, resolveDotnetLaunch, waitForDotnetPortsFree } from "./dotnet-runner";
 import { scanTools, probeSingleTool, listNvmVersions, installNvm, nvmSetDefault, nvmUse, installTool, checkToolUpdate, updateTool, scanListeningPorts, buildProcessTree, getDescendantPids } from "./environment-scanner";
 import { listTemplatePackageEntries } from "./template-package-manifest";
 import { WorkflowEngine } from "./workflow-engine";
 import { getAgentDefinition, listAgents } from "./agents/agent-registry";
+import { AttentionDetector } from "./agents/attention-detector";
 import { addCustomAgent, removeCustomAgent, type CustomAgentInput } from "./agents/custom-agents-store";
 import { getAgentUsage } from "./agents/agent-usage";
 import { watchAgentActivity } from "./agents/agent-activity-watcher";
 import { setAgentBudget } from "./agents/agent-limits-store";
 import { listHighlightingAssets, openHighlightingFolder } from "./highlighting-store";
+import { toggleMediaPictureInPicture } from "./media-pip";
+import {
+  closePictureInPicture,
+  getPictureInPictureState,
+  onPictureInPictureChanged,
+  openPictureInPicture,
+  type PictureInPictureSource
+} from "./picture-in-picture";
+import { guardPreviewWebviews, openExternalUrl } from "./preview-guard";
+import { findSymbolDefinition } from "./symbol-finder";
+import { killListeningProcess, listListeningProcesses } from "./port-reaper";
+import { getLazyShieldState, initLazyShield, setLazyShieldEnabled } from "./lazy-shield";
 import { matchPackageVersions } from "../brain/package-version-matcher";
 import { normalizeRuntimePath } from "./runtime-path";
 
@@ -54,9 +68,64 @@ const commandRunner = new CommandRunner((event) => emitToRenderer("lazify:log", 
 const workflowEngine = new WorkflowEngine(commandRunner, (event) =>
   emitToRenderer("lazify:workflow-progress", event)
 );
+const attentionDetector = new AttentionDetector();
+
+/**
+ * Reports a run that has started (or stopped) waiting on the user. Two distinct
+ * alerts, on two distinct conditions:
+ *
+ *  - The in-app indicators (the project-card bell, the tab marker) follow the
+ *    waiting state itself and are ALWAYS sent, focus or not — while the agent
+ *    waits for an answer, its project shows the bell.
+ *  - The OS notification and dock bounce are the ONLY thing that reaches the
+ *    user when Lazify is not focused, so they fire solely in that case. With
+ *    the window focused the bell is already on screen, so a banner would be
+ *    redundant noise.
+ */
+const emitAttention = (runId: string, waiting: boolean) => {
+  const session = ptyRunner.getSessions().find((entry) => entry.runId === runId);
+  if (!session) return;
+
+  // In-app: the project-card bell / tab marker. Never gated on focus.
+  emitToRenderer("lazify:agent-attention", {
+    runId,
+    projectPath: session.projectPath,
+    projectName: session.projectName,
+    agentLabel: session.scriptName,
+    waiting
+  });
+
+  // OS-level: only when the agent is waiting AND the user is looking elsewhere.
+  if (!waiting || mainWindow?.isFocused()) return;
+
+  if (Notification.isSupported()) {
+    new Notification({
+      title: `${session.scriptName} needs you`,
+      body: `${session.projectName} is waiting for a response.`
+    }).show();
+  }
+
+  // Bounces the dock icon until the user comes back to the app.
+  app.dock?.bounce("informational");
+};
+
 const ptyRunner = new PtyRunner(
-  (event) => emitToRenderer("lazify:pty-data", event),
-  (event) => emitToRenderer("lazify:script-status", event)
+  (event) => {
+    emitToRenderer("lazify:pty-data", event);
+
+    const waiting = attentionDetector.push(event.runId, event.data);
+    if (waiting !== null) emitAttention(event.runId, waiting);
+  },
+  (event) => {
+    emitToRenderer("lazify:script-status", event);
+
+    // The session is already gone from the runner by the time this fires, so
+    // there is nothing to look up — the renderer clears its own badge off the
+    // same status event.
+    if (event.status === "done" || event.status === "error") {
+      attentionDetector.forget(event.runId);
+    }
+  }
 );
 
 function createMainWindow(): BrowserWindow {
@@ -71,7 +140,10 @@ function createMainWindow(): BrowserWindow {
       preload: path.join(__dirname, "../preload/index.js"),
       nodeIntegration: false,
       contextIsolation: true,
-      sandbox: true
+      sandbox: true,
+      // Powers the agent preview browser. The guest is locked to loopback by
+      // `guardPreviewWebviews` — everything else leaves for the real browser.
+      webviewTag: true
     }
   });
 
@@ -184,40 +256,82 @@ function registerIpcHandlers() {
   );
 
   ipcMain.handle("lazify:list-scripts", async (_event, projectPath: string): Promise<Record<string, string>> => {
+    // A .NET project has no scripts of its own, so synthesised `dotnet:*` ones
+    // are offered alongside whatever package.json provides.
+    const dotnetScripts = await listDotnetScripts(projectPath);
     const pkgJsonPath = path.join(projectPath, "package.json");
-    if (!fs.existsSync(pkgJsonPath)) return {};
+    if (!fs.existsSync(pkgJsonPath)) return dotnetScripts;
     const raw = JSON.parse(fs.readFileSync(pkgJsonPath, "utf8")) as Record<string, unknown>;
-    return (raw.scripts ?? {}) as Record<string, string>;
+    return { ...((raw.scripts ?? {}) as Record<string, string>), ...dotnetScripts };
   });
 
-  ipcMain.handle("lazify:run-script", async (_event, projectPath: string, scriptName: string, cols = 220, rows = 50): Promise<{ runId: string; ptyAvailable: boolean }> => {
+  const launchScript = async (projectPath: string, scriptName: string, cols: number, rows: number): Promise<{ runId: string; ptyAvailable: boolean }> => {
+    const dotnetLaunch = await resolveDotnetLaunch(projectPath, scriptName);
     const packageManager = choosePackageManager(projectPath);
     // If this dev script's port is already taken, step up to the next free one.
-    const { extraArgs, env } = await resolveDevPortInjection(projectPath, scriptName, packageManager);
-    const args = [...(packageManager === "yarn" ? [scriptName] : ["run", scriptName]), ...extraArgs];
+    // The dotnet CLI takes neither the flag nor PORT, so it opts out.
+    const { extraArgs, env } = dotnetLaunch
+      ? { extraArgs: [] as string[], env: {} as Record<string, string> }
+      : await resolveDevPortInjection(projectPath, scriptName, packageManager);
+    const command = dotnetLaunch?.command ?? packageManager;
+    const args = dotnetLaunch
+      ? dotnetLaunch.args
+      : [...(packageManager === "yarn" ? [scriptName] : ["run", scriptName]), ...extraArgs];
 
     if (ptyRunner.available) {
-      const runId = ptyRunner.start(packageManager, args, projectPath, scriptName, cols as number, rows as number, env);
+      const runId = ptyRunner.start(command, args, projectPath, scriptName, cols as number, rows as number, env);
       return { runId, ptyAvailable: true };
     }
 
     // Fallback: spawn without PTY (no interactive output)
     const runId = commandRunner.startScript(
-      { command: packageManager, args, cwd: projectPath, env },
+      { command, args, cwd: projectPath, env },
       (event) => emitToRenderer("lazify:pty-data", { runId: event.id, data: event.message }),
       (id, exitCode) => emitToRenderer("lazify:script-status", { runId: id, scriptName, exitCode, status: exitCode === 0 ? "done" : "error" })
     );
     emitToRenderer("lazify:script-status", { runId, scriptName, exitCode: null, status: "running" });
     return { runId, ptyAvailable: false };
-  });
+  };
+
+  ipcMain.handle("lazify:run-script", async (_event, projectPath: string, scriptName: string, cols = 220, rows = 50) =>
+    launchScript(projectPath, scriptName, cols as number, rows as number)
+  );
 
   ipcMain.handle("lazify:stop-script", async (_event, runId: string): Promise<void> => {
     if (runId.startsWith("pty-")) {
       ptyRunner.kill(runId);
+      // An explicit kill — from the sessions pane, a closed tab, or Stop — should
+      // take the agent-pane tab with it, unlike a process that exits on its own
+      // (whose tab is kept so its final output can be read).
+      emitToRenderer("lazify:session-killed", { runId });
     } else {
       commandRunner.stopScript(runId);
     }
   });
+
+  /**
+   * Stop-then-start as one call. Done in main rather than the renderer so the
+   * relaunch waits for the old process to actually exit — otherwise a dev
+   * server restart races its predecessor for the port.
+   */
+  ipcMain.handle(
+    "lazify:restart-script",
+    async (_event, runId: string, projectPath: string, scriptName: string, cols = 220, rows = 50): Promise<{ runId: string; ptyAvailable: boolean }> => {
+      if (runId.startsWith("pty-")) {
+        await ptyRunner.killAndWait(runId);
+      } else {
+        commandRunner.stopScript(runId);
+      }
+
+      // Kestrel's listener can outlive the process it belonged to; rebinding in
+      // that window is exactly what "address already in use" is.
+      if (isDotnetScript(scriptName)) {
+        await waitForDotnetPortsFree(projectPath);
+      }
+
+      return launchScript(projectPath, scriptName, cols as number, rows as number);
+    }
+  );
 
   ipcMain.handle("lazify:list-sessions", async () => {
     const sessions = ptyRunner.getSessions();
@@ -230,12 +344,25 @@ function registerIpcHandlers() {
       const sessionPorts = ports
         .filter((p) => descendants.has(p.pid))
         .map((p) => ({ port: p.port, command: p.command, address: p.address }));
-      return { ...s, ports: sessionPorts };
+      return {
+        ...s,
+        ports: sessionPorts,
+        waiting: attentionDetector.isWaiting(s.runId),
+        // Only agent runs are tracked, so this doubles as "is this an agent".
+        isAgent: attentionDetector.isTracked(s.runId)
+      };
     });
   });
 
   // Fire-and-forget — no invoke/handle round-trip needed for input
   ipcMain.on("lazify:pty-write", (_event, runId: string, data: string) => {
+    // Submitting (Enter) is what answers a waiting prompt. Navigating a menu
+    // with arrow keys leaves it still waiting, so clearing on every keystroke
+    // would drop the badge and then re-fire it on the menu's next redraw.
+    if (/[\r\n]/.test(data) && attentionDetector.clear(runId)) {
+      emitAttention(runId, false);
+    }
+
     ptyRunner.write(runId, data);
   });
 
@@ -295,6 +422,53 @@ function registerIpcHandlers() {
 
   ipcMain.handle("lazify:open-highlighting-folder", async () => openHighlightingFolder());
 
+  // The PTY pids let the reaper tell a script Lazify started apart from
+  // Lazify's own processes, which it must never offer to kill.
+  const managedRootPids = () => ptyRunner.getSessions().map((session) => session.pid);
+
+  ipcMain.handle("lazify:listening-processes", async () =>
+    listListeningProcesses(managedRootPids())
+  );
+
+  ipcMain.handle("lazify:kill-listening-process", async (_event, pid: number) =>
+    killListeningProcess(pid, managedRootPids())
+  );
+
+  ipcMain.handle("lazify:lazy-shield-state", async () => getLazyShieldState());
+
+  ipcMain.handle("lazify:set-lazy-shield", async (_event, next: boolean) =>
+    setLazyShieldEnabled(next)
+  );
+
+  // "Open in browser" from the preview toolbar — the one way a URL is meant to
+  // leave the app, so it takes the same http(s)-only path as a diverted link.
+  ipcMain.handle("lazify:open-external-url", async (_event, url: string) => openExternalUrl(url));
+
+  // Picture in picture: the page in a floating always-on-top window. The
+  // surface that asked decides the session it joins and how far it may go.
+  ipcMain.handle(
+    "lazify:open-picture-in-picture",
+    async (_event, url: string, source: PictureInPictureSource) =>
+      openPictureInPicture(url, source)
+  );
+
+  ipcMain.handle("lazify:close-picture-in-picture", async () => closePictureInPicture());
+
+  ipcMain.handle("lazify:picture-in-picture-state", async () => getPictureInPictureState());
+
+  // The other kind: the page's own video in the OS mini player. Driven from
+  // here because the video is often inside a frame the renderer cannot reach.
+  ipcMain.handle("lazify:toggle-media-picture-in-picture", async (_event, webContentsId: number) =>
+    toggleMediaPictureInPicture(webContentsId)
+  );
+
+  // Go-to-definition for the read-only editors: a name in, a file and line out.
+  ipcMain.handle(
+    "lazify:find-symbol-definition",
+    async (_event, projectPath: string, symbol: string) =>
+      findSymbolDefinition(projectPath, symbol)
+  );
+
   // Agents are plain interactive CLIs: run them in a PTY and let xterm render.
   // Input, resize, and teardown reuse the existing pty-write/resize/stop-script channels.
   ipcMain.handle(
@@ -318,6 +492,10 @@ function registerIpcHandlers() {
         cols as number,
         rows as number
       );
+
+      // Only agent sessions are watched for prompts — a dev server's output is
+      // not a permission request, however much it looks like one.
+      attentionDetector.track(runId);
 
       return { runId };
     }
@@ -382,6 +560,19 @@ app.whenReady().then(() => {
   normalizeRuntimePath();
   // Sweeps up anything a previous run was killed before it could delete.
   cleanupShadowRepos();
+  // Must be in place before any window — and so any `<webview>` — exists.
+  // A popped-out link from the browser page comes back as a new tab.
+  guardPreviewWebviews((url) => emitToRenderer("lazify:browser-open-tab", { url }));
+
+  // Restores the saved shield preference before the browser page loads anything.
+  void initLazyShield((blocked) => emitToRenderer("lazify:lazy-shield-blocked", { blocked }));
+
+  // There is one floating window and a button for it on more than one surface,
+  // so every change — opened, re-pointed, closed from its own title bar — has to
+  // reach all of them, or a toggle is left claiming something untrue.
+  onPictureInPictureChanged((state) =>
+    emitToRenderer("lazify:picture-in-picture-changed", state)
+  );
 
   if (process.platform === "darwin") {
     app.dock.setIcon(path.join(app.getAppPath(), "build/icon.png"));
@@ -389,6 +580,11 @@ app.whenReady().then(() => {
 
   registerIpcHandlers();
   mainWindow = createMainWindow();
+
+  // A floater outliving the window that opened it would keep the app running
+  // with nothing to drive it — and on macOS it would also stop the dock icon
+  // from bringing the real window back.
+  mainWindow.on("closed", () => closePictureInPicture());
 
   // The usage panel listens for this instead of polling on a timer.
   stopAgentActivityWatch = watchAgentActivity((event) =>

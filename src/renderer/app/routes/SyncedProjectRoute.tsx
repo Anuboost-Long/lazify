@@ -5,7 +5,8 @@ export function SyncedProjectRoute() {
   const {
     busy,
     syncedWorkspaceProjects,
-    updateProjectNodeVersion
+    updateProjectNodeVersion,
+    setActiveProjectPath
   } = useLazifyStore();
 
   return (
@@ -13,6 +14,7 @@ export function SyncedProjectRoute() {
       busy={busy}
       syncedProjects={syncedWorkspaceProjects}
       onNodeVersionChange={updateProjectNodeVersion}
+      onActiveProject={setActiveProjectPath}
     />
   );
 }

@@ -36,7 +36,16 @@ const FILENAMES: Record<string, string> = {
   ".bashrc": "shellscript",
   ".zshrc": "shellscript",
   ".bash_profile": "shellscript",
-  ".zprofile": "shellscript"
+  ".zprofile": "shellscript",
+  "global.json": "json",
+  "nuget.config": "xml",
+  "packages.config": "xml",
+  "web.config": "xml",
+  "app.config": "xml",
+  "directory.build.props": "xml",
+  "directory.build.targets": "xml",
+  "directory.packages.props": "xml",
+  "omnisharp.json": "json"
 };
 
 /**
@@ -119,9 +128,32 @@ const EXTENSIONS: Record<string, string> = {
   groovy: "groovy",
   gradle: "groovy",
   cs: "csharp",
+  csx: "csharp",
+  cake: "csharp",
+  razor: "razor",
+  cshtml: "razor",
+  vbhtml: "razor",
   fs: "fsharp",
   fsx: "fsharp",
+  fsi: "fsharp",
   vb: "vb",
+  // MSBuild and the rest of the .NET project metadata are all XML dialects.
+  csproj: "xml",
+  fsproj: "xml",
+  vbproj: "xml",
+  props: "xml",
+  targets: "xml",
+  nuspec: "xml",
+  ruleset: "xml",
+  resx: "xml",
+  config: "xml",
+  xaml: "xml",
+  axaml: "xml",
+  sln: "ini",
+  slnx: "xml",
+  aspx: "html",
+  ascx: "html",
+  asmx: "html",
 
   // Scripting
   py: "python",

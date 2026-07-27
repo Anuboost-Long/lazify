@@ -5,14 +5,20 @@ export const appRoute = {
   workspaceProject: "/workspace/project/:projectPath",
   importProject: "/import-project",
   agents: "/agents",
+  browser: "/browser",
   console: "/console",
   templates: "/templates",
   settings: "/settings",
   environment: "/environment",
+  legal: "/legal/:doc",
 } as const;
 
 export const defaultAppRoute = appRoute.workspace;
 
 export function getWorkspaceProjectRoute(projectPath: string) {
   return `/workspace/project/${encodeURIComponent(projectPath)}`;
+}
+
+export function getLegalRoute(doc: string) {
+  return `/legal/${doc}`;
 }

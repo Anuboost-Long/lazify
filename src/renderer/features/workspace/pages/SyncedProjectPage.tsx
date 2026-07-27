@@ -1,3 +1,4 @@
+import { PageActions, PageCrumb } from "@renderer/app/components/PageChrome";
 import { DependencyPane } from "@renderer/features/workspace/components/DependencyPane";
 import { HealthPane } from "@renderer/features/workspace/components/HealthPane";
 import { NodeVersionPane } from "@renderer/features/workspace/components/NodeVersionPane";
@@ -9,7 +10,6 @@ import type {
   ImportedProjectIndexResult,
   SyncedWorkspaceProject,
 } from "@renderer/shared/types/lazify";
-import { PageActions, PageCrumb } from "@renderer/app/components/PageChrome";
 import { BodyText, MonoText } from "@renderer/shared/typography";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import type { SidebarView } from "@renderer/shared/ui/project-tree/sidebar/types";
@@ -21,12 +21,16 @@ interface SyncedProjectPageProps {
   busy: boolean;
   syncedProjects: SyncedWorkspaceProject[];
   onNodeVersionChange: (projectPath: string, version: string | null) => void;
+  /** Records the opened project as the shared active one, so the Agents page
+   *  lands on the same project the user last had open here. */
+  onActiveProject: (projectPath: string) => void;
 }
 
 export function SyncedProjectPage({
   busy,
   syncedProjects,
   onNodeVersionChange,
+  onActiveProject,
 }: Readonly<SyncedProjectPageProps>) {
   const { t } = useTranslation();
   const { projectPath: encodedProjectPath } = useParams<{
@@ -39,15 +43,21 @@ export function SyncedProjectPage({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const [installing, setInstalling] = useState(false);
-  const [installFeedback, setInstallFeedback] = useState<
-    { tone: "success" | "error"; message: string } | null
-  >(null);
+  const [installFeedback, setInstallFeedback] = useState<{
+    tone: "success" | "error";
+    message: string;
+  } | null>(null);
 
   const decodedPath = encodedProjectPath
     ? decodeURIComponent(encodedProjectPath)
     : "";
   const syncedProject =
     syncedProjects.find((p) => p.projectPath === decodedPath) ?? null;
+
+  // Opening a project here makes it the shared active project.
+  useEffect(() => {
+    if (syncedProject) onActiveProject(syncedProject.projectPath);
+  }, [syncedProject, onActiveProject]);
 
   useEffect(() => {
     if (!decodedPath || !syncedProject) {
@@ -94,8 +104,14 @@ export function SyncedProjectPage({
       );
       setInstallFeedback(
         result.success
-          ? { tone: "success", message: t(translation.SyncedProject.InstallSuccess) }
-          : { tone: "error", message: t(translation.SyncedProject.InstallError) },
+          ? {
+              tone: "success",
+              message: t(translation.SyncedProject.InstallSuccess),
+            }
+          : {
+              tone: "error",
+              message: t(translation.SyncedProject.InstallError),
+            },
       );
     } catch {
       setInstallFeedback({
@@ -148,7 +164,9 @@ export function SyncedProjectPage({
           id: "packages",
           label: t(translation.PackageDoctor.Title),
           icon: "check-circle",
-          content: <PackageVersionPane projectPath={syncedProject.projectPath} />,
+          content: (
+            <PackageVersionPane projectPath={syncedProject.projectPath} />
+          ),
         },
       ]
     : [];
@@ -217,7 +235,9 @@ export function SyncedProjectPage({
       {/* ── Feedback: failed to load project index ── */}
       {errorMessage && (
         <section className="shrink-0 rounded-[12px] border border-error/30 bg-error/10 px-4 py-3">
-          <BodyText className="text-sm leading-6 text-error">{errorMessage}</BodyText>
+          <BodyText className="text-sm leading-6 text-error">
+            {errorMessage}
+          </BodyText>
         </section>
       )}
 
@@ -246,7 +266,6 @@ export function SyncedProjectPage({
           />
         </div>
       )}
-
     </div>
   );
 }

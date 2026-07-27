@@ -7,13 +7,14 @@ export type ProjectStack =
   | "react-native-cli"
   | "node-api"
   | "electron"
+  | "dotnet"
   | "unknown";
 
-export type PackageManager = "npm" | "yarn" | "pnpm" | "bun" | "unknown";
+export type PackageManager = "npm" | "yarn" | "pnpm" | "bun" | "dotnet" | "unknown";
 
 export interface StackDetectionResult {
   stack: ProjectStack;
-  framework: "react" | "react-native" | "node" | "electron" | "unknown";
+  framework: "react" | "react-native" | "node" | "electron" | "dotnet" | "unknown";
   metaFramework:
     | "vite"
     | "nextjs"
@@ -22,6 +23,10 @@ export interface StackDetectionResult {
     | "cra"
     | "express"
     | "electron"
+    | "aspnet"
+    | "blazor"
+    | "maui"
+    | "dotnet-console"
     | "unknown";
   packageManager: PackageManager;
   commands: {

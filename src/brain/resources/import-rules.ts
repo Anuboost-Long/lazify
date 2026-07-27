@@ -8,6 +8,11 @@ export const DEFAULT_IGNORED_DIRECTORY_NAMES = new Set([
   ".turbo",
   ".vercel",
   "coverage",
+  // .NET build output
+  "bin",
+  "obj",
+  ".vs",
+  "TestResults",
 ]);
 
 export const DEFAULT_IGNORED_FILE_NAMES = new Set([

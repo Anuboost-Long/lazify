@@ -15,6 +15,7 @@ import { useCallback } from "react";
 
 const PROJECT_DIRECTORY_STORAGE_KEY = "lazify-project-directory";
 const WORKSPACE_PROJECTS_STORAGE_KEY = "lazify-workspace-projects";
+const ACTIVE_PROJECT_STORAGE_KEY = "lazify-active-project";
 
 function readStoredProjectDirectory() {
   if (typeof window === "undefined") {
@@ -62,8 +63,27 @@ function persistWorkspaceProjects(value: SyncedWorkspaceProject[]) {
   );
 }
 
+// The project the user last had open, so leaving a page and returning lands
+// back on it instead of resetting to the first in the list.
+function readStoredActiveProjectPath() {
+  if (typeof window === "undefined") {
+    return "";
+  }
+
+  return globalThis.localStorage.getItem(ACTIVE_PROJECT_STORAGE_KEY) ?? "";
+}
+
+function persistActiveProjectPath(value: string) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  globalThis.localStorage.setItem(ACTIVE_PROJECT_STORAGE_KEY, value);
+}
+
 const projectNameAtom = atom("lazify-starter");
 const projectDirectoryAtom = atom(readStoredProjectDirectory());
+const activeProjectPathAtom = atom(readStoredActiveProjectPath());
 const packageNameAtom = atom("");
 const initSourceModeAtom = atom<"stack" | "imported">("stack");
 const selectedTemplateIdAtom = atom("");
@@ -104,6 +124,8 @@ const toolScanLoadingAtom = atom(false);
 export function useLazifyStore() {
   const [projectName, setProjectName] = useAtom(projectNameAtom);
   const [projectDirectory, setProjectDirectory] = useAtom(projectDirectoryAtom);
+  const [activeProjectPath, setActiveProjectPathAtom] =
+    useAtom(activeProjectPathAtom);
   const [packageName, setPackageName] = useAtom(packageNameAtom);
   const [initSourceMode, setInitSourceMode] = useAtom(initSourceModeAtom);
   const [selectedTemplateId, setSelectedTemplateId] = useAtom(
@@ -156,6 +178,14 @@ export function useLazifyStore() {
     setSavedInitWorkflowConfig(null);
     setSavedStructureTree(null);
   }, [setInitWorkflowStage, setSavedInitWorkflowConfig, setSavedStructureTree]);
+
+  const setActiveProjectPath = useCallback(
+    (value: string) => {
+      persistActiveProjectPath(value);
+      setActiveProjectPathAtom(value);
+    },
+    [setActiveProjectPathAtom],
+  );
 
   const refreshToolScan = useCallback(
     async (force = false) => {
@@ -583,6 +613,37 @@ export function useLazifyStore() {
     [setSyncedWorkspaceProjects],
   );
 
+  /**
+   * Moves one project to another's position. The stored array *is* the order
+   * the lists render in, so persisting it is all the reorder has to do — no
+   * separate index to keep in step with syncs and removals.
+   */
+  const reorderSyncedWorkspaceProjects = useCallback(
+    (fromProjectPath: string, toProjectPath: string) => {
+      if (fromProjectPath === toProjectPath) return;
+
+      setSyncedWorkspaceProjects((current) => {
+        const fromIndex = current.findIndex(
+          (item) => item.projectPath === fromProjectPath,
+        );
+        const toIndex = current.findIndex(
+          (item) => item.projectPath === toProjectPath,
+        );
+
+        // A card dropped on something no longer in the list leaves it as-is.
+        if (fromIndex === -1 || toIndex === -1) return current;
+
+        const nextProjects = [...current];
+        const [moved] = nextProjects.splice(fromIndex, 1);
+        nextProjects.splice(toIndex, 0, moved);
+
+        persistWorkspaceProjects(nextProjects);
+        return nextProjects;
+      });
+    },
+    [setSyncedWorkspaceProjects],
+  );
+
   const updateProjectNodeVersion = useCallback(
     (projectPath: string, nodeVersion: string | null) => {
       setSyncedWorkspaceProjects((current) => {
@@ -605,6 +666,7 @@ export function useLazifyStore() {
     logs,
     packageName,
     projectDirectory,
+    activeProjectPath,
     projectName,
     savedInitWorkflowConfig,
     savedStructureTree,
@@ -623,6 +685,7 @@ export function useLazifyStore() {
       persistProjectDirectory(value);
       setProjectDirectory(value);
     },
+    setActiveProjectPath,
     setPackageName,
     setSavedStructureTree,
     setSelectedStructurePaths,
@@ -639,6 +702,7 @@ export function useLazifyStore() {
     removeImportedTemplate,
     syncWorkspaceProject,
     removeSyncedWorkspaceProject,
+    reorderSyncedWorkspaceProjects,
     updateProjectNodeVersion,
     setInitWorkflowStage,
     pickProjectDirectory,
