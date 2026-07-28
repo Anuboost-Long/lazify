@@ -564,6 +564,7 @@ export const translation = {
     "CloseAllTabsDesc": "project_tree.close_all_tabs_desc",
     "ContextRename": "project_tree.context_rename",
     "ContextDelete": "project_tree.context_delete",
+    "RevealInFinder": "project_tree.reveal_in_finder",
     "ImportedStructure": "project_tree.imported_structure",
     "ProjectContents": "project_tree.project_contents",
     "ProjectContentsDesc": "project_tree.project_contents_desc",

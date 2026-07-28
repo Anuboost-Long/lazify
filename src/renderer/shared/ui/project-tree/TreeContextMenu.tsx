@@ -5,10 +5,20 @@ import { useTranslation } from "react-i18next";
 interface TreeContextMenuProps {
   /** Where to open, or null when the menu is closed. */
   position: { x: number; y: number } | null;
-  onNewFile: () => void;
-  onNewFolder: () => void;
-  onRename: () => void;
-  onDelete: () => void;
+  /** Each entry is drawn only where the tree offers that action. */
+  onNewFile?: () => void;
+  onNewFolder?: () => void;
+  onRename?: () => void;
+  onDelete?: () => void;
+  onRevealInFinder?: () => void;
+}
+
+interface TreeContextMenuItem {
+  key: string;
+  label: string;
+  /** Shortcut pill, omitted for entries that have no key binding. */
+  hint?: string;
+  onClick: () => void;
 }
 
 const MENU_WIDTH = 168;
@@ -23,17 +33,35 @@ export function TreeContextMenu({
   onNewFolder,
   onRename,
   onDelete,
+  onRevealInFinder,
 }: Readonly<TreeContextMenuProps>) {
   const { t } = useTranslation();
 
   if (!position) return null;
 
-  const menuItems = [
-    { key: "new-file", label: translation.ProjectTree.NewFile, hint: "+", onClick: onNewFile },
-    { key: "new-folder", label: translation.ProjectTree.NewFolder, hint: "+", onClick: onNewFolder },
-    { key: "rename", label: translation.ProjectTree.ContextRename, hint: "F2", onClick: onRename },
-    { key: "delete", label: translation.ProjectTree.ContextDelete, hint: "Del", onClick: onDelete },
-  ];
+  const menuItems: TreeContextMenuItem[] = [];
+
+  if (onNewFile) {
+    menuItems.push({ key: "new-file", label: translation.ProjectTree.NewFile, hint: "+", onClick: onNewFile });
+  }
+  if (onNewFolder) {
+    menuItems.push({ key: "new-folder", label: translation.ProjectTree.NewFolder, hint: "+", onClick: onNewFolder });
+  }
+  if (onRename) {
+    menuItems.push({ key: "rename", label: translation.ProjectTree.ContextRename, hint: "F2", onClick: onRename });
+  }
+  if (onDelete) {
+    menuItems.push({ key: "delete", label: translation.ProjectTree.ContextDelete, hint: "Del", onClick: onDelete });
+  }
+  if (onRevealInFinder) {
+    menuItems.push({
+      key: "reveal-in-finder",
+      label: translation.ProjectTree.RevealInFinder,
+      onClick: onRevealInFinder,
+    });
+  }
+
+  if (menuItems.length === 0) return null;
 
   const menuHeight = menuItems.length * ROW_HEIGHT + MENU_PADDING;
   const left = Math.min(position.x, globalThis.innerWidth - MENU_WIDTH - 12);
@@ -52,9 +80,11 @@ export function TreeContextMenu({
           className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm text-text transition-colors hover:bg-accent/10 hover:text-accent"
         >
           {t(item.label)}
-          <PillText as="span" className="text-muted">
-            {item.hint}
-          </PillText>
+          {item.hint ? (
+            <PillText as="span" className="text-muted">
+              {item.hint}
+            </PillText>
+          ) : null}
         </button>
       ))}
     </div>

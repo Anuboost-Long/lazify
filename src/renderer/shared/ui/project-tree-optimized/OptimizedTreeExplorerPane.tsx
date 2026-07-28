@@ -248,6 +248,28 @@ export function OptimizedTreeExplorerPane({
   const flush = chrome === "flush";
   const showInclusionControls = isChecked !== undefined;
 
+  // A selection made outside the tree — an editor tab, a search hit — can land
+  // on a row that is scrolled out of sight. Expanding to it is only half the
+  // reveal; the list has to scroll to it too.
+  useEffect(() => {
+    const element = listRef.current;
+
+    if (!element || !selectedId) return;
+
+    const index = visibleRows.findIndex((row) => row.node.id === selectedId);
+
+    if (index === -1) return;
+
+    const rowTop = index * ROW_HEIGHT;
+    const rowBottom = rowTop + ROW_HEIGHT;
+
+    if (rowTop < element.scrollTop) {
+      element.scrollTop = rowTop;
+    } else if (rowBottom > element.scrollTop + element.clientHeight) {
+      element.scrollTop = rowBottom - element.clientHeight;
+    }
+  }, [selectedId, visibleRows]);
+
   const handleIsChecked = useCallback(
     (nodeId: string) => isChecked?.(nodeId) ?? false,
     [isChecked]

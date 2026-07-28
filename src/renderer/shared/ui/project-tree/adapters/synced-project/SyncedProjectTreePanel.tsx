@@ -199,6 +199,7 @@ export function SyncedProjectTreePanel({
               onNewFolder={() => adapter.handleCreateEntry("folder")}
               onRename={adapter.handleStartRename}
               onDelete={adapter.handleDeleteNode}
+              onRevealInFinder={adapter.handleRevealInFinder}
             />
           ) : null
         }

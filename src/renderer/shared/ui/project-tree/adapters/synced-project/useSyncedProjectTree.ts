@@ -302,8 +302,23 @@ export function useSyncedProjectTree({
       });
   }, [activeFilePath, activeTab, project.projectPath]);
 
+  /**
+   * Expands every folder above a node so the explorer shows it, the way VS
+   * Code reveals the active file. Only the ancestors open — the panel the user
+   * is looking at is left alone.
+   */
+  const expandToNode = (nodeId: string) => {
+    const ancestorIds = buildAncestorIds(editableTree, nodeId);
+
+    setExpandedIds((current) => {
+      const toAdd = ancestorIds.filter((id) => !current.includes(id));
+      return toAdd.length > 0 ? [...current, ...toAdd] : current;
+    });
+  };
+
   const handleSelectNode = (node: ImportedProjectIndexNode) => {
     setSelectedId(node.id);
+    expandToNode(node.id);
 
     // Selecting a folder only moves the tree highlight. The editor keeps
     // whatever file is open — closing it would throw away the user's place
@@ -345,7 +360,10 @@ export function useSyncedProjectTree({
     setActiveFilePath(tabPath);
 
     const node = findNodeByAbsolutePath(editableTree, entry.absolutePath);
-    if (node) setSelectedId(node.id);
+    if (node) {
+      setSelectedId(node.id);
+      expandToNode(node.id);
+    }
   };
 
   const handleSelectOpenFile = (path: string) => {
@@ -353,7 +371,10 @@ export function useSyncedProjectTree({
 
     const tab = openFiles.find((candidate) => candidate.path === path);
     const node = tab ? findNodeByAbsolutePath(editableTree, tab.filePath) : null;
-    if (node) setSelectedId(node.id);
+    if (node) {
+      setSelectedId(node.id);
+      expandToNode(node.id);
+    }
   };
 
   /** Closing the active tab falls back to its left neighbour, then its right. */
@@ -518,6 +539,21 @@ export function useSyncedProjectTree({
     setContextMenu(null);
   };
 
+  /**
+   * Hands the right-clicked entry to the OS file manager, so the file being
+   * read here can be worked on outside the app without hunting for its path.
+   */
+  const handleRevealInFinder = () => {
+    const targetNode = contextMenu?.node;
+
+    if (!targetNode) {
+      return;
+    }
+
+    void globalThis.lazify.revealInFileManager(targetNode.absolutePath);
+    setContextMenu(null);
+  };
+
   const handleStartRename = () => {
     const targetNode = contextMenu?.node;
 
@@ -586,6 +622,7 @@ export function useSyncedProjectTree({
       symbolTarget && activeTab?.kind === "file" && activeTab.filePath === symbolTarget.filePath
         ? symbolTarget.line
         : null,
+    handleRevealInFinder,
     handleSelectNode,
     handleStartRename,
     handleToggleExpand,

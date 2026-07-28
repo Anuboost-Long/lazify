@@ -65,12 +65,76 @@ function lockDownPreviewGuest(contents: WebContents): void {
   });
 }
 
-function wireBrowserGuest(contents: WebContents, onOpenTab: (url: string) => void): void {
+/**
+ * True for a popup opened without an address. The pattern is
+ * `const w = window.open(); w.location = url` — sites reach for it so the
+ * window is created inside the click's user gesture and the address arrives a
+ * moment later, often after an await.
+ */
+function isBlankTarget(url: string): boolean {
+  return !url || url === "about:blank";
+}
+
+/** How long a blank popup has to say where it is going before it is dropped. */
+const BLANK_POPUP_GRACE_MS = 10_000;
+
+function wireBrowserGuest(
+  contents: WebContents,
+  onOpenTab: (url: string, background: boolean) => void
+): void {
   // Navigation is unrestricted here — this one is a browser. What a popup must
   // not do is escape into a chromeless window, so it becomes a tab instead.
-  contents.setWindowOpenHandler(({ url }) => {
-    onOpenTab(url);
+  //
+  // Chromium reports how the link was activated. A plain `target="_blank"` means
+  // the user wants to be taken there; a modified click — cmd, ctrl, middle
+  // button — means they want it waiting for them. Passing that through is the
+  // difference between a browser and a popup catcher.
+  contents.setWindowOpenHandler((details) => {
+    // Nothing to open a tab at yet. Denying returns null to the opener, which
+    // loses the address it was about to set, so the window is allowed — hidden —
+    // purely to find out where it was headed.
+    if (isBlankTarget(details.url)) {
+      return {
+        action: "allow",
+        overrideBrowserWindowOptions: {
+          show: false,
+          webPreferences: { nodeIntegration: false, contextIsolation: true }
+        }
+      };
+    }
+
+    onOpenTab(details.url, details.disposition === "background-tab");
     return { action: "deny" };
+  });
+
+  // The other half of the blank-popup case: take its first real navigation as
+  // the tab's address and drop the window it would otherwise have become.
+  contents.on("did-create-window", (window, details) => {
+    const background = details.disposition === "background-tab";
+    let timer: NodeJS.Timeout | undefined;
+    let settled = false;
+
+    const settle = (url: string) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      if (!isBlankTarget(url)) onOpenTab(url, background);
+      if (!window.isDestroyed()) window.destroy();
+    };
+
+    window.webContents.on("will-navigate", (event, url) => {
+      event.preventDefault();
+      settle(url);
+    });
+
+    // A handle the opener never navigates would otherwise sit there, hidden,
+    // for the life of the app.
+    timer = setTimeout(() => settle(""), BLANK_POPUP_GRACE_MS);
+
+    window.on("closed", () => {
+      settled = true;
+      clearTimeout(timer);
+    });
   });
 }
 
@@ -79,8 +143,12 @@ function wireBrowserGuest(contents: WebContents, onOpenTab: (url: string) => voi
  * session the guest was given. Called once at startup, before any window exists.
  *
  * @param onOpenTab Asks the browser page to open a URL a guest tried to pop out.
+ * `background` carries the user's intent: a modified click wants the tab
+ * waiting for them, not in front of them.
  */
-export function guardPreviewWebviews(onOpenTab: (url: string) => void): void {
+export function guardPreviewWebviews(
+  onOpenTab: (url: string, background: boolean) => void
+): void {
   app.on("web-contents-created", (_event, contents) => {
     // The host side: the guest gets no preload and no Node, whatever attributes
     // the renderer put on the tag. A guest may not nest a guest of its own.

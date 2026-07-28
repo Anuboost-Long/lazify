@@ -145,7 +145,13 @@ export const BrowserGuest = memo(function BrowserGuest({
         partition={BROWSER_PARTITION}
         // Without this the guest's window.open returns null outright, and the
         // popup never reaches main to be turned into a tab.
-        allowpopups
+        //
+        // It has to be spread in as a string. Written as the bare attribute the
+        // typings ask for, React reads it as `true` and then drops it — React
+        // omits `true` for any attribute it does not know to be boolean — so it
+        // never reaches the DOM and every popup is blocked before Electron sees
+        // it. Spreading also sidesteps that `allowpopups?: boolean` typing.
+        {...({ allowpopups: "" } as Record<string, string>)}
         className={clsx("absolute inset-0 flex bg-white")}
       />
     </div>

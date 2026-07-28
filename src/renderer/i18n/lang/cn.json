@@ -489,6 +489,7 @@
     "close_all_tabs_desc": "将关闭 {{count}} 个已打开的标签。",
     "context_rename": "重命名",
     "context_delete": "删除",
+    "reveal_in_finder": "在 Finder 中显示",
     "imported_structure": "已导入的结构",
     "explorer_title": "{{project}} 的优化浏览器",
     "explorer_desc": "此查看器使用仅元数据扫描、懒加载文件和虚拟化行，使大型项目保持响应。",

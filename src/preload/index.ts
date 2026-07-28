@@ -176,6 +176,8 @@ const lazifyApi = {
     ipcRenderer.invoke("lazify:highlighting-assets"),
   openHighlightingFolder: (): Promise<void> =>
     ipcRenderer.invoke("lazify:open-highlighting-folder"),
+  revealInFileManager: (targetPath: string): Promise<void> =>
+    ipcRenderer.invoke("lazify:reveal-in-file-manager", targetPath),
   openExternalUrl: (url: string): Promise<void> =>
     ipcRenderer.invoke("lazify:open-external-url", url),
   listListeningProcesses: (): Promise<import("../main/port-reaper").ListeningProcess[]> =>
@@ -221,8 +223,11 @@ const lazifyApi = {
     symbol: string
   ): Promise<import("../main/symbol-finder").SymbolDefinition | null> =>
     ipcRenderer.invoke("lazify:find-symbol-definition", projectPath, symbol),
-  onBrowserOpenTab: (callback: (event: { url: string }) => void) => {
-    const listener = (_event: Electron.IpcRendererEvent, payload: { url: string }) => callback(payload);
+  onBrowserOpenTab: (callback: (event: { url: string; background: boolean }) => void) => {
+    const listener = (
+      _event: Electron.IpcRendererEvent,
+      payload: { url: string; background: boolean }
+    ) => callback(payload);
     ipcRenderer.on("lazify:browser-open-tab", listener);
     return () => ipcRenderer.removeListener("lazify:browser-open-tab", listener);
   },

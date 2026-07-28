@@ -489,6 +489,7 @@
     "close_all_tabs_desc": "tab ដែលបើក {{count}} នឹងត្រូវបានបិទ។",
     "context_rename": "ប្ដូរឈ្មោះ",
     "context_delete": "លុប",
+    "reveal_in_finder": "បង្ហាញក្នុង Finder",
     "imported_structure": "រចនាសម្ព័ន្ធដែលបាននាំចូល",
     "explorer_title": "Explorer ប្រើប្រាស់ប្រសិទ្ធភាពខ្ពស់សម្រាប់ {{project}}",
     "explorer_desc": "Viewer នេះប្រើ metadata-only scanning, lazy file loading, និង virtualized rows ដើម្បីឱ្យ project ធំៗនៅ responsive។",

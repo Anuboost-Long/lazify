@@ -149,14 +149,21 @@ declare global {
       ) => Promise<import("../main/git-actions").GitActionResult>;
       listHighlightingAssets: () => Promise<import("../main/highlighting-store").HighlightingAssets>;
       openHighlightingFolder: () => Promise<void>;
+      /** Opens a folder, or reveals a file selected inside its folder, in the OS file manager. */
+      revealInFileManager: (targetPath: string) => Promise<void>;
       openExternalUrl: (url: string) => Promise<void>;
       listListeningProcesses: () => Promise<import("../main/port-reaper").ListeningProcess[]>;
       killListeningProcess: (pid: number) => Promise<import("../main/port-reaper").KillResult>;
       getLazyShieldState: () => Promise<import("../main/lazy-shield").LazyShieldState>;
       setLazyShield: (enabled: boolean) => Promise<import("../main/lazy-shield").LazyShieldState>;
       onLazyShieldBlocked: (callback: (event: { blocked: number }) => void) => () => void;
-      /** A guest tried to open a popup; the browser page turns it into a tab. */
-      onBrowserOpenTab: (callback: (event: { url: string }) => void) => () => void;
+      /**
+       * A guest tried to open a popup; the browser page turns it into a tab.
+       * `background` is set when the click asked for a tab it does not switch to.
+       */
+      onBrowserOpenTab: (
+        callback: (event: { url: string; background: boolean }) => void
+      ) => () => void;
       openPictureInPicture: (
         url: string,
         source: import("../main/picture-in-picture").PictureInPictureSource

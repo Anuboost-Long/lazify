@@ -1,16 +1,14 @@
 /**
  * Spots the moment an agent stops working and starts waiting on the user.
  *
- * Agents are interactive CLIs rendering a TUI into a PTY — there is no event
- * to subscribe to, so the only signal available is what they print. This
- * watches the tail of each session's output for the shape of a permission
- * prompt and reports the transition into (and out of) "waiting".
- *
- * That makes this a heuristic, and it will drift when an agent restyles its
- * prompts. It is deliberately biased towards missing a prompt rather than
- * crying wolf: a false positive puts a badge on a project that does not need
- * one, which is worse than a late badge.
+ * Reading the output is `detectTerminalIntent`'s job; this owns what a session
+ * has been through. It keeps the rolling tail each reading is taken from, holds
+ * the turn state that decides whether a finished-looking screen is worth an
+ * alert, and reports transitions — callers want the moment a run started
+ * waiting, not the fact that it still is on every redraw.
  */
+
+import { detectTerminalIntent, stripAnsi } from "./terminal-intent";
 
 /** Enough tail to hold a full prompt box, small enough to scan on every chunk. */
 const TAIL_LIMIT = 4000;
@@ -23,84 +21,6 @@ const TAIL_LIMIT = 4000;
  * prompt on screen — is the agent having handed the work back.
  */
 const IDLE_SETTLE_MS = 3000;
-
-/**
- * Prompt shapes, matched against ANSI-stripped output.
- *
- * The goal is to catch *any* point where the agent has stopped and is waiting
- * on the user — not just permission prompts but clarifying questions and other
- * interactive menus — because with several projects open the badge is how the
- * user knows which one to go back to. That means erring towards sensitivity:
- * a stray badge is cheaper than an agent stuck unnoticed in another project.
- */
-const PROMPT_PATTERNS: RegExp[] = [
-  // Claude Code: "Do you want to proceed?" over a numbered pick-list.
-  /\b1\.\s*Yes\b[\s\S]{0,400}?\b2\.\s*(No|Yes, and)/i,
-  /Do you want to (proceed|make this edit|create|run)\b/i,
-  // Codex and friends: a plain allow/deny question.
-  /\bAllow (this )?(command|tool|edit)\b.*\?/i,
-  /\b(Approve|Permission) (this|required|request)\b/i,
-  // Generic y/n confirmation at the end of a line.
-  /\?\s*\[y\/n\]\s*$/im,
-  // Any interactive selection menu waiting on a choice — the navigation and
-  // confirm hints a TUI prints under a pick-list. Catches clarifying questions
-  // and custom menus, which are just as blocking as a yes/no approval.
-  /\bEnter to (select|confirm|submit|choose|continue)\b/i,
-  /\b(Tab|arrow keys?) to (navigate|move|cycle|switch)\b/i,
-  /\bEsc to (cancel|exit|go back)\b/i,
-  // A question immediately followed by a numbered pick-list of options.
-  /\?[\s\S]{0,200}?(?:^|\n)\s*[>❯]?\s*1\.\s+\S/m,
-];
-
-/**
- * Output that means the agent went back to work, so a prompt that was showing
- * has been answered. Checked before the prompt patterns.
- */
-const RESUMED_PATTERNS: RegExp[] = [
-  /esc to interrupt/i,
-  /\b(Thinking|Working|Running|Searching|Reading|Editing)[.…]/i,
-];
-
-/** Strips CSI/OSC escape sequences so patterns match the visible text. */
-export function stripAnsi(value: string): string {
-  return (
-    value
-      // OSC: ESC ] ... terminated by BEL or ESC backslash
-      .replace(/\u001b\][\s\S]*?(?:\u0007|\u001b\\)/g, "")
-      // CSI and other escape sequences
-      .replace(/\u001b[[\]()#;?]*[0-9;]*[A-Za-z]/g, "")
-      // Leftover control characters, keeping tab, newline and carriage return
-      .replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g, "")
-  );
-}
-
-/**
- * End index of the last match of any pattern in `text`, or -1 when none match.
- *
- * Position matters because agents are full-screen TUIs: their status line
- * ("esc to interrupt") is overwritten in place on a real terminal, but once the
- * repositioning escapes are stripped it lingers in our flattened tail. Asking
- * *where* a signal last appeared — rather than merely whether it is present —
- * lets a prompt that was drawn after that stale text still be recognised.
- */
-function lastMatchEnd(text: string, patterns: RegExp[]): number {
-  let end = -1;
-
-  for (const pattern of patterns) {
-    const scanner = new RegExp(
-      pattern.source,
-      pattern.flags.includes("g") ? pattern.flags : `${pattern.flags}g`,
-    );
-
-    for (let match = scanner.exec(text); match; match = scanner.exec(text)) {
-      end = Math.max(end, match.index + match[0].length);
-      // Guard against a zero-width match wedging the loop.
-      if (match.index === scanner.lastIndex) scanner.lastIndex += 1;
-    }
-  }
-
-  return end;
-}
 
 interface SessionState {
   tail: string;
@@ -156,33 +76,48 @@ export class AttentionDetector {
       return null;
     }
 
-    session.tail = (session.tail + stripAnsi(chunk)).slice(-TAIL_LIMIT);
+    const visible = stripAnsi(chunk);
 
-    // A prompt only counts while nothing that means "back to work" was drawn
-    // after it — otherwise a stale status line elsewhere in the window would
-    // mask a prompt the agent has actually printed.
-    const promptAt = lastMatchEnd(session.tail, PROMPT_PATTERNS);
-    const resumedAt = lastMatchEnd(session.tail, RESUMED_PATTERNS);
-    const prompting = promptAt !== -1 && promptAt > resumedAt;
+    session.tail = (session.tail + visible).slice(-TAIL_LIMIT);
 
-    // Set LAZIFY_DEBUG_ATTENTION=1 to trace why a prompt is (not) detected. Logs
-    // on a match or a state flip, so ordinary redraw noise stays out.
+    // What the window as a whole currently says. The rolling tail is what the
+    // user is looking at, so it — not the chunk — decides whether the run is
+    // waiting: agents redraw a prompt in fragments, and a fragment on its own
+    // says nothing.
+    const screen = detectTerminalIntent(session.tail);
+    const prompting = screen.intent === "question";
+
+    // Set LAZIFY_DEBUG_ATTENTION=1 to trace how a screen was read. Logs on a
+    // decisive reading or a state flip, so ordinary redraw noise stays out.
     if (
       process.env.LAZIFY_DEBUG_ATTENTION &&
-      (promptAt !== -1 || prompting !== session.waiting)
+      (screen.intent !== "unknown" || prompting !== session.waiting)
     ) {
       console.log(
-        `[attention] ${runId} promptAt=${promptAt} resumedAt=${resumedAt} ` +
-          `prompting=${prompting} was=${session.waiting} ` +
-          `tail=${JSON.stringify(session.tail.slice(-200))}`,
+        `[attention] ${runId} intent=${screen.intent} ` +
+          `confidence=${screen.confidence.toFixed(2)} reasons=${screen.reasons.join(",")} ` +
+          `was=${session.waiting} tail=${JSON.stringify(session.tail.slice(-200))}`,
       );
     }
 
-    // The end of a turn is a working agent going quiet. Arm on the working
-    // status line, then let every further chunk push the check back, so it is
-    // the moment the redraws stop that counts as the work having landed.
-    if (resumedAt > promptAt) session.busy = true;
-    if (session.busy) this.scheduleIdleCheck(runId, session);
+    // Turn state is armed from the *incoming* chunk, never the tail. The tail
+    // keeps a working status line long after the work stopped, so arming from
+    // it re-armed the turn on any idle redraw — the agent sat there finished
+    // while a fresh "done" alert fired every few seconds. Re-arming takes the
+    // agent actually printing that it is working again.
+    const incoming = detectTerminalIntent(visible);
+
+    if (incoming.intent === "working") session.busy = true;
+
+    // The agent drawing its idle input box is the end of a turn stated outright,
+    // which beats inferring it from silence: it fires the moment the work lands
+    // rather than three seconds later, and it cannot be faked by a slow tool.
+    // Silence stays armed underneath for agents whose footer says nothing.
+    if (session.busy && !prompting && incoming.intent === "complete") {
+      this.reportTurnDone(runId, session);
+    } else if (session.busy) {
+      this.scheduleIdleCheck(runId, session);
+    }
 
     if (prompting === session.waiting) return null;
 
@@ -207,9 +142,22 @@ export class AttentionDetector {
       // the bell's job, and output resuming re-arms this check for the real end.
       if (!session.busy || session.waiting) return;
 
-      session.busy = false;
-      this.onTurnDone?.(runId);
+      this.reportTurnDone(runId, session);
     }, IDLE_SETTLE_MS);
+  }
+
+  /** Reports the turn once and closes it, whichever signal got there first. */
+  private reportTurnDone(runId: string, session: SessionState): void {
+    if (session.idleTimer) {
+      clearTimeout(session.idleTimer);
+      session.idleTimer = null;
+    }
+
+    session.busy = false;
+    // The turn is over, so the working status line in the window is history.
+    // Dropping it keeps stale text out of the next turn's decisions.
+    session.tail = "";
+    this.onTurnDone?.(runId);
   }
 
   /**

@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 
 import { translation } from "@renderer/i18n/translation";
@@ -7,6 +7,7 @@ import type { ImportedProjectIndexNode } from "@renderer/shared/types/lazify";
 import { SmallText } from "@renderer/shared/typography";
 import { IconButton } from "@renderer/shared/ui/IconButton";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
+import { TreeContextMenu } from "@renderer/shared/ui/project-tree/TreeContextMenu";
 import { type AgentFileMatch, useAgentFiles } from "../hooks/use-agent-files";
 import { AgentFileModal } from "./AgentFileModal";
 
@@ -23,10 +24,18 @@ interface TreeRowProps {
   openFolders: string[];
   onToggleFolder: (id: string) => void;
   onOpenFile: (node: ImportedProjectIndexNode) => void;
+  onOpenMenu: (event: React.MouseEvent, node: ImportedProjectIndexNode) => void;
 }
 
 /** One row of the tree, recursing into folders the user has opened. */
-function TreeRow({ node, depth, openFolders, onToggleFolder, onOpenFile }: Readonly<TreeRowProps>) {
+function TreeRow({
+  node,
+  depth,
+  openFolders,
+  onToggleFolder,
+  onOpenFile,
+  onOpenMenu
+}: Readonly<TreeRowProps>) {
   const isFolder = node.type === "folder";
   const isOpen = isFolder && openFolders.includes(node.id);
 
@@ -35,6 +44,10 @@ function TreeRow({ node, depth, openFolders, onToggleFolder, onOpenFile }: Reado
       <button
         type="button"
         onClick={() => (isFolder ? onToggleFolder(node.id) : onOpenFile(node))}
+        onContextMenu={(event) => {
+          event.preventDefault();
+          onOpenMenu(event, node);
+        }}
         title={node.relativePath}
         style={{ paddingLeft: `${depth * 10 + 6}px` }}
         className={clsx(
@@ -60,6 +73,7 @@ function TreeRow({ node, depth, openFolders, onToggleFolder, onOpenFile }: Reado
               openFolders={openFolders}
               onToggleFolder={onToggleFolder}
               onOpenFile={onOpenFile}
+              onOpenMenu={onOpenMenu}
             />
           ))
         : null}
@@ -90,12 +104,21 @@ function PanelMessage({ children }: Readonly<{ children: ReactNode }>) {
 /** A search hit: file name over the folder that holds it. */
 function MatchRow({
   match,
-  onOpen
-}: Readonly<{ match: AgentFileMatch; onOpen: (node: ImportedProjectIndexNode) => void }>) {
+  onOpen,
+  onOpenMenu
+}: Readonly<{
+  match: AgentFileMatch;
+  onOpen: (node: ImportedProjectIndexNode) => void;
+  onOpenMenu: (event: React.MouseEvent, node: ImportedProjectIndexNode) => void;
+}>) {
   return (
     <button
       type="button"
       onClick={() => onOpen(match.node)}
+      onContextMenu={(event) => {
+        event.preventDefault();
+        onOpenMenu(event, match.node);
+      }}
       title={match.node.relativePath}
       className={clsx(
         "flex w-full items-center gap-1.5 rounded-lg px-1.5 py-1 text-left",
@@ -137,11 +160,30 @@ export function AgentFilesPanel({
   const [trail, setTrail] = useState<ImportedProjectIndexNode[]>([]);
   /** Definition the current file was opened at, if it was reached by a jump. */
   const [symbolLine, setSymbolLine] = useState<{ path: string; line: number } | null>(null);
+  /** Right-clicked entry and where its menu sits, or null when it is closed. */
+  const [menu, setMenu] = useState<{
+    node: ImportedProjectIndexNode;
+    x: number;
+    y: number;
+  } | null>(null);
+
+  // The next click anywhere closes the menu, including the one on its own item.
+  useEffect(() => {
+    if (!menu) return;
+
+    const close = () => setMenu(null);
+    globalThis.addEventListener("click", close);
+
+    return () => globalThis.removeEventListener("click", close);
+  }, [menu]);
 
   const toggleFolder = (id: string) =>
     setOpenFolders((open) =>
       open.includes(id) ? open.filter((entry) => entry !== id) : [...open, id]
     );
+
+  const openMenu = (event: React.MouseEvent, node: ImportedProjectIndexNode) =>
+    setMenu({ node, x: event.clientX, y: event.clientY });
 
   /** Opening a file from the tree or a search hit starts a fresh trail. */
   const openFile = (node: ImportedProjectIndexNode) => {
@@ -207,7 +249,7 @@ export function AgentFilesPanel({
       }
 
       return matches.map((match) => (
-        <MatchRow key={match.node.id} match={match} onOpen={openFile} />
+        <MatchRow key={match.node.id} match={match} onOpen={openFile} onOpenMenu={openMenu} />
       ));
     }
 
@@ -223,6 +265,7 @@ export function AgentFilesPanel({
         openFolders={openFolders}
         onToggleFolder={toggleFolder}
         onOpenFile={setSelected}
+        onOpenMenu={openMenu}
       />
     ));
   };
@@ -281,6 +324,15 @@ export function AgentFilesPanel({
       </div>
 
       <div className="min-h-0 flex-1 overflow-auto p-1.5">{renderBody()}</div>
+
+      {/* Right-click on any entry: hand it to the OS file manager. */}
+      <TreeContextMenu
+        position={menu}
+        onRevealInFinder={() => {
+          if (menu) void globalThis.lazify.revealInFileManager(menu.node.absolutePath);
+          setMenu(null);
+        }}
+      />
 
       <AgentFileModal
         file={selected}

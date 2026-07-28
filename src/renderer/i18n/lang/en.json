@@ -564,6 +564,7 @@
     "close_all_tabs_desc": "{{count}} open tabs will be closed.",
     "context_rename": "Rename",
     "context_delete": "Delete",
+    "reveal_in_finder": "Reveal in Finder",
     "imported_structure": "Imported structure",
     "project_contents": "Project contents",
     "project_contents_desc": "Click files from the synced project explorer to read their contents in the editor pane.",

@@ -96,7 +96,11 @@ export function AgentFileModal({
             {onSendToTerminal ? (
               <button
                 type="button"
-                onClick={() => file && onSendToTerminal(file.relativePath)}
+                onClick={() => {
+                  if (!file) return;
+                  onSendToTerminal(file.relativePath);
+                  onClose();
+                }}
                 className={clsx(
                   "flex items-center gap-1.5 rounded-md border border-border px-2 py-1",
                   "transition-colors hover:bg-text/[0.06]"

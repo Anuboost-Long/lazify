@@ -22,6 +22,8 @@ interface BranchSwitcherProps {
   branches: string[];
   repoRoot: string;
   disabled?: boolean;
+  /** Which way the menu opens; "up" keeps it on screen for a row near the bottom. */
+  placement?: "down" | "up";
   /** Reloads git status once the working tree has actually moved. */
   onSwitched: () => void;
 }
@@ -32,6 +34,7 @@ export function BranchSwitcher({
   branches,
   repoRoot,
   disabled = false,
+  placement = "down",
   onSwitched
 }: Readonly<BranchSwitcherProps>) {
   const { t } = useTranslation();
@@ -47,7 +50,10 @@ export function BranchSwitcher({
     if (!open) return;
 
     const onPointerDown = (event: PointerEvent) => {
-      if (!containerRef.current?.contains(event.target as Node)) setOpen(false);
+      if (containerRef.current?.contains(event.target as Node)) return;
+
+      setOpen(false);
+      setError(null);
     };
 
     globalThis.addEventListener("pointerdown", onPointerDown);
@@ -90,7 +96,10 @@ export function BranchSwitcher({
       <button
         type="button"
         disabled={disabled}
-        onClick={() => setOpen((current) => !current)}
+        onClick={() => {
+          setError(null);
+          setOpen((current) => !current);
+        }}
         title={repoRoot}
         className={clsx(
           "flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left transition-colors",
@@ -114,7 +123,8 @@ export function BranchSwitcher({
       {open ? (
         <div
           className={clsx(
-            "absolute left-0 right-0 top-full z-30 mt-1 overflow-hidden",
+            "absolute left-0 right-0 z-30 overflow-hidden",
+            placement === "up" ? "bottom-full mb-1" : "top-full mt-1",
             "rounded-lg border border-border bg-soft shadow-panel"
           )}
         >
@@ -167,11 +177,23 @@ export function BranchSwitcher({
         </div>
       ) : null}
 
-      {/* git's own refusal — usually "local changes would be overwritten". */}
+      {/* git's own refusal — usually "local changes would be overwritten". It can
+          list every dirty file, so it is capped and scrolls, and stays dismissible. */}
       {error ? (
-        <BodyText className="mt-1.5 whitespace-pre-wrap break-words px-2 text-[11px] leading-5 text-error">
-          {error}
-        </BodyText>
+        <div className="mt-1.5 flex items-start gap-1 px-2">
+          <BodyText className="max-h-32 min-w-0 flex-1 overflow-y-auto whitespace-pre-wrap break-words text-[11px] leading-5 text-error">
+            {error}
+          </BodyText>
+          <button
+            type="button"
+            onClick={() => setError(null)}
+            title={t(translation.GlobalTerm.Dismiss)}
+            aria-label={t(translation.GlobalTerm.Dismiss)}
+            className="shrink-0 rounded p-0.5 text-muted transition-colors hover:bg-accent/[0.06] hover:text-text"
+          >
+            <UiIcon name="xmark" className="h-3 w-3" />
+          </button>
+        </div>
       ) : null}
     </div>
   );

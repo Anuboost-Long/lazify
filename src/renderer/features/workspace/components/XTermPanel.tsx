@@ -1,7 +1,7 @@
 import "@xterm/xterm/css/xterm.css";
 
 import { FitAddon } from "@xterm/addon-fit";
-import { Terminal } from "@xterm/xterm";
+import { Terminal, type ILink } from "@xterm/xterm";
 import { useEffect, useLayoutEffect, useRef } from "react";
 
 import { useResolvedTheme } from "@renderer/shared/hooks/use-theme";
@@ -12,6 +12,26 @@ interface XTermPanelProps {
   /** Grab keyboard focus when this terminal is the visible one. */
   autoFocus?: boolean;
   onReady?: (cols: number, rows: number) => void;
+  /**
+   * Turns a path printed in the output into an absolute file path, or null when
+   * it points at nothing. Only what resolves is drawn as a link, so prose that
+   * happens to look path-shaped stays plain text. Absent → no links at all.
+   */
+  onResolveFilePath?: (printedPath: string) => Promise<string | null>;
+  /** Opens a clicked file link, at the line the output named when it named one. */
+  onOpenFilePath?: (absolutePath: string, line: number | null) => void;
+}
+
+// A path as agents print it: "docs/guide.md", "src/app/page.tsx:42",
+// "package.json". The extension is required — without it every bare word in a
+// sentence ("selection_ids", "end-to-end") would light up as a link.
+const FILE_PATH_PATTERN = /\/?(?:[\w.@~+-]+\/)*[\w.@+-]+\.[A-Za-z]\w*(?::\d+){0,2}/g;
+
+/** Splits "src/app.ts:42:8" into the file and the line it points at. */
+function splitLineSuffix(printed: string): { filePath: string; line: number | null } {
+  const [filePath, line] = printed.split(":");
+
+  return { filePath, line: line ? Number(line) : null };
 }
 
 // The terminal follows the app theme. Each palette is tuned for its own
@@ -72,8 +92,16 @@ export function XTermPanel({
   isActive,
   autoFocus,
   onReady,
+  onResolveFilePath,
+  onOpenFilePath,
 }: Readonly<XTermPanelProps>) {
   const resolvedTheme = useResolvedTheme();
+  // Read through refs for the same reason the theme is: the terminal is built
+  // once per run, and a new callback identity must not tear it down.
+  const resolveFilePathRef = useRef(onResolveFilePath);
+  resolveFilePathRef.current = onResolveFilePath;
+  const openFilePathRef = useRef(onOpenFilePath);
+  openFilePathRef.current = onOpenFilePath;
   // Read through a ref so a theme switch repaints (below) instead of rebuilding
   // the terminal, which would throw away the scrollback.
   const themeRef = useRef(resolvedTheme);
@@ -120,6 +148,57 @@ export function XTermPanel({
     // Forward keyboard/paste to the PTY.
     term.onData((data) => globalThis.lazify.ptyWrite(runId, data));
 
+    // Paths in the output are clickable, the way they are in an IDE terminal.
+    // xterm asks for one hovered row at a time, so the work is a regex over
+    // that row plus a resolve for each candidate on it.
+    let disposed = false;
+
+    term.registerLinkProvider({
+      provideLinks(bufferLineNumber, callback) {
+        const resolve = resolveFilePathRef.current;
+        const open = openFilePathRef.current;
+        const bufferLine = term.buffer.active.getLine(bufferLineNumber - 1);
+
+        if (!resolve || !open || !bufferLine) {
+          callback(undefined);
+          return;
+        }
+
+        const candidates = [...bufferLine.translateToString(true).matchAll(FILE_PATH_PATTERN)];
+
+        if (candidates.length === 0) {
+          callback(undefined);
+          return;
+        }
+
+        void Promise.all(
+          candidates.map(async (candidate): Promise<ILink | null> => {
+            const { filePath, line } = splitLineSuffix(candidate[0]);
+            const absolutePath = await resolve(filePath);
+
+            if (!absolutePath) return null;
+
+            // xterm ranges are 1-based and inclusive on both ends.
+            const startX = (candidate.index ?? 0) + 1;
+
+            return {
+              range: {
+                start: { x: startX, y: bufferLineNumber },
+                end: { x: startX + candidate[0].length - 1, y: bufferLineNumber },
+              },
+              text: candidate[0],
+              activate: () => openFilePathRef.current?.(absolutePath, line),
+            };
+          })
+        ).then((links) => {
+          if (disposed) return;
+
+          const found = links.filter((link): link is ILink => link !== null);
+          callback(found.length > 0 ? found : undefined);
+        });
+      },
+    });
+
     // Replay what the session already printed, so re-attaching (switching
     // project, or leaving and returning to the page) keeps the transcript.
     //
@@ -159,6 +238,7 @@ export function XTermPanel({
       });
 
     return () => {
+      disposed = true;
       stopData();
       term.dispose();
       termRef.current = null;

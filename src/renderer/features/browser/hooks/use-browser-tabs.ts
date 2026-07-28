@@ -84,10 +84,16 @@ export function useBrowserTabs() {
     );
   }, []);
 
-  const openTab = useCallback((rawUrl = "") => {
+  /**
+   * Adds a tab and, unless told otherwise, switches to it.
+   *
+   * `background` is what a cmd/ctrl or middle click asks for: the page is
+   * loaded and waiting, but the user keeps reading what they were on.
+   */
+  const openTab = useCallback((rawUrl = "", background = false) => {
     const tab = makeTab(rawUrl ? resolveBrowserInput(rawUrl) : "");
     setTabs((current) => [...current, tab]);
-    setActiveId(tab.id);
+    if (!background) setActiveId(tab.id);
     return tab.id;
   }, []);
 
@@ -137,8 +143,8 @@ export function useBrowserTabs() {
   }, [openTab]);
 
   useEffect(() => {
-    return globalThis.lazify.onBrowserOpenTab(({ url }) => {
-      openTabRef.current(url);
+    return globalThis.lazify.onBrowserOpenTab(({ url, background }) => {
+      openTabRef.current(url, background);
     });
   }, []);
 

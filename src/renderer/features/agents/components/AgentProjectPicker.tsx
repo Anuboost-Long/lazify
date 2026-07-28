@@ -3,6 +3,7 @@ import { memo, useCallback, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { translation } from "@renderer/i18n/translation";
+import { BranchSwitcher } from "@renderer/features/workspace/components/BranchSwitcher";
 import { formatStackLabel } from "@renderer/features/workspace/utils/stack-label";
 import { getTechIconName } from "@renderer/shared/lib/icon-map";
 import type { SyncedWorkspaceProject } from "@renderer/shared/types/lazify";
@@ -254,6 +255,13 @@ interface AgentProjectPickerProps {
   onReorder: (fromProjectPath: string, toProjectPath: string) => void;
   syncing: boolean;
   onSync: () => void;
+  /** Branch of the selected project; null when it is not a git repo. */
+  branch: string | null;
+  /** Branches the selected project can be switched to. */
+  branches: string[];
+  repoRoot: string;
+  /** Re-reads git once a checkout has moved the working tree. */
+  onBranchSwitched: () => void;
 }
 
 export function AgentProjectPicker({
@@ -265,6 +273,10 @@ export function AgentProjectPicker({
   onReorder,
   syncing,
   onSync,
+  branch,
+  branches,
+  repoRoot,
+  onBranchSwitched,
 }: Readonly<AgentProjectPickerProps>) {
   const { t } = useTranslation();
   // Card being dragged, and the one it would drop onto.
@@ -394,6 +406,22 @@ export function AgentProjectPicker({
       {/* Pinned below the list, so syncing another project never means leaving
           the agents page. Dashed to read as an "add" slot, not a project. */}
       <div className={clsx("shrink-0 border-t border-border", collapsed ? "p-2" : "p-3")}>
+        {/* The branch the agents will be working on, switchable without leaving
+            the page. The menu opens upward — this row sits at the bottom of the
+            rail. Collapsed, there is no width to read a branch name in. */}
+        {!collapsed && branches.length > 0 ? (
+          <div className="mb-2">
+            <BranchSwitcher
+              projectPath={selectedPath}
+              branch={branch}
+              branches={branches}
+              repoRoot={repoRoot}
+              placement="up"
+              onSwitched={onBranchSwitched}
+            />
+          </div>
+        ) : null}
+
         <button
           type="button"
           disabled={syncing}

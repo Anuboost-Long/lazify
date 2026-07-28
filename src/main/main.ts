@@ -474,6 +474,22 @@ function registerIpcHandlers() {
 
   ipcMain.handle("lazify:open-highlighting-folder", async () => openHighlightingFolder());
 
+  // "Reveal in Finder" from a tree's right-click menu: a folder opens in the OS
+  // file manager, a file is revealed selected inside its folder. A path that is
+  // not on disk yet — a tree entry created but never written — is left alone.
+  ipcMain.handle("lazify:reveal-in-file-manager", async (_event, targetPath: string) => {
+    if (!targetPath || !fs.existsSync(targetPath)) {
+      return;
+    }
+
+    if (fs.statSync(targetPath).isDirectory()) {
+      await shell.openPath(targetPath);
+      return;
+    }
+
+    shell.showItemInFolder(targetPath);
+  });
+
   // The PTY pids let the reaper tell a script Lazify started apart from
   // Lazify's own processes, which it must never offer to kill.
   const managedRootPids = () => ptyRunner.getSessions().map((session) => session.pid);
@@ -625,7 +641,9 @@ app.whenReady().then(() => {
   cleanupShadowRepos();
   // Must be in place before any window — and so any `<webview>` — exists.
   // A popped-out link from the browser page comes back as a new tab.
-  guardPreviewWebviews((url) => emitToRenderer("lazify:browser-open-tab", { url }));
+  guardPreviewWebviews((url, background) =>
+    emitToRenderer("lazify:browser-open-tab", { url, background })
+  );
 
   // Restores the saved shield preference before the browser page loads anything.
   void initLazyShield((blocked) => emitToRenderer("lazify:lazy-shield-blocked", { blocked }));
@@ -638,7 +656,7 @@ app.whenReady().then(() => {
   );
 
   if (process.platform === "darwin") {
-    app.dock.setIcon(path.join(app.getAppPath(), "build/icon.png"));
+    app.dock?.setIcon(path.join(app.getAppPath(), "build/icon.png"));
   }
 
   registerIpcHandlers();
