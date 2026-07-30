@@ -12,8 +12,10 @@ import {
   EmptyPage,
   Expand,
   Folder,
+  FolderPlus,
   Globe,
   HalfMoon,
+  HardDrive,
   Html5,
   Import,
   JournalPage,
@@ -54,7 +56,9 @@ export type UiIconName =
   | "empty-page"
   | "expand"
   | "folder"
+  | "folder-plus"
   | "globe"
+  | "hard-drive"
   | "html"
   | "import"
   | "journal-page"
@@ -102,7 +106,9 @@ const iconMap: Record<UiIconName, ComponentType<SVGProps<SVGSVGElement>>> = {
   "empty-page": EmptyPage,
   expand: Expand,
   folder: Folder,
+  "folder-plus": FolderPlus,
   globe: Globe,
+  "hard-drive": HardDrive,
   html: Html5,
   import: Import,
   "journal-page": JournalPage,

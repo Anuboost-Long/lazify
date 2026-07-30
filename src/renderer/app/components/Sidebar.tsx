@@ -8,6 +8,7 @@ import { BodyText, CardTitle, Typography } from "@renderer/shared/typography";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import { SidebarMiniItem } from "./SidebarMiniItem";
 import { SidebarNavItem } from "./SidebarNavItem";
+import { Tooltip } from "@renderer/shared/ui/Tooltip";
 import clsx from "clsx";
 import { useTranslation } from "react-i18next";
 
@@ -17,7 +18,6 @@ interface SidebarProps {
   collapsed: boolean;
   theme: "light" | "dark";
   compactMode?: boolean;
-  showTooltips?: boolean;
   onStartWorkflow: () => void;
   onToggleSidebar: () => void;
   onNavigate: (path: string) => void;
@@ -33,7 +33,6 @@ export function Sidebar({
   collapsed,
   theme,
   compactMode = false,
-  showTooltips = true,
   onStartWorkflow,
   onToggleSidebar,
   onNavigate,
@@ -65,19 +64,20 @@ export function Sidebar({
             </div>
           ) : collapsed ? (
             /* Collapsed: Logo IS the expand button, matches nav item size */
-            <button
-              type="button"
-              onClick={onToggleSidebar}
-              className={clsx(
-                "flex w-full items-center justify-center",
-                "rounded-xl border border-transparent py-3",
-                "hover:border-border hover:bg-bg"
-              )}
-              aria-label={t(translation.Sidebar.Open)}
-              title={t(translation.Sidebar.Open)}
-            >
-              <Logo size={20} color={LOGO_COLOR} boltColor={LOGO_BOLT_COLOR} />
-            </button>
+            <Tooltip content={t(translation.Sidebar.Open)} side="right">
+              <button
+                type="button"
+                onClick={onToggleSidebar}
+                className={clsx(
+                  "flex w-full items-center justify-center",
+                  "rounded-xl border border-transparent py-3",
+                  "hover:border-border hover:bg-bg"
+                )}
+                aria-label={t(translation.Sidebar.Open)}
+              >
+                <Logo size={20} color={LOGO_COLOR} boltColor={LOGO_BOLT_COLOR} />
+              </button>
+            </Tooltip>
           ) : (
             /* Expanded: Logo + app name + collapse button */
             <>
@@ -106,7 +106,6 @@ export function Sidebar({
                   "hover:border-border hover:bg-bg hover:text-text"
                 )}
                 aria-label={t(translation.Sidebar.Collapse)}
-                title={t(translation.Sidebar.Collapse)}
               >
                 <UiIcon name="arrow-left" className="h-4 w-4" />
               </button>
@@ -115,29 +114,29 @@ export function Sidebar({
         </div>
 
         {/* ── New workflow button ─────────────────── */}
-        <button
-          type="button"
-          onClick={onStartWorkflow}
-          className={clsx(
-            "mb-4 flex items-center gap-3",
-            "rounded-xl border border-border bg-bg px-3 py-3",
-            "text-sm font-medium text-text hover:border-accent",
-            collapsed && "justify-center px-0"
-          )}
-          aria-label={t(translation.Sidebar.StartNewWorkflow)}
-          title={
-            showTooltips && collapsed
-              ? t(translation.Sidebar.StartNewWorkflow)
-              : undefined
-          }
+        <Tooltip
+          content={collapsed ? t(translation.Sidebar.StartNewWorkflow) : null}
+          side="right"
         >
-          <UiIcon name="play" className="h-4 w-4 shrink-0 text-accent" />
-          {!collapsed && (
-            <Typography as="span" variant="body" className="text-inherit">
-              {t(translation.Sidebar.NewWorkflow)}
-            </Typography>
-          )}
-        </button>
+          <button
+            type="button"
+            onClick={onStartWorkflow}
+            className={clsx(
+              "mb-4 flex items-center gap-3",
+              "rounded-xl border border-border bg-bg px-3 py-3",
+              "text-sm font-medium text-text hover:border-accent",
+              collapsed && "justify-center px-0"
+            )}
+            aria-label={t(translation.Sidebar.StartNewWorkflow)}
+          >
+            <UiIcon name="play" className="h-4 w-4 shrink-0 text-accent" />
+            {!collapsed && (
+              <Typography as="span" variant="body" className="text-inherit">
+                {t(translation.Sidebar.NewWorkflow)}
+              </Typography>
+            )}
+          </button>
+        </Tooltip>
 
         {/* ── Nav ────────────────────────────────── */}
         <nav className="flex flex-1 flex-col gap-1">
@@ -150,7 +149,6 @@ export function Sidebar({
                 icon={page.icon}
                 label={t(page.label)}
                 isActive={isActive}
-                showTooltip={showTooltips}
                 onClick={() => onNavigate(page.path)}
               />
             ) : (
@@ -168,38 +166,38 @@ export function Sidebar({
 
         {/* ── Theme toggle ───────────────────────── */}
         <div className="border-t border-border pt-3">
-          <button
-            type="button"
-            onClick={onToggleTheme}
-            className={clsx(
-              "flex w-full items-center gap-3 rounded-xl px-3 py-3",
-              "text-sm text-muted hover:bg-bg/70 hover:text-text",
-              collapsed && "justify-center px-0"
-            )}
-            aria-label={t(translation.Sidebar.ToggleTheme)}
-            title={
-              showTooltips && collapsed
-                ? `${t(translation.Sidebar.Theme)}: ${theme}`
-                : undefined
-            }
+          <Tooltip
+            content={collapsed ? `${t(translation.Sidebar.Theme)}: ${theme}` : null}
+            side="right"
           >
+            <button
+              type="button"
+              onClick={onToggleTheme}
+              className={clsx(
+                "flex w-full items-center gap-3 rounded-xl px-3 py-3",
+                "text-sm text-muted hover:bg-bg/70 hover:text-text",
+                collapsed && "justify-center px-0"
+              )}
+              aria-label={t(translation.Sidebar.ToggleTheme)}
+            >
             <UiIcon
               name={theme === "dark" ? "sun" : "moon"}
               className="h-5 w-5 shrink-0 text-muted"
             />
-            {!collapsed && (
-              <div className="min-w-0">
-                <Typography variant="body" className="font-medium text-text">
-                  {t(translation.Sidebar.Theme)}
-                </Typography>
-                <BodyText className="text-xs capitalize text-muted">
-                  {theme === "dark"
-                    ? t(translation.Settings.Dark)
-                    : t(translation.Settings.Light)}
-                </BodyText>
-              </div>
-            )}
-          </button>
+              {!collapsed && (
+                <div className="min-w-0">
+                  <Typography variant="body" className="font-medium text-text">
+                    {t(translation.Sidebar.Theme)}
+                  </Typography>
+                  <BodyText className="text-xs capitalize text-muted">
+                    {theme === "dark"
+                      ? t(translation.Settings.Dark)
+                      : t(translation.Settings.Light)}
+                  </BodyText>
+                </div>
+              )}
+            </button>
+          </Tooltip>
         </div>
       </div>
     </aside>

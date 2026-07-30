@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 
 import { translation } from "@renderer/i18n/translation";
 import { MonoText, SmallText } from "@renderer/shared/typography";
+import { Tooltip } from "@renderer/shared/ui/Tooltip";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 
 interface RunScriptPickerProps {
@@ -97,25 +98,26 @@ export function RunScriptPicker({
         </SmallText>
       </button>
 
-      <button
-        ref={toggleRef}
-        type="button"
-        onClick={() => (open ? setOpen(false) : openMenu())}
-        title={t(translation.Agents.RunChoose)}
-        aria-label={t(translation.Agents.RunChoose)}
-        className={clsx(
-          "flex shrink-0 items-center rounded-r-lg py-1.5 pl-1 pr-2 text-text transition-colors",
-          "hover:bg-text/[0.06]"
-        )}
-      >
-        <UiIcon
-          name="collapse"
+      <Tooltip content={t(translation.Agents.RunChoose)} side="top">
+        <button
+          ref={toggleRef}
+          type="button"
+          onClick={() => (open ? setOpen(false) : openMenu())}
+          aria-label={t(translation.Agents.RunChoose)}
           className={clsx(
-            "h-3 w-3 text-muted transition-transform",
-            open && "rotate-180"
+            "flex shrink-0 items-center rounded-r-lg py-1.5 pl-1 pr-2 text-text transition-colors",
+            "hover:bg-text/[0.06]"
           )}
-        />
-      </button>
+        >
+          <UiIcon
+            name="collapse"
+            className={clsx(
+              "h-3 w-3 text-muted transition-transform",
+              open && "rotate-180"
+            )}
+          />
+        </button>
+      </Tooltip>
 
       {open && anchor
         ? createPortal(

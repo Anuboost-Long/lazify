@@ -1,4 +1,5 @@
 import clsx from "clsx";
+import { Tooltip } from "@renderer/shared/ui/Tooltip";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import type { SidebarView } from "./types";
 
@@ -29,26 +30,26 @@ export function WorkbenchToolRail({
         const selected = view.id === activeId;
 
         return (
-          <button
-            key={view.id}
-            type="button"
-            onClick={() => onChange(selected ? null : view.id)}
-            title={view.label}
-            aria-label={view.label}
-            aria-pressed={selected}
-            className={clsx(
-              "relative flex h-8 w-8 items-center justify-center rounded-md transition-colors",
-              selected
-                ? "bg-accent/10 text-accent"
-                : "text-muted hover:bg-accent/[0.06] hover:text-text"
-            )}
-          >
-            {/* Accent rule on the outer edge marks the open panel. */}
-            {selected ? (
-              <span aria-hidden className="absolute inset-y-1 -right-2 w-0.5 rounded-full bg-accent" />
-            ) : null}
-            <UiIcon name={view.icon} className="h-4 w-4" />
-          </button>
+          <Tooltip key={view.id} content={view.label} side="left">
+            <button
+              type="button"
+              onClick={() => onChange(selected ? null : view.id)}
+              aria-label={view.label}
+              aria-pressed={selected}
+              className={clsx(
+                "relative flex h-8 w-8 items-center justify-center rounded-md transition-colors",
+                selected
+                  ? "bg-accent/10 text-accent"
+                  : "text-muted hover:bg-accent/[0.06] hover:text-text"
+              )}
+            >
+              {/* Accent rule on the outer edge marks the open panel. */}
+              {selected ? (
+                <span aria-hidden className="absolute inset-y-1 -right-2 w-0.5 rounded-full bg-accent" />
+              ) : null}
+              <UiIcon name={view.icon} className="h-4 w-4" />
+            </button>
+          </Tooltip>
         );
       })}
     </div>

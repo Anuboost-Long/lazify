@@ -1,5 +1,6 @@
 import type { DotnetDetectionResult } from "./dotnet-detector";
 import type { PackageJsonContent } from "./package-json-reader";
+import type { SwiftDetectionResult } from "./swift-detector";
 import type { PackageManager, StackDetectionResult } from "./types";
 
 export function runScriptCommand(packageManager: PackageManager, script: string): string {
@@ -78,6 +79,45 @@ export function buildDotnetCommands(dotnet: DotnetDetectionResult): StackDetecti
   };
 
   return commands;
+}
+
+/**
+ * Swift commands come from the project layout, not a script list — like .NET,
+ * the verbs are fixed and only the target changes.
+ *
+ * Two shapes, and they do not overlap: a Swift Package is driven entirely by
+ * `swift`, while an app is driven by `xcodebuild` against a scheme. Where
+ * CocoaPods is in play the workspace must be used, never the project, or the
+ * build cannot see the pods.
+ */
+export function buildSwiftCommands(swift: SwiftDetectionResult): StackDetectionResult["commands"] {
+  const target = swift.xcodeWorkspace ?? swift.xcodeProject;
+
+  if (target) {
+    const flag = swift.xcodeWorkspace ? "-workspace" : "-project";
+    const scheme = swift.scheme ? ` -scheme "${swift.scheme}"` : "";
+    const against = `xcodebuild ${flag} "${target}"${scheme}`;
+
+    return {
+      // Pods first when there are any: the workspace does not build without them.
+      install: swift.podfile
+        ? "pod install"
+        : `xcodebuild ${flag} "${target}" -resolvePackageDependencies`,
+      build: `${against} build`,
+      test: `${against} test`,
+      // An app is run from Xcode — it needs a simulator or a device, which is a
+      // choice this cannot make on the user's behalf.
+      start: `open "${target}"`,
+    };
+  }
+
+  return {
+    install: "swift package resolve",
+    build: "swift build",
+    dev: "swift run",
+    start: "swift run",
+    test: "swift test",
+  };
 }
 
 export function buildCommands(input: {

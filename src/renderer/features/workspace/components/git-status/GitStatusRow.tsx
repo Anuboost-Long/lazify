@@ -2,6 +2,7 @@ import clsx from "clsx";
 
 import { translation } from "@renderer/i18n/translation";
 import { MonoText } from "@renderer/shared/typography";
+import { Tooltip } from "@renderer/shared/ui/Tooltip";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import { getFileVisual, ROW_HEIGHT } from "@renderer/shared/ui/project-tree-optimized/tree-utils-editable";
 import type { GitStatusEntry } from "@renderer/shared/types/lazify";
@@ -52,27 +53,28 @@ export function GitStatusRow({
         selected ? "bg-accent/15 text-text" : "text-text/80 hover:bg-accent/[0.06] hover:text-text"
       )}
     >
-      <button
-        type="button"
-        onClick={() => onSelect(entry)}
-        title={entry.path}
-        style={{ paddingLeft: `${12 + depth * 18}px` }}
-        className="flex h-full min-w-0 flex-1 items-center gap-2 text-left"
-      >
-        <UiIcon name={visual.icon} className={clsx("h-4 w-4 shrink-0", visual.color)} />
+      <Tooltip content={entry.path} side="top">
+        <button
+          type="button"
+          onClick={() => onSelect(entry)}
+          style={{ paddingLeft: `${12 + depth * 18}px` }}
+          className="flex h-full min-w-0 flex-1 items-center gap-2 text-left"
+        >
+          <UiIcon name={visual.icon} className={clsx("h-4 w-4 shrink-0", visual.color)} />
 
-        <MonoText as="span" className="min-w-0 shrink truncate text-sm">
-          {name}
-        </MonoText>
-
-        {directory ? (
-          <MonoText as="span" className="min-w-0 flex-1 truncate text-[11px] text-muted/70">
-            {directory}
+          <MonoText as="span" className="min-w-0 shrink truncate text-sm">
+            {name}
           </MonoText>
-        ) : (
-          <span className="flex-1" />
-        )}
-      </button>
+
+          {directory ? (
+            <MonoText as="span" className="min-w-0 flex-1 truncate text-[11px] text-muted/70">
+              {directory}
+            </MonoText>
+          ) : (
+            <span className="flex-1" />
+          )}
+        </button>
+      </Tooltip>
 
       {/* Hover actions, in VS Code's order: discard, then stage/unstage. */}
       <div className="flex shrink-0 items-center gap-0.5 opacity-0 transition-opacity group-hover/row:opacity-100 focus-within:opacity-100 [@media(hover:none)]:opacity-100">

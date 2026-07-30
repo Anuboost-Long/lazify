@@ -2,6 +2,7 @@ import clsx from "clsx";
 import { useTranslation } from "react-i18next";
 
 import { translation } from "@renderer/i18n/translation";
+import { Tooltip } from "@renderer/shared/ui/Tooltip";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import type { UiIconName } from "@renderer/shared/ui/icons/UiIcon";
 import type { AgentRailTab } from "./AgentTabBar";
@@ -31,6 +32,9 @@ interface AgentToolRailProps {
   changeCount: number;
   /** Alerts recorded since the activity feed was last looked at. */
   activityUnread: number;
+  /** Opens Finder and types whatever is picked into the running agent. Null
+      while no agent is on screen to receive it, which hides the button. */
+  onPickPath: (() => void) | null;
 }
 
 interface RailButtonProps {
@@ -44,40 +48,46 @@ interface RailButtonProps {
   badge?: number;
 }
 
+/**
+ * The rail is icons only, so the tooltip is the entire label. It opens to the
+ * left because the rail is pinned to the window's right edge — a bubble on the
+ * usual side would be off screen.
+ */
 function RailButton({ icon, label, selected, onClick, live, badge }: Readonly<RailButtonProps>) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      title={label}
-      aria-label={label}
-      aria-pressed={selected}
-      className={clsx(
-        "relative flex h-8 w-8 shrink-0 items-center justify-center rounded-md transition-colors",
-        selected
-          ? "bg-accent/10 text-accent"
-          : "text-muted hover:bg-accent/[0.06] hover:text-text"
-      )}
-    >
-      {/* Accent rule on the outer edge marks the open panel. */}
-      {selected ? (
-        <span aria-hidden className="absolute inset-y-1 -right-2 w-0.5 rounded-full bg-accent" />
-      ) : null}
+    <Tooltip content={label} side="left">
+      <button
+        type="button"
+        onClick={onClick}
+        aria-label={label}
+        aria-pressed={selected}
+        className={clsx(
+          "relative flex h-8 w-8 shrink-0 items-center justify-center rounded-md transition-colors",
+          selected
+            ? "bg-accent/10 text-accent"
+            : "text-muted hover:bg-accent/[0.06] hover:text-text"
+        )}
+      >
+        {/* Accent rule on the outer edge marks the open panel. */}
+        {selected ? (
+          <span aria-hidden className="absolute inset-y-1 -right-2 w-0.5 rounded-full bg-accent" />
+        ) : null}
 
-      <UiIcon name={icon} className={clsx("h-4 w-4", live && !selected && "text-accent")} />
+        <UiIcon name={icon} className={clsx("h-4 w-4", live && !selected && "text-accent")} />
 
-      {/* The count the label used to carry, now that there is no room for one. */}
-      {badge && badge > 0 ? (
-        <span
-          className={clsx(
-            "absolute -right-0.5 -top-0.5 flex h-3.5 min-w-3.5 items-center justify-center",
-            "rounded-full bg-accent px-1 text-[9px] font-semibold leading-none text-bg"
-          )}
-        >
-          {badge > 99 ? "99+" : badge}
-        </span>
-      ) : null}
-    </button>
+        {/* The count the label used to carry, now that there is no room for one. */}
+        {badge && badge > 0 ? (
+          <span
+            className={clsx(
+              "absolute -right-0.5 -top-0.5 flex h-3.5 min-w-3.5 items-center justify-center",
+              "rounded-full bg-accent px-1 text-[9px] font-semibold leading-none text-bg"
+            )}
+          >
+            {badge > 99 ? "99+" : badge}
+          </span>
+        ) : null}
+      </button>
+    </Tooltip>
   );
 }
 
@@ -90,6 +100,7 @@ export function AgentToolRail({
   onSelectPreview,
   changeCount,
   activityUnread,
+  onPickPath,
 }: Readonly<AgentToolRailProps>) {
   const { t } = useTranslation();
 
@@ -135,6 +146,17 @@ export function AgentToolRail({
         selected={railTab === "files"}
         onClick={() => onToggleRail("files")}
       />
+
+      {/* Not a panel either: it opens Finder and hands the pick to the agent,
+          so there is nothing to leave selected afterwards. */}
+      {onPickPath ? (
+        <RailButton
+          icon="folder-plus"
+          label={t(translation.Agents.PathToAgent)}
+          selected={false}
+          onClick={onPickPath}
+        />
+      ) : null}
 
       <RailButton
         icon="bell"

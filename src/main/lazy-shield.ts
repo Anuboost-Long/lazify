@@ -2,6 +2,7 @@ import { app, ipcMain, session } from "electron";
 import fs from "node:fs";
 import path from "node:path";
 
+import { Request } from "@ghostery/adblocker";
 import { ElectronBlocker } from "@ghostery/adblocker-electron";
 import { BROWSER_PARTITION } from "./preview-guard";
 
@@ -93,6 +94,37 @@ async function loadBlocker(): Promise<ElectronBlocker> {
   });
 
   return blocker;
+}
+
+/**
+ * Whether a popup should be refused rather than turned into a tab.
+ *
+ * Popups never reach the request filter. `setWindowOpenHandler` decides before
+ * any request exists, and the engine allows every main frame on purpose — it
+ * must never cancel the page the user asked for. Both are right on their own,
+ * and together they leave a hole: a popup promoted to a tab arrives as a main
+ * frame, which the filter then waves through. An ad that could not load in an
+ * iframe loads perfectly well in a tab it was handed.
+ *
+ * So the engine is asked directly here, against the same lists, before the
+ * popup is given anywhere to go. A blocked one counts towards the shield's
+ * tally like any other — it is the same rule doing the same job.
+ */
+export function shouldBlockPopup(url: string, sourceUrl: string): boolean {
+  if (!enabled || !blocker || !url) return false;
+
+  // Typed as a document: a popup is a page load, and `$popup` and `$document`
+  // rules are written against exactly that.
+  const { match } = blocker.match(
+    Request.fromRawDetails({ type: "document", url, sourceUrl })
+  );
+
+  if (match) {
+    blockedCount += 1;
+    notifyCount?.(blockedCount);
+  }
+
+  return match;
 }
 
 export interface LazyShieldState {

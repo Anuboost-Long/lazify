@@ -6,6 +6,7 @@ import { SmallText } from "@renderer/shared/typography";
 import { CodeSurface } from "@renderer/shared/ui/code/CodeSurface";
 import { EditorEmptyState } from "@renderer/shared/ui/code/EditorEmptyState";
 import { DiffView, type DiffViewMode } from "@renderer/shared/ui/code/diff/DiffView";
+import { Tooltip } from "@renderer/shared/ui/Tooltip";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import { ConfirmModal } from "@renderer/shared/ui/modal/ConfirmModal";
 import type { EditorTab } from "@renderer/shared/ui/code/EditorTabBar";
@@ -156,18 +157,19 @@ export function OptimizedEditorPane({
 
           {/* Only worth offering once something is open. */}
           {onCloseAll && tabs ? (
-            <button
-              type="button"
-              onClick={() => setConfirmCloseAll(true)}
-              title={t(translation.ProjectTree.CloseAllTabs)}
-              aria-label={t(translation.ProjectTree.CloseAllTabs)}
-              className={clsx(
-                "flex h-6 w-6 shrink-0 items-center justify-center rounded-md",
-                "text-muted transition-colors hover:bg-error/10 hover:text-error"
-              )}
-            >
-              <UiIcon name="xmark" className="h-3.5 w-3.5" />
-            </button>
+            <Tooltip content={t(translation.ProjectTree.CloseAllTabs)} side="bottom">
+              <button
+                type="button"
+                onClick={() => setConfirmCloseAll(true)}
+                aria-label={t(translation.ProjectTree.CloseAllTabs)}
+                className={clsx(
+                  "flex h-6 w-6 shrink-0 items-center justify-center rounded-md",
+                  "text-muted transition-colors hover:bg-error/10 hover:text-error"
+                )}
+              >
+                <UiIcon name="xmark" className="h-3.5 w-3.5" />
+              </button>
+            </Tooltip>
           ) : null}
         </>
       }

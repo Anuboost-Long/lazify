@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { translation } from "@renderer/i18n/translation";
 import type { PtySession } from "@renderer/shared/types/lazify";
 import { CaptionText, SmallText } from "@renderer/shared/typography";
+import { Tooltip } from "@renderer/shared/ui/Tooltip";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 
 /**
@@ -68,24 +69,25 @@ export function SendToAgentButton({ url, title }: Readonly<SendToAgentButtonProp
 
   return (
     <div ref={rootRef} className="relative shrink-0">
-      <button
-        type="button"
-        disabled={disabled}
-        onClick={() => setOpen((current) => !current)}
-        title={t(translation.Browser.SendToAgent)}
-        aria-label={t(translation.Browser.SendToAgent)}
-        aria-expanded={open}
-        className={clsx(
-          "flex h-7 w-7 shrink-0 items-center justify-center rounded-lg",
-          disabled
-            ? "cursor-not-allowed text-muted opacity-40"
-            : "text-text hover:bg-text/[0.06]",
-          open && "bg-text/[0.08]",
-          sentTo && "text-accent"
-        )}
-      >
-        <UiIcon name={sentTo ? "check-circle" : "chat-question"} className="h-3.5 w-3.5" />
-      </button>
+      <Tooltip content={t(translation.Browser.SendToAgent)} side="bottom">
+        <button
+          type="button"
+          disabled={disabled}
+          onClick={() => setOpen((current) => !current)}
+          aria-label={t(translation.Browser.SendToAgent)}
+          aria-expanded={open}
+          className={clsx(
+            "flex h-7 w-7 shrink-0 items-center justify-center rounded-lg",
+            disabled
+              ? "cursor-not-allowed text-muted opacity-40"
+              : "text-text hover:bg-text/[0.06]",
+            open && "bg-text/[0.08]",
+            sentTo && "text-accent"
+          )}
+        >
+          <UiIcon name={sentTo ? "check-circle" : "chat-question"} className="h-3.5 w-3.5" />
+        </button>
+      </Tooltip>
 
       {open ? (
         <div

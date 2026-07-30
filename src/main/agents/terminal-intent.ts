@@ -109,7 +109,9 @@ interface Signal {
  */
 const QUESTION_SIGNALS: Signal[] = [
   // A caret sitting on a numbered option — a menu waiting to be chosen from.
-  { name: "caret-on-option", pattern: /(?:^|\n)\s*[>❯▶→]\s*\d+[.)]\s+\S/, weight: 3, blocking: true },
+  // The caret is whatever glyph the agent picked for it: Claude Code draws ❯,
+  // Codex draws ›, and a plain > is common enough to keep.
+  { name: "caret-on-option", pattern: /(?:^|\n)\s*[>❯▶→›»▸]\s*\d+[.)]\s+\S/, weight: 3, blocking: true },
   { name: "do-you-want-to", pattern: /\bDo you want to\b/i, weight: 3, blocking: true },
   { name: "yes-no-bracket", pattern: /\??\s*[[(](?:y\/n|yes\/no|Y\/n|y\/N)[\])]/i, weight: 3, blocking: true },
   { name: "waiting-for-you", pattern: /\bwaiting for (?:your|user|a) (?:input|response|reply|answer|approval|confirmation)\b/i, weight: 3, blocking: true },
@@ -175,12 +177,38 @@ const WORKING_SIGNALS: Signal[] = [
 
 /** Strips CSI/OSC escape sequences so signals match the visible text. */
 export function stripAnsi(value: string): string {
+  // Row the last absolute jump landed on, so a jump to a *different* row can
+  // stand in for the newline a full-screen TUI never sends.
+  let row: number | null = null;
+
   return (
     value
       // OSC: ESC ] ... terminated by BEL or ESC backslash
       .replace(/\u001b\][\s\S]*?(?:\u0007|\u001b\\)/g, "")
-      // CSI and other escape sequences
-      .replace(/\u001b[[\]()#;?]*[0-9;]*[A-Za-z]/g, "")
+      // Absolute cursor jumps are how a full-screen TUI moves between rows.
+      // Codex repaints by position and sends almost no newlines, so dropping
+      // these welded its whole screen onto one line and every signal anchored
+      // to a line start or end below stopped matching. A jump to a new row is
+      // the line break it stands for; a jump within the same row is not.
+      .replace(/\u001b\[(\d*)(?:;\d*)?H/g, (_match, target: string) => {
+        const next = target ? Number(target) : 1;
+        const wrapped = row !== null && next !== row;
+
+        row = next;
+
+        return wrapped ? "\n" : "";
+      })
+      // Horizontal cursor moves ARE the spacing. A TUI lays a row out by jumping
+      // the cursor to each column rather than padding with spaces, so a repaint
+      // arrives as "Do<CHA>you<CHA>want<CHA>to" — deleting the escapes welds it
+      // into "Doyouwantto" and every multi-word signal above stops matching.
+      // One space per jump restores the word boundaries; the column itself is
+      // irrelevant to the patterns, only the gap is.
+      .replace(/\u001b\[[0-9;]*[GC`a]/g, " ")
+      // CSI and other escape sequences. The intermediate-byte class is what
+      // lets a cursor-style set (ESC[0 q — note the space before its final
+      // byte) be stripped instead of leaking into the text as "[0 q".
+      .replace(/\u001b[[\]()#;?]*[0-9;]*[ -/]*[A-Za-z]/g, "")
       // Leftover control characters, keeping tab, newline and carriage return
       .replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g, "")
   );
@@ -191,18 +219,25 @@ export function stripAnsi(value: string): string {
  * line breaks so a redraw does not weld two rows into one, and trailing blanks
  * dropped so the live region is measured from real content.
  */
-function normalizeScreen(value: string): string {
+export function normalizeScreen(value: string): string {
   return stripAnsi(value).replace(/\r\n?/g, "\n").replace(/\s+$/, "");
 }
 
 /** Character offset where the live region — the last few lines — begins. */
 function liveRegionStart(text: string): number {
   let index = text.length;
+  let counted = 0;
 
-  for (let line = 0; line < LIVE_REGION_LINES; line += 1) {
+  while (counted < LIVE_REGION_LINES) {
     const previous = text.lastIndexOf("\n", index - 1);
 
     if (previous <= 0) return 0;
+
+    // Blank rows do not count against the budget. A TUI that repaints by cursor
+    // position emits a row break per redraw, so an idling spinner alone can lay
+    // down a dozen empty lines and push the box the user is looking at out of
+    // the live region.
+    if (text.slice(previous + 1, index).trim()) counted += 1;
 
     index = previous;
   }

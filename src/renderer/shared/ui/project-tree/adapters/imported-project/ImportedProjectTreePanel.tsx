@@ -1,5 +1,6 @@
 import { translation } from "@renderer/i18n/translation";
 import { BodyText } from "@renderer/shared/typography";
+import { Tooltip } from "@renderer/shared/ui/Tooltip";
 import { SelectInput, TextInput } from "@renderer/shared/ui/form/FormInput";
 import { ProjectTreeEditorPanel as ProjectTreeEditorPanelShell } from "@renderer/shared/ui/project-tree/core/ProjectTreeEditorPanel";
 import { TreeContextMenu } from "@renderer/shared/ui/project-tree/TreeContextMenu";
@@ -98,15 +99,16 @@ export function ImportedProjectTreePanel({
             icon="package"
             className="w-full max-w-[22rem] min-w-0"
           />
-          <button
-            type="button"
-            disabled={adapter.saveBusy || adapter.includedFilePaths.size === 0 || !adapter.confirmedStack}
-            onClick={() => void adapter.handleSaveTemplate()}
-            className="inline-flex items-center justify-center rounded-[16px] border border-transparent bg-accent px-4 py-2.5 text-sm font-semibold text-white hover:bg-accentHover disabled:cursor-not-allowed disabled:opacity-60"
-            title={saveDisabledReason ?? undefined}
-          >
-            {adapter.saveBusy ? t(translation.ProjectTree.SavingTemplate) : t(translation.ProjectTree.SaveAsTemplate)}
-          </button>
+          <Tooltip content={saveDisabledReason ?? undefined} side="top">
+            <button
+              type="button"
+              disabled={adapter.saveBusy || adapter.includedFilePaths.size === 0 || !adapter.confirmedStack}
+              onClick={() => void adapter.handleSaveTemplate()}
+              className="inline-flex items-center justify-center rounded-[16px] border border-transparent bg-accent px-4 py-2.5 text-sm font-semibold text-white hover:bg-accentHover disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {adapter.saveBusy ? t(translation.ProjectTree.SavingTemplate) : t(translation.ProjectTree.SaveAsTemplate)}
+            </button>
+          </Tooltip>
           {saveDisabledReason ? (
             <BodyText className="max-w-[22rem] text-xs text-amber-800">
               {saveDisabledReason}

@@ -33,6 +33,8 @@ declare global {
 
   interface Window {
     lazify: {
+      /** The host OS, for features that only exist on one of them. */
+      platform: string;
       runCommand: (command: string, args: string[], cwd?: string) => Promise<CommandResult>;
       createProject: (payload: CreateProjectPayload) => Promise<WorkflowResult>;
       installPackage: (payload: InstallPackagePayload) => Promise<WorkflowResult>;
@@ -59,6 +61,8 @@ declare global {
       getTemplatePackageManifest: (templateId: string) => Promise<TemplatePackageEntry[]>;
       searchNpmPackages: (query: string) => Promise<NpmPackageSearchResult[]>;
       selectDirectory: () => Promise<string | null>;
+      /** Finder picker for files and folders; empty when the user cancels. */
+      selectPaths: (defaultPath?: string | null) => Promise<string[]>;
       importProjectFromDirectory: (projectPath: string) => Promise<ImportedProjectScanResult>;
       importProjectIndexFromDirectory: (projectPath: string) => Promise<ImportedProjectIndexResult>;
       readImportedProjectFile: (filePath: string) => Promise<string>;
@@ -86,8 +90,31 @@ declare global {
           projectName: string;
           agentLabel: string;
           waiting: boolean;
+          /** Why autopilot left this prompt to the user, when it looked at it. */
+          hold: import("../main/agents/autopilot-policy").AutopilotHold | null;
         }) => void
       ) => () => void;
+      /** A prompt autopilot answered by itself — recorded, never announced. */
+      onAutopilotAnswered: (
+        callback: (event: {
+          runId: string;
+          projectPath: string;
+          projectName: string;
+          agentLabel: string;
+          question: string;
+          optionLabel: string;
+        }) => void
+      ) => () => void;
+      autopilotSettings: () => Promise<
+        import("../main/agents/autopilot-store").AutopilotSettings
+      >;
+      setAutopilot: (
+        enabled: boolean
+      ) => Promise<import("../main/agents/autopilot-store").AutopilotSettings>;
+      setAutopilotProject: (
+        projectPath: string,
+        enabled: boolean
+      ) => Promise<import("../main/agents/autopilot-store").AutopilotSettings>;
       onAgentDone: (
         callback: (event: {
           runId: string;
@@ -147,6 +174,23 @@ declare global {
       pushBranch: (
         projectPath: string,
       ) => Promise<import("../main/git-actions").GitActionResult>;
+      /** Where a dropped file lives on disk; empty when it has no path. */
+      pathForDroppedFile: (file: File) => string;
+      /** DMG compiler: pick an app, pick where the image goes, build it. */
+      selectAppBundle: () => Promise<string | null>;
+      selectDmgDestination: (suggestedPath: string) => Promise<string | null>;
+      inspectAppBundle: (
+        appPath: string
+      ) => Promise<import("../main/dmg-compiler").AppBundleInfo>;
+      defaultDmgPath: (appPath: string, suggestedFileName: string) => Promise<string>;
+      compileDmg: (
+        appPath: string,
+        outputPath: string,
+        volumeName?: string | null
+      ) => Promise<import("../main/dmg-compiler").DmgResult>;
+      onDmgProgress: (
+        callback: (progress: import("../main/dmg-compiler").DmgProgress) => void
+      ) => () => void;
       listHighlightingAssets: () => Promise<import("../main/highlighting-store").HighlightingAssets>;
       openHighlightingFolder: () => Promise<void>;
       /** Opens a folder, or reveals a file selected inside its folder, in the OS file manager. */

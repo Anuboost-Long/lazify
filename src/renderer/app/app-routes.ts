@@ -10,6 +10,7 @@ export const appRoute = {
   templates: "/templates",
   settings: "/settings",
   environment: "/environment",
+  dmgCompiler: "/dmg-compiler",
   legal: "/legal/:doc",
 } as const;
 

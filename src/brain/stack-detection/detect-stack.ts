@@ -1,5 +1,6 @@
-import { buildCommands, buildDotnetCommands } from "./command-builder";
+import { buildCommands, buildDotnetCommands, buildSwiftCommands } from "./command-builder";
 import { detectDotnetProject, type DotnetDetectionResult } from "./dotnet-detector";
+import { detectSwiftProject, type SwiftDetectionResult } from "./swift-detector";
 import { createRootFileDetector } from "./file-detector";
 import { readPackageJson } from "./package-json-reader";
 import { detectPackageManager } from "./package-manager-detector";
@@ -27,7 +28,8 @@ function claimsRoot(dotnet: DotnetDetectionResult, packageJson: PackageJsonConte
 function detectCandidates(
   projectRootDetector: Awaited<ReturnType<typeof createRootFileDetector>>,
   packageJson: PackageJsonContent | null,
-  dotnet: DotnetDetectionResult
+  dotnet: DotnetDetectionResult,
+  swift: SwiftDetectionResult
 ) {
   const candidates: Array<{ stack: ProjectStack; confidence: number; reasons: string[] }> = [];
 
@@ -40,6 +42,15 @@ function detectCandidates(
   if (claimsRoot(dotnet, packageJson)) {
     push("dotnet", dotnet.solutionFile ? 0.95 : 0.9, dotnet.reasons);
   }
+
+  // The detector only reports markers it found at the root, so reaching here at
+  // all means Swift owns the top of the repository — a React Native app's
+  // `ios/` project never gets this far.
+  push(
+    swift.ui === "swiftui" ? "swift-ui" : "swift",
+    swift.ui !== null ? 0.95 : swift.packageFile ? 0.9 : 0.8,
+    swift.reasons
+  );
 
   const electronReasons: string[] = [];
   if (hasDependency(packageJson, "electron")) electronReasons.push("electron dependency found");
@@ -128,24 +139,30 @@ function stackPriority(stack: ProjectStack) {
   switch (stack) {
     case "dotnet":
       return 0;
-    case "electron":
+    // Swift ranks with .NET rather than below the JS stacks: both only ever
+    // reach here on a root marker, which is a stronger claim than a dependency.
+    case "swift-ui":
       return 1;
-    case "react-native-expo":
+    case "swift":
       return 2;
-    case "react-native-cli":
+    case "electron":
       return 3;
-    case "react-next":
+    case "react-native-expo":
       return 4;
-    case "react-vite":
+    case "react-native-cli":
       return 5;
-    case "react-cra":
+    case "react-next":
       return 6;
-    case "node-api":
+    case "react-vite":
       return 7;
-    case "react-unknown":
+    case "react-cra":
       return 8;
-    default:
+    case "node-api":
       return 9;
+    case "react-unknown":
+      return 10;
+    default:
+      return 11;
   }
 }
 
@@ -166,6 +183,7 @@ export async function detectProjectStack(projectRoot: string): Promise<StackDete
   const rootDetector = await createRootFileDetector(projectRoot);
   const packageJsonResult = await readPackageJson(projectRoot);
   const dotnet = await detectDotnetProject(projectRoot);
+  const swift = await detectSwiftProject(projectRoot);
   const packageManagerResult = detectPackageManager(rootDetector.hasFile);
   const isDotnetOnly = claimsRoot(dotnet, packageJsonResult.packageJson) && !packageJsonResult.packageJson;
 
@@ -174,7 +192,7 @@ export async function detectProjectStack(projectRoot: string): Promise<StackDete
     ...(isDotnetOnly ? [] : packageJsonResult.warnings),
     ...(isDotnetOnly ? [] : packageManagerResult.warnings),
   ];
-  const candidates = detectCandidates(rootDetector, packageJsonResult.packageJson, dotnet).sort(
+  const candidates = detectCandidates(rootDetector, packageJsonResult.packageJson, dotnet, swift).sort(
     (left, right) => stackPriority(left.stack) - stackPriority(right.stack)
   );
 
@@ -246,12 +264,24 @@ export async function detectProjectStack(projectRoot: string): Promise<StackDete
       result.metaFramework = dotnet.flavor;
       result.packageManager = "dotnet";
       break;
+    case "swift-ui":
+    case "swift":
+      result.framework = "swift";
+      // A package is described by its manifest; an app by the UI it is built
+      // against. Where neither is clear the stack still stands on its own.
+      result.metaFramework =
+        swift.ui ?? (swift.packageFile ? "swiftpm" : "unknown");
+      result.packageManager = swift.podfile ? "cocoapods" : "swiftpm";
+      break;
     default:
       break;
   }
 
-  result.commands =
-    result.stack === "dotnet"
+  const isSwift = result.stack === "swift-ui" || result.stack === "swift";
+
+  result.commands = isSwift
+    ? buildSwiftCommands(swift)
+    : result.stack === "dotnet"
       ? buildDotnetCommands(dotnet)
       : buildCommands({
           stack: result.stack,
@@ -261,6 +291,17 @@ export async function detectProjectStack(projectRoot: string): Promise<StackDete
 
   if (result.stack === "dotnet" && !dotnet.entryProjectFile) {
     warnings.push("Found a solution file but no project file to run.");
+  }
+
+  // The scheme is guessed from the project's own name, which is right for the
+  // conventional layout and wrong for a renamed or multi-scheme project — worth
+  // saying, because a wrong scheme fails the build rather than mis-labelling it.
+  if (isSwift && (swift.xcodeWorkspace || swift.xcodeProject)) {
+    warnings.push(`Assuming the "${swift.scheme}" scheme; adjust if the project defines others.`);
+  }
+
+  if (isSwift && swift.ui === null) {
+    warnings.push("Swift detected, but neither SwiftUI nor UIKit was found in the sources.");
   }
 
   if (result.stack === "react-native-expo" && !result.commands.start) {

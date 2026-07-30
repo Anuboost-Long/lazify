@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 
 import { translation } from "@renderer/i18n/translation";
 import { CardTitle } from "@renderer/shared/typography";
+import { Tooltip } from "@renderer/shared/ui/Tooltip";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import type { SidebarView } from "./types";
 
@@ -52,18 +53,19 @@ export function WorkbenchToolOverlay({
           <div className="flex shrink-0 items-center gap-1">{active.actions}</div>
         ) : null}
 
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label={t(translation.GlobalTerm.Close)}
-          title={t(translation.GlobalTerm.Close)}
-          className={clsx(
-            "flex h-7 w-7 shrink-0 items-center justify-center rounded-md",
-            "text-muted transition-colors hover:bg-text/10 hover:text-text"
-          )}
-        >
-          <UiIcon name="xmark" className="h-4 w-4" />
-        </button>
+        <Tooltip content={t(translation.GlobalTerm.Close)} side="bottom">
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label={t(translation.GlobalTerm.Close)}
+            className={clsx(
+              "flex h-7 w-7 shrink-0 items-center justify-center rounded-md",
+              "text-muted transition-colors hover:bg-text/10 hover:text-text"
+            )}
+          >
+            <UiIcon name="xmark" className="h-4 w-4" />
+          </button>
+        </Tooltip>
       </div>
 
       {/* No padding here — each pane owns its own, so they read as sections

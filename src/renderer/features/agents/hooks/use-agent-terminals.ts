@@ -449,6 +449,40 @@ export function useAgentTerminals(projectPath: string) {
     [activeTabId, projectPath, setActiveTab, setTerminals, terminals],
   );
 
+  /**
+   * Clears one project completely: every agent tab and its run console are
+   * stopped and dropped together. Named by project rather than working off the
+   * selected one, so a card in the rail can clear a project the user is not
+   * looking at. Failures to stop are ignored — a process that has already gone
+   * must not keep the rest of the tabs open.
+   */
+  const closeProjectTerminals = useCallback(
+    async (targetProjectPath: string) => {
+      const targets = terminalsRef.current.filter(
+        (terminal) => terminal.projectPath === targetProjectPath,
+      );
+      if (targets.length === 0) return;
+
+      await Promise.allSettled(
+        targets
+          .filter((terminal) => terminal.runId)
+          .map((terminal) => globalThis.lazify.stopScript(terminal.runId as string)),
+      );
+
+      setTerminals((current) =>
+        current.filter(
+          (terminal) => terminal.projectPath !== targetProjectPath,
+        ),
+      );
+      setActiveByProject((current) => ({ ...current, [targetProjectPath]: null }));
+
+      for (const terminal of targets) {
+        if (terminal.runId) forgetWaiting(terminal.runId);
+      }
+    },
+    [forgetWaiting, setActiveByProject, setTerminals],
+  );
+
   /** Drops the dragged tab onto the target's position, shifting the rest. */
   const reorderTerminal = useCallback(
     (fromTabId: string, toTabId: string) => {
@@ -512,6 +546,16 @@ export function useAgentTerminals(projectPath: string) {
     {},
   );
 
+  // Open tabs per project, exited ones included: the close-all button offers to
+  // clear those too, so it counts what it would actually close.
+  const tabCountByProject = terminals.reduce<Record<string, number>>(
+    (counts, terminal) => {
+      counts[terminal.projectPath] = (counts[terminal.projectPath] ?? 0) + 1;
+      return counts;
+    },
+    {},
+  );
+
   // Which agents are worth reading usage for. Tabs from every project count:
   // an agent's quota is per account, not per project. Sorted so the list is a
   // stable identity for callers that key off it.
@@ -527,6 +571,8 @@ export function useAgentTerminals(projectPath: string) {
     availableAgents,
     openAgentIds,
     runningCountByProject,
+    /** Project path -> number of tabs it has open, exited ones included. */
+    tabCountByProject,
     /** Project path -> number of its agents waiting on the user. */
     waitingByProject,
     waitingTabIds,
@@ -546,6 +592,8 @@ export function useAgentTerminals(projectPath: string) {
     restartProject,
     stopProject,
     closeTerminal,
+    /** Stops and drops every tab of one project, agents and run console alike. */
+    closeProjectTerminals,
     reorderTerminal,
     createAgent,
     deleteAgent,

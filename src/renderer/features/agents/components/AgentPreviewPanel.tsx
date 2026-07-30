@@ -6,6 +6,7 @@ import { translation } from "@renderer/i18n/translation";
 import { usePictureInPicture } from "@renderer/shared/hooks/use-picture-in-picture";
 import { toggleMediaPictureInPicture } from "@renderer/shared/lib/media-pip";
 import { MonoText, SmallText } from "@renderer/shared/typography";
+import { Tooltip } from "@renderer/shared/ui/Tooltip";
 import UiIcon, { type UiIconName } from "@renderer/shared/ui/icons/UiIcon";
 
 /** Cookies and storage stay out of the app's own session, and survive restarts. */
@@ -64,23 +65,24 @@ function Control({
   onClick
 }: Readonly<ControlProps>) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      title={label}
-      aria-label={label}
-      aria-pressed={active}
-      className={clsx(
-        "flex h-7 w-7 shrink-0 items-center justify-center rounded-lg transition-colors",
-        disabled
-          ? "cursor-not-allowed text-muted opacity-40"
-          : "text-text hover:bg-text/[0.06]",
-        active && !disabled && "bg-accent/15 !text-accent"
-      )}
-    >
-      <UiIcon name={icon} className="h-3.5 w-3.5" />
-    </button>
+    <Tooltip content={label} side="top">
+      <button
+        type="button"
+        onClick={onClick}
+        disabled={disabled}
+        aria-label={label}
+        aria-pressed={active}
+        className={clsx(
+          "flex h-7 w-7 shrink-0 items-center justify-center rounded-lg transition-colors",
+          disabled
+            ? "cursor-not-allowed text-muted opacity-40"
+            : "text-text hover:bg-text/[0.06]",
+          active && !disabled && "bg-accent/15 !text-accent"
+        )}
+      >
+        <UiIcon name={icon} className="h-3.5 w-3.5" />
+      </button>
+    </Tooltip>
   );
 }
 

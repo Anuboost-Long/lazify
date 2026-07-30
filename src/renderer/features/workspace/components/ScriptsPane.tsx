@@ -1,6 +1,7 @@
 import { translation } from "@renderer/i18n/translation";
 import type { ScriptStatusEvent } from "@renderer/shared/types/lazify";
 import { MonoText, PillText } from "@renderer/shared/typography";
+import { Tooltip } from "@renderer/shared/ui/Tooltip";
 import { IconButton } from "@renderer/shared/ui/IconButton";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import { LabelButton } from "@renderer/shared/ui/LabelButton";
@@ -612,19 +613,20 @@ export function ScriptsPane({ projectPath }: ScriptsPaneProps) {
             </div>
 
             {/* New tab button */}
-            <button
-              type="button"
-              onClick={handleAddTab}
-              title="New terminal tab"
-              className={clsx(
-                "mx-2 shrink-0 flex items-center gap-1 rounded-md border px-2 py-1 text-[10px] font-semibold transition-colors",
-                "border-border bg-text/[0.08] text-text",
-                "hover:border-accent/50 hover:bg-accent/15 hover:text-accent"
-              )}
-            >
-              <UiIcon name="plus" className="h-3 w-3" />
-              <span>New</span>
-            </button>
+            <Tooltip content="New terminal tab" side="top">
+              <button
+                type="button"
+                onClick={handleAddTab}
+                className={clsx(
+                  "mx-2 shrink-0 flex items-center gap-1 rounded-md border px-2 py-1 text-[10px] font-semibold transition-colors",
+                  "border-border bg-text/[0.08] text-text",
+                  "hover:border-accent/50 hover:bg-accent/15 hover:text-accent"
+                )}
+              >
+                <UiIcon name="plus" className="h-3 w-3" />
+                <span>New</span>
+              </button>
+            </Tooltip>
           </div>
 
           {/* ── Terminal bodies — all mounted, active tab visible ── */}

@@ -38,6 +38,14 @@ import { WorkflowEngine } from "./workflow-engine";
 import { getAgentDefinition, listAgents, resumeArgs } from "./agents/agent-registry";
 import { listAgentSessions } from "./agents/agent-sessions";
 import { AttentionDetector } from "./agents/attention-detector";
+import { Autopilot, type AutopilotAnswered } from "./agents/autopilot";
+import type { AutopilotHold } from "./agents/autopilot-policy";
+import {
+  getAutopilotSettings,
+  isAutopilotActive,
+  setAutopilotEnabled,
+  setAutopilotProject
+} from "./agents/autopilot-store";
 import { addCustomAgent, removeCustomAgent, type CustomAgentInput } from "./agents/custom-agents-store";
 import { getAgentUsage } from "./agents/agent-usage";
 import { watchAgentActivity } from "./agents/agent-activity-watcher";
@@ -51,10 +59,17 @@ import {
   openPictureInPicture,
   type PictureInPictureSource
 } from "./picture-in-picture";
+import {
+  compileDmg,
+  defaultOutputPath,
+  inspectAppBundle,
+  type AppBundleInfo,
+  type DmgResult
+} from "./dmg-compiler";
 import { guardPreviewWebviews, openExternalUrl } from "./preview-guard";
 import { findSymbolDefinition } from "./symbol-finder";
 import { killListeningProcess, listListeningProcesses } from "./port-reaper";
-import { getLazyShieldState, initLazyShield, setLazyShieldEnabled } from "./lazy-shield";
+import { getLazyShieldState, initLazyShield, setLazyShieldEnabled, shouldBlockPopup } from "./lazy-shield";
 import { matchPackageVersions } from "../brain/package-version-matcher";
 import { normalizeRuntimePath } from "./runtime-path";
 
@@ -82,8 +97,13 @@ const attentionDetector = new AttentionDetector((runId) => emitTurnDone(runId));
  *    user when Lazify is not focused, so they fire solely in that case. With
  *    the window focused the bell is already on screen, so a banner would be
  *    redundant noise.
+ *
+ * `hold` carries the reason autopilot left this one alone, when it looked at it.
+ * The alert is the same either way — the user is still needed — but "this is a
+ * force-push" and "this is asking which approach you want" are worth telling
+ * apart before walking over to the terminal.
  */
-const emitAttention = (runId: string, waiting: boolean) => {
+const emitAttention = (runId: string, waiting: boolean, hold: AutopilotHold | null = null) => {
   const session = ptyRunner.getSessions().find((entry) => entry.runId === runId);
   if (!session) return;
 
@@ -93,7 +113,8 @@ const emitAttention = (runId: string, waiting: boolean) => {
     projectPath: session.projectPath,
     projectName: session.projectName,
     agentLabel: session.scriptName,
-    waiting
+    waiting,
+    hold
   });
 
   // OS-level: only when the agent is waiting AND the user is looking elsewhere.
@@ -159,7 +180,19 @@ const ptyRunner = new PtyRunner(
     emitToRenderer("lazify:pty-data", event);
 
     const waiting = attentionDetector.push(event.runId, event.data);
-    if (waiting !== null) emitAttention(event.runId, waiting);
+    if (waiting === null) return;
+
+    // A prompt autopilot has taken on does not ring the bell yet: it is usually
+    // answered inside the settle window, and an alert for something the user
+    // never had to act on is the noise this feature exists to remove. Declining
+    // comes back through `onHeld`, which raises the ordinary alert from there —
+    // so every prompt still reaches the user by one path or the other.
+    if (waiting && autopilot.willConsider(event.runId)) {
+      autopilot.consider(event.runId);
+      return;
+    }
+
+    emitAttention(event.runId, waiting);
   },
   (event) => {
     emitToRenderer("lazify:script-status", event);
@@ -169,9 +202,58 @@ const ptyRunner = new PtyRunner(
     // same status event.
     if (event.status === "done" || event.status === "error") {
       attentionDetector.forget(event.runId);
+      autopilot.forget(event.runId);
     }
   }
 );
+
+/**
+ * Reports a prompt autopilot answered by itself.
+ *
+ * Deliberately loud in the feed and silent everywhere else: no notification, no
+ * dock bounce. The point of answering was that the user did not have to be
+ * interrupted, so telling them about it with a banner would undo the feature.
+ * The record is there for when they want to know what was said in their name.
+ */
+const emitAutopilotAnswer = (runId: string, detail: AutopilotAnswered) => {
+  const session = ptyRunner.getSessions().find((entry) => entry.runId === runId);
+  if (!session) return;
+
+  emitToRenderer("lazify:autopilot-answered", {
+    runId,
+    projectPath: session.projectPath,
+    projectName: session.projectName,
+    agentLabel: session.scriptName,
+    question: detail.question,
+    optionLabel: detail.optionLabel
+  });
+};
+
+/**
+ * Autopilot: the prompts the user would have said yes to anyway, answered for
+ * them — and only those. What it will not touch is in `autopilot-policy`.
+ */
+const autopilot = new Autopilot({
+  isActive: (runId) => {
+    const session = ptyRunner.getSessions().find((entry) => entry.runId === runId);
+    if (!session) return false;
+
+    // Only agent runs are tracked, and only they are ever typed into: a dev
+    // server asking something is not a prompt this understands.
+    return attentionDetector.isTracked(runId) && isAutopilotActive(session.projectPath);
+  },
+  getScreen: (runId) => attentionDetector.screen(runId),
+  isWaiting: (runId) => attentionDetector.isWaiting(runId),
+  answer: (runId, keys) => {
+    // Clearing without emitting: the waiting state was never announced, so
+    // there is no alert to take back — only the detector's own turn bookkeeping
+    // to bring in line with the answer that just went in.
+    attentionDetector.clear(runId);
+    ptyRunner.write(runId, keys);
+  },
+  onAnswered: emitAutopilotAnswer,
+  onHeld: (runId, detail) => emitAttention(runId, true, detail.hold)
+});
 
 function createMainWindow(): BrowserWindow {
   const window = new BrowserWindow({
@@ -265,6 +347,29 @@ function registerIpcHandlers() {
     }
 
     return result.filePaths[0] ?? null;
+  });
+
+  // Finder picker for handing a path to an agent: files and folders are both
+  // valid targets, and several can be picked in one trip. On Windows and Linux
+  // the two file properties cannot be combined, so those pick files only.
+  ipcMain.handle("lazify:select-paths", async (_event, defaultPath?: string | null) => {
+    const options: OpenDialogOptions = {
+      title: "Choose a file or folder",
+      defaultPath: defaultPath ?? undefined,
+      properties:
+        process.platform === "darwin"
+          ? ["openFile", "openDirectory", "multiSelections"]
+          : ["openFile", "multiSelections"]
+    };
+    const result = mainWindow
+      ? await dialog.showOpenDialog(mainWindow, options)
+      : await dialog.showOpenDialog(options);
+
+    if (result.canceled) {
+      return [];
+    }
+
+    return result.filePaths;
   });
 
   ipcMain.handle("lazify:import-project-from-directory", async (_event, projectPath: string) =>
@@ -446,6 +551,20 @@ function registerIpcHandlers() {
     removeCustomAgent(agentId)
   );
 
+  // Autopilot's switches. Read on every prompt rather than cached, so turning it
+  // off stops the very next answer instead of the next launch.
+  ipcMain.handle("lazify:autopilot-settings", async () => getAutopilotSettings());
+
+  ipcMain.handle("lazify:set-autopilot", async (_event, enabled: boolean) =>
+    setAutopilotEnabled(enabled)
+  );
+
+  ipcMain.handle(
+    "lazify:set-autopilot-project",
+    async (_event, projectPath: string, enabled: boolean) =>
+      setAutopilotProject(projectPath, enabled)
+  );
+
   ipcMain.handle("lazify:checkout-branch", async (_event, projectPath: string, branch: string) =>
     checkoutProjectBranch(projectPath, branch)
   );
@@ -489,6 +608,73 @@ function registerIpcHandlers() {
 
     shell.showItemInFolder(targetPath);
   });
+
+  // ── DMG compiler ──────────────────────────────────────────────────────────
+  // A `.app` in, a `.dmg` out. Both pickers live here because the dialogs need
+  // the window to hang off, and the save dialog is also what asks about
+  // replacing a file that already exists.
+
+  ipcMain.handle("lazify:select-app-bundle", async (): Promise<string | null> => {
+    const options: OpenDialogOptions = {
+      title: "Choose a macOS app",
+      // No `treatPackageAsDirectory`: the bundle is what is being picked, and
+      // letting the picker descend into it only invites choosing a file inside.
+      properties: ["openFile"],
+      filters: [{ name: "Application", extensions: ["app"] }]
+    };
+    const result = mainWindow
+      ? await dialog.showOpenDialog(mainWindow, options)
+      : await dialog.showOpenDialog(options);
+
+    if (result.canceled) return null;
+
+    return result.filePaths[0] ?? null;
+  });
+
+  ipcMain.handle(
+    "lazify:select-dmg-destination",
+    async (_event, suggestedPath: string): Promise<string | null> => {
+      const result = mainWindow
+        ? await dialog.showSaveDialog(mainWindow, {
+            title: "Where should the disk image go?",
+            defaultPath: suggestedPath,
+            filters: [{ name: "Disk Image", extensions: ["dmg"] }]
+          })
+        : await dialog.showSaveDialog({
+            title: "Where should the disk image go?",
+            defaultPath: suggestedPath,
+            filters: [{ name: "Disk Image", extensions: ["dmg"] }]
+          });
+
+      if (result.canceled || !result.filePath) return null;
+
+      return result.filePath;
+    }
+  );
+
+  ipcMain.handle(
+    "lazify:inspect-app-bundle",
+    async (_event, appPath: string): Promise<AppBundleInfo> => inspectAppBundle(appPath)
+  );
+
+  ipcMain.handle(
+    "lazify:default-dmg-path",
+    async (_event, appPath: string, suggestedFileName: string): Promise<string> =>
+      defaultOutputPath(appPath, suggestedFileName)
+  );
+
+  ipcMain.handle(
+    "lazify:compile-dmg",
+    async (
+      _event,
+      appPath: string,
+      outputPath: string,
+      volumeName?: string | null
+    ): Promise<DmgResult> =>
+      compileDmg({ appPath, outputPath, volumeName }, (progress) =>
+        emitToRenderer("lazify:dmg-progress", progress)
+      )
+  );
 
   // The PTY pids let the reaper tell a script Lazify started apart from
   // Lazify's own processes, which it must never offer to kill.
@@ -641,8 +827,11 @@ app.whenReady().then(() => {
   cleanupShadowRepos();
   // Must be in place before any window — and so any `<webview>` — exists.
   // A popped-out link from the browser page comes back as a new tab.
-  guardPreviewWebviews((url, background) =>
-    emitToRenderer("lazify:browser-open-tab", { url, background })
+  guardPreviewWebviews(
+    (url, background) => emitToRenderer("lazify:browser-open-tab", { url, background }),
+    // A popup is decided before any request exists, so the shield has to be
+    // consulted here or an ad popup becomes a tab the filter can no longer stop.
+    shouldBlockPopup
   );
 
   // Restores the saved shield preference before the browser page loads anything.

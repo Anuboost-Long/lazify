@@ -68,9 +68,21 @@ export type ProjectStack =
   | "node-api"
   | "electron"
   | "dotnet"
+  /** Swift with SwiftUI views — the split matters, the tooling does not. */
+  | "swift-ui"
+  /** Swift without SwiftUI: UIKit, a package, or a command-line tool. */
+  | "swift"
   | "unknown";
 
-export type DetectedPackageManager = "npm" | "yarn" | "pnpm" | "bun" | "dotnet" | "unknown";
+export type DetectedPackageManager =
+  | "npm"
+  | "yarn"
+  | "pnpm"
+  | "bun"
+  | "dotnet"
+  | "swiftpm"
+  | "cocoapods"
+  | "unknown";
 
 export interface PackageOption {
   name: string;
@@ -129,7 +141,7 @@ export type TemplateTreeNode = TemplateFileNode | (TemplateFolderNode & { childr
 
 export interface StackDetectionResult {
   stack: ProjectStack;
-  framework: "react" | "react-native" | "node" | "electron" | "dotnet" | "unknown";
+  framework: "react" | "react-native" | "node" | "electron" | "dotnet" | "swift" | "unknown";
   metaFramework:
     | "vite"
     | "nextjs"
@@ -142,6 +154,9 @@ export interface StackDetectionResult {
     | "blazor"
     | "maui"
     | "dotnet-console"
+    | "swiftui"
+    | "uikit"
+    | "swiftpm"
     | "unknown";
   packageManager: DetectedPackageManager;
   commands: {

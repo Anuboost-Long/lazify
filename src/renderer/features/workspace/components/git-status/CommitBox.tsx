@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 
 import { translation } from "@renderer/i18n/translation";
 import { BodyText } from "@renderer/shared/typography";
+import { Tooltip } from "@renderer/shared/ui/Tooltip";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 
 /**
@@ -106,42 +107,44 @@ export function CommitBox({
       {/* One primary button with the extra actions folded behind its chevron,
           the way source control views present commit. */}
       <div className="relative flex items-stretch">
-        <button
-          type="button"
-          onClick={() => void commit()}
-          disabled={!canCommit}
-          title={t(translation.GitStatus.Commit)}
-          className={clsx(
-            "flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-l-md px-3 py-2",
-            "bg-accent text-xs font-semibold text-white transition-colors hover:bg-accentHover",
-            "disabled:cursor-not-allowed disabled:opacity-40"
-          )}
-        >
-          <UiIcon
-            name={busy === "commit" ? "refresh-circle" : "check-circle"}
-            className={clsx("h-3.5 w-3.5", busy === "commit" && "animate-spin")}
-          />
-          <span className="truncate">
-            {t(translation.GitStatus.Commit)}
-            {stagedCount > 0 ? ` (${stagedCount})` : ""}
-          </span>
-        </button>
+        <Tooltip content={t(translation.GitStatus.Commit)} side="top">
+          <button
+            type="button"
+            onClick={() => void commit()}
+            disabled={!canCommit}
+            className={clsx(
+              "flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-l-md px-3 py-2",
+              "bg-accent text-xs font-semibold text-white transition-colors hover:bg-accentHover",
+              "disabled:cursor-not-allowed disabled:opacity-40"
+            )}
+          >
+            <UiIcon
+              name={busy === "commit" ? "refresh-circle" : "check-circle"}
+              className={clsx("h-3.5 w-3.5", busy === "commit" && "animate-spin")}
+            />
+            <span className="truncate">
+              {t(translation.GitStatus.Commit)}
+              {stagedCount > 0 ? ` (${stagedCount})` : ""}
+            </span>
+          </button>
+        </Tooltip>
 
-        <button
-          type="button"
-          onClick={() => setMenuOpen((open) => !open)}
-          disabled={disabled || busy !== null}
-          aria-expanded={menuOpen}
-          title={t(translation.GitStatus.CommitOptions)}
-          aria-label={t(translation.GitStatus.CommitOptions)}
-          className={clsx(
-            "flex w-7 shrink-0 items-center justify-center rounded-r-md border-l border-white/25",
-            "bg-accent text-white transition-colors hover:bg-accentHover",
-            "disabled:cursor-not-allowed disabled:opacity-40"
-          )}
-        >
-          <span className="text-[10px] leading-none">▾</span>
-        </button>
+        <Tooltip content={t(translation.GitStatus.CommitOptions)} side="top">
+          <button
+            type="button"
+            onClick={() => setMenuOpen((open) => !open)}
+            disabled={disabled || busy !== null}
+            aria-expanded={menuOpen}
+            aria-label={t(translation.GitStatus.CommitOptions)}
+            className={clsx(
+              "flex w-7 shrink-0 items-center justify-center rounded-r-md border-l border-white/25",
+              "bg-accent text-white transition-colors hover:bg-accentHover",
+              "disabled:cursor-not-allowed disabled:opacity-40"
+            )}
+          >
+            <span className="text-[10px] leading-none">▾</span>
+          </button>
+        </Tooltip>
 
         {menuOpen ? (
           <div

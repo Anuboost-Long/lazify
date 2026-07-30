@@ -7,6 +7,7 @@ import { appRoute, defaultAppRoute } from "../app-routes";
 import { AgentsRoute } from "./AgentsRoute";
 import { BrowserRoute } from "./BrowserRoute";
 import { ConsoleRoute } from "./ConsoleRoute";
+import { DmgCompilerRoute } from "./DmgCompilerRoute";
 import { LegalRoute } from "./LegalRoute";
 import { SettingsRoute } from "./SettingsRoute";
 import { SyncedProjectRoute } from "./SyncedProjectRoute";
@@ -28,6 +29,7 @@ export function AppRoutes() {
         <Route path={appRoute.templates.slice(1)} element={<TemplatesRoute />} />
         <Route path={appRoute.settings.slice(1)} element={<SettingsRoute />} />
         <Route path={appRoute.environment.slice(1)} element={<EnvironmentRoute />} />
+        <Route path={appRoute.dmgCompiler.slice(1)} element={<DmgCompilerRoute />} />
         <Route path={appRoute.legal.slice(1)} element={<LegalRoute />} />
         <Route path="*" element={<Navigate to={defaultAppRoute} replace />} />
       </Route>

@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 
 import { translation } from "@renderer/i18n/translation";
 import { CaptionText, MonoText, SectionTitle, SmallText } from "@renderer/shared/typography";
+import { Tooltip } from "@renderer/shared/ui/Tooltip";
 import { ConfirmModal } from "@renderer/shared/ui/modal/ConfirmModal";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 
@@ -157,25 +158,32 @@ export function PortReaperSection() {
                 </CaptionText>
               </div>
 
-              <button
-                type="button"
-                disabled={entry.isProtected}
-                onClick={() => setPending(entry)}
-                title={
+              {/* The disabled case is the one that needs explaining: a protected
+                  row is Lazify's own process, and the tooltip is where that is
+                  said. */}
+              <Tooltip
+                side="top"
+                content={
                   entry.isProtected
                     ? t(translation.PortReaper.ProtectedHint)
                     : t(translation.PortReaper.Kill)
                 }
-                aria-label={t(translation.PortReaper.Kill)}
-                className={clsx(
-                  "flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border",
-                  entry.isProtected
-                    ? "cursor-not-allowed border-border text-muted opacity-40"
-                    : "border-error/30 text-error hover:bg-error/[0.08]"
-                )}
               >
-                <UiIcon name="stop-circle" className="h-3.5 w-3.5" />
-              </button>
+                <button
+                  type="button"
+                  disabled={entry.isProtected}
+                  onClick={() => setPending(entry)}
+                  aria-label={t(translation.PortReaper.Kill)}
+                  className={clsx(
+                    "flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border",
+                    entry.isProtected
+                      ? "cursor-not-allowed border-border text-muted opacity-40"
+                      : "border-error/30 text-error hover:bg-error/[0.08]"
+                  )}
+                >
+                  <UiIcon name="stop-circle" className="h-3.5 w-3.5" />
+                </button>
+              </Tooltip>
             </div>
           ))}
         </div>

@@ -1,4 +1,6 @@
 import clsx from "clsx";
+
+import { Tooltip } from "@renderer/shared/ui/Tooltip";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -95,7 +97,6 @@ export function EditorTabBar({
               endDrag();
             }}
             onDragEnd={endDrag}
-            title={tab.path}
             className={clsx(
               // Full-height rectangles divided by a seam, so the whole tab is
               // the hit target rather than a small pill floating in padding.
@@ -121,49 +122,52 @@ export function EditorTabBar({
               />
             ) : null}
 
-            <button
-              type="button"
-              onClick={() => onSelect(tab.path)}
-              className="flex h-full min-w-0 items-center gap-2"
-            >
-              <UiIcon
-                name={tab.kind === "diff" ? "journal-page" : visual.icon}
-                className={clsx("h-4 w-4 shrink-0", tab.kind === "diff" ? "text-warning" : visual.color)}
-              />
-              <MonoText
-                as="span"
+            <Tooltip content={tab.path} side="bottom">
+              <button
+                type="button"
+                onClick={() => onSelect(tab.path)}
+                className="flex h-full min-w-0 items-center gap-2"
+              >
+                <UiIcon
+                  name={tab.kind === "diff" ? "journal-page" : visual.icon}
+                  className={clsx("h-4 w-4 shrink-0", tab.kind === "diff" ? "text-warning" : visual.color)}
+                />
+                <MonoText
+                  as="span"
+                  className={clsx(
+                    "max-w-[14rem] truncate text-xs",
+                    isActive ? "text-accent" : "text-muted"
+                  )}
+                >
+                  {tab.name}
+                </MonoText>
+                {tab.kind === "diff" ? (
+                  <MonoText as="span" className="shrink-0 text-[10px] uppercase text-muted">
+                    diff
+                  </MonoText>
+                ) : null}
+              </button>
+            </Tooltip>
+
+            <Tooltip content={t(translation.GlobalTerm.Close)} side="bottom">
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onClose(tab.path);
+                }}
+                aria-label={t(translation.GlobalTerm.Close)}
                 className={clsx(
-                  "max-w-[14rem] truncate text-xs",
-                  isActive ? "text-accent" : "text-muted"
+                  "flex h-6 w-6 shrink-0 items-center justify-center rounded transition-colors",
+                  "text-muted hover:bg-text/10 hover:text-text",
+                  // Always reachable on the active tab; on tap-only devices the
+                  // hover reveal never fires, so keep it visible there too.
+                  isActive ? "opacity-100" : "opacity-0 group-hover:opacity-100 [@media(hover:none)]:opacity-100"
                 )}
               >
-                {tab.name}
-              </MonoText>
-              {tab.kind === "diff" ? (
-                <MonoText as="span" className="shrink-0 text-[10px] uppercase text-muted">
-                  diff
-                </MonoText>
-              ) : null}
-            </button>
-
-            <button
-              type="button"
-              onClick={(event) => {
-                event.stopPropagation();
-                onClose(tab.path);
-              }}
-              aria-label={t(translation.GlobalTerm.Close)}
-              title={t(translation.GlobalTerm.Close)}
-              className={clsx(
-                "flex h-6 w-6 shrink-0 items-center justify-center rounded transition-colors",
-                "text-muted hover:bg-text/10 hover:text-text",
-                // Always reachable on the active tab; on tap-only devices the
-                // hover reveal never fires, so keep it visible there too.
-                isActive ? "opacity-100" : "opacity-0 group-hover:opacity-100 [@media(hover:none)]:opacity-100"
-              )}
-            >
-              <UiIcon name="xmark" className="h-3.5 w-3.5" />
-            </button>
+                <UiIcon name="xmark" className="h-3.5 w-3.5" />
+              </button>
+            </Tooltip>
           </div>
         );
       })}

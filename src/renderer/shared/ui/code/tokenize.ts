@@ -58,6 +58,17 @@ const FS_KEYWORDS =
 const VB_KEYWORDS =
   "AddHandler AndAlso As ByRef ByVal Case Catch Class Const Continue Dim Do Each Else ElseIf End EndIf Enum Event Exit False Finally For Friend Function Get Global GoTo Handles If Implements Imports In Inherits Interface Is Let Loop Me Module MustInherit MustOverride My Namespace New Next Not Nothing NotInheritable Object On Operator Option Optional Or OrElse Overloads Overridable Overrides ParamArray Partial Private Property Protected Public RaiseEvent ReadOnly Return Select Set Shadows Shared Static Step Stop Structure Sub Then Throw To True Try TypeOf Until Using When While With WithEvents WriteOnly Xor";
 
+// Contextual keywords (`get`, `final`, `some`) are listed flat alongside the
+// reserved ones, the way the C# set lists `get`/`set` — the scanner has no
+// context to tell them apart, and colouring them is right far more often
+// than not.
+const SWIFT_KEYWORDS =
+  "actor any as associatedtype async await borrowing break case catch class consuming continue convenience default defer deinit didSet distributed do dynamic each else enum extension fallthrough fileprivate final for func get guard if import in indirect infix init inout internal is isolated lazy let macro mutating nonisolated nonmutating open operator optional override package postfix precedencegroup prefix private protocol public repeat required rethrows return self Self set some static struct subscript super switch throw throws try typealias unowned var weak where while willSet";
+// Uppercase words already colour as types, so this only has to carry the
+// lowercase literals — the named types are here to document the intent.
+const SWIFT_TYPES =
+  "nil true false Int Int8 Int16 Int32 Int64 UInt UInt8 UInt16 UInt32 UInt64 Double Float CGFloat Bool String Character Substring Array Dictionary Set Optional Result Data Date URL UUID Any AnyObject Void Never Error Task Codable Equatable Hashable Identifiable Sendable View Text Image Color State Binding Published ObservableObject";
+
 const PY_KEYWORDS =
   "and as assert async await break class continue def del elif else except finally for from global if import in is lambda nonlocal not or pass raise return try while with yield match case";
 
@@ -107,6 +118,15 @@ const LANGUAGES: Record<string, LanguageSpec> = {
     keywords: new Set(VB_KEYWORDS.split(" ")),
     types: new Set(CS_TYPES.split(" ")),
     lineComment: ["'", "REM "],
+    quotes: ['"']
+  }),
+  swift: spec({
+    keywords: new Set(SWIFT_KEYWORDS.split(" ")),
+    types: new Set(SWIFT_TYPES.split(" ")),
+    lineComment: ["///", "//"],
+    blockComment: ["/*", "*/"],
+    // Swift has no single-quoted string, so treating `'` as one would swallow
+    // the rest of any line holding an apostrophe.
     quotes: ['"']
   }),
   json: spec({
@@ -171,11 +191,14 @@ const FALLBACK_ALIASES: Record<string, keyof typeof LANGUAGES> = {
   // Close enough to read at a glance until the real grammar lands.
   java: "javascript",
   kotlin: "javascript",
-  swift: "javascript",
   go: "javascript",
   rust: "javascript",
   c: "javascript",
   cpp: "javascript",
+  // The other half of an iOS project: bridging headers and legacy app
+  // delegates sit next to the Swift, so they get the same C-like treatment.
+  "objective-c": "javascript",
+  "objective-cpp": "javascript",
   php: "javascript",
   dart: "javascript",
   scala: "javascript",

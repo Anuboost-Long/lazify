@@ -1,6 +1,7 @@
 import clsx from "clsx";
 import { useTranslation } from "react-i18next";
 
+import { Tooltip } from "@renderer/shared/ui/Tooltip";
 import UiIcon, { type UiIconName } from "@renderer/shared/ui/icons/UiIcon";
 
 /**
@@ -22,22 +23,23 @@ export function RowAction({ icon, label, destructive = false, onClick }: Readonl
   const text = t(label);
 
   return (
-    <button
-      type="button"
-      onClick={(event) => {
-        event.stopPropagation();
-        onClick();
-      }}
-      title={text}
-      aria-label={text}
-      className={clsx(
-        "flex h-5 w-5 items-center justify-center rounded transition-colors",
-        destructive
-          ? "text-muted hover:bg-error/10 hover:text-error"
-          : "text-muted hover:bg-accent/10 hover:text-accent"
-      )}
-    >
-      <UiIcon name={icon} className="h-3.5 w-3.5" />
-    </button>
+    <Tooltip content={text} side="top">
+      <button
+        type="button"
+        onClick={(event) => {
+          event.stopPropagation();
+          onClick();
+        }}
+        aria-label={text}
+        className={clsx(
+          "flex h-5 w-5 items-center justify-center rounded transition-colors",
+          destructive
+            ? "text-muted hover:bg-error/10 hover:text-error"
+            : "text-muted hover:bg-accent/10 hover:text-accent"
+        )}
+      >
+        <UiIcon name={icon} className="h-3.5 w-3.5" />
+      </button>
+    </Tooltip>
   );
 }

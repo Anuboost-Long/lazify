@@ -6,6 +6,7 @@ import { translation } from "@renderer/i18n/translation";
 import { usePictureInPicture } from "@renderer/shared/hooks/use-picture-in-picture";
 import { toggleMediaPictureInPicture } from "@renderer/shared/lib/media-pip";
 import { SmallText } from "@renderer/shared/typography";
+import { Tooltip } from "@renderer/shared/ui/Tooltip";
 import { IconButton } from "@renderer/shared/ui/IconButton";
 import UiIcon, { type UiIconName } from "@renderer/shared/ui/icons/UiIcon";
 import { BrowserGuest, type GuestStatus } from "./BrowserGuest";
@@ -40,21 +41,22 @@ function Control({
   onClick
 }: Readonly<ControlProps>) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      title={label}
-      aria-label={label}
-      aria-pressed={active}
-      className={clsx(
-        "flex h-7 w-7 shrink-0 items-center justify-center rounded-lg",
-        disabled ? "cursor-not-allowed text-muted opacity-40" : "text-text hover:bg-text/[0.06]",
-        active && !disabled && "bg-accent/15 !text-accent"
-      )}
-    >
-      <UiIcon name={icon} className="h-3.5 w-3.5" />
-    </button>
+    <Tooltip content={label} side="bottom">
+      <button
+        type="button"
+        onClick={onClick}
+        disabled={disabled}
+        aria-label={label}
+        aria-pressed={active}
+        className={clsx(
+          "flex h-7 w-7 shrink-0 items-center justify-center rounded-lg",
+          disabled ? "cursor-not-allowed text-muted opacity-40" : "text-text hover:bg-text/[0.06]",
+          active && !disabled && "bg-accent/15 !text-accent"
+        )}
+      >
+        <UiIcon name={icon} className="h-3.5 w-3.5" />
+      </button>
+    </Tooltip>
   );
 }
 
@@ -257,15 +259,16 @@ export function BrowserSurface({ visible }: Readonly<BrowserSurfaceProps>) {
           );
         })}
 
-        <button
-          type="button"
-          onClick={() => openTab()}
-          title={t(translation.Browser.NewTab)}
-          aria-label={t(translation.Browser.NewTab)}
-          className="flex shrink-0 items-center rounded-lg px-2 py-1.5 text-text hover:bg-text/[0.06]"
-        >
-          <UiIcon name="plus" className="h-3.5 w-3.5" />
-        </button>
+        <Tooltip content={t(translation.Browser.NewTab)} side="bottom">
+          <button
+            type="button"
+            onClick={() => openTab()}
+            aria-label={t(translation.Browser.NewTab)}
+            className="flex shrink-0 items-center rounded-lg px-2 py-1.5 text-text hover:bg-text/[0.06]"
+          >
+            <UiIcon name="plus" className="h-3.5 w-3.5" />
+          </button>
+        </Tooltip>
       </div>
 
       {/* Toolbar */}

@@ -1,4 +1,4 @@
-import { contextBridge, ipcRenderer } from "electron";
+import { contextBridge, ipcRenderer, webUtils } from "electron";
 
 import type { AgentActivityEvent } from "../main/agents/agent-activity-watcher";
 import type { LogEvent } from "../main/command-runner";
@@ -23,6 +23,9 @@ import type { EnvironmentScan } from "../main/scanner";
 import type { ToolScanReport, NvmVersionList, NvmInstallResult, NvmActionResult, ToolUpdateInfo } from "../main/environment-scanner";
 import type { TemplatePackageEntry } from "../main/template-package-manifest";
 import type { AgentDescriptor } from "../main/agents/agent-registry";
+import type { AutopilotHold } from "../main/agents/autopilot-policy";
+import type { AppBundleInfo, DmgProgress, DmgResult } from "../main/dmg-compiler";
+import type { AutopilotSettings } from "../main/agents/autopilot-store";
 import type { AgentSessionSummary } from "../main/agents/agent-sessions";
 import type { CustomAgent, CustomAgentInput } from "../main/agents/custom-agents-store";
 import type { HighlightingAssets } from "../main/highlighting-store";
@@ -39,6 +42,11 @@ import type {
 } from "../main/workflow-engine";
 
 const lazifyApi = {
+  /**
+   * What the app is running on, so the renderer can hide features that only
+   * exist on one OS — building a disk image, for one.
+   */
+  platform: process.platform,
   runCommand: (command: string, args: string[], cwd?: string) =>
     ipcRenderer.invoke("lazify:run-command", command, args, cwd),
   createProject: (payload: CreateProjectPayload): Promise<WorkflowResult> =>
@@ -74,6 +82,8 @@ const lazifyApi = {
   searchNpmPackages: (query: string): Promise<NpmPackageSearchResult[]> =>
     ipcRenderer.invoke("lazify:search-npm-packages", query),
   selectDirectory: (): Promise<string | null> => ipcRenderer.invoke("lazify:select-directory"),
+  selectPaths: (defaultPath?: string | null): Promise<string[]> =>
+    ipcRenderer.invoke("lazify:select-paths", defaultPath),
   importProjectFromDirectory: (projectPath: string): Promise<ImportedProjectScanResult> =>
     ipcRenderer.invoke("lazify:import-project-from-directory", projectPath),
   importProjectIndexFromDirectory: (projectPath: string): Promise<ImportedProjectIndexResult> =>
@@ -113,11 +123,27 @@ const lazifyApi = {
       projectName: string;
       agentLabel: string;
       waiting: boolean;
+      /** Why autopilot left this prompt to the user, when it looked at it. */
+      hold: AutopilotHold | null;
     }) => void
   ) => {
     const listener = (_event: unknown, payload: Parameters<typeof callback>[0]) => callback(payload);
     ipcRenderer.on("lazify:agent-attention", listener);
     return () => ipcRenderer.removeListener("lazify:agent-attention", listener);
+  },
+  onAutopilotAnswered: (
+    callback: (event: {
+      runId: string;
+      projectPath: string;
+      projectName: string;
+      agentLabel: string;
+      question: string;
+      optionLabel: string;
+    }) => void
+  ) => {
+    const listener = (_event: unknown, payload: Parameters<typeof callback>[0]) => callback(payload);
+    ipcRenderer.on("lazify:autopilot-answered", listener);
+    return () => ipcRenderer.removeListener("lazify:autopilot-answered", listener);
   },
   onAgentDone: (
     callback: (event: {
@@ -160,6 +186,12 @@ const lazifyApi = {
     ipcRenderer.invoke("lazify:add-custom-agent", input),
   removeCustomAgent: (agentId: string): Promise<void> =>
     ipcRenderer.invoke("lazify:remove-custom-agent", agentId),
+  autopilotSettings: (): Promise<AutopilotSettings> =>
+    ipcRenderer.invoke("lazify:autopilot-settings"),
+  setAutopilot: (enabled: boolean): Promise<AutopilotSettings> =>
+    ipcRenderer.invoke("lazify:set-autopilot", enabled),
+  setAutopilotProject: (projectPath: string, enabled: boolean): Promise<AutopilotSettings> =>
+    ipcRenderer.invoke("lazify:set-autopilot-project", projectPath, enabled),
   checkoutBranch: (projectPath: string, branch: string): Promise<GitCheckoutResult> =>
     ipcRenderer.invoke("lazify:checkout-branch", projectPath, branch),
   stageFiles: (projectPath: string, paths: string[]): Promise<GitActionResult> =>
@@ -172,6 +204,40 @@ const lazifyApi = {
     ipcRenderer.invoke("lazify:commit-changes", projectPath, message),
   pushBranch: (projectPath: string): Promise<GitActionResult> =>
     ipcRenderer.invoke("lazify:push-branch", projectPath),
+  /**
+   * Where a dropped file actually lives on disk.
+   *
+   * `File.path` used to carry this and was removed from Electron; this is its
+   * replacement, and it only works from here — the renderer has no way to ask.
+   */
+  pathForDroppedFile: (file: File): string => {
+    try {
+      return webUtils.getPathForFile(file);
+    } catch {
+      // Something that came from somewhere other than the filesystem — a drag
+      // out of a web page, say. It has no path, and the caller offers a picker.
+      return "";
+    }
+  },
+  // DMG compiler: pick an app, pick where the image goes, build it.
+  selectAppBundle: (): Promise<string | null> => ipcRenderer.invoke("lazify:select-app-bundle"),
+  selectDmgDestination: (suggestedPath: string): Promise<string | null> =>
+    ipcRenderer.invoke("lazify:select-dmg-destination", suggestedPath),
+  inspectAppBundle: (appPath: string): Promise<AppBundleInfo> =>
+    ipcRenderer.invoke("lazify:inspect-app-bundle", appPath),
+  defaultDmgPath: (appPath: string, suggestedFileName: string): Promise<string> =>
+    ipcRenderer.invoke("lazify:default-dmg-path", appPath, suggestedFileName),
+  compileDmg: (
+    appPath: string,
+    outputPath: string,
+    volumeName?: string | null
+  ): Promise<DmgResult> =>
+    ipcRenderer.invoke("lazify:compile-dmg", appPath, outputPath, volumeName),
+  onDmgProgress: (callback: (progress: DmgProgress) => void) => {
+    const listener = (_event: Electron.IpcRendererEvent, payload: DmgProgress) => callback(payload);
+    ipcRenderer.on("lazify:dmg-progress", listener);
+    return () => ipcRenderer.removeListener("lazify:dmg-progress", listener);
+  },
   listHighlightingAssets: (): Promise<HighlightingAssets> =>
     ipcRenderer.invoke("lazify:highlighting-assets"),
   openHighlightingFolder: (): Promise<void> =>

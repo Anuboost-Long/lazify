@@ -6,6 +6,7 @@ import { GitStatusList } from "@renderer/features/workspace/components/git-statu
 import { groupEntries } from "@renderer/features/workspace/components/git-status/group-entries";
 import { CommitBox } from "@renderer/features/workspace/components/git-status/CommitBox";
 import { RowAction } from "@renderer/features/workspace/components/git-status/RowAction";
+import { Tooltip } from "@renderer/shared/ui/Tooltip";
 import { ConfirmModal } from "@renderer/shared/ui/modal/ConfirmModal";
 import { GitStatusTree } from "@renderer/features/workspace/components/git-status/GitStatusTree";
 import { translation } from "@renderer/i18n/translation";
@@ -100,15 +101,16 @@ export function GitStatusPane({
         )}
         {/* Flat list or folder tree, the way source control views let you
             choose once a change set gets deep. */}
-        <button
-          type="button"
-          onClick={() => setViewMode((current) => (current === "list" ? "tree" : "list"))}
-          title={t(viewMode === "list" ? translation.GitStatus.ViewAsTree : translation.GitStatus.ViewAsList)}
-          aria-label={t(viewMode === "list" ? translation.GitStatus.ViewAsTree : translation.GitStatus.ViewAsList)}
-          className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-muted transition-colors hover:bg-accent/10 hover:text-accent"
-        >
-          <UiIcon name={viewMode === "list" ? "folder" : "menu"} className="h-3.5 w-3.5" />
-        </button>
+        <Tooltip content={t(viewMode === "list" ? translation.GitStatus.ViewAsTree : translation.GitStatus.ViewAsList)} side="top">
+          <button
+            type="button"
+            onClick={() => setViewMode((current) => (current === "list" ? "tree" : "list"))}
+            aria-label={t(viewMode === "list" ? translation.GitStatus.ViewAsTree : translation.GitStatus.ViewAsList)}
+            className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-muted transition-colors hover:bg-accent/10 hover:text-accent"
+          >
+            <UiIcon name={viewMode === "list" ? "folder" : "menu"} className="h-3.5 w-3.5" />
+          </button>
+        </Tooltip>
       </div>
 
       {/* Body */}

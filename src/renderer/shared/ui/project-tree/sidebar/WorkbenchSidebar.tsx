@@ -1,4 +1,5 @@
 import clsx from "clsx";
+import { Tooltip } from "@renderer/shared/ui/Tooltip";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import type { SidebarView } from "./types";
 
@@ -35,22 +36,22 @@ export function WorkbenchSidebar({
           const selected = view.id === active?.id;
 
           return (
-            <button
-              key={view.id}
-              type="button"
-              onClick={() => onChange(view.id)}
-              title={view.label}
-              aria-label={view.label}
-              aria-pressed={selected}
-              className={clsx(
-                "flex h-7 w-7 items-center justify-center rounded-md transition-colors",
-                selected
-                  ? "bg-accent/10 text-accent"
-                  : "text-muted hover:bg-accent/[0.06] hover:text-text"
-              )}
-            >
-              <UiIcon name={view.icon} className="h-4 w-4" />
-            </button>
+            <Tooltip key={view.id} content={view.label} side="bottom">
+              <button
+                type="button"
+                onClick={() => onChange(view.id)}
+                aria-label={view.label}
+                aria-pressed={selected}
+                className={clsx(
+                  "flex h-7 w-7 items-center justify-center rounded-md transition-colors",
+                  selected
+                    ? "bg-accent/10 text-accent"
+                    : "text-muted hover:bg-accent/[0.06] hover:text-text"
+                )}
+              >
+                <UiIcon name={view.icon} className="h-4 w-4" />
+              </button>
+            </Tooltip>
           );
         })}
 

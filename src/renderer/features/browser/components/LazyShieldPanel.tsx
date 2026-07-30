@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 
 import { translation } from "@renderer/i18n/translation";
 import { CaptionText, CardTitle, MonoText, SmallText } from "@renderer/shared/typography";
+import { Tooltip } from "@renderer/shared/ui/Tooltip";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 
 /**
@@ -55,27 +56,28 @@ export function LazyShieldPanel({
 
   return (
     <div ref={rootRef} className="relative shrink-0">
-      <button
-        type="button"
-        onClick={() => setOpen((current) => !current)}
-        title={t(translation.LazyShield.Title)}
-        aria-label={t(translation.LazyShield.Title)}
-        aria-expanded={open}
-        className={clsx(
-          "flex h-7 items-center gap-1 rounded-lg px-1.5",
-          "hover:bg-text/[0.06]",
-          enabled ? "text-accent" : "text-muted",
-          open && "bg-text/[0.08]"
-        )}
-      >
-        <UiIcon name={enabled ? "shield-check" : "shield-off"} className="h-3.5 w-3.5" />
-        {/* The count is the whole reason the icon earns toolbar space. */}
-        {enabled && blocked > 0 ? (
-          <MonoText as="span" className="text-[10px] text-accent">
-            {blocked > 999 ? "999+" : blocked}
-          </MonoText>
-        ) : null}
-      </button>
+      <Tooltip content={t(translation.LazyShield.Title)} side="bottom">
+        <button
+          type="button"
+          onClick={() => setOpen((current) => !current)}
+          aria-label={t(translation.LazyShield.Title)}
+          aria-expanded={open}
+          className={clsx(
+            "flex h-7 items-center gap-1 rounded-lg px-1.5",
+            "hover:bg-text/[0.06]",
+            enabled ? "text-accent" : "text-muted",
+            open && "bg-text/[0.08]"
+          )}
+        >
+          <UiIcon name={enabled ? "shield-check" : "shield-off"} className="h-3.5 w-3.5" />
+          {/* The count is the whole reason the icon earns toolbar space. */}
+          {enabled && blocked > 0 ? (
+            <MonoText as="span" className="text-[10px] text-accent">
+              {blocked > 999 ? "999+" : blocked}
+            </MonoText>
+          ) : null}
+        </button>
+      </Tooltip>
 
       {open ? (
         <div

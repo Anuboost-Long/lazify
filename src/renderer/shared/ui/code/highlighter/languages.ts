@@ -18,6 +18,14 @@ const FILENAMES: Record<string, string> = {
   rakefile: "ruby",
   podfile: "ruby",
   brewfile: "ruby",
+  // Fastlane drives most iOS release pipelines, and its files are all Ruby.
+  fastfile: "ruby",
+  appfile: "ruby",
+  matchfile: "ruby",
+  // Both lock files carry an extension nothing else claims, so they have to be
+  // matched whole — `.resolved` is JSON, `Podfile.lock` is YAML.
+  "package.resolved": "json",
+  "podfile.lock": "yaml",
   procfile: "yaml",
   ".gitignore": "ignore",
   ".dockerignore": "ignore",
@@ -155,6 +163,21 @@ const EXTENSIONS: Record<string, string> = {
   ascx: "html",
   asmx: "html",
 
+  // Apple / Xcode. `.swift` itself sits with the other languages below; these
+  // are the toolchain files that surround it in a real project.
+  swiftinterface: "swift",
+  podspec: "ruby",
+  // Build settings and `"key" = "value";` tables both read as key/value pairs.
+  xcconfig: "ini",
+  strings: "ini",
+  // The rest of the Xcode metadata is XML, plist or otherwise.
+  entitlements: "xml",
+  stringsdict: "xml",
+  storyboard: "xml",
+  xib: "xml",
+  xcscheme: "xml",
+  xcworkspacedata: "xml",
+
   // Scripting
   py: "python",
   pyi: "python",
@@ -209,6 +232,8 @@ const EXTENSIONS: Record<string, string> = {
   glsl: "glsl",
   vert: "glsl",
   frag: "glsl",
+  // Metal Shading Language is C++14, and there is no bundled grammar for it.
+  metal: "cpp",
   diff: "diff",
   patch: "diff",
   log: "log",

@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { translation } from "@renderer/i18n/translation";
 import type { SessionPort } from "@renderer/shared/types/lazify";
 import { MonoText, SmallText } from "@renderer/shared/typography";
+import { Tooltip } from "@renderer/shared/ui/Tooltip";
 import { IconButton } from "@renderer/shared/ui/IconButton";
 import UiIcon, { type UiIconName } from "@renderer/shared/ui/icons/UiIcon";
 import type { AgentTerminal } from "../hooks/use-agent-terminals";
@@ -31,25 +32,26 @@ interface ControlProps {
 /** One toolbar button. Sized to read as a control strip, not a text button. */
 function Control({ icon, label, tone, disabled = false, onClick }: Readonly<ControlProps>) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      title={label}
-      aria-label={label}
-      className={clsx(
-        "flex h-8 w-8 items-center justify-center rounded-lg border transition-colors",
-        "border-black/[0.06] dark:border-white/[0.06]",
-        disabled
-          ? "cursor-not-allowed text-muted opacity-40"
-          : clsx(
-              "hover:bg-text/[0.06]",
-              tone === "accent" ? "text-accent" : "text-error"
-            )
-      )}
-    >
-      <UiIcon name={icon} className="h-3.5 w-3.5" />
-    </button>
+    <Tooltip content={label} side="top">
+      <button
+        type="button"
+        onClick={onClick}
+        disabled={disabled}
+        aria-label={label}
+        className={clsx(
+          "flex h-8 w-8 items-center justify-center rounded-lg border transition-colors",
+          "border-black/[0.06] dark:border-white/[0.06]",
+          disabled
+            ? "cursor-not-allowed text-muted opacity-40"
+            : clsx(
+                "hover:bg-text/[0.06]",
+                tone === "accent" ? "text-accent" : "text-error"
+              )
+        )}
+      >
+        <UiIcon name={icon} className="h-3.5 w-3.5" />
+      </button>
+    </Tooltip>
   );
 }
 

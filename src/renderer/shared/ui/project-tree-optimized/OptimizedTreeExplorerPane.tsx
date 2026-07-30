@@ -2,6 +2,7 @@ import clsx from "clsx";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { translation } from "@renderer/i18n/translation";
 import { MonoText, OverlineText, PillText } from "@renderer/shared/typography";
+import { Tooltip } from "@renderer/shared/ui/Tooltip";
 import { TextInput } from "@renderer/shared/ui/form/FormInput";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import { ExplorerActions } from "@renderer/shared/ui/project-tree-optimized/ExplorerActions";
@@ -312,14 +313,15 @@ export function OptimizedTreeExplorerPane({
               {savedProjectName}/
             </MonoText>
             {onCollapseAll ? (
-              <button
-                type="button"
-                onClick={(event) => { event.stopPropagation(); onCollapseAll(); }}
-                title={t(translation.ProjectTree.CollapseAll)}
-                className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-muted transition-colors hover:bg-accent/10 hover:text-accent"
-              >
-                <UiIcon name="collapse" className="h-3.5 w-3.5" />
-              </button>
+              <Tooltip content={t(translation.ProjectTree.CollapseAll)} side="bottom">
+                <button
+                  type="button"
+                  onClick={(event) => { event.stopPropagation(); onCollapseAll(); }}
+                  className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-muted transition-colors hover:bg-accent/10 hover:text-accent"
+                >
+                  <UiIcon name="collapse" className="h-3.5 w-3.5" />
+                </button>
+              </Tooltip>
             ) : null}
           </div>
         ) : (
@@ -348,14 +350,15 @@ export function OptimizedTreeExplorerPane({
                 {t(translation.ProjectTree.ItemsCount, { count: totalNodeCount })}
               </PillText>
               {onCollapseAll ? (
-                <button
-                  type="button"
-                  onClick={(event) => { event.stopPropagation(); onCollapseAll(); }}
-                  title={t(translation.ProjectTree.CollapseAll)}
-                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-border bg-soft text-muted transition-colors hover:border-accent/30 hover:bg-accent/10 hover:text-accent"
-                >
-                  <UiIcon name="collapse" className="h-3.5 w-3.5" />
-                </button>
+                <Tooltip content={t(translation.ProjectTree.CollapseAll)} side="bottom">
+                  <button
+                    type="button"
+                    onClick={(event) => { event.stopPropagation(); onCollapseAll(); }}
+                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-border bg-soft text-muted transition-colors hover:border-accent/30 hover:bg-accent/10 hover:text-accent"
+                  >
+                    <UiIcon name="collapse" className="h-3.5 w-3.5" />
+                  </button>
+                </Tooltip>
               ) : null}
             </div>
 

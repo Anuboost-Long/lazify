@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 
 import { translation } from "@renderer/i18n/translation";
 import { BodyText, MonoText } from "@renderer/shared/typography";
+import { Tooltip } from "@renderer/shared/ui/Tooltip";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 
 /**
@@ -184,15 +185,16 @@ export function BranchSwitcher({
           <BodyText className="max-h-32 min-w-0 flex-1 overflow-y-auto whitespace-pre-wrap break-words text-[11px] leading-5 text-error">
             {error}
           </BodyText>
-          <button
-            type="button"
-            onClick={() => setError(null)}
-            title={t(translation.GlobalTerm.Dismiss)}
-            aria-label={t(translation.GlobalTerm.Dismiss)}
-            className="shrink-0 rounded p-0.5 text-muted transition-colors hover:bg-accent/[0.06] hover:text-text"
-          >
-            <UiIcon name="xmark" className="h-3 w-3" />
-          </button>
+          <Tooltip content={t(translation.GlobalTerm.Dismiss)} side="top">
+            <button
+              type="button"
+              onClick={() => setError(null)}
+              aria-label={t(translation.GlobalTerm.Dismiss)}
+              className="shrink-0 rounded p-0.5 text-muted transition-colors hover:bg-accent/[0.06] hover:text-text"
+            >
+              <UiIcon name="xmark" className="h-3 w-3" />
+            </button>
+          </Tooltip>
         </div>
       ) : null}
     </div>

@@ -8,10 +8,12 @@ import { formatStackLabel } from "@renderer/features/workspace/utils/stack-label
 import { getTechIconName } from "@renderer/shared/lib/icon-map";
 import type { SyncedWorkspaceProject } from "@renderer/shared/types/lazify";
 import { CaptionText, CardTitle, OverlineText, PillText, SmallText } from "@renderer/shared/typography";
+import { Tooltip } from "@renderer/shared/ui/Tooltip";
 import { IconButton } from "@renderer/shared/ui/IconButton";
 import { CardShapes } from "@renderer/shared/ui/card/CardShapes";
 import { SheetStack } from "@renderer/shared/ui/card/SheetStack";
 import DevIcon from "@renderer/shared/ui/icons/DevIcon";
+import { ConfirmModal } from "@renderer/shared/ui/modal/ConfirmModal";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 
 /**
@@ -34,6 +36,8 @@ interface AgentProjectCardProps {
   active: boolean;
   running: number;
   waiting: number;
+  /** Tabs this project has open, exited ones included. Zero hides close-all. */
+  tabCount: number;
   isDragging: boolean;
   isDropTarget: boolean;
   /** Whether the insertion line belongs on the bottom edge. */
@@ -41,6 +45,8 @@ interface AgentProjectCardProps {
   /** Strips the card down to its name, for the collapsed rail. */
   collapsed: boolean;
   onSelect: (projectPath: string) => void;
+  /** Asks to close every tab of this project; the rail confirms it first. */
+  onCloseAll: (projectPath: string) => void;
   onDragStart: (projectPath: string) => void;
   /** Returns true when the pointer carries one of our cards, not a file. */
   onDragOver: (projectPath: string) => boolean;
@@ -64,11 +70,13 @@ const AgentProjectCard = memo(function AgentProjectCard({
   active,
   running,
   waiting,
+  tabCount,
   isDragging,
   isDropTarget,
   dropsBelow,
   collapsed,
   onSelect,
+  onCloseAll,
   onDragStart,
   onDragOver,
   onDragLeave,
@@ -112,50 +120,60 @@ const AgentProjectCard = memo(function AgentProjectCard({
 
   if (collapsed) {
     return (
-      <button
-        type="button"
-        {...dragProps}
-        onClick={() => onSelect(project.projectPath)}
-        title={project.projectPath}
-        className={clsx(
-          "relative flex w-full items-center gap-2 rounded-xl px-2.5 py-2 text-left",
-          "transition-colors cursor-grab active:cursor-grabbing",
-          isDragging && "opacity-40",
-          active ? "bg-text/[0.10]" : "hover:bg-text/[0.06]"
-        )}
-      >
-        {dropLine}
-
-        {/* The card's whole status story, reduced to one dot: selected, has
-            terminals running, or neither. */}
-        <span
-          aria-hidden
+      <Tooltip content={project.projectPath} side="right">
+        <button
+          type="button"
+          {...dragProps}
+          onClick={() => onSelect(project.projectPath)}
           className={clsx(
-            "h-1.5 w-1.5 shrink-0 rounded-full",
-            active ? "bg-accent" : running > 0 ? "bg-accent/40" : "bg-border"
+            "relative flex w-full items-center gap-2 rounded-xl px-2.5 py-2 text-left",
+            "transition-colors cursor-grab active:cursor-grabbing",
+            isDragging && "opacity-40",
+            active ? "bg-text/[0.10]" : "hover:bg-text/[0.06]"
           )}
-        />
+        >
+          {dropLine}
 
-        <SmallText className="!text-text min-w-0 flex-1 truncate">
-          {project.projectName}
-        </SmallText>
-
-        {/* An agent still needs an answer even when the rail is out of the way. */}
-        {waiting > 0 ? (
+          {/* The card's whole status story, reduced to one dot: selected, has
+              terminals running, or neither. */}
           <span
-            aria-label={t(translation.Agents.NeedsAttention)}
-            className="h-1.5 w-1.5 shrink-0 animate-pulse rounded-full bg-accent"
+            aria-hidden
+            className={clsx(
+              "h-1.5 w-1.5 shrink-0 rounded-full",
+              active ? "bg-accent" : running > 0 ? "bg-accent/40" : "bg-border"
+            )}
           />
-        ) : null}
-      </button>
+
+          <SmallText className="!text-text min-w-0 flex-1 truncate">
+            {project.projectName}
+          </SmallText>
+
+          {/* An agent still needs an answer even when the rail is out of the way. */}
+          {waiting > 0 ? (
+            <span
+              aria-label={t(translation.Agents.NeedsAttention)}
+              className="h-1.5 w-1.5 shrink-0 animate-pulse rounded-full bg-accent"
+            />
+          ) : null}
+        </button>
+      </Tooltip>
     );
   }
 
   return (
-    <button
-      type="button"
+    // A div rather than a button: the close-all control below is a real button,
+    // and one button cannot live inside another. Keyboard behaviour is kept by
+    // hand so the card is still reachable and answers Enter and Space.
+    <div
+      role="button"
+      tabIndex={0}
       {...dragProps}
       onClick={() => onSelect(project.projectPath)}
+      onKeyDown={(event) => {
+        if (event.key !== "Enter" && event.key !== " ") return;
+        event.preventDefault();
+        onSelect(project.projectPath);
+      }}
       style={{ animationDelay: `${index * 45}ms` }}
       className={clsx(
         "group animate-fadeIn relative flex w-full flex-col gap-2.5 overflow-hidden",
@@ -229,17 +247,50 @@ const AgentProjectCard = memo(function AgentProjectCard({
           </CaptionText>
         </div>
 
-        <span
-          className={clsx(
-            "flex h-6 w-6 shrink-0 items-center justify-center rounded-full border",
-            "transition-transform duration-300 group-hover:translate-x-0.5",
-            active ? "border-accent/50 text-accent" : "border-border text-muted"
-          )}
-        >
-          <UiIcon name="arrow-right" className="h-3 w-3" />
-        </span>
+        <div className="flex shrink-0 items-center gap-1.5">
+          {/* Its own action, kept apart from the card's: red-tinted and
+              labelled with the count, so it reads as "close these N tabs"
+              rather than as another way into the project. Only there when
+              there is something to close. */}
+          {tabCount > 0 ? (
+            <Tooltip content={t(translation.Agents.CloseProjectTabs)} side="top">
+              <button
+                type="button"
+                onClick={(event) => {
+                  // The card underneath selects the project — this must not.
+                  event.stopPropagation();
+                  onCloseAll(project.projectPath);
+                }}
+                aria-label={t(translation.Agents.CloseProjectTabs)}
+                className={clsx(
+                  "flex h-6 shrink-0 items-center gap-1 rounded-full px-2",
+                  // Solid red, like the confirm modal's destructive button, so it
+                  // carries the same weight wherever it turns up.
+                  "bg-rose-500 text-white transition-colors hover:bg-rose-400"
+                )}
+              >
+                <UiIcon name="xmark" className="h-3 w-3" />
+                {/* Plain span rather than PillText: the pill variant paints its
+                    own muted colour, which would fight the red. */}
+                <span className="text-[10px] font-semibold leading-none">
+                  {tabCount}
+                </span>
+              </button>
+            </Tooltip>
+          ) : null}
+
+          <span
+            className={clsx(
+              "flex h-6 w-6 shrink-0 items-center justify-center rounded-full border",
+              "transition-transform duration-300 group-hover:translate-x-0.5",
+              active ? "border-accent/50 text-accent" : "border-border text-muted"
+            )}
+          >
+            <UiIcon name="arrow-right" className="h-3 w-3" />
+          </span>
+        </div>
       </div>
-    </button>
+    </div>
   );
 });
 
@@ -250,7 +301,11 @@ interface AgentProjectPickerProps {
   runningCounts: Record<string, number>;
   /** Agents waiting on a reply, per project path. Drives the attention badge. */
   waitingCounts: Record<string, number>;
+  /** Open tabs per project path, exited ones included. */
+  tabCounts: Record<string, number>;
   onSelect: (projectPath: string) => void;
+  /** Closes every tab of one project, once the user has confirmed it here. */
+  onCloseProjectTabs: (projectPath: string) => void;
   /** Moves the dragged project to the target project's position. */
   onReorder: (fromProjectPath: string, toProjectPath: string) => void;
   syncing: boolean;
@@ -269,7 +324,9 @@ export function AgentProjectPicker({
   selectedPath,
   runningCounts,
   waitingCounts,
+  tabCounts,
   onSelect,
+  onCloseProjectTabs,
   onReorder,
   syncing,
   onSync,
@@ -318,6 +375,14 @@ export function AgentProjectPicker({
     },
     [endDrag, onReorder]
   );
+
+  // Project whose tabs are pending a close-all. One modal serves the whole
+  // rail, and the callback stays stable so the memoised cards do not repaint.
+  const [pendingCloseAll, setPendingCloseAll] = useState<string | null>(null);
+
+  const handleCloseAll = useCallback((projectPath: string) => {
+    setPendingCloseAll(projectPath);
+  }, []);
 
   const draggingIndex = draggingPath
     ? projects.findIndex((candidate) => candidate.projectPath === draggingPath)
@@ -386,6 +451,7 @@ export function AgentProjectPicker({
               active={project.projectPath === selectedPath}
               running={runningCounts[project.projectPath] ?? 0}
               waiting={waitingCounts[project.projectPath] ?? 0}
+              tabCount={tabCounts[project.projectPath] ?? 0}
               isDragging={isDragging}
               isDropTarget={isDropTarget}
               // Only ever true for the card actually showing the line, so
@@ -393,6 +459,7 @@ export function AgentProjectPicker({
               dropsBelow={isDropTarget && draggingIndex !== -1 && draggingIndex < index}
               collapsed={collapsed}
               onSelect={onSelect}
+              onCloseAll={handleCloseAll}
               onDragStart={handleDragStart}
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
@@ -422,56 +489,77 @@ export function AgentProjectPicker({
           </div>
         ) : null}
 
-        <button
-          type="button"
-          disabled={syncing}
-          onClick={onSync}
-          title={collapsed ? t(translation.Workspace.SyncProject) : undefined}
-          className={clsx(
-            "group/add flex w-full items-center rounded-[18px] text-left",
-            "border border-dashed border-border bg-bg/60",
-            "transition-[transform,box-shadow,border-color,background-color] duration-300",
-            "hover:-translate-y-0.5 hover:border-accent/50 hover:bg-bg hover:shadow-panel",
-            "active:scale-[0.98]",
-            "disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0",
-            collapsed ? "justify-center p-2" : "gap-2.5 p-3"
-          )}
-        >
-          <span
+        <Tooltip content={collapsed ? t(translation.Workspace.SyncProject) : undefined} side="right">
+          <button
+            type="button"
+            disabled={syncing}
+            onClick={onSync}
             className={clsx(
-              "flex shrink-0 items-center justify-center rounded-[12px]",
-              "border border-border bg-soft text-accent",
-              "transition-transform duration-300",
-              !syncing && "group-hover/add:rotate-90",
-              collapsed ? "h-7 w-7" : "h-9 w-9"
+              "group/add flex w-full items-center rounded-[18px] text-left",
+              "border border-dashed border-border bg-bg/60",
+              "transition-[transform,box-shadow] duration-300",
+              "hover:-translate-y-0.5 hover:border-accent/50 hover:bg-bg hover:shadow-panel",
+              "active:scale-[0.98]",
+              "disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0",
+              collapsed ? "justify-center p-2" : "gap-2.5 p-3"
             )}
           >
-            <UiIcon
-              name={syncing ? "refresh-circle" : "plus"}
-              className={clsx("h-4 w-4", syncing && "animate-spin")}
-            />
-          </span>
+            <span
+              className={clsx(
+                "flex shrink-0 items-center justify-center rounded-[12px]",
+                "border border-border bg-soft text-accent",
+                "transition-transform duration-300",
+                !syncing && "group-hover/add:rotate-90",
+                collapsed ? "h-7 w-7" : "h-9 w-9"
+              )}
+            >
+              <UiIcon
+                name={syncing ? "refresh-circle" : "plus"}
+                className={clsx("h-4 w-4", syncing && "animate-spin")}
+              />
+            </span>
 
-          {/* Collapsed, the dashed plus says it on its own. */}
-          {collapsed ? null : (
-            <>
-              <CardTitle className="min-w-0 flex-1 truncate text-sm">
-                {t(translation.Workspace.SyncProject)}
-              </CardTitle>
+            {/* Collapsed, the dashed plus says it on its own. */}
+            {collapsed ? null : (
+              <>
+                <CardTitle className="min-w-0 flex-1 truncate text-sm">
+                  {t(translation.Workspace.SyncProject)}
+                </CardTitle>
 
-              <span
-                className={clsx(
-                  "flex h-6 w-6 shrink-0 items-center justify-center rounded-full border",
-                  "border-border text-muted transition-transform duration-300",
-                  "group-hover/add:translate-x-0.5"
-                )}
-              >
-                <UiIcon name="arrow-right" className="h-3 w-3" />
-              </span>
-            </>
-          )}
-        </button>
+                <span
+                  className={clsx(
+                    "flex h-6 w-6 shrink-0 items-center justify-center rounded-full border",
+                    "border-border text-muted transition-transform duration-300",
+                    "group-hover/add:translate-x-0.5"
+                  )}
+                >
+                  <UiIcon name="arrow-right" className="h-3 w-3" />
+                </span>
+              </>
+            )}
+          </button>
+        </Tooltip>
       </div>
+
+      {/* Closing a project's tabs kills live agents, so it is asked for once
+          here rather than on the card itself. */}
+      <ConfirmModal
+        open={pendingCloseAll !== null}
+        title={t(translation.Agents.CloseProjectTabsTitle)}
+        description={t(translation.Agents.CloseProjectTabsDesc, {
+          tabs: pendingCloseAll ? tabCounts[pendingCloseAll] ?? 0 : 0,
+          project:
+            projects.find((project) => project.projectPath === pendingCloseAll)
+              ?.projectName ?? ""
+        })}
+        confirmLabel={t(translation.Agents.CloseProjectTabs)}
+        destructive
+        onConfirm={() => {
+          if (pendingCloseAll) onCloseProjectTabs(pendingCloseAll);
+          setPendingCloseAll(null);
+        }}
+        onCancel={() => setPendingCloseAll(null)}
+      />
     </aside>
   );
 }

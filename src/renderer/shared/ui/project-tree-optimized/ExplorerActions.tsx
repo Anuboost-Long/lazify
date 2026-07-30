@@ -1,5 +1,6 @@
 import clsx from "clsx";
 import { translation } from "@renderer/i18n/translation";
+import { Tooltip } from "@renderer/shared/ui/Tooltip";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import { useTranslation } from "react-i18next";
 
@@ -31,30 +32,32 @@ export function ExplorerActions({
 
   return (
     <>
-      <button
-        type="button"
-        onClick={(event) => {
-          event.stopPropagation();
-          onCreateEntry("file");
-        }}
-        className={className}
-        aria-label={t(translation.ProjectTree.NewFile)}
-        title={t(translation.ProjectTree.NewFile)}
-      >
-        <UiIcon name="plus" className={iconClassName} />
-      </button>
-      <button
-        type="button"
-        onClick={(event) => {
-          event.stopPropagation();
-          onCreateEntry("folder");
-        }}
-        className={className}
-        aria-label={t(translation.ProjectTree.NewFolder)}
-        title={t(translation.ProjectTree.NewFolder)}
-      >
-        <UiIcon name="folder" className={iconClassName} />
-      </button>
+      <Tooltip content={t(translation.ProjectTree.NewFile)} side="bottom">
+        <button
+          type="button"
+          onClick={(event) => {
+            event.stopPropagation();
+            onCreateEntry("file");
+          }}
+          className={className}
+          aria-label={t(translation.ProjectTree.NewFile)}
+        >
+          <UiIcon name="plus" className={iconClassName} />
+        </button>
+      </Tooltip>
+      <Tooltip content={t(translation.ProjectTree.NewFolder)} side="bottom">
+        <button
+          type="button"
+          onClick={(event) => {
+            event.stopPropagation();
+            onCreateEntry("folder");
+          }}
+          className={className}
+          aria-label={t(translation.ProjectTree.NewFolder)}
+        >
+          <UiIcon name="folder" className={iconClassName} />
+        </button>
+      </Tooltip>
     </>
   );
 }

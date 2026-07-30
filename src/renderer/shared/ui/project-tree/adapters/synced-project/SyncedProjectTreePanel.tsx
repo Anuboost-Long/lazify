@@ -4,6 +4,7 @@ import type {
   ImportedProjectIndexResult,
   ProjectGitStatusResult,
 } from "@renderer/shared/types/lazify";
+import { Tooltip } from "@renderer/shared/ui/Tooltip";
 import { EditorTabBar } from "@renderer/shared/ui/code/EditorTabBar";
 import { FileQuickOpen } from "@renderer/shared/ui/command-palette/FileQuickOpen";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
@@ -130,15 +131,16 @@ export function SyncedProjectTreePanel({
                       label: t(translation.GitStatus.Title),
                       icon: "activity",
                       actions: (
-                        <button
-                          type="button"
-                          onClick={() => adapter.setShowGitInfo(true)}
-                          title={t(translation.ProjectTree.GitInfo)}
-                          aria-label={t(translation.ProjectTree.GitInfo)}
-                          className="flex h-6 w-6 items-center justify-center rounded-md text-muted transition-colors hover:bg-accent/10 hover:text-accent"
-                        >
-                          <UiIcon name="journal-page" className="h-3.5 w-3.5" />
-                        </button>
+                        <Tooltip content={t(translation.ProjectTree.GitInfo)} side="bottom">
+                          <button
+                            type="button"
+                            onClick={() => adapter.setShowGitInfo(true)}
+                            aria-label={t(translation.ProjectTree.GitInfo)}
+                            className="flex h-6 w-6 items-center justify-center rounded-md text-muted transition-colors hover:bg-accent/10 hover:text-accent"
+                          >
+                            <UiIcon name="journal-page" className="h-3.5 w-3.5" />
+                          </button>
+                        </Tooltip>
                       ),
                       content: renderGitPane({
                         busy,

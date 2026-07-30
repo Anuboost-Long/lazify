@@ -6,6 +6,7 @@ import {
   useSetResolvedTheme,
   useTheme,
 } from "@renderer/shared/hooks/use-theme";
+import { Tooltip } from "@renderer/shared/ui/Tooltip";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import clsx from "clsx";
 import { useEffect, useMemo, useState } from "react";
@@ -27,7 +28,7 @@ export function AppShell() {
   const { themePreference, setThemePreference } = useTheme();
   const setResolvedTheme = useSetResolvedTheme();
   const { accentColor } = useAccentColor();
-  const { compactSidebar, reduceMotion, showTooltips } = useInterfaceSettings();
+  const { compactSidebar, reduceMotion } = useInterfaceSettings();
   const [systemPrefersDark, setSystemPrefersDark] = useState(
     () => globalThis.matchMedia("(prefers-color-scheme: dark)").matches,
   );
@@ -78,8 +79,19 @@ export function AppShell() {
     globalThis.localStorage.setItem("lazify-sidebar-open", String(sidebarOpen));
   }, [sidebarOpen]);
 
+  // The pages this OS can offer. Computed here rather than beside the list so
+  // it is not a module-load-time read of the preload bridge — a constant that
+  // throws on import would take the whole window down with it.
+  const pages = useMemo(
+    () =>
+      appSidebarPages.filter(
+        (page) => !page.macOnly || globalThis.lazify.platform === "darwin",
+      ),
+    [],
+  );
+
   const activePageId: AppPageId | null =
-    appSidebarPages.find(
+    pages.find(
       (page) =>
         location.pathname === page.path ||
         (page.id === "workspace" &&
@@ -96,8 +108,7 @@ export function AppShell() {
           description: translation.Sidebar.InitProjectDesc,
           icon: "plus" as const,
         }
-      : (appSidebarPages.find((page) => page.id === activePageId) ??
-        appSidebarPages[0]);
+      : (pages.find((page) => page.id === activePageId) ?? pages[0]);
 
   // The project workbench manages its own height and scrolling, so it opts out
   // of the padded, scrolling container every other route uses.
@@ -118,12 +129,11 @@ export function AppShell() {
           unbreakable string pushes the whole window wider than the screen. */}
       <div className="flex min-h-0 min-w-0 flex-1">
         <Sidebar
-          pages={appSidebarPages}
+          pages={pages}
           activePage={activePageId}
           collapsed={compactSidebar || !sidebarOpen}
           theme={resolvedTheme}
           compactMode={compactSidebar}
-          showTooltips={showTooltips}
           onStartWorkflow={() => navigate(appRoute.initProject)}
           onToggleSidebar={() => {
             if (!compactSidebar) setSidebarOpen((c) => !c);
@@ -151,14 +161,15 @@ export function AppShell() {
               className="h-3.5 w-3.5 shrink-0 text-accent"
             />
 
-            <button
-              type="button"
-              onClick={() => navigate(activePage.path)}
-              title={t(activePage.description)}
-              className="shrink-0 truncate text-xs font-semibold text-text transition-colors hover:text-accent"
-            >
-              {t(activePage.label)}
-            </button>
+            <Tooltip content={t(activePage.description)} side="bottom">
+              <button
+                type="button"
+                onClick={() => navigate(activePage.path)}
+                className="shrink-0 truncate text-xs font-semibold text-text transition-colors hover:text-accent"
+              >
+                {t(activePage.label)}
+              </button>
+            </Tooltip>
 
             <div
               ref={setCrumbSlot}

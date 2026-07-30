@@ -62,6 +62,16 @@ export class AttentionDetector {
   }
 
   /**
+   * The rolling tail this run's readings are taken from — what is on screen now.
+   *
+   * Exposed for autopilot, which has to re-read the prompt at the moment it
+   * types rather than trusting the chunk that announced it.
+   */
+  screen(runId: string): string | null {
+    return this.sessions.get(runId)?.tail ?? null;
+  }
+
+  /**
    * Feeds a chunk of output. Returns the new waiting state when it changed,
    * or null when nothing changed — callers only notify on a transition.
    */

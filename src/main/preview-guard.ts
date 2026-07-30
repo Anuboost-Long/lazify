@@ -80,7 +80,8 @@ const BLANK_POPUP_GRACE_MS = 10_000;
 
 function wireBrowserGuest(
   contents: WebContents,
-  onOpenTab: (url: string, background: boolean) => void
+  onOpenTab: (url: string, background: boolean) => void,
+  isBlockedPopup: (url: string, sourceUrl: string) => boolean
 ): void {
   // Navigation is unrestricted here — this one is a browser. What a popup must
   // not do is escape into a chromeless window, so it becomes a tab instead.
@@ -98,9 +99,22 @@ function wireBrowserGuest(
         action: "allow",
         overrideBrowserWindowOptions: {
           show: false,
-          webPreferences: { nodeIntegration: false, contextIsolation: true }
+          // Kept in the browser's own session. Without the partition this
+          // window lands in the default one, where the shield is not attached,
+          // and it spends its short life loading whatever it likes unfiltered.
+          webPreferences: {
+            nodeIntegration: false,
+            contextIsolation: true,
+            partition: BROWSER_PARTITION
+          }
         }
       };
+    }
+
+    // A popup the filter lists is refused outright. Turning it into a tab would
+    // launder it past the shield, because the filter never cancels a main frame.
+    if (isBlockedPopup(details.url, contents.getURL())) {
+      return { action: "deny" };
     }
 
     onOpenTab(details.url, details.disposition === "background-tab");
@@ -118,7 +132,11 @@ function wireBrowserGuest(
       if (settled) return;
       settled = true;
       clearTimeout(timer);
-      if (!isBlankTarget(url)) onOpenTab(url, background);
+      // Where the popunder pattern is caught: the address only shows up now, so
+      // this is the first point at which the filter can be asked about it.
+      if (!isBlankTarget(url) && !isBlockedPopup(url, contents.getURL())) {
+        onOpenTab(url, background);
+      }
       if (!window.isDestroyed()) window.destroy();
     };
 
@@ -147,7 +165,8 @@ function wireBrowserGuest(
  * waiting for them, not in front of them.
  */
 export function guardPreviewWebviews(
-  onOpenTab: (url: string, background: boolean) => void
+  onOpenTab: (url: string, background: boolean) => void,
+  isBlockedPopup: (url: string, sourceUrl: string) => boolean
 ): void {
   app.on("web-contents-created", (_event, contents) => {
     // The host side: the guest gets no preload and no Node, whatever attributes
@@ -168,7 +187,7 @@ export function guardPreviewWebviews(
     // Sessions are singletons per partition, so identity is the reliable test —
     // the tag's attributes are renderer-supplied and this runs in main.
     if (contents.session === session.fromPartition(BROWSER_PARTITION)) {
-      wireBrowserGuest(contents, onOpenTab);
+      wireBrowserGuest(contents, onOpenTab, isBlockedPopup);
       return;
     }
 
