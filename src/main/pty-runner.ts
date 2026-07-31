@@ -34,7 +34,9 @@ function loadNodePty(): typeof import("node-pty") | null {
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     return require("node-pty") as typeof import("node-pty");
-  } catch {
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.error("[pty-runner] node-pty failed to load:", err);
     return null;
   }
 }
@@ -64,12 +66,27 @@ export class PtyRunner {
     this.available = this.nodePty !== null;
   }
 
+  /**
+   * node-pty's Windows backend hands the command straight to CreateProcess,
+   * which — unlike a shell — never consults PATHEXT. npm/yarn/pnpm are `.cmd`
+   * shims there, so spawning the bare name fails immediately with "Cannot
+   * create process, error code: 2" and the terminal never shows a thing.
+   * Routing through cmd.exe restores the PATH/extension resolution a shell
+   * would normally do.
+   */
+  private resolveSpawnTarget(command: string, args: string[]): [string, string[]] {
+    if (process.platform !== "win32") return [command, args];
+    return ["cmd.exe", ["/c", command, ...args]];
+  }
+
   start(command: string, args: string[], cwd: string, scriptName: string, cols = 220, rows = 50, extraEnv: Record<string, string> = {}): string {
     if (!this.nodePty) throw new Error("node-pty is not available. Run: npm run rebuild");
 
     const runId = `pty-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
 
-    const instance = this.nodePty.spawn(command, args, {
+    const [spawnCommand, spawnArgs] = this.resolveSpawnTarget(command, args);
+
+    const instance = this.nodePty.spawn(spawnCommand, spawnArgs, {
       name: "xterm-256color",
       cols,
       rows,

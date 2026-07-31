@@ -18,7 +18,7 @@
     "make:lang": "tsx src/scripts/make-language.ts",
     "rebuild": "electron-rebuild -f -w node-pty",
     "mac:fix-electron": "node src/scripts/mac-fix-electron.mjs",
-    "postinstall": "electron-rebuild -f -w node-pty && node src/scripts/mac-fix-electron.mjs"
+    "postinstall": "patch-package && electron-rebuild -f -w node-pty && node src/scripts/mac-fix-electron.mjs"
   },
   "electronmon": {
     "patterns": [
@@ -54,6 +54,7 @@
     "electron": "^43.2.0",
     "electron-builder": "^26.8.1",
     "electronmon": "^2.0.2",
+    "patch-package": "^8.0.1",
     "postcss": "^8.5.3",
     "tailwindcss": "^3.4.17",
     "tsx": "^4.21.0",
