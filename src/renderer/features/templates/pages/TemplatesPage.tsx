@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { translation } from "@renderer/i18n/translation";
 import { BodyText, OverlineText } from "@renderer/shared/typography";
-import { PageHeader } from "@renderer/shared/ui/PageHeader";
 import { ProjectTreeEditorPanel } from "@renderer/shared/ui/project-tree/ProjectTreeEditorPanel";
 import type { TreeNode } from "@renderer/shared/ui/project-tree/types";
 import type {
@@ -74,7 +73,7 @@ export function TemplatesPage({
       return;
     }
 
-    const confirmed = window.confirm(t(translation.Templates.RemoveConfirm, { name: selectedImportedTemplate.name }));
+    const confirmed = globalThis.confirm(t(translation.Templates.RemoveConfirm, { name: selectedImportedTemplate.name }));
 
     if (!confirmed) {
       return;
@@ -100,7 +99,7 @@ export function TemplatesPage({
   ) => {
     event.stopPropagation();
 
-    const confirmed = window.confirm(t(translation.Templates.RemoveConfirm, { name: templateName }));
+    const confirmed = globalThis.confirm(t(translation.Templates.RemoveConfirm, { name: templateName }));
     if (!confirmed) return;
 
     try {
@@ -117,13 +116,6 @@ export function TemplatesPage({
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader
-        eyebrow={t(translation.Templates.Eyebrow)}
-        title={t(translation.Templates.Title)}
-        description={t(translation.Templates.Description)}
-        icon="package"
-      />
-
       {importedTemplateOptions.length === 0 ? (
         <section className="rounded-[24px] border border-border bg-soft p-6 shadow-panel">
           <BodyText tone="muted" className="leading-6">

@@ -82,6 +82,33 @@ const PRESENTATIONS: Record<ProjectStack, ImportedTemplatePresentation> = {
       "border-indigo-400/20 bg-[radial-gradient(circle_at_top,_rgba(129,140,248,0.22),_rgba(30,27,75,0.96))] text-indigo-50",
     activeGlow: "shadow-[0_24px_60px_rgba(129,140,248,0.22)]"
   },
+  "dotnet": {
+    badge: ".NET",
+    iconName: "dotnetcore-plain",
+    iconClassName: "text-[2.5rem]",
+    chipClassName: "border-violet-400/25 bg-violet-400/10 text-violet-700 dark:text-violet-100",
+    frameClassName:
+      "border-violet-400/20 bg-[radial-gradient(circle_at_top,_rgba(167,139,250,0.24),_rgba(46,16,101,0.96))] text-violet-50",
+    activeGlow: "shadow-[0_24px_60px_rgba(139,92,246,0.26)]"
+  },
+  "swift-ui": {
+    badge: "SwiftUI",
+    iconName: "swift-plain",
+    iconClassName: "text-[2.5rem]",
+    chipClassName: "border-orange-400/25 bg-orange-400/10 text-orange-700 dark:text-orange-100",
+    frameClassName:
+      "border-orange-400/20 bg-[radial-gradient(circle_at_top,_rgba(251,146,60,0.24),_rgba(67,20,7,0.96))] text-orange-50",
+    activeGlow: "shadow-[0_24px_60px_rgba(249,115,22,0.26)]"
+  },
+  "swift": {
+    badge: "Swift",
+    iconName: "swift-plain",
+    iconClassName: "text-[2.5rem]",
+    chipClassName: "border-amber-400/25 bg-amber-400/10 text-amber-700 dark:text-amber-100",
+    frameClassName:
+      "border-amber-400/20 bg-[radial-gradient(circle_at_top,_rgba(251,191,36,0.22),_rgba(69,26,3,0.96))] text-amber-50",
+    activeGlow: "shadow-[0_24px_60px_rgba(245,158,11,0.24)]"
+  },
   "unknown": {
     badge: "Imported",
     iconName: "react-original",

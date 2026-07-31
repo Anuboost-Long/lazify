@@ -1,12 +1,17 @@
 import { translation } from "@renderer/i18n/translation";
 import type { ScriptStatusEvent } from "@renderer/shared/types/lazify";
-import { MonoText, OverlineText, PillText } from "@renderer/shared/typography";
+import { MonoText, PillText } from "@renderer/shared/typography";
+import { Tooltip } from "@renderer/shared/ui/Tooltip";
 import { IconButton } from "@renderer/shared/ui/IconButton";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import { LabelButton } from "@renderer/shared/ui/LabelButton";
 import clsx from "clsx";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import {
+  useProjectScripts,
+  type ScriptTab as Tab,
+} from "../hooks/use-project-scripts";
 import { XTermPanel } from "./XTermPanel";
 
 const TERM_HEIGHT_KEY = "lazify-terminal-height";
@@ -26,16 +31,6 @@ interface ScriptsPaneProps {
   projectPath: string;
 }
 
-type TabStatus = "idle" | "pending" | "running" | "done" | "error";
-
-interface Tab {
-  tabId: string;
-  index: number;
-  runId: string | null; // null = idle, "" = PTY starting, "pty-xxx" = active
-  scriptName: string | null;
-  status: TabStatus;
-}
-
 // ─── Script row ───────────────────────────────────────────────────────────────
 
 interface ScriptRowProps {
@@ -45,6 +40,7 @@ interface ScriptRowProps {
   isDisabled: boolean; // active tab is busy with a different script
   onRun: () => void;
   onStop: () => void;
+  onRestart: () => void;
 }
 
 function ScriptRow({
@@ -54,6 +50,7 @@ function ScriptRow({
   isDisabled,
   onRun,
   onStop,
+  onRestart,
 }: ScriptRowProps) {
   const { t } = useTranslation();
   return (
@@ -122,12 +119,20 @@ function ScriptRow({
         )}
 
         {isRunningHere ? (
-          <LabelButton
-            label={translation.ScriptsPane.Stop}
-            icon="stop-circle"
-            variant="error"
-            onClick={onStop}
-          />
+          <>
+            <LabelButton
+              label={translation.ScriptsPane.Restart}
+              icon="refresh-circle"
+              variant="accent"
+              onClick={onRestart}
+            />
+            <LabelButton
+              label={translation.ScriptsPane.Stop}
+              icon="stop-circle"
+              variant="error"
+              onClick={onStop}
+            />
+          </>
         ) : (
           <LabelButton
             label={translation.ScriptsPane.Run}
@@ -151,18 +156,16 @@ export function ScriptsPane({ projectPath }: ScriptsPaneProps) {
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
 
-  const [tabs, setTabs] = useState<Tab[]>([
-    {
-      tabId: "tab-init",
-      index: 1,
-      runId: null,
-      scriptName: null,
-      status: "idle",
-    },
-  ]);
-  const [activeTabId, setActiveTabId] = useState<string>("tab-init");
+  // Tab layout lives outside the component (keyed by project) so leaving this
+  // page and returning does not forget scripts that are still running.
+  const { tabs, setTabs, activeTabId, setActiveTabId } =
+    useProjectScripts(projectPath);
 
   const unsubMapRef = useRef<Map<string, () => void>>(new Map());
+  const tabsRef = useRef(tabs);
+  useEffect(() => {
+    tabsRef.current = tabs;
+  }, [tabs]);
 
   // ── Terminal resize ──────────────────────────────────────────────────────────
   const [termHeight, setTermHeight] = useState<number>(() => {
@@ -218,7 +221,7 @@ export function ScriptsPane({ projectPath }: ScriptsPaneProps) {
     setLoading(true);
     setLoadError(null);
     try {
-      const result = await window.lazify.listScripts(projectPath);
+      const result = await globalThis.lazify.listScripts(projectPath);
       setScripts(result);
     } catch (err) {
       setLoadError(
@@ -236,7 +239,7 @@ export function ScriptsPane({ projectPath }: ScriptsPaneProps) {
   }, [projectPath]);
 
   const subscribeStatus = (runId: string, tabId: string) => {
-    const stopStatus = window.lazify.onScriptStatus(
+    const stopStatus = globalThis.lazify.onScriptStatus(
       (event: ScriptStatusEvent) => {
         if (event.runId !== runId) return;
         if (event.status === "done" || event.status === "error") {
@@ -255,6 +258,61 @@ export function ScriptsPane({ projectPath }: ScriptsPaneProps) {
     unsubMapRef.current.set(runId, stopStatus);
   };
 
+  // On (re)mount, reconcile persisted tabs with the sessions still alive in the
+  // main process: re-attach status listeners to runs that are still going, and
+  // mark as finished any that exited while this pane was unmounted.
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      let sessions;
+      try {
+        sessions = await globalThis.lazify.listSessions();
+      } catch {
+        return;
+      }
+      if (cancelled) return;
+
+      const live = new Set(
+        sessions
+          .filter((session) => session.projectPath === projectPath)
+          .map((session) => session.runId)
+      );
+
+      tabsRef.current.forEach((tab) => {
+        if (
+          tab.runId &&
+          tab.status === "running" &&
+          live.has(tab.runId) &&
+          !unsubMapRef.current.has(tab.runId)
+        ) {
+          subscribeStatus(tab.runId, tab.tabId);
+        }
+      });
+
+      const hasVanished = tabsRef.current.some(
+        (tab) =>
+          tab.runId &&
+          (tab.status === "running" || tab.status === "pending") &&
+          !live.has(tab.runId)
+      );
+      if (hasVanished) {
+        setTabs((prev) =>
+          prev.map((tab) =>
+            tab.runId &&
+            (tab.status === "running" || tab.status === "pending") &&
+            !live.has(tab.runId)
+              ? { ...tab, status: "done" }
+              : tab
+          )
+        );
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [projectPath]);
+
   const handleAddTab = () => {
     const tabId = `tab-${Date.now()}`;
     setTabs((prev) => {
@@ -267,11 +325,12 @@ export function ScriptsPane({ projectPath }: ScriptsPaneProps) {
     setActiveTabId(tabId);
   };
 
-  const handleRun = async (scriptName: string) => {
+  const handleRun = async (scriptName: string, restartRunId?: string) => {
     // Capture the target tab at call time — user may switch tabs during the await
     const targetTabId = activeTabId;
     const tab = tabs.find((t) => t.tabId === targetTabId);
-    if (!tab || tab.status === "running" || tab.status === "pending") return;
+    // A restart is the one case where launching over a running tab is intended.
+    if (!tab || (!restartRunId && (tab.status === "running" || tab.status === "pending"))) return;
 
     setTabs((prev) =>
       prev.map((t) =>
@@ -288,12 +347,20 @@ export function ScriptsPane({ projectPath }: ScriptsPaneProps) {
     const rows = container ? Math.floor(container.clientHeight / 17) : 50;
 
     try {
-      const { runId } = await window.lazify.runScript(
-        projectPath,
-        scriptName,
-        Math.max(cols, 40),
-        Math.max(rows, 10)
-      );
+      const { runId } = restartRunId
+        ? await globalThis.lazify.restartScript(
+            restartRunId,
+            projectPath,
+            scriptName,
+            Math.max(cols, 40),
+            Math.max(rows, 10)
+          )
+        : await globalThis.lazify.runScript(
+            projectPath,
+            scriptName,
+            Math.max(cols, 40),
+            Math.max(rows, 10)
+          );
       setTabs((prev) =>
         prev.map((t) =>
           t.tabId === targetTabId ? { ...t, runId, status: "running" } : t
@@ -309,10 +376,24 @@ export function ScriptsPane({ projectPath }: ScriptsPaneProps) {
     }
   };
 
+  /**
+   * The old run's status subscription is dropped first, so its exit event
+   * cannot mark the tab failed after the replacement has already started.
+   */
+  const handleRestart = async (scriptName: string) => {
+    const tab = tabs.find((t) => t.tabId === activeTabId);
+    if (!tab?.runId) return;
+
+    unsubMapRef.current.get(tab.runId)?.();
+    unsubMapRef.current.delete(tab.runId);
+
+    await handleRun(scriptName, tab.runId);
+  };
+
   const handleStop = async () => {
     const tab = tabs.find((t) => t.tabId === activeTabId);
     if (!tab?.runId) return;
-    await window.lazify.stopScript(tab.runId);
+    await globalThis.lazify.stopScript(tab.runId);
     unsubMapRef.current.get(tab.runId)?.();
     unsubMapRef.current.delete(tab.runId);
     setTabs((prev) =>
@@ -323,7 +404,7 @@ export function ScriptsPane({ projectPath }: ScriptsPaneProps) {
   const handleCloseTab = (tabId: string) => {
     const tab = tabs.find((t) => t.tabId === tabId);
     if (tab?.status === "running" && tab.runId) {
-      void window.lazify.stopScript(tab.runId);
+      void globalThis.lazify.stopScript(tab.runId);
       unsubMapRef.current.get(tab.runId)?.();
       unsubMapRef.current.delete(tab.runId);
     }
@@ -368,13 +449,9 @@ export function ScriptsPane({ projectPath }: ScriptsPaneProps) {
   const runningCount = tabs.filter((t) => t.status === "running").length;
 
   return (
-    <div className="overflow-hidden rounded-[26px] border border-border bg-bg shadow-panel">
+    <div>
       {/* ── Header ── */}
-      <div className="flex items-center gap-2 border-b border-border bg-soft px-5 py-3.5">
-        <UiIcon name="play" className="h-4 w-4 text-muted" />
-        <OverlineText className="min-w-0 flex-1 text-muted">
-          {t(translation.ScriptsPane.Title)}
-        </OverlineText>
+      <div className="flex items-center justify-end gap-2 border-b border-border bg-soft px-4 py-2">
         <div className="flex items-center gap-2">
           {!loading && scriptEntries.length > 0 && (
             <PillText
@@ -453,6 +530,7 @@ export function ScriptsPane({ projectPath }: ScriptsPaneProps) {
                 isDisabled={isActiveTabBusy && activeTab?.scriptName !== name}
                 onRun={() => void handleRun(name)}
                 onStop={() => void handleStop()}
+                onRestart={() => void handleRestart(name)}
               />
             ))}
           </div>
@@ -461,7 +539,7 @@ export function ScriptsPane({ projectPath }: ScriptsPaneProps) {
         {/* ── Terminal panel — always visible, tabs separate from script runs ── */}
         <div className="overflow-hidden rounded-[20px] border border-black/[0.06] dark:border-white/[0.04]">
           {/* ── Tab bar ── */}
-          <div className="flex items-center border-b border-white/[0.05] bg-[#070b12]">
+          <div className="flex items-center border-b border-border bg-soft">
             <div className="flex min-w-0 flex-1 items-center gap-0.5 overflow-x-auto px-2 py-1.5 scrollbar-none">
               {tabs.map((tab) => {
                 const isActive = tab.tabId === activeTabId;
@@ -470,8 +548,8 @@ export function ScriptsPane({ projectPath }: ScriptsPaneProps) {
                   <div
                     key={tab.tabId}
                     className={clsx(
-                      "flex shrink-0 items-center rounded-lg text-white transition-colors",
-                      isActive ? "bg-white/[0.10]" : "hover:bg-white/[0.06]"
+                      "flex shrink-0 items-center rounded-lg text-text transition-colors",
+                      isActive ? "bg-text/[0.10]" : "hover:bg-text/[0.06]"
                     )}
                   >
                     {/* Tab label — click to select */}
@@ -506,7 +584,7 @@ export function ScriptsPane({ projectPath }: ScriptsPaneProps) {
                       )}
                       <MonoText
                         as="span"
-                        className="text-[11px] font-medium !text-white"
+                        className="text-[11px] font-medium !text-text"
                       >
                         {label}
                       </MonoText>
@@ -522,10 +600,10 @@ export function ScriptsPane({ projectPath }: ScriptsPaneProps) {
                           : t(translation.GlobalTerm.Close)
                       }
                       className={clsx(
-                        "mr-1 hover:bg-white/15",
+                        "mr-1 hover:bg-text/15",
                         tab.status === "running"
                           ? "text-error hover:text-error"
-                          : "text-white hover:text-white"
+                          : "text-text hover:text-text"
                       )}
                       iconClassName="h-2.5 w-2.5"
                     />
@@ -535,25 +613,27 @@ export function ScriptsPane({ projectPath }: ScriptsPaneProps) {
             </div>
 
             {/* New tab button */}
-            <button
-              type="button"
-              onClick={handleAddTab}
-              title="New terminal tab"
-              className={clsx(
-                "mx-2 shrink-0 flex items-center gap-1 rounded-md border px-2 py-1 text-[10px] font-semibold transition-colors",
-                "border-white/[0.20] bg-white/[0.08] text-white",
-                "hover:border-accent/50 hover:bg-accent/15 hover:text-accent"
-              )}
-            >
-              <UiIcon name="plus" className="h-3 w-3" />
-              <span>New</span>
-            </button>
+            <Tooltip content="New terminal tab" side="top">
+              <button
+                type="button"
+                onClick={handleAddTab}
+                className={clsx(
+                  "mx-2 shrink-0 flex items-center gap-1 rounded-md border px-2 py-1 text-[10px] font-semibold transition-colors",
+                  "border-border bg-text/[0.08] text-text",
+                  "hover:border-accent/50 hover:bg-accent/15 hover:text-accent"
+                )}
+              >
+                <UiIcon name="plus" className="h-3 w-3" />
+                <span>New</span>
+              </button>
+            </Tooltip>
           </div>
 
           {/* ── Terminal bodies — all mounted, active tab visible ── */}
           <div
             data-pty-container
-            style={{ height: termHeight, backgroundColor: "#0a0e17" }}
+            className="bg-soft"
+            style={{ height: termHeight }}
           >
             {tabs.map((tab) => {
               const isVisible = tab.tabId === activeTabId;
@@ -568,9 +648,9 @@ export function ScriptsPane({ projectPath }: ScriptsPaneProps) {
                     <div className="flex h-full flex-col items-center justify-center gap-2">
                       <UiIcon
                         name="terminal"
-                        className="h-5 w-5 text-white/15"
+                        className="h-5 w-5 text-muted/40"
                       />
-                      <MonoText as="p" className="text-[11px] text-white/20">
+                      <MonoText as="p" className="text-[11px] text-muted">
                         Select a script above to run it here
                       </MonoText>
                     </div>
@@ -583,7 +663,7 @@ export function ScriptsPane({ projectPath }: ScriptsPaneProps) {
                         name="refresh-circle"
                         className="h-3.5 w-3.5 animate-spin text-accent/60"
                       />
-                      <MonoText as="span" className="text-[12px] text-white/30">
+                      <MonoText as="span" className="text-[12px] text-muted">
                         Starting…
                       </MonoText>
                     </div>
@@ -609,12 +689,12 @@ export function ScriptsPane({ projectPath }: ScriptsPaneProps) {
             onMouseDown={handleDragStart}
             className={clsx(
               "flex h-[11px] cursor-ns-resize select-none items-center justify-center",
-              "border-t border-white/[0.05] bg-[#070b12]",
-              isDragging ? "bg-accent/20" : "hover:bg-white/[0.04]",
+              "border-t border-border bg-soft",
+              isDragging ? "bg-accent/20" : "hover:bg-text/[0.04]",
               "transition-colors duration-100"
             )}
           >
-            <div className="h-px w-8 rounded-full bg-white/25" />
+            <div className="h-px w-8 rounded-full bg-text/25" />
           </div>
         </div>
       </div>

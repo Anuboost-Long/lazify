@@ -1,5 +1,7 @@
 import type { MouseEvent } from "react";
 import clsx from "clsx";
+import { Tooltip } from "@renderer/shared/ui/Tooltip";
+import { SelectionRail } from "@renderer/shared/ui/card/SelectionRail";
 import DevIcon from "@renderer/shared/ui/icons/DevIcon";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import type { ImportedTemplateOption } from "@renderer/shared/types/lazify";
@@ -40,10 +42,12 @@ export function ImportedTemplateCard({
         "group relative cursor-pointer overflow-hidden rounded-[28px] border p-5 text-left",
         "transition-[transform,box-shadow,border-color] duration-300 ease-out hover:-translate-y-1.5",
         active
-          ? "border-accent bg-accent-gradient-180 shadow-glow"
+          ? "border-accent bg-accent-gradient-180 shadow-panel"
           : "border-border bg-soft hover:border-accent"
       )}
     >
+      {active ? <SelectionRail /> : null}
+
       <div
         className="absolute inset-x-0 top-0 h-px"
         style={{
@@ -63,25 +67,26 @@ export function ImportedTemplateCard({
         </PillText>
 
         {onDelete ? (
-          <button
-            type="button"
-            disabled={isDeleting || disabled}
-            onClick={(e) => onDelete(e, template.id, template.name)}
-            title={t(translation.TemplateCard.Delete)}
-            className={clsx(
-              "flex h-7 w-7 items-center justify-center rounded-full border",
-              "transition-colors duration-150",
-              isDeleting
-                ? "border-error/30 bg-error/5 opacity-60"
-                : "border-error/40 bg-error/8 text-error hover:border-error hover:bg-error/15"
-            )}
-          >
-            {isDeleting ? (
-              <UiIcon name="refresh-circle" className="h-3 w-3 animate-spin text-error" />
-            ) : (
-              <UiIcon name="xmark" className="h-3 w-3" />
-            )}
-          </button>
+          <Tooltip content={t(translation.TemplateCard.Delete)} side="top">
+            <button
+              type="button"
+              disabled={isDeleting || disabled}
+              onClick={(e) => onDelete(e, template.id, template.name)}
+              className={clsx(
+                "flex h-7 w-7 items-center justify-center rounded-full border",
+                "transition-colors duration-150",
+                isDeleting
+                  ? "border-error/30 bg-error/5 opacity-60"
+                  : "border-error/40 bg-error/8 text-error hover:border-error hover:bg-error/15"
+              )}
+            >
+              {isDeleting ? (
+                <UiIcon name="refresh-circle" className="h-3 w-3 animate-spin text-error" />
+              ) : (
+                <UiIcon name="xmark" className="h-3 w-3" />
+              )}
+            </button>
+          </Tooltip>
         ) : null}
       </div>
 

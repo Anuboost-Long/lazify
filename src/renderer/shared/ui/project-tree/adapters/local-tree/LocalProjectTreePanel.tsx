@@ -1,6 +1,6 @@
 import { translation } from "@renderer/i18n/translation";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
-import { ContextMenu } from "@renderer/shared/ui/project-tree/ContextMenu";
+import { TreeContextMenu } from "@renderer/shared/ui/project-tree/TreeContextMenu";
 import { ProjectTreeEditorPanel as ProjectTreeEditorPanelShell } from "@renderer/shared/ui/project-tree/core/ProjectTreeEditorPanel";
 import { EditorPane } from "@renderer/shared/ui/project-tree/EditorPane";
 import { ModuleSheet } from "@renderer/shared/ui/project-tree/ModuleSheet";
@@ -79,9 +79,8 @@ export function LocalProjectTreePanel({
         />
       }
       contextMenu={
-        <ContextMenu
-          contextMenu={adapter.contextMenu}
-          node={adapter.selectedContextNode}
+        <TreeContextMenu
+          position={adapter.selectedContextNode ? adapter.contextMenu : null}
           onNewFile={() => adapter.handleCreateEntry("file")}
           onNewFolder={() => adapter.handleCreateEntry("folder")}
           onRename={() =>

@@ -2,8 +2,14 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "node:path";
 
+import pkg from "./package.json";
+
 export default defineConfig({
   plugins: [react()],
+  // Surfaced in Settings > About, so the packaged app reports its real version.
+  define: {
+    __APP_VERSION__: JSON.stringify(pkg.version)
+  },
   base: "./",
   root: ".",
   resolve: {

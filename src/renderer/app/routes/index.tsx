@@ -4,7 +4,11 @@ import { ImportProjectRoute } from "./ImportProjectRoute";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { AppShell } from "../AppShell";
 import { appRoute, defaultAppRoute } from "../app-routes";
+import { AgentsRoute } from "./AgentsRoute";
+import { BrowserRoute } from "./BrowserRoute";
 import { ConsoleRoute } from "./ConsoleRoute";
+import { DmgCompilerRoute } from "./DmgCompilerRoute";
+import { LegalRoute } from "./LegalRoute";
 import { SettingsRoute } from "./SettingsRoute";
 import { SyncedProjectRoute } from "./SyncedProjectRoute";
 import { TemplatesRoute } from "./TemplatesRoute";
@@ -19,10 +23,14 @@ export function AppRoutes() {
         <Route path={appRoute.workspace.slice(1)} element={<WorkspaceRoute />} />
         <Route path={appRoute.workspaceProject.slice(1)} element={<SyncedProjectRoute />} />
         <Route path={appRoute.importProject.slice(1)} element={<ImportProjectRoute />} />
+        <Route path={appRoute.agents.slice(1)} element={<AgentsRoute />} />
+        <Route path={appRoute.browser.slice(1)} element={<BrowserRoute />} />
         <Route path={appRoute.console.slice(1)} element={<ConsoleRoute />} />
         <Route path={appRoute.templates.slice(1)} element={<TemplatesRoute />} />
         <Route path={appRoute.settings.slice(1)} element={<SettingsRoute />} />
         <Route path={appRoute.environment.slice(1)} element={<EnvironmentRoute />} />
+        <Route path={appRoute.dmgCompiler.slice(1)} element={<DmgCompilerRoute />} />
+        <Route path={appRoute.legal.slice(1)} element={<LegalRoute />} />
         <Route path="*" element={<Navigate to={defaultAppRoute} replace />} />
       </Route>
     </Routes>

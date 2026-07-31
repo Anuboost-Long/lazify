@@ -1,7 +1,7 @@
 import { useState } from "react";
 import clsx from "clsx";
 import { translation } from "@renderer/i18n/translation";
-import { BodyText, CardTitle, MonoText, OverlineText, PillText, Typography } from "@renderer/shared/typography";
+import { BodyText, CardTitle, MonoText, PillText, Typography } from "@renderer/shared/typography";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import { LabelButton } from "@renderer/shared/ui/LabelButton";
 import type { PackageMatch, VersionMatchReport } from "@renderer/shared/types/lazify";
@@ -93,7 +93,7 @@ export function PackageVersionPane({ projectPath }: PackageVersionPaneProps) {
     setScanning(true);
     setFixMessage(null);
     try {
-      const result = await window.lazify.matchPackageVersions(projectPath);
+      const result = await globalThis.lazify.matchPackageVersions(projectPath);
       setReport(result);
     } finally {
       setScanning(false);
@@ -104,10 +104,9 @@ export function PackageVersionPane({ projectPath }: PackageVersionPaneProps) {
     setFixing(true);
     setFixMessage(null);
     try {
-      const result = await window.lazify.fixProjectPackageVersions(projectPath);
+      const result = await globalThis.lazify.fixProjectPackageVersions(projectPath);
       setFixMessage(result.message);
-      // Refresh the report after fix
-      const refreshed = await window.lazify.matchPackageVersions(projectPath);
+      const refreshed = await globalThis.lazify.matchPackageVersions(projectPath);
       setReport(refreshed);
     } finally {
       setFixing(false);
@@ -118,14 +117,10 @@ export function PackageVersionPane({ projectPath }: PackageVersionPaneProps) {
   const allGood = report && !needsFix && report.unresolved.length === 0;
 
   return (
-    <div className="overflow-hidden rounded-[26px] border border-border bg-bg shadow-panel">
+    <div>
 
       {/* Header */}
-      <div className="flex items-center gap-2 border-b border-border bg-soft px-5 py-3.5">
-        <UiIcon name="package" className="h-4 w-4 text-muted" />
-        <OverlineText className="min-w-0 flex-1 text-muted">
-          {t(translation.PackageDoctor.Title)}
-        </OverlineText>
+      <div className="flex items-center justify-end gap-2 border-b border-border bg-soft px-4 py-2">
         <div className="flex items-center gap-2">
           {needsFix && !fixing && (
             <LabelButton

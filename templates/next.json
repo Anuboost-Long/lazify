@@ -5,8 +5,15 @@
   "projectType": "next",
   "preferredPackageManager": "npm",
   "createCommands": {
-    "npm": ["create", "next-app@latest", "--ts", "--app", "--eslint", "--use-npm", "--no-tailwind", "--no-src-dir", "--import-alias", "@/*", "--yes"],
-    "npx": ["create-next-app@latest", "--ts", "--app", "--eslint", "--use-npm", "--no-tailwind", "--no-src-dir", "--import-alias", "@/*", "--yes"]
+    "npm": ["create", "next-app@latest", "--", "{{projectName}}", "--use-npm", "--import-alias", "@/*", "--yes"],
+    "npx": ["create-next-app@latest", "{{projectName}}", "--use-npm", "--import-alias", "@/*", "--yes"]
   },
+  "createOptions": [
+    { "key": "typescript", "label": "TypeScript", "default": true, "onFlag": "--ts", "offFlag": "--js" },
+    { "key": "app", "label": "App Router", "default": true, "onFlag": "--app", "offFlag": "--no-app" },
+    { "key": "eslint", "label": "ESLint", "default": true, "onFlag": "--eslint", "offFlag": "--no-eslint" },
+    { "key": "tailwind", "label": "Tailwind CSS", "default": false, "onFlag": "--tailwind", "offFlag": "--no-tailwind" },
+    { "key": "srcDir", "label": "src/ directory", "default": false, "onFlag": "--src-dir", "offFlag": "--no-src-dir" }
+  ],
   "packageManifest": "next.json"
 }

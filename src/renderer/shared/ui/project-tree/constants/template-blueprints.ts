@@ -3,85 +3,95 @@ import type { TemplateBlueprint } from "@renderer/shared/ui/project-tree/types";
 export const templateBlueprints: Record<string, TemplateBlueprint> = {
   "expo-default": {
     rootFiles: ["package.json"],
+    // Expo (create-expo-app) now scaffolds source into a `src/` directory, so the
+    // configured Lazify structure is nested under `src/` to replace it cleanly.
     folders: [
       {
-        name: "@types",
+        name: "src",
         type: "folder",
         children: [
+          {
+            name: "@types",
+            type: "folder",
+            children: [
+              {
+                name: "assets",
+                type: "folder",
+                children: [{ name: "index.d.ts", type: "file" }]
+              }
+            ]
+          },
+          {
+            name: "app",
+            type: "folder",
+            children: [
+              { name: "_layout.tsx", type: "file" },
+              { name: "index.tsx", type: "file" }
+            ]
+          },
+          {
+            name: "api",
+            type: "folder",
+            children: [{ name: "store.ts", type: "file" }]
+          },
           {
             name: "assets",
             type: "folder",
-            children: [{ name: "index.d.ts", type: "file" }]
-          }
-        ]
-      },
-      {
-        name: "app",
-        type: "folder",
-        children: [
-          { name: "_layout.tsx", type: "file" },
-          { name: "index.tsx", type: "file" }
-        ]
-      },
-      {
-        name: "api",
-        type: "folder",
-        children: [{ name: "store.ts", type: "file" }]
-      },
-      {
-        name: "assets",
-        type: "folder",
-        children: [
-          { name: "fonts", type: "folder" },
-          { name: "images", type: "folder" },
+            children: [
+              { name: "fonts", type: "folder" },
+              { name: "images", type: "folder" },
+              {
+                name: "icons",
+                type: "folder",
+                children: [{ name: "logo.tsx", type: "file" }]
+              }
+            ]
+          },
           {
-            name: "icons",
-            type: "folder",
-            children: [{ name: "logo.tsx", type: "file" }]
-          }
-        ]
-      },
-      {
-        name: "components",
-        type: "folder",
-        children: [
-          {
-            name: "versioning",
-            type: "folder",
-            children: [{ name: "versioning-controller.tsx", type: "file" }]
-          }
-        ]
-      },
-      {
-        name: "core",
-        type: "folder",
-        children: [
-          {
-            name: "theme",
+            name: "components",
             type: "folder",
             children: [
-              { name: "colors.ts", type: "file" },
-              { name: "theme-context.ts", type: "file" },
-              { name: "theme-provider.tsx", type: "file" },
-              { name: "theme-types.ts", type: "file" }
+              {
+                name: "versioning",
+                type: "folder",
+                children: [{ name: "versioning-controller.tsx", type: "file" }]
+              }
             ]
+          },
+          {
+            name: "core",
+            type: "folder",
+            children: [
+              {
+                name: "theme",
+                type: "folder",
+                children: [
+                  { name: "colors.ts", type: "file" },
+                  { name: "theme-context.ts", type: "file" },
+                  { name: "theme-provider.tsx", type: "file" },
+                  { name: "theme-types.ts", type: "file" }
+                ]
+              }
+            ]
+          },
+          {
+            name: "hooks",
+            type: "folder",
+            children: [{ name: "use-theme.ts", type: "file" }]
+          },
+          {
+            name: "navigation",
+            type: "folder",
+            children: [{ name: "root-navigation.tsx", type: "file" }]
           }
         ]
-      },
-      {
-        name: "hooks",
-        type: "folder",
-        children: [{ name: "use-theme.ts", type: "file" }]
-      },
-      {
-        name: "navigation",
-        type: "folder",
-        children: [{ name: "root-navigation.tsx", type: "file" }]
       }
     ]
   },
   "next-default": {
-    rootFiles: ["package.json", "next.config.js"],
+    // create-next-app already emits next.config.ts; writing our own
+    // next.config.js here left the project with two competing configs
+    rootFiles: ["package.json"],
     folders: [
       {
         name: "app",

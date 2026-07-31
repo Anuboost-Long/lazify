@@ -2,8 +2,10 @@ import clsx from "clsx";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { translation } from "@renderer/i18n/translation";
 import { MonoText, OverlineText, PillText } from "@renderer/shared/typography";
+import { Tooltip } from "@renderer/shared/ui/Tooltip";
 import { TextInput } from "@renderer/shared/ui/form/FormInput";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
+import { ExplorerActions } from "@renderer/shared/ui/project-tree-optimized/ExplorerActions";
 import { getFileVisual, ROW_HEIGHT, OVERSCAN_COUNT } from "@renderer/shared/ui/project-tree-optimized/tree-utils-editable";
 import { useTranslation } from "react-i18next";
 
@@ -155,6 +157,14 @@ const TreeRow = memo(function TreeRow({
 
 export interface OptimizedTreeExplorerPaneProps {
   mode?: "editable" | "readonly";
+  /**
+   * "card" is the standalone pane. "flush" fills a frame that already owns the
+   * border and height — the split workbench — and collapses the stacked
+   * project chips into a single line so the tree gets the vertical space.
+   */
+  chrome?: "card" | "flush";
+  /** False when a sidebar shell owns the header and the create actions. */
+  showHeader?: boolean;
   busy?: boolean;
   savedProjectName: string;
   subLabel: string;
@@ -180,6 +190,8 @@ export interface OptimizedTreeExplorerPaneProps {
 
 export function OptimizedTreeExplorerPane({
   mode = "editable",
+  chrome = "card",
+  showHeader = true,
   busy = false,
   savedProjectName,
   subLabel,
@@ -234,7 +246,30 @@ export function OptimizedTreeExplorerPane({
   const virtualRows = visibleRows.slice(startIndex, endIndex);
   const topSpacerHeight = startIndex * ROW_HEIGHT;
   const isEditable = mode === "editable";
+  const flush = chrome === "flush";
   const showInclusionControls = isChecked !== undefined;
+
+  // A selection made outside the tree — an editor tab, a search hit — can land
+  // on a row that is scrolled out of sight. Expanding to it is only half the
+  // reveal; the list has to scroll to it too.
+  useEffect(() => {
+    const element = listRef.current;
+
+    if (!element || !selectedId) return;
+
+    const index = visibleRows.findIndex((row) => row.node.id === selectedId);
+
+    if (index === -1) return;
+
+    const rowTop = index * ROW_HEIGHT;
+    const rowBottom = rowTop + ROW_HEIGHT;
+
+    if (rowTop < element.scrollTop) {
+      element.scrollTop = rowTop;
+    } else if (rowBottom > element.scrollTop + element.clientHeight) {
+      element.scrollTop = rowBottom - element.clientHeight;
+    }
+  }, [selectedId, visibleRows]);
 
   const handleIsChecked = useCallback(
     (nodeId: string) => isChecked?.(nodeId) ?? false,
@@ -242,86 +277,103 @@ export function OptimizedTreeExplorerPane({
   );
 
   return (
-    <div className="h-[44rem] overflow-hidden rounded-[26px] border border-border bg-bg shadow-panel">
+    <div
+      className={clsx(
+        "flex flex-col overflow-hidden bg-bg",
+        flush ? "h-full" : "h-[44rem] rounded-[26px] border border-border shadow-panel"
+      )}
+    >
 
-      {/* Header */}
-      <div className="flex items-center gap-2 border-b border-border bg-soft px-5 py-3.5">
-        <OverlineText className="text-muted">
-          {t(translation.ProjectTree.Explorer)}
-        </OverlineText>
-        <div className="ml-auto flex items-center gap-2">
-          {isEditable && onCreateEntry ? (
-            <>
-              <button
-                type="button"
-                onClick={(event) => { event.stopPropagation(); onCreateEntry("file"); }}
-                className="flex h-8 w-8 items-center justify-center rounded-full border border-accent/25 bg-accent/10 text-accent transition-colors hover:border-accent/50 hover:bg-accent/20"
-                aria-label={t(translation.ProjectTree.NewFile)}
-                title={t(translation.ProjectTree.NewFile)}
-              >
-                <UiIcon name="plus" className="h-4 w-4" />
-              </button>
-              <button
-                type="button"
-                onClick={(event) => { event.stopPropagation(); onCreateEntry("folder"); }}
-                className="flex h-8 w-8 items-center justify-center rounded-full border border-accent/25 bg-accent/10 text-accent transition-colors hover:border-accent/50 hover:bg-accent/20"
-                aria-label={t(translation.ProjectTree.NewFolder)}
-                title={t(translation.ProjectTree.NewFolder)}
-              >
-                <UiIcon name="folder" className="h-4 w-4" />
-              </button>
-            </>
-          ) : null}
+      {/* Header — omitted when a sidebar shell draws the header instead. */}
+      {showHeader ? (
+        <div
+          className={clsx(
+            "flex shrink-0 items-center gap-2 border-b border-border bg-soft",
+            flush ? "px-4 py-2.5" : "px-5 py-3.5"
+          )}
+        >
+          <OverlineText className="text-muted">
+            {t(translation.ProjectTree.Explorer)}
+          </OverlineText>
+          <div className="ml-auto flex items-center gap-2">
+            {isEditable && onCreateEntry ? (
+              <ExplorerActions onCreateEntry={onCreateEntry} />
+            ) : null}
+          </div>
         </div>
-      </div>
+      ) : null}
 
       {/* Body */}
-      <div className="flex h-[calc(44rem-57px)] flex-col bg-bg p-4">
-        <OverlineText className="text-muted">
-          {savedProjectName}
-        </OverlineText>
-
-        <div className="mt-4 space-y-2">
-          <div className="rounded-xl border border-accent/20 bg-accent/8 px-3 py-2 text-sm font-semibold text-text shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
-            {savedProjectName}/
+      <div className={clsx("flex min-h-0 flex-1 flex-col bg-bg", flush ? "p-2" : "p-4")}>
+        {flush ? (
+          /* One line instead of four stacked chips: the project name is
+             already in the page header, so this only has to orient. */
+          <div className="flex items-center gap-2 px-1.5 pb-1.5">
+            <MonoText as="span" className="min-w-0 flex-1 truncate text-xs text-muted" title={subLabel}>
+              {savedProjectName}/
+            </MonoText>
+            {onCollapseAll ? (
+              <Tooltip content={t(translation.ProjectTree.CollapseAll)} side="bottom">
+                <button
+                  type="button"
+                  onClick={(event) => { event.stopPropagation(); onCollapseAll(); }}
+                  className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-muted transition-colors hover:bg-accent/10 hover:text-accent"
+                >
+                  <UiIcon name="collapse" className="h-3.5 w-3.5" />
+                </button>
+              </Tooltip>
+            ) : null}
           </div>
-          <div className="rounded-xl border border-dashed border-border px-3 py-2 text-xs text-muted">
-            {subLabel}
-          </div>
-        </div>
+        ) : (
+          <>
+            <OverlineText className="text-muted">
+              {savedProjectName}
+            </OverlineText>
 
-        {infoBanner ? (
-          <div className="mt-4 rounded-xl border border-accent/20 bg-accent/10 px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-accent">
-            {infoBanner}
-          </div>
-        ) : null}
+            <div className="mt-4 space-y-2">
+              <div className="rounded-xl border border-accent/20 bg-accent/8 px-3 py-2 text-sm font-semibold text-text shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+                {savedProjectName}/
+              </div>
+              <div className="rounded-xl border border-dashed border-border px-3 py-2 text-xs text-muted">
+                {subLabel}
+              </div>
+            </div>
 
-        <div className="mt-4 flex items-center gap-2">
-          <PillText className="flex-1 rounded-full border border-border bg-soft px-3 py-1 text-muted">
-            {t(translation.ProjectTree.ItemsCount, { count: totalNodeCount })}
-          </PillText>
-          {onCollapseAll ? (
-            <button
-              type="button"
-              onClick={(event) => { event.stopPropagation(); onCollapseAll(); }}
-              title={t(translation.ProjectTree.CollapseAll)}
-              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-border bg-soft text-muted transition-colors hover:border-accent/30 hover:bg-accent/10 hover:text-accent"
-            >
-              <UiIcon name="collapse" className="h-3.5 w-3.5" />
-            </button>
-          ) : null}
-        </div>
+            {infoBanner ? (
+              <div className="mt-4 rounded-xl border border-accent/20 bg-accent/10 px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-accent">
+                {infoBanner}
+              </div>
+            ) : null}
 
-        {includedFileCount !== undefined && totalFileCount !== undefined ? (
-          <PillText className="mt-2 rounded-full border border-accent/25 bg-accent/10 px-3 py-1 text-accent">
-            {t(translation.ProjectTree.FilesKept, { included: includedFileCount, total: totalFileCount })}
-          </PillText>
-        ) : null}
+            <div className="mt-4 flex items-center gap-2">
+              <PillText className="flex-1 rounded-full border border-border bg-soft px-3 py-1 text-muted">
+                {t(translation.ProjectTree.ItemsCount, { count: totalNodeCount })}
+              </PillText>
+              {onCollapseAll ? (
+                <Tooltip content={t(translation.ProjectTree.CollapseAll)} side="bottom">
+                  <button
+                    type="button"
+                    onClick={(event) => { event.stopPropagation(); onCollapseAll(); }}
+                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-border bg-soft text-muted transition-colors hover:border-accent/30 hover:bg-accent/10 hover:text-accent"
+                  >
+                    <UiIcon name="collapse" className="h-3.5 w-3.5" />
+                  </button>
+                </Tooltip>
+              ) : null}
+            </div>
+
+            {includedFileCount !== undefined && totalFileCount !== undefined ? (
+              <PillText className="mt-2 rounded-full border border-accent/25 bg-accent/10 px-3 py-1 text-accent">
+                {t(translation.ProjectTree.FilesKept, { included: includedFileCount, total: totalFileCount })}
+              </PillText>
+            ) : null}
+          </>
+        )}
 
         <div
           ref={listRef}
           onScroll={(event) => setScrollTop(event.currentTarget.scrollTop)}
-          className="mt-5 min-h-0 flex-1 overflow-y-auto"
+          className={clsx("min-h-0 flex-1 overflow-y-auto", flush ? "" : "mt-5")}
         >
           <div style={{ height: totalHeight, position: "relative" }}>
             <div

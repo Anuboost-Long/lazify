@@ -5,6 +5,7 @@ const stackLabelMap: Record<string, string> = {
   cra: "CRA",
   electron: "Electron",
   expo: "Expo",
+  js: "JS",
   nextjs: "Next.js",
   node: "Node",
   npm: "npm",

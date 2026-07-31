@@ -8,7 +8,7 @@ export function TemplatesRoute() {
     selectedImportedTemplateId,
     loadImportedTemplate,
     removeImportedTemplate,
-    saveImportedTemplateChanges
+    saveImportedTemplateChanges,
   } = useLazifyStore();
 
   return (
@@ -16,8 +16,8 @@ export function TemplatesRoute() {
       importedTemplateOptions={importedTemplateOptions}
       selectedImportedTemplate={selectedImportedTemplate}
       selectedImportedTemplateId={selectedImportedTemplateId}
-      onSelectTemplate={(templateId) => void loadImportedTemplate(templateId)}
-      onDeleteTemplate={(templateId) => void removeImportedTemplate(templateId)}
+      onSelectTemplate={(templateId) => loadImportedTemplate(templateId)}
+      onDeleteTemplate={(templateId) => removeImportedTemplate(templateId)}
       onSaveTemplate={(templateId, updates) =>
         saveImportedTemplateChanges(templateId, updates)
       }

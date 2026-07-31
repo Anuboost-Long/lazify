@@ -21,7 +21,7 @@ export function JsToolsSection() {
   async function handleScan() {
     setScanning(true);
     try {
-      const report = await window.lazify.scanTools();
+      const report = await globalThis.lazify.scanTools();
       const pmTools = report.tools.filter((t) => JS_PM_NAMES.includes(t.name));
       setDetectedTools(pmTools);
     } finally {

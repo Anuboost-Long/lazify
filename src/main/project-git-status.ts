@@ -5,7 +5,7 @@ import type { ProjectGitStatusResult } from "../renderer/shared/types/lazify";
 
 const execFileAsync = promisify(execFile);
 
-function getStatusLabel(stagedStatus: string, unstagedStatus: string) {
+export function getStatusLabel(stagedStatus: string, unstagedStatus: string) {
   const codes = `${stagedStatus}${unstagedStatus}`;
 
   if (codes.includes("?")) {
@@ -63,7 +63,9 @@ export async function getProjectGitStatus(projectPath: string): Promise<ProjectG
       execFileAsync("git", ["branch", "--show-current"], { cwd: projectPath }),
       execFileAsync("git", ["branch", "--format=%(refname:short)"], { cwd: projectPath }),
       execFileAsync("git", ["remote", "get-url", "origin"], { cwd: projectPath }).catch(() => ({ stdout: "" })),
-      execFileAsync("git", ["status", "--porcelain=v1"], { cwd: projectPath })
+      // -uall: without it git collapses an untracked directory into a single
+      // "dir/" entry, which the tree then draws as one mysterious file.
+      execFileAsync("git", ["status", "--porcelain=v1", "-uall"], { cwd: projectPath })
     ]);
     const branches = branchListResult.stdout
       .split("\n")
@@ -108,6 +110,40 @@ export async function getProjectGitStatus(projectPath: string): Promise<ProjectG
       isGitRepo: false,
       hasUncommittedChanges: false,
       entries: []
+    };
+  }
+}
+
+export interface GitCheckoutResult {
+  success: boolean;
+  /** git's own stderr on failure — it explains the refusal better than we can. */
+  message: string;
+}
+
+/**
+ * Switches the working tree to another branch.
+ *
+ * Nothing is stashed or forced: git refuses the checkout when local changes
+ * would be overwritten, and that refusal is passed straight through so the
+ * user can decide what to do rather than silently losing work.
+ */
+export async function checkoutProjectBranch(
+  projectPath: string,
+  branch: string
+): Promise<GitCheckoutResult> {
+  try {
+    await execFileAsync("git", ["checkout", branch], { cwd: projectPath });
+
+    return { success: true, message: "" };
+  } catch (error) {
+    const stderr =
+      typeof error === "object" && error !== null && "stderr" in error
+        ? String((error as { stderr: unknown }).stderr).trim()
+        : "";
+
+    return {
+      success: false,
+      message: stderr || (error instanceof Error ? error.message : "Unable to switch branch.")
     };
   }
 }

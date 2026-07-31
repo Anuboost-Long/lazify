@@ -6,4 +6,5 @@ export * from "./template-engine/save-template";
 export * from "./template-engine/validate-template";
 export * from "./stack-detection/types";
 export * from "./stack-detection/detect-stack";
+export * from "./stack-detection/dotnet-detector";
 export * from "./package-version-matcher";

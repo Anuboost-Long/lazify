@@ -7,7 +7,7 @@ const DEFAULT_PM: PreferredPackageManager = "npm";
 
 function readStoredPm(): PreferredPackageManager {
   if (typeof window === "undefined") return DEFAULT_PM;
-  const stored = window.localStorage.getItem(PM_STORAGE_KEY);
+  const stored = globalThis.localStorage.getItem(PM_STORAGE_KEY);
   if (stored === "npm" || stored === "yarn" || stored === "pnpm" || stored === "bun") {
     return stored as PreferredPackageManager;
   }
@@ -20,7 +20,7 @@ export function usePreferredPackageManager() {
   const [preferredPm, setPreferredPmAtom] = useAtom(preferredPmAtom);
 
   function setPreferredPm(value: PreferredPackageManager) {
-    window.localStorage.setItem(PM_STORAGE_KEY, value);
+    globalThis.localStorage.setItem(PM_STORAGE_KEY, value);
     setPreferredPmAtom(value);
   }
 

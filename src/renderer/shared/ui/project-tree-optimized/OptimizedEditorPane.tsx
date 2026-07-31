@@ -1,121 +1,203 @@
-import { translation } from "@renderer/i18n/translation";
-import { BodyText, CardTitle, OverlineText, PillText } from "@renderer/shared/typography";
-import type { ImportedProjectIndexNode } from "@renderer/shared/types/lazify";
-import UiIcon from "@renderer/shared/ui/icons/UiIcon";
-import type { FileContentState } from "@renderer/shared/ui/project-tree-optimized/types";
 import clsx from "clsx";
-import { useMemo, useRef } from "react";
+import { useState, type ReactNode } from "react";
+import { translation } from "@renderer/i18n/translation";
+import type { ImportedProjectIndexNode } from "@renderer/shared/types/lazify";
+import { SmallText } from "@renderer/shared/typography";
+import { CodeSurface } from "@renderer/shared/ui/code/CodeSurface";
+import { EditorEmptyState } from "@renderer/shared/ui/code/EditorEmptyState";
+import { DiffView, type DiffViewMode } from "@renderer/shared/ui/code/diff/DiffView";
+import { Tooltip } from "@renderer/shared/ui/Tooltip";
+import UiIcon from "@renderer/shared/ui/icons/UiIcon";
+import { ConfirmModal } from "@renderer/shared/ui/modal/ConfirmModal";
+import type { EditorTab } from "@renderer/shared/ui/code/EditorTabBar";
+import {
+  EditorPaneNotice,
+  EditorPaneShell,
+} from "@renderer/shared/ui/code/EditorPaneShell";
+import type { FileContentState } from "@renderer/shared/ui/project-tree-optimized/types";
 import { useTranslation } from "react-i18next";
 
 interface OptimizedEditorPaneProps {
   selectedNode: ImportedProjectIndexNode | null;
   selectedFileState: FileContentState | null;
+  /** Open-file tabs rendered in the header instead of the title block. */
+  tabs?: ReactNode;
+  /** The tab being shown; a "diff" tab renders its patch, not the file. */
+  activeTab?: EditorTab | null;
+  /** "flush" drops the pane's own card so it can fill a shared frame. */
+  chrome?: "card" | "flush";
+  /** Empties the editor. Omit where the pane has no tabs to close. */
+  onCloseAll?: () => void;
+  /** How many tabs closing all would take, named in the confirmation. */
+  openTabCount?: number;
+  /** Clicking an identifier in the file asks to go to its declaration. */
+  onOpenSymbol?: (symbol: string) => void;
+  /** 1-based line to reveal and mark once the file is showing. */
+  focusLine?: number | null;
 }
 
+/** The read-only pane: a file loaded on demand, so it also has load states. */
 export function OptimizedEditorPane({
   selectedNode,
   selectedFileState,
-}: OptimizedEditorPaneProps) {
+  tabs,
+  activeTab = null,
+  chrome = "card",
+  onCloseAll,
+  openTabCount = 0,
+  onOpenSymbol,
+  focusLine,
+}: Readonly<OptimizedEditorPaneProps>) {
   const { t } = useTranslation();
-  const gutterRef = useRef<HTMLDivElement | null>(null);
-  const lineNumbers = useMemo(() => {
-    const content = selectedFileState?.content ?? "";
-    const lineCount = Math.max(1, content.split("\n").length);
-    return Array.from({ length: lineCount }, (_, index) => index + 1);
-  }, [selectedFileState?.content]);
+  const flush = chrome === "flush";
+  const isDiff = activeTab?.kind === "diff";
+  const [diffMode, setDiffMode] = useState<DiffViewMode>("unified");
+  // Closing every tab at once throws away the whole reading context, so it is
+  // gated the way closing an agent terminal is.
+  const [confirmCloseAll, setConfirmCloseAll] = useState(false);
+  const isFile = selectedNode?.type === "file";
+  const status = selectedFileState?.status;
+  const pending =
+    !selectedFileState || status === "idle" || status === "loading";
+
+  // Nothing open: no header and no badge, the way VS Code leaves an empty
+  // editor group — but the surface still says so, matching the agent panel's
+  // blank state. The standalone card keeps its own frame and notice.
+  if (flush && !tabs && !isFile) {
+    return <EditorEmptyState />;
+  }
+
+  const body = () => {
+    if (!isFile) {
+      return (
+        <EditorPaneNotice
+          chrome={chrome}
+          title={t(translation.ProjectTree.SelectFileToPreview)}
+          description={t(translation.ProjectTree.SelectFileToPreviewDesc)}
+        />
+      );
+    }
+
+    if (pending) {
+      return (
+        <EditorPaneNotice
+          chrome={chrome}
+          title={t(translation.ProjectTree.LoadingFilePreview)}
+          description={t(translation.ProjectTree.LoadingFilePreviewDesc)}
+        />
+      );
+    }
+
+    if (status === "error") {
+      return (
+        <EditorPaneNotice
+          chrome={chrome}
+          tone="error"
+          title={t(translation.ProjectTree.LoadFilePreviewError)}
+          description={selectedFileState.content}
+        />
+      );
+    }
+
+    if (isDiff) {
+      return (
+        <DiffView
+          diff={selectedFileState.content ?? ""}
+          mode={diffMode}
+          fileName={selectedNode.name}
+          // The diff carries the whole file, so its single "@@" line says
+          // nothing the reader does not already see.
+          showHunkHeaders={false}
+        />
+      );
+    }
+
+    return (
+      <CodeSurface
+        variant={flush ? "flush" : "panel"}
+        content={selectedFileState.content ?? ""}
+        fileName={selectedNode.name}
+        // Only the file view resolves symbols; a diff's line numbers belong to
+        // the patch, not the file, so a jump into one would land nowhere.
+        onOpenSymbol={onOpenSymbol}
+        focusLine={focusLine}
+      />
+    );
+  };
 
   return (
-    <div className="h-[44rem] overflow-hidden rounded-[26px] border border-border bg-bg shadow-panel">
-
-      {/* Header */}
-      <div className="flex items-center gap-2 border-b border-border bg-soft px-5 py-3.5">
-        <UiIcon name="page" className="h-4 w-4 text-warning" />
-        <div className="min-w-0 flex-1">
-          <CardTitle className="truncate text-sm">
-            {selectedNode?.type === "file" ? selectedNode.name : t(translation.ProjectTree.NoFileSelected)}
-          </CardTitle>
-          <OverlineText className="truncate text-muted">
-            {selectedNode?.type === "file"
-              ? selectedNode.absolutePath
-              : t(translation.ProjectTree.SelectFileFromExplorer)}
-          </OverlineText>
-        </div>
-        <PillText className="rounded-full border border-border bg-bg px-3 py-1 text-muted">
-          {t(translation.ProjectTree.ReadOnly)}
-        </PillText>
-      </div>
-
-      {/* Body */}
-      <div
-        className="h-[calc(44rem-57px)] p-5"
-        style={{
-          background:
-            "radial-gradient(circle at top right, rgb(var(--color-accent) / 0.06), transparent 30%), rgb(var(--color-bg))",
-        }}
-      >
-        {selectedNode?.type === "file" ? (
-          !selectedFileState ||
-          selectedFileState.status === "idle" ||
-          selectedFileState.status === "loading" ? (
-            <div className="flex h-full items-center justify-center rounded-[20px] border border-dashed border-border bg-soft/30 p-8 text-center">
-              <div>
-                <CardTitle className="text-lg">{t(translation.ProjectTree.LoadingFilePreview)}</CardTitle>
-                <BodyText className="mt-3 text-muted">
-                  {t(translation.ProjectTree.LoadingFilePreviewDesc)}
-                </BodyText>
-              </div>
+    <EditorPaneShell
+      chrome={chrome}
+      tabs={tabs}
+      headerAction={
+        <>
+          {isDiff ? (
+            <div className="flex shrink-0 items-center rounded-md border border-border p-0.5">
+              {(["unified", "split"] as const).map((mode) => (
+                <button
+                  key={mode}
+                  type="button"
+                  onClick={() => setDiffMode(mode)}
+                  className={clsx(
+                    "rounded px-2 py-0.5 transition-colors",
+                    diffMode === mode ? "bg-text/10" : "hover:bg-text/[0.06]"
+                  )}
+                >
+                  <SmallText as="span" className={diffMode === mode ? "!text-text" : "!text-muted"}>
+                    {t(
+                      mode === "unified"
+                        ? translation.Agents.DiffUnified
+                        : translation.Agents.DiffSplit
+                    )}
+                  </SmallText>
+                </button>
+              ))}
             </div>
-          ) : selectedFileState.status === "error" ? (
-            <div className="flex h-full items-center justify-center rounded-[20px] border border-dashed border-error/25 bg-error/5 p-8 text-center">
-              <div>
-                <CardTitle className="text-lg text-error">{t(translation.ProjectTree.LoadFilePreviewError)}</CardTitle>
-                <BodyText className="mt-3 whitespace-pre-wrap text-text/70">
-                  {selectedFileState.content}
-                </BodyText>
-              </div>
-            </div>
-          ) : (
-            <div
-              className={clsx(
-                "flex h-full overflow-hidden rounded-[20px] border",
-                "border-accent/15 bg-bg/60 text-text"
-              )}
-            >
-              <div
-                ref={gutterRef}
-                className="w-14 shrink-0 overflow-hidden border-r border-border bg-bg/60 px-3 py-4 text-right font-mono text-xs leading-7 text-muted/50"
+          ) : null}
+
+          {/* Only worth offering once something is open. */}
+          {onCloseAll && tabs ? (
+            <Tooltip content={t(translation.ProjectTree.CloseAllTabs)} side="bottom">
+              <button
+                type="button"
+                onClick={() => setConfirmCloseAll(true)}
+                aria-label={t(translation.ProjectTree.CloseAllTabs)}
+                className={clsx(
+                  "flex h-6 w-6 shrink-0 items-center justify-center rounded-md",
+                  "text-muted transition-colors hover:bg-error/10 hover:text-error"
+                )}
               >
-                {lineNumbers.map((lineNumber) => (
-                  <div key={lineNumber}>{lineNumber}</div>
-                ))}
-              </div>
+                <UiIcon name="xmark" className="h-3.5 w-3.5" />
+              </button>
+            </Tooltip>
+          ) : null}
+        </>
+      }
+      icon="page"
+      title={
+        isFile ? selectedNode.name : t(translation.ProjectTree.NoFileSelected)
+      }
+      subtitle={
+        isFile
+          ? selectedNode.absolutePath
+          : t(translation.ProjectTree.SelectFileFromExplorer)
+      }
+      badge={t(translation.ProjectTree.ReadOnly)}
+    >
+      {body()}
 
-              <textarea
-                readOnly
-                spellCheck={false}
-                value={selectedFileState?.content ?? ""}
-                onScroll={(event) => {
-                  if (gutterRef.current) {
-                    gutterRef.current.scrollTop = event.currentTarget.scrollTop;
-                  }
-                }}
-                className="h-full w-full resize-none overflow-y-auto bg-transparent px-5 py-4 font-mono text-sm leading-7 text-text outline-none"
-              />
-            </div>
-          )
-        ) : (
-          <div className="flex h-full items-center justify-center rounded-[20px] border border-dashed border-border bg-soft/30 p-8 text-center">
-            <div className="max-w-md">
-              <CardTitle className="text-lg">
-                {t(translation.ProjectTree.SelectFileToPreview)}
-              </CardTitle>
-              <BodyText className="mt-3 text-muted">
-                {t(translation.ProjectTree.SelectFileToPreviewDesc)}
-              </BodyText>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
+      <ConfirmModal
+        open={confirmCloseAll}
+        title={t(translation.ProjectTree.CloseAllTabsTitle)}
+        description={t(translation.ProjectTree.CloseAllTabsDesc, { count: openTabCount })}
+        confirmLabel={t(translation.ProjectTree.CloseAllTabs)}
+        destructive
+        onConfirm={() => {
+          onCloseAll?.();
+          setConfirmCloseAll(false);
+        }}
+        onCancel={() => setConfirmCloseAll(false)}
+      />
+    </EditorPaneShell>
   );
 }

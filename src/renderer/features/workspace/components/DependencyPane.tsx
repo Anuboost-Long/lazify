@@ -241,7 +241,7 @@ export function DependencyPane({ projectPath }: DependencyPaneProps) {
     setLoading(true);
     setLoadError(null);
     try {
-      const result = await window.lazify.listProjectPackages(projectPath);
+      const result = await globalThis.lazify.listProjectPackages(projectPath);
       setPackages(result);
     } catch (err) {
       setLoadError(err instanceof Error ? err.message : t(translation.DependencyPane.LoadError));
@@ -264,11 +264,11 @@ export function DependencyPane({ projectPath }: DependencyPaneProps) {
     }
 
     let cancelled = false;
-    const timeoutId = window.setTimeout(async () => {
+    const timeoutId = globalThis.setTimeout(async () => {
       setSearching(true);
       setSearchError(null);
       try {
-        const results = await window.lazify.searchNpmPackages(normalizedQuery);
+        const results = await globalThis.lazify.searchNpmPackages(normalizedQuery);
         if (!cancelled) setSearchResults(results);
       } catch (err) {
         if (!cancelled) {
@@ -282,13 +282,13 @@ export function DependencyPane({ projectPath }: DependencyPaneProps) {
 
     return () => {
       cancelled = true;
-      window.clearTimeout(timeoutId);
+      globalThis.clearTimeout(timeoutId);
     };
   }, [searchQuery]);
 
   useEffect(() => {
     if (showAddPanel) {
-      window.setTimeout(() => searchInputRef.current?.focus(), 50);
+      globalThis.setTimeout(() => searchInputRef.current?.focus(), 50);
     }
   }, [showAddPanel]);
 
@@ -296,7 +296,7 @@ export function DependencyPane({ projectPath }: DependencyPaneProps) {
     setActionPkg(packageName);
     setActionError(null);
     try {
-      const result = await window.lazify.addProjectPackage({ projectPath, packageName, dev });
+      const result = await globalThis.lazify.addProjectPackage({ projectPath, packageName, dev });
       if (!result.success) {
         setActionError(t(translation.DependencyPane.InstallError, { name: packageName }));
       } else {
@@ -316,7 +316,7 @@ export function DependencyPane({ projectPath }: DependencyPaneProps) {
     setActionPkg(packageName);
     setActionError(null);
     try {
-      const result = await window.lazify.removeProjectPackage({ projectPath, packageName });
+      const result = await globalThis.lazify.removeProjectPackage({ projectPath, packageName });
       if (!result.success) {
         setActionError(t(translation.DependencyPane.RemoveError, { name: packageName }));
       } else {
@@ -352,14 +352,10 @@ export function DependencyPane({ projectPath }: DependencyPaneProps) {
   ];
 
   return (
-    <div className="overflow-hidden rounded-[26px] border border-border bg-bg shadow-panel">
+    <div>
 
       {/* ── Header ── */}
-      <div className="flex items-center gap-2 border-b border-border bg-soft px-5 py-3.5">
-        <UiIcon name="package" className="h-4 w-4 text-muted" />
-        <OverlineText className="min-w-0 flex-1 text-muted">
-          {t(translation.DependencyPane.Title)}
-        </OverlineText>
+      <div className="flex items-center justify-end gap-2 border-b border-border bg-soft px-4 py-2">
 
         <div className="flex items-center gap-2">
           {!loading && packages.length > 0 && (

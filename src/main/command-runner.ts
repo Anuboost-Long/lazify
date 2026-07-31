@@ -16,6 +16,8 @@ export interface CommandRequest {
   command: string;
   args: string[];
   cwd?: string;
+  /** Extra env merged over the process env for this command. */
+  env?: Record<string, string>;
 }
 
 export interface CommandResult {
@@ -35,7 +37,7 @@ export class CommandRunner {
     emitScriptLog: LogEmitter,
     onDone: (runId: string, exitCode: number | null) => void
   ): string {
-    const { command, args, cwd } = request;
+    const { command, args, cwd, env } = request;
     const runId = `script-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
 
     emitScriptLog({
@@ -47,7 +49,7 @@ export class CommandRunner {
 
     const child = spawn(command, args, {
       cwd,
-      env: process.env,
+      env: env ? { ...process.env, ...env } : process.env,
       shell: process.platform === "win32"
     });
 

@@ -17,6 +17,11 @@ const IGNORED_DIRECTORY_NAMES = new Set([
   ".expo",
   ".turbo",
   "coverage",
+  // .NET build output
+  "bin",
+  "obj",
+  ".vs",
+  "TestResults",
 ]);
 const MAX_PREVIEW_BYTES = 256 * 1024;
 
@@ -162,6 +167,15 @@ function shouldIgnore(
   return ignored;
 }
 
+/**
+ * Env files are gitignored by design, but they are exactly what you open the
+ * explorer to check, so the tree lists them anyway. Only the explorer index
+ * makes this exception — template exports keep honouring .gitignore.
+ */
+function isEnvFile(entryName: string, isDirectory: boolean) {
+  return !isDirectory && (entryName === ".env" || entryName.startsWith(".env."));
+}
+
 function createNode(
   rootPath: string,
   absolutePath: string,
@@ -266,6 +280,10 @@ async function scanDirectoryNode(
         if (IGNORED_DIRECTORY_NAMES.has(entry.name)) {
           return false;
         }
+      }
+
+      if (isEnvFile(entry.name, entry.isDirectory())) {
+        return true;
       }
 
       const entryPath = path.join(currentPath, entry.name);

@@ -38,7 +38,7 @@ export function InstallToolModal({ tool, open, onClose, onInstalled }: InstallTo
   const handleInstall = useCallback(async () => {
     if (!tool) return;
     setState("installing");
-    const result = await window.lazify.installTool(tool.name);
+    const result = await globalThis.lazify.installTool(tool.name);
     setOutput(result.output);
     setSuccess(result.success);
     setState("done");

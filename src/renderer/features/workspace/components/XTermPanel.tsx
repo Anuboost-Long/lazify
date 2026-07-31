@@ -1,45 +1,115 @@
 import "@xterm/xterm/css/xterm.css";
 
-import { useEffect, useLayoutEffect, useRef } from "react";
-import { Terminal } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
+import { Terminal, type ILink } from "@xterm/xterm";
+import { useEffect, useLayoutEffect, useRef } from "react";
+
+import { useResolvedTheme } from "@renderer/shared/hooks/use-theme";
 
 interface XTermPanelProps {
   runId: string;
   isActive?: boolean;
+  /** Grab keyboard focus when this terminal is the visible one. */
+  autoFocus?: boolean;
   onReady?: (cols: number, rows: number) => void;
+  /**
+   * Turns a path printed in the output into an absolute file path, or null when
+   * it points at nothing. Only what resolves is drawn as a link, so prose that
+   * happens to look path-shaped stays plain text. Absent → no links at all.
+   */
+  onResolveFilePath?: (printedPath: string) => Promise<string | null>;
+  /** Opens a clicked file link, at the line the output named when it named one. */
+  onOpenFilePath?: (absolutePath: string, line: number | null) => void;
 }
 
-// Match the existing dark panel background exactly.
-const THEME = {
-  background:      "#0a0e17",
-  foreground:      "#c9cdd6",
-  black:           "#1a1e2e",
-  red:             "#f07178",
-  green:           "#c3e88d",
-  yellow:          "#ffcb6b",
-  blue:            "#82aaff",
-  magenta:         "#c792ea",
-  cyan:            "#89ddff",
-  white:           "#c9cdd6",
-  brightBlack:     "#4a5068",
-  brightRed:       "#f07178",
-  brightGreen:     "#c3e88d",
-  brightYellow:    "#ffcb6b",
-  brightBlue:      "#82aaff",
-  brightMagenta:   "#c792ea",
-  brightCyan:      "#89ddff",
-  brightWhite:     "#ffffff",
-  cursor:          "#c792ea",
-  cursorAccent:    "#0a0e17",
+// A path as agents print it: "docs/guide.md", "src/app/page.tsx:42",
+// "package.json". The extension is required — without it every bare word in a
+// sentence ("selection_ids", "end-to-end") would light up as a link.
+const FILE_PATH_PATTERN = /\/?(?:[\w.@~+-]+\/)*[\w.@+-]+\.[A-Za-z]\w*(?::\d+){0,2}/g;
+
+/** Splits "src/app.ts:42:8" into the file and the line it points at. */
+function splitLineSuffix(printed: string): { filePath: string; line: number | null } {
+  const [filePath, line] = printed.split(":");
+
+  return { filePath, line: line ? Number(line) : null };
+}
+
+// The terminal follows the app theme. Each palette is tuned for its own
+// background: the dark one keeps the pastel ANSI colours, while the light one
+// darkens every hue, since pastels on white are barely legible.
+const DARK_THEME = {
+  // Exactly --color-bg-soft (dark), so the terminal and its panel are seamless.
+  background: "#111827",
+  foreground: "#ffffff",
+  black: "#1a1e2e",
+  red: "#f07178",
+  green: "#c3e88d",
+  yellow: "#ffcb6b",
+  blue: "#82aaff",
+  magenta: "#c792ea",
+  cyan: "#89ddff",
+  white: "#ffffff",
+  brightBlack: "#7c869e",
+  brightRed: "#f07178",
+  brightGreen: "#c3e88d",
+  brightYellow: "#ffcb6b",
+  brightBlue: "#82aaff",
+  brightMagenta: "#c792ea",
+  brightCyan: "#89ddff",
+  brightWhite: "#ffffff",
+  cursor: "#c792ea",
+  cursorAccent: "#111827",
   selectionBackground: "#c792ea40",
 };
 
-export function XTermPanel({ runId, isActive, onReady }: XTermPanelProps) {
+const LIGHT_THEME = {
+  // Exactly --color-bg-soft (light).
+  background: "#ffffff",
+  foreground: "#111827",
+  black: "#111827",
+  red: "#b91c1c",
+  green: "#166534",
+  yellow: "#854d0e",
+  blue: "#1d4ed8",
+  magenta: "#7e22ce",
+  cyan: "#155e75",
+  white: "#374151",
+  brightBlack: "#6b7280",
+  brightRed: "#dc2626",
+  brightGreen: "#15803d",
+  brightYellow: "#a16207",
+  brightBlue: "#2563eb",
+  brightMagenta: "#9333ea",
+  brightCyan: "#0e7490",
+  brightWhite: "#111827",
+  cursor: "#7e22ce",
+  cursorAccent: "#ffffff",
+  selectionBackground: "#7e22ce29",
+};
+
+export function XTermPanel({
+  runId,
+  isActive,
+  autoFocus,
+  onReady,
+  onResolveFilePath,
+  onOpenFilePath,
+}: Readonly<XTermPanelProps>) {
+  const resolvedTheme = useResolvedTheme();
+  // Read through refs for the same reason the theme is: the terminal is built
+  // once per run, and a new callback identity must not tear it down.
+  const resolveFilePathRef = useRef(onResolveFilePath);
+  resolveFilePathRef.current = onResolveFilePath;
+  const openFilePathRef = useRef(onOpenFilePath);
+  openFilePathRef.current = onOpenFilePath;
+  // Read through a ref so a theme switch repaints (below) instead of rebuilding
+  // the terminal, which would throw away the scrollback.
+  const themeRef = useRef(resolvedTheme);
+  themeRef.current = resolvedTheme;
   const containerRef = useRef<HTMLDivElement>(null);
-  const termRef     = useRef<Terminal | null>(null);
-  const fitRef      = useRef<FitAddon | null>(null);
-  const unsubRef    = useRef<(() => void) | null>(null);
+  const termRef = useRef<Terminal | null>(null);
+  const fitRef = useRef<FitAddon | null>(null);
+  const unsubRef = useRef<(() => void) | null>(null);
 
   // Build the terminal once per runId (key handles remount on new run).
   useLayoutEffect(() => {
@@ -50,9 +120,11 @@ export function XTermPanel({ runId, isActive, onReady }: XTermPanelProps) {
       cursorBlink: true,
       fontFamily: '"JetBrains Mono", "Fira Code", Menlo, Consolas, monospace',
       fontSize: 12.5,
-      lineHeight: 1.4,
-      letterSpacing: 0.3,
-      theme: THEME,
+      // Block-drawing output (Expo QR codes, progress bars, box UIs) relies on
+      // glyphs touching edge to edge, so rows and columns get no extra gap.
+      lineHeight: 1,
+      letterSpacing: 0,
+      theme: themeRef.current === "light" ? LIGHT_THEME : DARK_THEME,
       scrollback: 10_000,
       allowTransparency: false,
       convertEol: false,
@@ -67,29 +139,121 @@ export function XTermPanel({ runId, isActive, onReady }: XTermPanelProps) {
       fit.fit();
       const { cols, rows } = term;
       onReady?.(cols, rows);
-      window.lazify.ptyResize(runId, cols, rows);
+      globalThis.lazify.ptyResize(runId, cols, rows);
     });
 
     termRef.current = term;
-    fitRef.current  = fit;
+    fitRef.current = fit;
 
     // Forward keyboard/paste to the PTY.
-    term.onData((data) => window.lazify.ptyWrite(runId, data));
+    term.onData((data) => globalThis.lazify.ptyWrite(runId, data));
 
-    // Stream PTY output directly into xterm — zero processing overhead.
-    const stopData = window.lazify.onPtyData((event) => {
-      if (event.runId === runId) term.write(event.data);
+    // Paths in the output are clickable, the way they are in an IDE terminal.
+    // xterm asks for one hovered row at a time, so the work is a regex over
+    // that row plus a resolve for each candidate on it.
+    let disposed = false;
+
+    term.registerLinkProvider({
+      provideLinks(bufferLineNumber, callback) {
+        const resolve = resolveFilePathRef.current;
+        const open = openFilePathRef.current;
+        const bufferLine = term.buffer.active.getLine(bufferLineNumber - 1);
+
+        if (!resolve || !open || !bufferLine) {
+          callback(undefined);
+          return;
+        }
+
+        const candidates = [...bufferLine.translateToString(true).matchAll(FILE_PATH_PATTERN)];
+
+        if (candidates.length === 0) {
+          callback(undefined);
+          return;
+        }
+
+        void Promise.all(
+          candidates.map(async (candidate): Promise<ILink | null> => {
+            const { filePath, line } = splitLineSuffix(candidate[0]);
+            const absolutePath = await resolve(filePath);
+
+            if (!absolutePath) return null;
+
+            // xterm ranges are 1-based and inclusive on both ends.
+            const startX = (candidate.index ?? 0) + 1;
+
+            return {
+              range: {
+                start: { x: startX, y: bufferLineNumber },
+                end: { x: startX + candidate[0].length - 1, y: bufferLineNumber },
+              },
+              text: candidate[0],
+              activate: () => openFilePathRef.current?.(absolutePath, line),
+            };
+          })
+        ).then((links) => {
+          if (disposed) return;
+
+          const found = links.filter((link): link is ILink => link !== null);
+          callback(found.length > 0 ? found : undefined);
+        });
+      },
+    });
+
+    // Replay what the session already printed, so re-attaching (switching
+    // project, or leaving and returning to the page) keeps the transcript.
+    //
+    // Subscribe first and hold live chunks aside, then write the backlog and
+    // flush only the chunks it did not already contain — matched by sequence,
+    // so nothing is lost or duplicated in the round-trip.
+    let replayed = false;
+    let pending: { data: string; seq?: number }[] = [];
+
+    const stopData = globalThis.lazify.onPtyData((event) => {
+      if (event.runId !== runId) return;
+
+      if (replayed) {
+        term.write(event.data);
+      } else {
+        pending.push({ data: event.data, seq: event.seq });
+      }
     });
     unsubRef.current = stopData;
 
+    void globalThis.lazify
+      .ptyBacklog(runId)
+      .then(({ data, seq }) => {
+        if (data) term.write(data);
+
+        pending
+          .filter((chunk) => chunk.seq === undefined || chunk.seq > seq)
+          .forEach((chunk) => term.write(chunk.data));
+      })
+      .catch(() => {
+        // No backlog available (non-PTY fallback) — just show live output.
+        pending.forEach((chunk) => term.write(chunk.data));
+      })
+      .finally(() => {
+        pending = [];
+        replayed = true;
+      });
+
     return () => {
+      disposed = true;
       stopData();
       term.dispose();
       termRef.current = null;
-      fitRef.current  = null;
+      fitRef.current = null;
       unsubRef.current = null;
     };
   }, [runId]);
+
+  // Repainting in place keeps the scrollback; rebuilding would lose it.
+  useEffect(() => {
+    const term = termRef.current;
+    if (!term) return;
+
+    term.options.theme = resolvedTheme === "light" ? LIGHT_THEME : DARK_THEME;
+  }, [resolvedTheme]);
 
   // Keep the terminal sized to its container at all times.
   useEffect(() => {
@@ -97,14 +261,14 @@ export function XTermPanel({ runId, isActive, onReady }: XTermPanelProps) {
     if (!container) return;
 
     const observer = new ResizeObserver(() => {
-      const fit  = fitRef.current;
+      const fit = fitRef.current;
       const term = termRef.current;
       if (!fit || !term) return;
       // Skip fitting when the container is hidden (display:none → 0 dimensions)
       if (container.offsetWidth === 0 || container.offsetHeight === 0) return;
       try {
         fit.fit();
-        window.lazify.ptyResize(runId, term.cols, term.rows);
+        globalThis.lazify.ptyResize(runId, term.cols, term.rows);
       } catch {
         // container may have been detached between observation and callback
       }
@@ -118,19 +282,22 @@ export function XTermPanel({ runId, isActive, onReady }: XTermPanelProps) {
   useEffect(() => {
     if (!isActive) return;
     const container = containerRef.current;
-    const fit  = fitRef.current;
+    const fit = fitRef.current;
     const term = termRef.current;
     if (!container || !fit || !term) return;
     if (container.offsetWidth === 0 || container.offsetHeight === 0) return;
     requestAnimationFrame(() => {
       try {
         fit.fit();
-        window.lazify.ptyResize(runId, term.cols, term.rows);
+        globalThis.lazify.ptyResize(runId, term.cols, term.rows);
+        if (autoFocus) {
+          term.focus();
+        }
       } catch {
         // terminal may have exited
       }
     });
-  }, [isActive, runId]);
+  }, [autoFocus, isActive, runId]);
 
   return (
     <div

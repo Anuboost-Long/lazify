@@ -39,14 +39,15 @@ export function UpdateToolModal({ tool, updateInfo, open, onClose, onUpdated }: 
   const handleUpdate = useCallback(async () => {
     if (!tool) return;
     setState("updating");
-    const result = await window.lazify.updateTool(tool.name);
+    const result = await globalThis.lazify.updateTool(tool.name);
     setOutput(result.output);
     setSuccess(result.success);
     setState("done");
   }, [tool]);
 
-  const norm = (v: string | null) => v?.replace(/^v/, "") ?? null;
+  const norm = (v: string | null) => v?.replace(/^v/, "").trim() || null;
   const hasUpdate = updateInfo?.hasUpdate ?? false;
+  const currentVersion = norm(tool?.version ?? null);
 
   return (
     <BaseModal open={open} onClose={state === "updating" ? undefined : onClose} cancellable={state !== "updating"}>
@@ -83,12 +84,12 @@ export function UpdateToolModal({ tool, updateInfo, open, onClose, onUpdated }: 
               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-success/25 bg-success/10 text-success">
                 <UiIcon name="check-circle" className="h-4 w-4" />
               </div>
-              <div>
+              <div className="min-w-0">
                 <BodyText className="font-semibold text-success">{t(translation.UpdateToolModal.AlreadyLatest)}</BodyText>
-                <BodyText className="mt-1 text-xs text-muted">
+                <BodyText className="mt-1 break-words text-xs text-muted">
                   {t(translation.UpdateToolModal.AlreadyLatestDesc, {
                     name: tool?.displayName,
-                    version: norm(tool?.version ?? null) ? `(${norm(tool?.version ?? null)})` : ""
+                    version: currentVersion ? `(${currentVersion})` : ""
                   })}
                 </BodyText>
               </div>
@@ -103,14 +104,20 @@ export function UpdateToolModal({ tool, updateInfo, open, onClose, onUpdated }: 
                   <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-accent/25 bg-accent/10 text-accent">
                     <UiIcon name="activity" className="h-4 w-4" />
                   </div>
-                  <div className="flex flex-1 items-center gap-2">
-                    <MonoText as="span" className="rounded-full border border-border bg-bg px-2.5 py-0.5 text-[10px] font-semibold text-muted">
-                      {norm(tool.version) ?? t(translation.UpdateToolModal.Current)}
-                    </MonoText>
-                    <UiIcon name="arrow-right" className="h-3 w-3 shrink-0 text-muted/50" />
-                    <MonoText as="span" className="rounded-full border border-accent/25 bg-accent/10 px-2.5 py-0.5 text-[10px] font-semibold text-accent">
-                      {updateInfo?.latestVersion ? norm(updateInfo.latestVersion) : "latest"}
-                    </MonoText>
+                  <div className="flex min-w-0 flex-1 items-center gap-3">
+                    <div className="min-w-0 flex-1">
+                      <OverlineText className="text-[10px] text-muted">{t(translation.UpdateToolModal.Installed)}</OverlineText>
+                      <MonoText as="p" title={currentVersion ?? undefined} className="mt-1 truncate text-sm font-semibold text-text">
+                        {currentVersion ?? t(translation.UpdateToolModal.Current)}
+                      </MonoText>
+                    </div>
+                    <UiIcon name="arrow-right" className="h-3.5 w-3.5 shrink-0 text-muted/50" />
+                    <div className="min-w-0 flex-1">
+                      <OverlineText className="text-[10px] text-accent">{t(translation.UpdateToolModal.Latest)}</OverlineText>
+                      <MonoText as="p" className="mt-1 truncate text-sm font-semibold text-accent">
+                        {norm(updateInfo?.latestVersion ?? null) ?? "latest"}
+                      </MonoText>
+                    </div>
                   </div>
                 </div>
               </div>

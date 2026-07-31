@@ -26,6 +26,19 @@
   --color-success: 34 197 94;
   --color-warning: 245 158 11;
   --color-error: 244 63 94;
+
+  /* Syntax colours, following VS Code's Dark+ palette. */
+  --code-plain: #d4d4d4;
+  --code-comment: #6a9955;
+  --code-string: #ce9178;
+  --code-number: #b5cea8;
+  --code-keyword: #c586c0;
+  --code-type: #4ec9b0;
+  --code-function: #dcdcaa;
+  --code-property: #9cdcfe;
+  --code-punctuation: #d4d4d4;
+  --code-tag: #569cd6;
+  --code-attribute: #9cdcfe;
 }
 
 /* ─────────────────────────────────────────────
@@ -91,6 +104,19 @@
   --color-success: 22 163 74;
   --color-warning: 215 119 6;
   --color-error: 225 29 72;
+
+  /* Syntax colours, following VS Code's Light+ palette. */
+  --code-plain: #1f2328;
+  --code-comment: #008000;
+  --code-string: #a31515;
+  --code-number: #098658;
+  --code-keyword: #af00db;
+  --code-type: #267f99;
+  --code-function: #795e26;
+  --code-property: #001080;
+  --code-punctuation: #1f2328;
+  --code-tag: #800000;
+  --code-attribute: #e50000;
 }
 
 /* ─────────────────────────────────────────────
@@ -202,7 +228,7 @@ i[class*=" devicon-"] {
 .shadow-glow {
   box-shadow:
     0 0 0 1px rgb(var(--color-accent) / 0.24),
-    0 20px 60px rgb(var(--color-accent) / 0.18);
+    0 4px 12px rgb(var(--color-accent) / 0.14);
 }
 
 /* Override Tailwind's hardcoded emerald bg-grid */
@@ -225,16 +251,16 @@ i[class*=" devicon-"] {
 
 /* Icon glow used inside group elements */
 .shadow-accent-icon {
-  box-shadow: 0 0 16px rgb(var(--color-accent) / 0.3);
+  box-shadow: 0 0 10px rgb(var(--color-accent) / 0.22);
 }
 .group:hover .shadow-accent-icon {
-  box-shadow: 0 0 22px rgb(var(--color-accent) / 0.45);
+  box-shadow: 0 0 14px rgb(var(--color-accent) / 0.34);
 }
 
 /* Named accent card shadows (replace arbitrary Tailwind shadow values) */
-.shadow-accent-sm  { box-shadow: 0 10px 24px rgb(var(--color-accent) / 0.16); }
-.shadow-accent-md  { box-shadow: 0 18px 40px rgb(var(--color-accent) / 0.1);  }
-.shadow-accent-lg  { box-shadow: 0 18px 40px rgb(var(--color-accent) / 0.2);  }
+.shadow-accent-sm  { box-shadow: 0 2px 8px rgb(var(--color-accent) / 0.12); }
+.shadow-accent-md  { box-shadow: 0 3px 10px rgb(var(--color-accent) / 0.08); }
+.shadow-accent-lg  { box-shadow: 0 3px 10px rgb(var(--color-accent) / 0.16); }
 
 /* ─────────────────────────────────────────────
    REDUCE MOTION

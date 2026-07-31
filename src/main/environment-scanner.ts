@@ -24,7 +24,7 @@ export interface NvmInstallResult {
   platform: "macos" | "linux" | "windows" | "unknown";
 }
 
-export type ToolCategory = "nodejs" | "python" | "dotnet" | "system";
+export type ToolCategory = "agents" | "nodejs" | "python" | "dotnet" | "system";
 
 export interface DetectedTool {
   name: string;
@@ -35,6 +35,8 @@ export interface DetectedTool {
   installCommand: string | null;
   installNote: string | null;
   updateCommand: string | null;
+  /** Null for everything the app will not take off the machine. */
+  uninstallCommand: string | null;
 }
 
 export interface ToolUpdateInfo {
@@ -131,9 +133,32 @@ async function probeNvm(): Promise<{ available: boolean; version: string | null 
 // Tool builder
 // ---------------------------------------------------------------------------
 
+/**
+ * The agent CLIs that ship as npm globals, and the packages behind them.
+ *
+ * Install, update and uninstall all key off the same package name, so they are
+ * kept in one place rather than repeated in three switch statements. Cursor is
+ * absent on purpose: it installs from its own script, not from npm.
+ */
+const AGENT_PACKAGES: Record<string, string> = {
+  claude: "@anthropic-ai/claude-code",
+  codex: "@openai/codex",
+  gemini: "@google/gemini-cli",
+  copilot: "@github/copilot"
+};
+
+/** True for the agent CLIs, whose npm globals live under the nvm-managed node. */
+function isAgentTool(name: string): boolean {
+  return name in AGENT_PACKAGES || name === "cursor-agent";
+}
+
 function getUpdateCommand(name: string): string | null {
   const mac = process.platform === "darwin";
   const linux = process.platform === "linux";
+
+  // Re-installing at @latest is how npm-distributed CLIs update themselves.
+  if (AGENT_PACKAGES[name]) return `npm install -g ${AGENT_PACKAGES[name]}@latest`;
+  if (name === "cursor-agent") return "cursor-agent update";
 
   switch (name) {
     case "npm":     return "npm install -g npm";
@@ -159,6 +184,14 @@ function getUpdateCommand(name: string): string | null {
 function getInstallInfo(name: string): { command: string; note?: string } | null {
   const mac = process.platform === "darwin";
   const linux = process.platform === "linux";
+
+  if (AGENT_PACKAGES[name]) return { command: `npm install -g ${AGENT_PACKAGES[name]}` };
+  if (name === "cursor-agent") {
+    return {
+      command: "curl https://cursor.com/install -fsS | bash",
+      note: "Runs Cursor's own installer script, which writes to ~/.local/bin. Removing it again is manual."
+    };
+  }
 
   switch (name) {
     case "yarn":    return { command: "npm install -g yarn" };
@@ -196,6 +229,30 @@ function getInstallInfo(name: string): { command: string; note?: string } | null
   }
 }
 
+/**
+ * Removal is offered for the npm-installed agent CLIs and nothing else.
+ *
+ * Those are the things a user tries out and drops again, so taking one off the
+ * machine is ordinary. The rest of the inventory is toolchain — Node, Git,
+ * Docker — where a button that uninstalls it is a footgun rather than a
+ * feature, and the package manager that put it there should take it away.
+ */
+function getUninstallInfo(name: string): { command: string; note?: string } | null {
+  if (AGENT_PACKAGES[name]) return { command: `npm uninstall -g ${AGENT_PACKAGES[name]}` };
+
+  return null;
+}
+
+// Probes return whatever the tool prints (`pip 25.3 from /Library/…`,
+// `go version go1.21 darwin/arm64`, …). Keep only the version token so the UI
+// never has to render a full sentence.
+function extractVersion(raw: string | null): string | null {
+  const value = raw?.trim();
+  if (!value) return null;
+  const firstLine = value.split("\n")[0].trim();
+  return firstLine.match(/\d[\w.+-]*/)?.[0] ?? firstLine;
+}
+
 function tool(
   name: string,
   displayName: string,
@@ -208,9 +265,11 @@ function tool(
     displayName,
     category,
     ...status,
+    version: extractVersion(status.version),
     installCommand: installInfo?.command ?? null,
     installNote: installInfo?.note ?? null,
-    updateCommand: status.available ? getUpdateCommand(name) : null
+    updateCommand: status.available ? getUpdateCommand(name) : null,
+    uninstallCommand: status.available ? getUninstallInfo(name)?.command ?? null : null
   };
 }
 
@@ -231,7 +290,8 @@ let inflightScan: Promise<ToolScanReport> | null = null;
 async function runFullScan(): Promise<ToolScanReport> {
   const [
     nodeStatus, nvmStatus, npmStatus, yarnStatus, pnpmStatus, bunStatus,
-    python3Status, pip3Status, dotnetStatus, goStatus, cargoStatus, rubyStatus, gitStatus, dockerStatus
+    python3Status, pip3Status, dotnetStatus, goStatus, cargoStatus, rubyStatus, gitStatus, dockerStatus,
+    claudeStatus, codexStatus, geminiStatus, copilotStatus, cursorStatus
   ] = await Promise.all([
     probeViaNvm("node"),
     probeNvm(),
@@ -246,7 +306,14 @@ async function runFullScan(): Promise<ToolScanReport> {
     probe("cargo"),
     probe("ruby"),
     probe("git"),
-    probe("docker")
+    probe("docker"),
+    // Through nvm like the other npm globals: installed under the managed node,
+    // they are invisible to a bare probe.
+    probeViaNvm("claude"),
+    probeViaNvm("codex"),
+    probeViaNvm("gemini"),
+    probeViaNvm("copilot"),
+    probeViaNvm("cursor-agent")
   ]);
 
   const report: ToolScanReport = {
@@ -264,7 +331,12 @@ async function runFullScan(): Promise<ToolScanReport> {
       tool("cargo",   "Rust / Cargo", "system", cargoStatus),
       tool("ruby",    "Ruby",         "system", rubyStatus),
       tool("git",     "Git",          "system", gitStatus),
-      tool("docker",  "Docker",       "system", dockerStatus)
+      tool("docker",  "Docker",       "system", dockerStatus),
+      tool("claude",       "Claude Code", "agents", claudeStatus),
+      tool("codex",        "Codex",       "agents", codexStatus),
+      tool("gemini",       "Gemini CLI",  "agents", geminiStatus),
+      tool("copilot",      "Copilot CLI", "agents", copilotStatus),
+      tool("cursor-agent", "Cursor",      "agents", cursorStatus)
     ]
   };
 
@@ -307,6 +379,11 @@ export async function probeSingleTool(name: string): Promise<DetectedTool | null
     case "ruby":    updated = tool("ruby",    "Ruby",         "system", await probe("ruby")); break;
     case "git":     updated = tool("git",     "Git",          "system", await probe("git")); break;
     case "docker":  updated = tool("docker",  "Docker",       "system", await probe("docker")); break;
+    case "claude":       updated = tool("claude",       "Claude Code", "agents", await probeViaNvm("claude")); break;
+    case "codex":        updated = tool("codex",        "Codex",       "agents", await probeViaNvm("codex")); break;
+    case "gemini":       updated = tool("gemini",       "Gemini CLI",  "agents", await probeViaNvm("gemini")); break;
+    case "copilot":      updated = tool("copilot",      "Copilot CLI", "agents", await probeViaNvm("copilot")); break;
+    case "cursor-agent": updated = tool("cursor-agent", "Cursor",      "agents", await probeViaNvm("cursor-agent")); break;
     default: return null;
   }
 
@@ -418,7 +495,7 @@ export async function installTool(toolName: string): Promise<NvmActionResult> {
   if (!info) return { success: false, output: "No install method available for this tool on your platform." };
 
   const shell = process.platform === "darwin" ? "zsh" : "bash";
-  const needsNvm = ["yarn", "pnpm"].includes(toolName);
+  const needsNvm = ["yarn", "pnpm"].includes(toolName) || isAgentTool(toolName);
   const nvmPrefix = needsNvm
     ? (() => { const s = findNvmScript(); return s ? `${nvmSourceCmd(s)} && ` : ""; })()
     : "";
@@ -440,7 +517,7 @@ export async function updateTool(toolName: string): Promise<NvmActionResult> {
   if (!command) return { success: false, output: "No update method available for this tool on your platform." };
 
   const shell = process.platform === "darwin" ? "zsh" : "bash";
-  const needsNvm = ["npm", "yarn", "pnpm", "pip3"].includes(toolName);
+  const needsNvm = ["npm", "yarn", "pnpm", "pip3"].includes(toolName) || isAgentTool(toolName);
   const nvmPrefix = needsNvm
     ? (() => { const s = findNvmScript(); return s ? `${nvmSourceCmd(s)} && ` : ""; })()
     : "";
@@ -449,6 +526,30 @@ export async function updateTool(toolName: string): Promise<NvmActionResult> {
     const { stdout, stderr } = await execFileAsync(
       shell,
       ["-l", "-c", `${nvmPrefix}${command}`],
+      { timeout: 120_000, maxBuffer: 10 * 1024 * 1024 }
+    );
+    return { success: true, output: [stdout, stderr].filter(Boolean).join("\n").trim() };
+  } catch (err) {
+    return { success: false, output: err instanceof Error ? err.message : String(err) };
+  }
+}
+
+/**
+ * Takes an agent CLI back off the machine. Only tools that answer
+ * `getUninstallInfo` can be removed, so this cannot be pointed at a toolchain.
+ */
+export async function uninstallTool(toolName: string): Promise<NvmActionResult> {
+  const info = getUninstallInfo(toolName);
+  if (!info) return { success: false, output: "This tool cannot be uninstalled from Lazify." };
+
+  const shell = process.platform === "darwin" ? "zsh" : "bash";
+  const nvmScript = findNvmScript();
+  const nvmPrefix = nvmScript ? `${nvmSourceCmd(nvmScript)} && ` : "";
+
+  try {
+    const { stdout, stderr } = await execFileAsync(
+      shell,
+      ["-l", "-c", `${nvmPrefix}${info.command}`],
       { timeout: 120_000, maxBuffer: 10 * 1024 * 1024 }
     );
     return { success: true, output: [stdout, stderr].filter(Boolean).join("\n").trim() };

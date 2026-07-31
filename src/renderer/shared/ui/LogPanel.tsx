@@ -11,9 +11,9 @@ interface LogPanelProps {
 }
 
 const streamStyles: Record<LogEntry["stream"], string> = {
-  stdout: "text-white",
-  stderr: "text-white",
-  system: "text-white"
+  stdout: "text-text",
+  stderr: "text-text",
+  system: "text-text"
 };
 
 export function LogPanel({ logs }: LogPanelProps) {
@@ -44,9 +44,9 @@ export function LogPanel({ logs }: LogPanelProps) {
         </PillText>
       </div>
 
-      <div className="h-[30rem] overflow-y-auto rounded-[22px] border border-border bg-black px-4 py-3 font-mono text-sm shadow-inner">
+      <div className="h-[30rem] overflow-y-auto rounded-[22px] border border-border bg-bg px-4 py-3 font-mono text-sm shadow-inner">
         {logs.length === 0 ? (
-          <div className="flex h-full items-center justify-center text-white/70">
+          <div className="flex h-full items-center justify-center text-muted">
             <Typography as="span" variant="body" tone="inherit">{t(translation.LogPanel.Empty)}</Typography>
           </div>
         ) : (
@@ -54,11 +54,11 @@ export function LogPanel({ logs }: LogPanelProps) {
             <div
               key={entry.key}
               className={clsx(
-                "whitespace-pre-wrap border-b border-white/10 py-2 last:border-b-0",
+                "whitespace-pre-wrap border-b border-border py-2 last:border-b-0",
                 streamStyles[entry.stream]
               )}
             >
-              <Typography as="span" variant="pill" className="mr-3 text-white/45">
+              <Typography as="span" variant="pill" className="mr-3 text-muted">
                 {formatTime(new Date(entry.timestamp), timeFormat)}
               </Typography>
               {entry.message}

@@ -1,10 +1,14 @@
 import { appRoute, getWorkspaceProjectRoute } from "@renderer/app/app-routes";
 import { SessionsPane } from "@renderer/features/workspace/components/SessionsPane";
-import { translation } from "@renderer/i18n/translation";
 import { SyncedProjectItem } from "@renderer/features/workspace/components/synced-project-item/SyncedProjectItem";
+import { translation } from "@renderer/i18n/translation";
 import type { SyncedWorkspaceProject } from "@renderer/shared/types/lazify";
-import { BodyText, CardTitle, OverlineText, SectionTitle } from "@renderer/shared/typography";
-import { PageHeader } from "@renderer/shared/ui/PageHeader";
+import {
+  BodyText,
+  CardTitle,
+  OverlineText,
+  SectionTitle,
+} from "@renderer/shared/typography";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import { Toast } from "@renderer/shared/ui/toast/Toast";
 import { useState } from "react";
@@ -14,7 +18,7 @@ import { useNavigate } from "react-router-dom";
 interface WorkspacePageProps {
   syncedProjects: SyncedWorkspaceProject[];
   onSyncProject: (
-    projectPath?: string | null
+    projectPath?: string | null,
   ) => Promise<SyncedWorkspaceProject | null>;
   onRemoveProject: (projectPath: string) => void;
 }
@@ -23,11 +27,11 @@ export function WorkspacePage({
   syncedProjects,
   onSyncProject,
   onRemoveProject,
-}: WorkspacePageProps) {
+}: Readonly<WorkspacePageProps>) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [syncingProjectPath, setSyncingProjectPath] = useState<string | null>(
-    null
+    null,
   );
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const hasSyncedProjects = syncedProjects.length > 0;
@@ -39,7 +43,9 @@ export function WorkspacePage({
       await onSyncProject(projectPath);
     } catch (error) {
       setErrorMessage(
-        error instanceof Error ? error.message : t(translation.Workspace.SyncError)
+        error instanceof Error
+          ? error.message
+          : t(translation.Workspace.SyncError),
       );
     } finally {
       setSyncingProjectPath(null);
@@ -48,13 +54,6 @@ export function WorkspacePage({
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader
-        eyebrow={t(translation.Workspace.Eyebrow)}
-        title={t(translation.Workspace.Title)}
-        description={t(translation.Workspace.Description)}
-        icon="folder"
-      />
-
       <section className="relative overflow-hidden rounded-[30px] border border-border bg-soft p-6 shadow-panel">
         <div
           className="pointer-events-none absolute inset-0 opacity-80"
@@ -111,7 +110,11 @@ export function WorkspacePage({
           </div>
 
           {errorMessage ? (
-            <Toast title={t(translation.Workspace.AlreadySynced)} message={errorMessage} onClose={() => setErrorMessage(null)} />
+            <Toast
+              title={t(translation.Workspace.AlreadySynced)}
+              message={errorMessage}
+              onClose={() => setErrorMessage(null)}
+            />
           ) : null}
 
           {hasSyncedProjects ? (
@@ -140,7 +143,10 @@ export function WorkspacePage({
               <CardTitle className="mt-5">
                 {t(translation.Workspace.EmptyTitle)}
               </CardTitle>
-              <BodyText tone="muted" className="mx-auto mt-3 max-w-xl leading-6">
+              <BodyText
+                tone="muted"
+                className="mx-auto mt-3 max-w-xl leading-6"
+              >
                 {t(translation.Workspace.EmptyLongDesc)}
               </BodyText>
               <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
@@ -175,7 +181,6 @@ export function WorkspacePage({
       </section>
 
       <SessionsPane />
-
     </div>
   );
 }

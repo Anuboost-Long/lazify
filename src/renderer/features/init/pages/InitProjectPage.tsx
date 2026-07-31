@@ -1,19 +1,16 @@
 import { translation } from "@renderer/i18n/translation";
-import { PageHeader } from "@renderer/shared/ui/PageHeader";
-import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import type {
   ImportedTemplateOption,
   ImportedTemplateSnapshot,
   ProjectTreeNode,
   SavedInitWorkflowConfig,
-  TemplateOption
+  TemplateOption,
 } from "@renderer/shared/types/lazify";
-import { FileStructureSetupPanel } from "../components/file-structure-setup/FileStructureSetupPanel";
-import { WorkflowForm } from "../components/WorkflowForm";
-import { StackPicker } from "../components/StackPicker";
-import { SourceModeCard } from "../components/SourceModeCard";
-import { ImportedTemplatePicker } from "../components/ImportedTemplatePicker";
+import { BodyText } from "@renderer/shared/typography";
 import { useTranslation } from "react-i18next";
+import { ProjectSetupSection } from "../components/ProjectSetupSection";
+import { SourceSelectionSection } from "../components/SourceSelectionSection";
+import { InitPhase, resolveInitPhase } from "./init-phase";
 
 interface InitProjectPageProps {
   busy: boolean;
@@ -41,6 +38,8 @@ interface InitProjectPageProps {
   onChangeSelection: () => void;
   onBackToConfig: () => void;
   onStructureTreeChange: (tree: ProjectTreeNode[]) => void;
+  createOptionValues: Record<string, boolean>;
+  onCreateOptionChange: (key: string, value: boolean) => void;
 }
 
 export function InitProjectPage({
@@ -68,113 +67,91 @@ export function InitProjectPage({
   onSelectImportedTemplate,
   onChangeSelection,
   onBackToConfig,
-  onStructureTreeChange
-}: InitProjectPageProps) {
+  onStructureTreeChange,
+  createOptionValues,
+  onCreateOptionChange,
+}: Readonly<InitProjectPageProps>) {
   const { t } = useTranslation();
-  const hasSelection =
-    initSourceMode === "stack" ? Boolean(selectedTemplateId) : Boolean(selectedImportedTemplateId);
+
   const inStructureStage = initWorkflowStage === "structure";
+  const hasSelection =
+    initSourceMode === "stack"
+      ? Boolean(selectedTemplateId)
+      : Boolean(selectedImportedTemplateId);
+  const phase = resolveInitPhase({
+    hasSelection,
+    inStructureStage,
+    savedInitWorkflowConfig,
+  });
   const selectedLabel =
     initSourceMode === "stack"
-      ? templateOptions.find((template) => template.id === selectedTemplateId)?.label ?? t(translation.InitProject.SelectedStack)
-      : selectedImportedTemplate?.name ?? t(translation.Templates.ImportedTemplate);
+      ? (templateOptions.find((template) => template.id === selectedTemplateId)
+          ?.label ?? t(translation.InitProject.SelectedStack))
+      : (selectedImportedTemplate?.name ??
+        t(translation.Templates.ImportedTemplate));
+
+  function renderPhase() {
+    switch (phase) {
+      case InitPhase.Selection:
+        return (
+          <SourceSelectionSection
+            showSourceModes={!inStructureStage}
+            sourceMode={initSourceMode}
+            onSelectSourceMode={onSelectSourceMode}
+            templateOptions={templateOptions}
+            selectedTemplateId={selectedTemplateId}
+            onSelectTemplate={onSelectTemplate}
+            importedTemplateOptions={importedTemplateOptions}
+            selectedImportedTemplateId={selectedImportedTemplateId}
+            onSelectImportedTemplate={onSelectImportedTemplate}
+          />
+        );
+      case InitPhase.Configure:
+      case InitPhase.Structure:
+        return (
+          <ProjectSetupSection
+            phase={phase}
+            busy={busy}
+            sourceMode={initSourceMode}
+            sourceLabel={selectedLabel}
+            onChangeSelection={onChangeSelection}
+            projectName={projectName}
+            projectDirectory={projectDirectory}
+            packageName={packageName}
+            selectedTemplateId={selectedTemplateId}
+            templateOptions={templateOptions}
+            onProjectNameChange={onProjectNameChange}
+            onPackageNameChange={onPackageNameChange}
+            onBrowseDirectory={onBrowseDirectory}
+            onContinue={onContinue}
+            createOptionValues={createOptionValues}
+            onCreateOptionChange={onCreateOptionChange}
+            savedInitWorkflowConfig={savedInitWorkflowConfig}
+            selectedImportedTemplate={selectedImportedTemplate}
+            selectedStructurePaths={selectedStructurePaths}
+            onBackToConfig={onBackToConfig}
+            onCreateProject={onCreateProject}
+            onStructureTreeChange={onStructureTreeChange}
+            onToggleStructurePath={onToggleStructurePath}
+          />
+        );
+    }
+  }
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader
-        eyebrow={t(translation.InitProject.Eyebrow)}
-        title={t(translation.InitProject.Title)}
-        description={
-          inStructureStage
-            ? t(translation.InitProject.DescriptionStructure)
-            : initSourceMode === "imported"
-              ? t(translation.InitProject.DescriptionImported)
-              : t(translation.InitProject.DescriptionStack)
-        }
-        icon="play"
-      />
-
-      {!inStructureStage && !hasSelection ? (
-        <section className="grid gap-4 lg:grid-cols-2">
-          <SourceModeCard
-            active={initSourceMode === "stack"}
-            icon="play"
-            eyebrow={t(translation.InitProject.FreshScaffold)}
-            title={t(translation.InitProject.StartFromStack)}
-            description={t(translation.InitProject.StartFromStackDesc)}
-            metadata={t(translation.InitProject.ChooseRuntimeFirst)}
-            onClick={() => onSelectSourceMode("stack")}
-          />
-          <SourceModeCard
-            active={initSourceMode === "imported"}
-            icon="import"
-            eyebrow={t(translation.InitProject.SavedSnapshot)}
-            title={t(translation.InitProject.UseImportedTemplate)}
-            description={t(translation.InitProject.UseImportedTemplateDesc)}
-            metadata={t(translation.InitProject.StartFromTemplate)}
-            onClick={() => onSelectSourceMode("imported")}
-          />
-        </section>
+      {/* The page's name and icon are in the shell's top bar. On the selection
+          screen a one-line blurb says what you are choosing; once a source is
+          picked, the hero header of each stage carries that context instead. */}
+      {phase === InitPhase.Selection ? (
+        <BodyText className="text-muted">
+          {initSourceMode === "imported"
+            ? t(translation.InitProject.DescriptionImported)
+            : t(translation.InitProject.DescriptionStack)}
+        </BodyText>
       ) : null}
 
-      {hasSelection ? (
-        <div className="flex flex-col gap-4">
-          <div>
-            <button
-              type="button"
-              onClick={onChangeSelection}
-              className="group inline-flex items-center gap-2 rounded-full border border-border bg-soft px-4 py-2 text-sm font-semibold text-muted hover:border-accent hover:text-text"
-            >
-              <UiIcon
-                name="arrow-left"
-                className="h-4 w-4 text-muted group-hover:text-accent"
-              />
-              {t(translation.InitProject.ChangeSelection)}
-            </button>
-          </div>
-
-          {inStructureStage && savedInitWorkflowConfig ? (
-            <FileStructureSetupPanel
-              busy={busy}
-              importedTemplate={selectedImportedTemplate}
-              savedConfig={savedInitWorkflowConfig}
-              selectedStructurePaths={selectedStructurePaths}
-              templateOptions={templateOptions}
-              onBackToConfig={onBackToConfig}
-              onCreateProject={onCreateProject}
-              onTreeChange={onStructureTreeChange}
-              onToggleStructurePath={onToggleStructurePath}
-            />
-          ) : (
-            <WorkflowForm
-              sourceMode={initSourceMode}
-              sourceLabel={selectedLabel}
-              projectName={projectName}
-              projectDirectory={projectDirectory}
-              packageName={packageName}
-              selectedTemplateId={selectedTemplateId}
-              templateOptions={templateOptions}
-              busy={busy}
-              onProjectNameChange={onProjectNameChange}
-              onPackageNameChange={onPackageNameChange}
-              onBrowseDirectory={onBrowseDirectory}
-              onContinue={onContinue}
-            />
-          )}
-        </div>
-      ) : initSourceMode === "stack" ? (
-        <StackPicker
-          selectedTemplateId={selectedTemplateId}
-          templateOptions={templateOptions}
-          onSelect={onSelectTemplate}
-        />
-      ) : (
-        <ImportedTemplatePicker
-          templates={importedTemplateOptions}
-          selectedTemplateId={selectedImportedTemplateId}
-          onSelect={onSelectImportedTemplate}
-        />
-      )}
+      {renderPhase()}
     </div>
   );
 }

@@ -7,13 +7,26 @@ export type ProjectStack =
   | "react-native-cli"
   | "node-api"
   | "electron"
+  | "dotnet"
+  /** Swift with SwiftUI views — the split matters, the tooling does not. */
+  | "swift-ui"
+  /** Swift without SwiftUI: UIKit, a package, or a command-line tool. */
+  | "swift"
   | "unknown";
 
-export type PackageManager = "npm" | "yarn" | "pnpm" | "bun" | "unknown";
+export type PackageManager =
+  | "npm"
+  | "yarn"
+  | "pnpm"
+  | "bun"
+  | "dotnet"
+  | "swiftpm"
+  | "cocoapods"
+  | "unknown";
 
 export interface StackDetectionResult {
   stack: ProjectStack;
-  framework: "react" | "react-native" | "node" | "electron" | "unknown";
+  framework: "react" | "react-native" | "node" | "electron" | "dotnet" | "swift" | "unknown";
   metaFramework:
     | "vite"
     | "nextjs"
@@ -22,6 +35,13 @@ export interface StackDetectionResult {
     | "cra"
     | "express"
     | "electron"
+    | "aspnet"
+    | "blazor"
+    | "maui"
+    | "dotnet-console"
+    | "swiftui"
+    | "uikit"
+    | "swiftpm"
     | "unknown";
   packageManager: PackageManager;
   commands: {

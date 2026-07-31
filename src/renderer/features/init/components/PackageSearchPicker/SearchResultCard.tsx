@@ -20,7 +20,9 @@ export function SearchResultCard({ pkg, selected, busy, onAdd }: SearchResultCar
       onClick={() => onAdd(pkg)}
       disabled={busy || selected}
       className={clsx(
-        "w-full rounded-[18px] border px-4 py-3 text-left",
+        "group w-full rounded-[18px] border px-4 py-3 text-left",
+        "transition-[transform,box-shadow,border-color] duration-300",
+        "enabled:hover:-translate-y-1 enabled:hover:shadow-panel enabled:active:scale-[0.99]",
         selected
           ? "border-accent bg-accentSoft text-text"
           : "border-border bg-soft text-text hover:border-accent hover:bg-bg",
@@ -42,7 +44,12 @@ export function SearchResultCard({ pkg, selected, busy, onAdd }: SearchResultCar
             </BodyText>
           ) : null}
         </div>
-        <PillText className="shrink-0 rounded-full border border-current/15 px-3 py-2">
+        <PillText
+          className={clsx(
+            "shrink-0 rounded-full border border-current/15 px-3 py-2",
+            "transition-transform duration-300 group-enabled:group-hover:scale-105"
+          )}
+        >
           {selected ? t(translation.GlobalTerm.Selected) : t(translation.GlobalTerm.Add)}
         </PillText>
       </div>

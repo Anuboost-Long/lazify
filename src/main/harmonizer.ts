@@ -4,6 +4,19 @@ import { app } from "electron";
 
 import type { CommandBinary, PackageManager } from "./scanner";
 
+/**
+ * A yes/no choice a scaffolder exposes, surfaced in the UI before the run so
+ * the CLI never has to prompt interactively. Templates without createOptions
+ * keep their static createCommands untouched.
+ */
+export interface TemplateCreateOption {
+  key: string;
+  label: string;
+  default: boolean;
+  onFlag: string;
+  offFlag: string;
+}
+
 export interface TemplateDefinition {
   id: string;
   label: string;
@@ -11,6 +24,7 @@ export interface TemplateDefinition {
   projectType: "expo" | "next" | "vite" | "react-native";
   preferredPackageManager: PackageManager;
   createCommands: Partial<Record<CommandBinary | PackageManager, string[]>>;
+  createOptions?: TemplateCreateOption[];
   postInstallDependencies?: string[];
   packageManifest?: string;
 }

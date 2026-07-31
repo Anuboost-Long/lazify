@@ -12,14 +12,23 @@
     "build": "npm run build:renderer && npm run build:electron",
     "build:renderer": "vite build",
     "build:electron": "tsc -p tsconfig.node.json",
-    "package:mac": "npm run build && electron-builder --config electron-builder.mac.yml",
+    "package:mac": "npm run build && electron-builder --config electron-builder.mac.yml && npm run rebuild",
     "package:win": "npm run build && electron-builder --config electron-builder.win.yml",
     "start": "electron .",
     "make:lang": "tsx src/scripts/make-language.ts",
     "rebuild": "electron-rebuild -f -w node-pty",
-    "postinstall": "electron-rebuild -f -w node-pty"
+    "mac:fix-electron": "node src/scripts/mac-fix-electron.mjs",
+    "postinstall": "electron-rebuild -f -w node-pty && node src/scripts/mac-fix-electron.mjs"
+  },
+  "electronmon": {
+    "patterns": [
+      "!release",
+      "!release/**/*"
+    ]
   },
   "dependencies": {
+    "@ghostery/adblocker": "^2.18.1",
+    "@ghostery/adblocker-electron": "^2.18.1",
     "@xterm/addon-fit": "^0.11.0",
     "@xterm/xterm": "^6.0.0",
     "clsx": "^2.1.1",
@@ -30,25 +39,26 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-i18next": "^17.0.6",
-    "react-router-dom": "^7.14.2"
+    "react-router-dom": "^7.14.2",
+    "shiki": "^4.3.1"
   },
   "devDependencies": {
+    "@electron/rebuild": "^4.2.0",
     "@types/node": "^22.15.17",
     "@types/react": "^18.3.23",
     "@types/react-dom": "^18.3.7",
-    "@vitejs/plugin-react": "^4.4.1",
+    "@vitejs/plugin-react": "^5.2.0",
     "autoprefixer": "^10.4.21",
     "concurrently": "^9.1.2",
     "cross-env": "^7.0.3",
-    "electron": "^31.7.7",
+    "electron": "^43.2.0",
     "electron-builder": "^26.8.1",
-    "electron-rebuild": "^3.2.9",
     "electronmon": "^2.0.2",
     "postcss": "^8.5.3",
     "tailwindcss": "^3.4.17",
     "tsx": "^4.21.0",
     "typescript": "^5.8.3",
-    "vite": "^5.4.19",
+    "vite": "^7.3.6",
     "wait-on": "^8.0.3"
   }
 }

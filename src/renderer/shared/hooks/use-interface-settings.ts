@@ -6,7 +6,7 @@ const SHOW_TOOLTIPS_KEY = "lazify-show-tooltips";
 
 function readBool(key: string, defaultValue: boolean): boolean {
   if (typeof window === "undefined") return defaultValue;
-  const stored = window.localStorage.getItem(key);
+  const stored = globalThis.localStorage.getItem(key);
   return stored === null ? defaultValue : stored === "true";
 }
 
@@ -20,15 +20,15 @@ export function useInterfaceSettings() {
   const [showTooltips,   setShowTooltipsAtom]   = useAtom(showTooltipsAtom);
 
   function setCompactSidebar(value: boolean) {
-    window.localStorage.setItem(COMPACT_SIDEBAR_KEY, String(value));
+    globalThis.localStorage.setItem(COMPACT_SIDEBAR_KEY, String(value));
     setCompactSidebarAtom(value);
   }
   function setReduceMotion(value: boolean) {
-    window.localStorage.setItem(REDUCE_MOTION_KEY, String(value));
+    globalThis.localStorage.setItem(REDUCE_MOTION_KEY, String(value));
     setReduceMotionAtom(value);
   }
   function setShowTooltips(value: boolean) {
-    window.localStorage.setItem(SHOW_TOOLTIPS_KEY, String(value));
+    globalThis.localStorage.setItem(SHOW_TOOLTIPS_KEY, String(value));
     setShowTooltipsAtom(value);
   }
 

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Playful Doc Console UI"
+  short_description: "Build playful documentation-console style UI."
+  default_prompt: "Use this playful documentation-console style for a component or content surface."

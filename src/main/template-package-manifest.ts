@@ -1,8 +1,10 @@
 import fs from "node:fs";
 import path from "node:path";
+import { app } from "electron";
 
 import type { TemplateDefinition } from "./harmonizer";
-import { fetchLatestPackageVersion } from "./npm-registry";
+import { fetchLatestPackageVersion, fetchPackagePeerDependencies } from "./npm-registry";
+import { satisfies, stripRangePrefix } from "../brain/package-version-matcher/semver-utils";
 
 export interface TemplatePackageManifest {
   dependencies?: Record<string, string>;
@@ -32,7 +34,9 @@ export interface TemplatePackageInstallPlan {
   versionMismatches: PackageVersionMismatch[];
 }
 
-const TEMPLATE_PACKAGE_DIRECTORY = path.resolve(process.cwd(), "templates/packages");
+const TEMPLATE_PACKAGE_DIRECTORY = app.isPackaged
+  ? path.join(process.resourcesPath, "templates/packages")
+  : path.join(app.getAppPath(), "templates/packages");
 
 export function loadTemplatePackageManifest(template: TemplateDefinition): TemplatePackageManifest {
   if (!template.packageManifest) {
@@ -147,9 +151,29 @@ function mapPackageEntries(
   }));
 }
 
+/**
+ * Upgrade manifest pins to the newest version that is still compatible with
+ * what the scaffolder already installed. Taking dist-tag "latest" blindly can
+ * pull a release whose peers (React, etc.) do not match the generated project,
+ * so a latest with an unsatisfied peer falls back to the manifest pin.
+ */
 export async function resolveManifestToLatest(
-  manifest: TemplatePackageManifest
+  manifest: TemplatePackageManifest,
+  installed: Record<string, string> = {}
 ): Promise<TemplatePackageManifest> {
+  const isPeerCompatible = async (name: string, version: string): Promise<boolean> => {
+    const peers = await fetchPackagePeerDependencies(name, version);
+
+    // Unknown peers (offline, 404) must not silently block the upgrade.
+    if (!peers) return true;
+
+    return Object.entries(peers).every(([peerName, range]) => {
+      const installedVersion = installed[peerName];
+      if (!installedVersion) return true;
+      return satisfies(stripRangePrefix(installedVersion), range);
+    });
+  };
+
   const resolveGroup = async (
     deps: Record<string, string> | undefined
   ): Promise<Record<string, string> | undefined> => {
@@ -158,7 +182,9 @@ export async function resolveManifestToLatest(
     const entries = await Promise.all(
       Object.entries(deps).map(async ([name, fallback]) => {
         const latest = await fetchLatestPackageVersion(name);
-        return [name, latest ?? fallback] as const;
+        if (!latest) return [name, fallback] as const;
+
+        return [name, (await isPeerCompatible(name, latest)) ? latest : fallback] as const;
       })
     );
 

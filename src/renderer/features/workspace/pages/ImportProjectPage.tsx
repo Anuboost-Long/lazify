@@ -1,27 +1,14 @@
 import { startTransition, useState } from "react";
 import { translation } from "@renderer/i18n/translation";
 import { BodyText, CardTitle, OverlineText, PillText } from "@renderer/shared/typography";
-import { PageHeader } from "@renderer/shared/ui/PageHeader";
 import type {
   ImportedProjectIndexResult,
   StackDetectionResult
 } from "@renderer/shared/types/lazify";
 import { OptimizedImportedProjectTree } from "@renderer/shared/ui/project-tree-optimized/OptimizedImportedProjectTree";
+import { formatStackLabel } from "@renderer/features/workspace/utils/stack-label";
 import { useLazifyStore } from "@renderer/shared/hooks/use-lazify-store";
 import { useTranslation } from "react-i18next";
-
-function formatStackLabel(value: string) {
-  return value
-    .split("-")
-    .map((segment) => {
-      if (segment === "js") {
-        return "JS";
-      }
-
-      return segment.charAt(0).toUpperCase() + segment.slice(1);
-    })
-    .join(" ");
-}
 
 function formatConfidence(confidence: number) {
   return `${Math.round(confidence * 100)}%`;
@@ -79,14 +66,14 @@ export function ImportProjectPage() {
     try {
       setErrorMessage(null);
       setSaveMessage(null);
-      const selectedPath = await window.lazify.selectDirectory();
+      const selectedPath = await globalThis.lazify.selectDirectory();
 
       if (!selectedPath) {
         return;
       }
 
       setBusy(true);
-      const result = await window.lazify.importProjectIndexFromDirectory(selectedPath);
+      const result = await globalThis.lazify.importProjectIndexFromDirectory(selectedPath);
       startTransition(() => {
         setScanResult(result);
       });
@@ -106,7 +93,7 @@ export function ImportProjectPage() {
       setErrorMessage(null);
       setSaveMessage(null);
       setBusy(true);
-      const result = await window.lazify.importProjectIndexFromDirectory(scanResult.projectPath);
+      const result = await globalThis.lazify.importProjectIndexFromDirectory(scanResult.projectPath);
       startTransition(() => {
         setScanResult(result);
       });
@@ -133,7 +120,7 @@ export function ImportProjectPage() {
 
     try {
       setErrorMessage(null);
-      const template = await window.lazify.saveImportedTemplate(
+      const template = await globalThis.lazify.saveImportedTemplate(
         scanResult.projectPath,
         includedRelativePaths,
         providedName,
@@ -150,13 +137,6 @@ export function ImportProjectPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader
-        eyebrow={t(translation.ImportProject.Eyebrow)}
-        title={t(translation.ImportProject.Title)}
-        description={t(translation.ImportProject.Description)}
-        icon="import"
-      />
-
       <section className="rounded-[24px] border border-border bg-soft p-6 shadow-panel">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>

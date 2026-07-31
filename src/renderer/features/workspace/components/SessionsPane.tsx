@@ -119,7 +119,7 @@ export function SessionsPane() {
 
   const load = useCallback(async () => {
     try {
-      const result = await window.lazify.listSessions();
+      const result = await globalThis.lazify.listSessions();
       setSessions(result);
     } catch {
       // Non-critical — silently ignore
@@ -141,7 +141,7 @@ export function SessionsPane() {
   const handleKill = async (runId: string) => {
     setKilling((prev) => new Set(prev).add(runId));
     try {
-      await window.lazify.stopScript(runId);
+      await globalThis.lazify.stopScript(runId);
       setSessions((prev) => prev.filter((s) => s.runId !== runId));
     } finally {
       setKilling((prev) => {
