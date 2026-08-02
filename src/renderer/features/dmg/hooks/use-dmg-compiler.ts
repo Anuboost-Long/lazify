@@ -8,14 +8,29 @@ import { useCallback, useEffect, useState } from "react";
  * disk that the page shows the path to.
  */
 
-type AppBundleInfo = Awaited<ReturnType<typeof globalThis.lazify.inspectAppBundle>>;
-type DmgResult = Awaited<ReturnType<typeof globalThis.lazify.compileDmg>>;
+export type AppBundleInfo = Awaited<ReturnType<typeof globalThis.lazify.inspectAppBundle>>;
+export type DmgResult = Awaited<ReturnType<typeof globalThis.lazify.compileDmg>>;
 type DmgProgress = Parameters<Parameters<typeof globalThis.lazify.onDmgProgress>[0]>[0];
+
+/**
+ * An image the user picked, kept beside the thumbnail the page draws it with.
+ *
+ * The two travel together because they always change together, and because the
+ * preview is the only thing that proves the file the build will read is the file
+ * the user meant.
+ */
+export interface PickedImage {
+  path: string;
+  /** A PNG data URL, or null for an image the main process could not read. */
+  previewUrl: string | null;
+}
 
 export function useDmgCompiler() {
   const [app, setApp] = useState<AppBundleInfo | null>(null);
   const [volumeName, setVolumeName] = useState("");
   const [outputPath, setOutputPath] = useState("");
+  const [background, setBackground] = useState<PickedImage | null>(null);
+  const [volumeIcon, setVolumeIcon] = useState<PickedImage | null>(null);
   const [progress, setProgress] = useState<DmgProgress | null>(null);
   const [result, setResult] = useState<DmgResult | null>(null);
   /** A picked app that could not be read. Build failures live on `result`. */
@@ -87,6 +102,35 @@ export function useDmgCompiler() {
     setOutputPath(picked);
   }, [app, outputPath]);
 
+  /**
+   * Picks a backdrop or a volume icon and reads a thumbnail for it.
+   *
+   * The backdrop is previewed wider than the icon because it is shown as the
+   * window it will become, not as a chip.
+   */
+  const chooseImage = useCallback(async (kind: "background" | "icon") => {
+    const picked = await globalThis.lazify.selectDmgImage(kind);
+    if (!picked) return;
+
+    const previewUrl = await globalThis.lazify.dmgImagePreview(
+      picked,
+      kind === "background" ? 640 : 128
+    );
+    const image: PickedImage = { path: picked, previewUrl };
+
+    setResult(null);
+
+    if (kind === "background") setBackground(image);
+    else setVolumeIcon(image);
+  }, []);
+
+  const clearImage = useCallback((kind: "background" | "icon") => {
+    setResult(null);
+
+    if (kind === "background") setBackground(null);
+    else setVolumeIcon(null);
+  }, []);
+
   const build = useCallback(async () => {
     if (!app || !outputPath) return;
 
@@ -95,18 +139,28 @@ export function useDmgCompiler() {
     setProgress(null);
 
     try {
-      setResult(await globalThis.lazify.compileDmg(app.appPath, outputPath, volumeName));
+      setResult(
+        await globalThis.lazify.compileDmg(
+          app.appPath,
+          outputPath,
+          volumeName,
+          background?.path ?? null,
+          volumeIcon?.path ?? null
+        )
+      );
     } finally {
       setBuilding(false);
       setProgress(null);
     }
-  }, [app, outputPath, volumeName]);
+  }, [app, background, outputPath, volumeIcon, volumeName]);
 
   return {
     app,
     volumeName,
     setVolumeName,
     outputPath,
+    background,
+    volumeIcon,
     progress,
     result,
     error,
@@ -114,11 +168,15 @@ export function useDmgCompiler() {
     chooseApp,
     dropApp,
     chooseDestination,
+    chooseImage,
+    clearImage,
     build,
     reset: useCallback(() => {
       setApp(null);
       setVolumeName("");
       setOutputPath("");
+      setBackground(null);
+      setVolumeIcon(null);
       setResult(null);
       setError(null);
       setProgress(null);

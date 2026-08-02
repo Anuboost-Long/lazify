@@ -1,3 +1,5 @@
+import type { StarterFailureReason } from "@main/starter-provisioner";
+import { StarterFailureNotice } from "@renderer/shared/ui/StarterFailureNotice";
 import { translation } from "@renderer/i18n/translation";
 import { LogPanel } from "@renderer/shared/ui/LogPanel";
 import { StatusStrip } from "@renderer/shared/ui/StatusStrip";
@@ -13,6 +15,7 @@ import { useTranslation } from "react-i18next";
 interface ConsolePageProps {
   environment: EnvironmentSummary | null;
   logs: LogEntry[];
+  starterFailureReason: StarterFailureReason | null;
   statusMessage: string;
   workflowStatus: WorkflowStatus;
 }
@@ -20,6 +23,7 @@ interface ConsolePageProps {
 export function ConsolePage({
   environment,
   logs,
+  starterFailureReason,
   statusMessage,
   workflowStatus
 }: ConsolePageProps) {
@@ -41,6 +45,8 @@ export function ConsolePage({
         workflowStatus={workflowStatus}
         statusMessage={statusMessage}
       />
+
+      {starterFailureReason ? <StarterFailureNotice reason={starterFailureReason} /> : null}
 
       <LogPanel logs={logs} />
 

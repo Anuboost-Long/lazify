@@ -10,6 +10,7 @@ import { Tooltip } from "@renderer/shared/ui/Tooltip";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import { ConfirmModal } from "@renderer/shared/ui/modal/ConfirmModal";
 import type { EditorTab } from "@renderer/shared/ui/code/EditorTabBar";
+import type { SymbolPosition } from "@renderer/shared/ui/code/symbol-at-point";
 import {
   EditorPaneNotice,
   EditorPaneShell,
@@ -31,7 +32,7 @@ interface OptimizedEditorPaneProps {
   /** How many tabs closing all would take, named in the confirmation. */
   openTabCount?: number;
   /** Clicking an identifier in the file asks to go to its declaration. */
-  onOpenSymbol?: (symbol: string) => void;
+  onOpenSymbol?: (symbol: string, position?: SymbolPosition) => void;
   /** 1-based line to reveal and mark once the file is showing. */
   focusLine?: number | null;
 }

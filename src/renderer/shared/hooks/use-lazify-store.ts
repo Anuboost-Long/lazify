@@ -1,5 +1,6 @@
 import type {
   EnvironmentSummary,
+  ImportedProjectIndexNode,
   ImportedTemplateOption,
   ImportedTemplateSnapshot,
   LogEntry,
@@ -10,6 +11,8 @@ import type {
   ToolScanReport,
   WorkflowStatus,
 } from "@renderer/shared/types/lazify";
+import type { StarterFailureReason } from "@main/starter-provisioner";
+import { collectRemovedPaths } from "@renderer/features/init/lib/prepared-project-tree";
 import { atom, useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useCallback } from "react";
 
@@ -96,6 +99,17 @@ const selectedImportedTemplateAtom = atom<ImportedTemplateSnapshot | null>(
 const initWorkflowStageAtom = atom<"configure" | "structure">("configure");
 const savedInitWorkflowConfigAtom = atom<SavedInitWorkflowConfig | null>(null);
 const savedStructureTreeAtom = atom<ProjectTreeNode[] | null>(null);
+/**
+ * A stack project whose tree is on disk but which is not installed yet. Holding
+ * the index tree as well as the path is what lets the create step work out what
+ * the user removed.
+ */
+const preparedProjectAtom = atom<{
+  projectPath: string;
+  indexTree: ImportedProjectIndexNode[];
+  optionalFolders: { path: string; label: string }[];
+  required: string[];
+} | null>(null);
 const selectedStructurePathsAtom = atom<string[]>([
   "app",
   "components",
@@ -106,6 +120,8 @@ const logsAtom = atom<LogEntry[]>([]);
 const busyAtom = atom(false);
 const workflowStatusAtom = atom<WorkflowStatus>("idle");
 const statusMessageAtom = atom("Checking local runtime prerequisites.");
+/** Set only when a starter clone failed, so the console can say why in plain words. */
+const starterFailureReasonAtom = atom<StarterFailureReason | null>(null);
 const environmentAtom = atom<EnvironmentSummary | null>(null);
 const templateOptionsAtom = atom<TemplateOption[]>([
   {
@@ -146,6 +162,7 @@ export function useLazifyStore() {
   const [savedInitWorkflowConfig, setSavedInitWorkflowConfig] = useAtom(
     savedInitWorkflowConfigAtom,
   );
+  const [preparedProject, setPreparedProject] = useAtom(preparedProjectAtom);
   const [savedStructureTree, setSavedStructureTree] = useAtom(
     savedStructureTreeAtom,
   );
@@ -156,6 +173,7 @@ export function useLazifyStore() {
   const busy = useAtomValue(busyAtom);
   const workflowStatus = useAtomValue(workflowStatusAtom);
   const statusMessage = useAtomValue(statusMessageAtom);
+  const [starterFailureReason, setStarterFailureReason] = useAtom(starterFailureReasonAtom);
   const environment = useAtomValue(environmentAtom);
   const templateOptions = useAtomValue(templateOptionsAtom);
   const importedTemplateOptions = useAtomValue(importedTemplateOptionsAtom);
@@ -177,7 +195,25 @@ export function useLazifyStore() {
     setInitWorkflowStage("configure");
     setSavedInitWorkflowConfig(null);
     setSavedStructureTree(null);
-  }, [setInitWorkflowStage, setSavedInitWorkflowConfig, setSavedStructureTree]);
+    setPreparedProject(null);
+  }, [
+    setInitWorkflowStage,
+    setPreparedProject,
+    setSavedInitWorkflowConfig,
+    setSavedStructureTree,
+  ]);
+
+  /**
+   * Going back from the structure step. The tree is already on disk by then, so
+   * it has to be cleaned up — main only deletes a directory Lazify created, and
+   * leaves a folder that was already there untouched.
+   */
+  const discardPreparedProject = useCallback(async () => {
+    if (preparedProject) {
+      await globalThis.lazify.discardPreparedProject(preparedProject.projectPath);
+    }
+    resetInitFlow();
+  }, [preparedProject, resetInitFlow]);
 
   const setActiveProjectPath = useCallback(
     (value: string) => {
@@ -342,21 +378,45 @@ export function useLazifyStore() {
     setBusy(true);
     setWorkflowStatus("running");
     setStatusMessage("Starting project creation.");
+    // Cleared up front so a previous failure's notice cannot outlive its run.
+    setStarterFailureReason(null);
 
     try {
-      const result = await globalThis.lazify.createProject({
-        name: projectName.trim(),
-        baseDirectory: projectDirectory.trim(),
-        sourceMode: initSourceMode,
-        templateId: initSourceMode === "stack" ? selectedTemplateId : null,
-        importedTemplateId:
-          initSourceMode === "imported" ? selectedImportedTemplateId : null,
-        structureTree: savedStructureTree ?? [],
-        createOptions: initSourceMode === "stack" ? createOptionValues : undefined,
-      });
+      // A stack project already exists on disk by now, so this finishes it:
+      // apply what the user changed in the picker, install, initialize a repo.
+      const result = preparedProject
+        ? await globalThis.lazify.finalizeProject({
+            projectPath: preparedProject.projectPath,
+            removePaths: collectRemovedPaths(
+              preparedProject.indexTree,
+              savedStructureTree ?? [],
+            ),
+            optionalFolderPaths: selectedStructurePaths.filter((candidate) =>
+              preparedProject.optionalFolders.some(
+                (folder) => folder.path === candidate,
+              ),
+            ),
+          })
+        : await globalThis.lazify.createProject({
+            name: projectName.trim(),
+            baseDirectory: projectDirectory.trim(),
+            sourceMode: initSourceMode,
+            templateId: initSourceMode === "stack" ? selectedTemplateId : null,
+            importedTemplateId:
+              initSourceMode === "imported" ? selectedImportedTemplateId : null,
+            structureTree: savedStructureTree ?? [],
+            createOptions:
+              initSourceMode === "stack" ? createOptionValues : undefined,
+          });
 
       setWorkflowStatus(result.success ? "success" : "error");
       setStatusMessage(result.message);
+      setStarterFailureReason(result.reason ?? null);
+
+      // Finished, so it is no longer a project waiting to be backed out of.
+      if (result.success) {
+        setPreparedProject(null);
+      }
     } catch (error) {
       setWorkflowStatus("error");
       setStatusMessage(
@@ -368,12 +428,16 @@ export function useLazifyStore() {
   }, [
     createOptionValues,
     initSourceMode,
+    preparedProject,
     projectDirectory,
     projectName,
     savedStructureTree,
     selectedImportedTemplateId,
+    selectedStructurePaths,
     selectedTemplateId,
     setBusy,
+    setPreparedProject,
+    setStarterFailureReason,
     setStatusMessage,
     setWorkflowStatus,
   ]);
@@ -441,7 +505,12 @@ export function useLazifyStore() {
     }
   }, [setProjectDirectory, setStatusMessage, setWorkflowStatus]);
 
-  const continueInitWorkflow = useCallback(() => {
+  /**
+   * `onPrepareStart` fires only once the input has passed validation and the
+   * project is about to be produced, so the caller can send the user somewhere
+   * that shows progress without having to re-check the form itself.
+   */
+  const continueInitWorkflow = useCallback(async (onPrepareStart?: () => void) => {
     if (initSourceMode === "stack" && !selectedTemplateId.trim()) {
       setWorkflowStatus("error");
       setStatusMessage("Choose a stack before continuing.");
@@ -478,13 +547,65 @@ export function useLazifyStore() {
         .map((item) => item.trim())
         .filter(Boolean),
     });
+    // An imported template already carries its own tree, so there is nothing to
+    // produce first. A stack project's tree has to exist on disk before it can
+    // be browsed — that is the whole point of reading it rather than inventing it.
+    if (initSourceMode === "stack") {
+      setBusy(true);
+      setWorkflowStatus("running");
+      setStatusMessage("Preparing the project files.");
+      setStarterFailureReason(null);
+      // Cloning or scaffolding takes seconds with nothing to show on the setup
+      // step, which reads as the button having done nothing.
+      onPrepareStart?.();
+
+      try {
+        const prepared = await globalThis.lazify.prepareProject({
+          name: projectName.trim(),
+          baseDirectory: projectDirectory.trim(),
+          sourceMode: "stack",
+          templateId: selectedTemplateId,
+          importedTemplateId: null,
+          structureTree: [],
+          createOptions: createOptionValues,
+        });
+
+        if (!prepared.success || !prepared.projectPath) {
+          setWorkflowStatus("error");
+          setStatusMessage(prepared.message);
+          setStarterFailureReason(prepared.reason ?? null);
+          return false;
+        }
+
+        const index = await globalThis.lazify.importProjectIndexFromDirectory(
+          prepared.projectPath,
+        );
+
+        setPreparedProject({
+          projectPath: prepared.projectPath,
+          indexTree: index.tree,
+          optionalFolders: prepared.optionalFolders ?? [],
+          required: prepared.required ?? [],
+        });
+      } catch (error) {
+        setWorkflowStatus("error");
+        setStatusMessage(
+          error instanceof Error ? error.message : "Unable to prepare the project.",
+        );
+        return false;
+      } finally {
+        setBusy(false);
+      }
+    }
+
     setInitWorkflowStage("structure");
     setWorkflowStatus("success");
     setStatusMessage(
-      "Project setup saved. Continue with file structure configuration.",
+      "Project files are ready. Review the structure before installing.",
     );
     return true;
   }, [
+    createOptionValues,
     initSourceMode,
     packageName,
     projectDirectory,
@@ -492,8 +613,11 @@ export function useLazifyStore() {
     selectedImportedTemplate?.name,
     selectedImportedTemplateId,
     selectedTemplateId,
+    setBusy,
     setInitWorkflowStage,
+    setPreparedProject,
     setSavedInitWorkflowConfig,
+    setStarterFailureReason,
     setStatusMessage,
     setWorkflowStatus,
   ]);
@@ -711,6 +835,9 @@ export function useLazifyStore() {
     refreshSingleTool,
     refreshImportedTemplates,
     createProject,
+    preparedProject,
+    discardPreparedProject,
+    starterFailureReason,
     installPackage,
     continueInitWorkflow,
     bindEvents,

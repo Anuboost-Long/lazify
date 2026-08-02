@@ -8,6 +8,13 @@ import type {
 export interface FileStructureSetupPanelProps {
   busy: boolean;
   importedTemplate: ImportedTemplateSnapshot | null;
+  /**
+   * A stack project's real tree, already written to disk. When it is present
+   * nothing is synthesized: the editor shows the files that actually exist.
+   */
+  preparedTree: TreeNode[] | null;
+  /** Optional folders the starter offers; empty when it declares none. */
+  preparedOptionalFolders: { path: string; label: string }[];
   savedConfig: SavedInitWorkflowConfig;
   selectedStructurePaths: string[];
   templateOptions: TemplateOption[];
@@ -27,7 +34,6 @@ export interface ProjectTreeEditorPanelProps {
   templateLabel: string;
   selectedStructurePaths: string[];
   initialTree?: TreeNode[] | null;
-  useScaffoldBaseline?: boolean;
   replaceTreeOnInitialChange?: boolean;
   showModuleSelectionToggle?: boolean;
   primaryActionLabel?: string;
@@ -36,6 +42,7 @@ export interface ProjectTreeEditorPanelProps {
   secondaryActionLabel?: string;
   onSecondaryAction?: () => void;
   moduleSheet?: {
+    options: { path: string; label: string; description?: string }[];
     open: boolean;
     onOpen: () => void;
     onClose: () => void;
@@ -45,20 +52,3 @@ export interface ProjectTreeEditorPanelProps {
 
 export type TreeNode = ProjectTreeNode;
 
-export interface StructureOption {
-  path: string;
-  label: string;
-  description: string;
-  files: string[];
-}
-
-export interface TemplateBlueprintEntry {
-  name: string;
-  type: "file" | "folder";
-  children?: TemplateBlueprintEntry[];
-}
-
-export interface TemplateBlueprint {
-  rootFiles: string[];
-  folders: TemplateBlueprintEntry[];
-}

@@ -605,7 +605,11 @@
     "start_search": "ស្វែងរកលើអ៊ីនធឺណិត",
     "send_to_agent": "ផ្ញើទៅភ្នាក់ងារ",
     "no_agents_running": "គ្មានភ្នាក់ងារកំពុងដំណើរការ។ សូមបើកមួយពីទំព័រភ្នាក់ងារ។",
-    "send_to_agent_hint": "វាយអាសយដ្ឋានចូលក្នុងភ្នាក់ងារ ដោយមិនផ្ញើភ្លាម។"
+    "send_to_agent_hint": "វាយអាសយដ្ឋានចូលក្នុងភ្នាក់ងារ ដោយមិនផ្ញើភ្លាម។",
+    "popup_blocked": "បានទប់ស្កាត់វិនដូលោត",
+    "redirect_blocked": "បានទប់ស្កាត់ការបញ្ជូនបន្ត",
+    "popup_blocked_open": "បើក",
+    "popup_blocked_allow_site": "អនុញ្ញាតជានិច្ចលើគេហទំព័រនេះ"
   },
   "lazy_shield": {
     "title": "Lazy Shield",
@@ -660,6 +664,40 @@
     "tile_size": "ទំហំកម្មវិធី",
     "tile_format": "ទម្រង់",
     "tile_layout": "ប្លង់",
-    "layout_value": "អូសដើម្បីដំឡើង"
+    "layout_value": "អូសដើម្បីដំឡើង",
+    "step_styling": "កំពុងរៀបចំបង្អួចឌីស…",
+    "window_section": "បង្អួចពេលបើកឌីស",
+    "window_section_hint": "រូបរាងឌីសពេលមាននរណាម្នាក់បើកវា។ ទាំងពីរជាជម្រើស។",
+    "background_label": "ផ្ទៃខាងក្រោយបង្អួច",
+    "background_hint": "គូរនៅខាងក្រោយរូបតំណាង។ ទំហំរបស់វាកំណត់ទំហំបង្អួច។",
+    "volume_icon_label": "រូបតំណាងឌីស",
+    "volume_icon_hint": "រូបតំណាងរបស់ឌីស។ តាមលំនាំដើមប្រើរូបកម្មវិធី។",
+    "image_choose": "ជ្រើសរើសរូបភាព…",
+    "image_replace": "ជំនួស",
+    "image_clear": "សម្អាត",
+    "image_default": "រូបកម្មវិធី",
+    "image_none": "គ្មាន",
+    "image_unreadable": "មិនអាចមើលជាមុនបាន",
+    "preview_label": "មើលជាមុន",
+    "preview_applications": "Applications",
+    "preview_caption": "អ្វីដែលបង្ហាញពេលភ្ជាប់ឌីស។",
+    "warning_title": "បង្កើតរួច ប៉ុន្តែខ្វះមួយចំណុច"
+  },
+  "code_find": {
+    "placeholder": "ស្វែងរកក្នុងឯកសារ",
+    "no_results": "គ្មានលទ្ធផល",
+    "previous_match": "ការផ្គូផ្គងមុន",
+    "next_match": "ការផ្គូផ្គងបន្ទាប់",
+    "close": "បិទការស្វែងរក"
+  },
+  "starter_failure": {
+    "offline_title": "គ្មានការតភ្ជាប់អ៊ីនធឺណិត",
+    "offline_message": "Lazify មិនអាចទាក់ទង starter repository បានទេ។ សូមតភ្ជាប់អ៊ីនធឺណិត រួចបង្កើតគម្រោងម្តងទៀត។",
+    "unreachable_title": "រក Starter មិនឃើញ",
+    "unreachable_message": "រក starter repository ឬកំណែនេះមិនឃើញទេ។ គ្មានអ្វីត្រូវបានសរសេរចូលទៅក្នុងឌីស។",
+    "git_missing_title": "git មិនទាន់ត្រូវបានដំឡើង",
+    "git_missing_message": "Lazify ត្រូវការ git ដើម្បីទាញយក starter។ សូមដំឡើង git ត្រួតពិនិត្យ PATH រួចសាកល្បងម្តងទៀត។",
+    "clone_failed_title": "មិនអាច clone starter បានទេ",
+    "clone_failed_message": "កំណត់ហេតុកុងសូលខាងក្រោមមានលទ្ធផលពេញលេញរបស់ git។"
   }
 }

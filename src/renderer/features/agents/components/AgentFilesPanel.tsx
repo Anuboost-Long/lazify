@@ -7,6 +7,7 @@ import type { ImportedProjectIndexNode } from "@renderer/shared/types/lazify";
 import { SmallText } from "@renderer/shared/typography";
 import { IconButton } from "@renderer/shared/ui/IconButton";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
+import type { SymbolPosition } from "@renderer/shared/ui/code/symbol-at-point";
 import { TreeContextMenu } from "@renderer/shared/ui/project-tree/TreeContextMenu";
 import { type AgentFileMatch, useAgentFiles } from "../hooks/use-agent-files";
 import { AgentFileModal } from "./AgentFileModal";
@@ -182,6 +183,9 @@ export function AgentFilesPanel({
       open.includes(id) ? open.filter((entry) => entry !== id) : [...open, id]
     );
 
+  /** Shuts every folder at once, as the explorer pane's header does. */
+  const collapseAll = () => setOpenFolders([]);
+
   const openMenu = (event: React.MouseEvent, node: ImportedProjectIndexNode) =>
     setMenu({ node, x: event.clientX, y: event.clientY });
 
@@ -198,9 +202,11 @@ export function AgentFilesPanel({
    * file it came from goes on a trail the header can walk back. The agent
    * session underneath is never navigated away from.
    */
-  const handleOpenSymbol = async (symbol: string) => {
+  const handleOpenSymbol = async (symbol: string, position?: SymbolPosition) => {
     const hit = await globalThis.lazify
-      .findSymbolDefinition(projectPath, symbol)
+      // The open file is what a relative import path is relative to, and what
+      // the clicked position is read in.
+      .findSymbolDefinition(projectPath, symbol, selected?.absolutePath ?? null, position)
       .catch(() => null);
 
     if (!hit) return;
@@ -284,6 +290,16 @@ export function AgentFilesPanel({
         </SmallText>
 
         <div className="ml-auto flex items-center">
+          {/* Disabled rather than hidden when nothing is open: a control that
+              comes and goes is harder to reach for than one that greys out. */}
+          <IconButton
+            icon="collapse"
+            title={t(translation.ProjectTree.CollapseAll)}
+            aria-label={t(translation.ProjectTree.CollapseAll)}
+            onClick={collapseAll}
+            disabled={openFolders.length === 0}
+            className="text-text"
+          />
           <IconButton
             icon="refresh-circle"
             aria-label={t(translation.GlobalTerm.Refresh)}
@@ -337,7 +353,7 @@ export function AgentFilesPanel({
       <AgentFileModal
         file={selected}
         onSendToTerminal={onSendToTerminal}
-        onOpenSymbol={(symbol) => void handleOpenSymbol(symbol)}
+        onOpenSymbol={(symbol, position) => void handleOpenSymbol(symbol, position)}
         focusLine={
           symbolLine && symbolLine.path === selected?.absolutePath ? symbolLine.line : null
         }

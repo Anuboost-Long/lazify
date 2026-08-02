@@ -1,5 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import { app } from "electron";
 
 import type {
   FileNode,
@@ -15,7 +16,9 @@ import type {
   ProjectTreeNode,
 } from "../renderer/shared/types/lazify";
 
-const IMPORTED_TEMPLATE_DIRECTORY = path.resolve(process.cwd(), "templates/imported");
+// userData, not cwd: a packaged app's working directory is not writable, so
+// saving an imported template there failed everywhere except a dev run.
+const IMPORTED_TEMPLATE_DIRECTORY = path.join(app.getPath("userData"), "imported-templates");
 
 function slug(input: string) {
   return input

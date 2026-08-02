@@ -197,7 +197,6 @@ export function TemplatesPage({
                 templateLabel={selectedImportedTemplate.name}
                 selectedStructurePaths={[]}
                 initialTree={selectedImportedTemplate.tree}
-                useScaffoldBaseline={false}
                 replaceTreeOnInitialChange
                 primaryActionLabel={t(translation.Templates.SaveChanges)}
                 onPrimaryAction={() => void handleSave()}

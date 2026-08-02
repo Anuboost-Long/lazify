@@ -20,7 +20,9 @@ import type {
 } from "./shared/types/lazify";
 import type {
   CreateProjectPayload,
+  FinalizeProjectPayload,
   InstallPackagePayload,
+  PrepareProjectResult,
   WorkflowProgressEvent,
   WorkflowResult
 } from "../main/workflow-engine";
@@ -37,6 +39,9 @@ declare global {
       platform: string;
       runCommand: (command: string, args: string[], cwd?: string) => Promise<CommandResult>;
       createProject: (payload: CreateProjectPayload) => Promise<WorkflowResult>;
+      prepareProject: (payload: CreateProjectPayload) => Promise<PrepareProjectResult>;
+      finalizeProject: (payload: FinalizeProjectPayload) => Promise<WorkflowResult>;
+      discardPreparedProject: (projectPath: string) => Promise<{ removed: boolean }>;
       installPackage: (payload: InstallPackagePayload) => Promise<WorkflowResult>;
       checkEnvironment: () => Promise<EnvironmentScan>;
       scanTools: (force?: boolean) => Promise<ToolScanReport>;
@@ -50,6 +55,7 @@ declare global {
       checkToolUpdate: (toolName: string, currentVersion: string) => Promise<ToolUpdateInfo>;
       updateTool: (toolName: string) => Promise<NvmActionResult>;
       relaunchApp: () => Promise<void>;
+      signalRendererReady: () => void;
       listTemplates: () => Promise<TemplateDefinition[]>;
       listImportedTemplates: () => Promise<ImportedTemplateOption[]>;
       getImportedTemplate: (templateId: string) => Promise<ImportedTemplateSnapshot>;
@@ -183,10 +189,16 @@ declare global {
         appPath: string
       ) => Promise<import("../main/dmg-compiler").AppBundleInfo>;
       defaultDmgPath: (appPath: string, suggestedFileName: string) => Promise<string>;
+      /** Backdrop or volume icon for the mounted window. Null when cancelled. */
+      selectDmgImage: (kind: "background" | "icon") => Promise<string | null>;
+      /** Any image as a PNG data URL, for showing one that lives outside the app. */
+      dmgImagePreview: (imagePath: string, maxPixels?: number) => Promise<string | null>;
       compileDmg: (
         appPath: string,
         outputPath: string,
-        volumeName?: string | null
+        volumeName?: string | null,
+        backgroundImagePath?: string | null,
+        volumeIconPath?: string | null
       ) => Promise<import("../main/dmg-compiler").DmgResult>;
       onDmgProgress: (
         callback: (progress: import("../main/dmg-compiler").DmgProgress) => void
@@ -208,6 +220,15 @@ declare global {
       onBrowserOpenTab: (
         callback: (event: { url: string; background: boolean }) => void
       ) => () => void;
+      /**
+       * A popup or a frame-driven redirect was held back. The browser page
+       * offers it rather than opening it, since the user never asked for it.
+       */
+      onBrowserPopupBlocked: (
+        callback: (event: import("../main/popup-policy").BlockedPopup) => void
+      ) => () => void;
+      /** Remembers that this page's site may open popups from now on. */
+      allowPopupsFrom: (sourceUrl: string) => Promise<void>;
       openPictureInPicture: (
         url: string,
         source: import("../main/picture-in-picture").PictureInPictureSource
@@ -230,10 +251,18 @@ declare global {
       toggleMediaPictureInPicture: (
         webContentsId: number
       ) => Promise<import("../main/media-pip").MediaPipResult>;
-      /** Where a symbol is declared in a project, or null when nothing matches. */
+      /**
+       * Where a symbol is declared in a project, or null when nothing matches.
+       * An import path resolves too, against `fromPath` — the file it was read
+       * in, which is what makes a relative specifier mean anything. `position`
+       * is where the name was clicked, which is how a JSX prop is recognised as
+       * one and resolved through its component instead of by spelling.
+       */
       findSymbolDefinition: (
         projectPath: string,
-        symbol: string
+        symbol: string,
+        fromPath?: string | null,
+        position?: { line: number; column: number } | null
       ) => Promise<import("../main/symbol-finder").SymbolDefinition | null>;
       getAgentUsage: (sinceIso?: string, agentIds?: string[]) => Promise<AgentUsageReport>;
       setAgentBudget: (agentId: string, weeklyTokens: number) => Promise<Record<string, number>>;

@@ -5,6 +5,7 @@ import path from "node:path";
 import type { ProjectTreeNode, InstalledPackage } from "../renderer/shared/types/lazify";
 import { CommandRunner } from "./command-runner";
 import { PtyRunner } from "./pty-runner";
+import { refreshCatalog } from "./catalog";
 import { getTemplate, listTemplates } from "./harmonizer";
 import {
   deleteImportedTemplate,
@@ -63,11 +64,16 @@ import {
   compileDmg,
   defaultOutputPath,
   inspectAppBundle,
+  readImagePreview,
   type AppBundleInfo,
   type DmgResult
 } from "./dmg-compiler";
 import { guardPreviewWebviews, openExternalUrl } from "./preview-guard";
-import { findSymbolDefinition } from "./symbol-finder";
+import { installBrowserPermissionPolicy } from "./browser-permissions";
+import { allowPopupsFrom } from "./popup-policy";
+import { closeSplash, showSplash } from "./splash";
+import { findModuleDefinition, isModuleSpecifier } from "./module-resolver";
+import { findReferenceDefinition } from "./reference-finder";
 import { killListeningProcess, listListeningProcesses } from "./port-reaper";
 import { getLazyShieldState, initLazyShield, setLazyShieldEnabled, shouldBlockPopup } from "./lazy-shield";
 import { matchPackageVersions } from "../brain/package-version-matcher";
@@ -255,13 +261,33 @@ const autopilot = new Autopilot({
   onHeld: (runId, detail) => emitAttention(runId, true, detail.hold)
 });
 
+// How long a renderer that loaded but never signalled gets before the window is
+// shown anyway. Long enough to cover a slow first mount, short enough that a
+// broken renderer is not hidden behind the splash.
+const RENDERER_PAINT_GRACE_MS = 2500;
+
+// Drops the splash and puts the real window up. Guarded on visibility because
+// every path below can fire more than once, and on a reload the window is
+// already up — only the first caller should be doing any of this.
+function revealWindow(window: BrowserWindow) {
+  if (window.isDestroyed() || window.isVisible()) return;
+  closeSplash();
+  window.show();
+  window.focus();
+}
+
 function createMainWindow(): BrowserWindow {
   const window = new BrowserWindow({
     width: 1440,
     height: 920,
     minWidth: 1180,
     minHeight: 760,
-    backgroundColor: "#efe7dc",
+    // Held back until React has painted — the splash covers the gap, and a
+    // window shown before then is the blank frame it exists to replace.
+    show: false,
+    // The navy the renderer boots into, so the splash hands over to the same
+    // colour rather than flashing through a lighter one.
+    backgroundColor: "#0b1220",
     icon: path.join(app.getAppPath(), "build/icon.png"),
     webPreferences: {
       preload: path.join(__dirname, "../preload/index.js"),
@@ -282,15 +308,37 @@ function createMainWindow(): BrowserWindow {
     void window.loadFile(path.join(app.getAppPath(), "dist/index.html"));
   }
 
+  // The renderer normally reveals itself once React paints. These two are the
+  // backstops: JS that loaded but never got that far, and a load that failed
+  // outright — in both cases the splash has nothing left to wait for.
+  window.webContents.on("did-finish-load", () => {
+    setTimeout(() => revealWindow(window), RENDERER_PAINT_GRACE_MS);
+  });
+
+  window.webContents.on("did-fail-load", () => revealWindow(window));
+
   return window;
 }
 
 function registerIpcHandlers() {
+  // Sent by the renderer once React has committed its first paint. Resolving the
+  // window from the sender means a window rebuilt from `activate` reveals itself
+  // the same way the first one did.
+  ipcMain.on("lazify:renderer-ready", (event) => {
+    const window = BrowserWindow.fromWebContents(event.sender);
+    if (window) revealWindow(window);
+  });
+
   ipcMain.handle("lazify:run-command", async (_event, command: string, args: string[], cwd?: string) =>
     commandRunner.runCommand({ command, args, cwd })
   );
 
   ipcMain.handle("lazify:create-project", async (_event, payload) => workflowEngine.createProject(payload));
+  ipcMain.handle("lazify:prepare-project", async (_event, payload) => workflowEngine.prepareProject(payload));
+  ipcMain.handle("lazify:finalize-project", async (_event, payload) => workflowEngine.finalizeProject(payload));
+  ipcMain.handle("lazify:discard-prepared-project", async (_event, projectPath: string) =>
+    workflowEngine.discardPreparedProject(projectPath)
+  );
 
   ipcMain.handle("lazify:install-package", async (_event, payload) => workflowEngine.installPackage(payload));
 
@@ -657,6 +705,42 @@ function registerIpcHandlers() {
     async (_event, appPath: string): Promise<AppBundleInfo> => inspectAppBundle(appPath)
   );
 
+  // The two images the mounted window can be dressed with. One picker for both:
+  // the only thing that differs is the title, and a backdrop and a volume icon
+  // accept exactly the same formats.
+  ipcMain.handle(
+    "lazify:select-dmg-image",
+    async (_event, kind: "background" | "icon"): Promise<string | null> => {
+      const options: OpenDialogOptions = {
+        title:
+          kind === "icon" ? "Choose an icon for the disk" : "Choose a background for the window",
+        properties: ["openFile"],
+        filters: [
+          {
+            name: "Image",
+            extensions: ["png", "jpg", "jpeg", "tif", "tiff", "gif", "bmp", "heic", "icns"]
+          }
+        ]
+      };
+      const result = mainWindow
+        ? await dialog.showOpenDialog(mainWindow, options)
+        : await dialog.showOpenDialog(options);
+
+      if (result.canceled) return null;
+
+      return result.filePaths[0] ?? null;
+    }
+  );
+
+  // Thumbnails for the page. A data URL rather than a `file://` src because the
+  // renderer is served over http in development, where a local file will not
+  // load at all.
+  ipcMain.handle(
+    "lazify:dmg-image-preview",
+    async (_event, imagePath: string, maxPixels?: number): Promise<string | null> =>
+      readImagePreview(imagePath, maxPixels)
+  );
+
   ipcMain.handle(
     "lazify:default-dmg-path",
     async (_event, appPath: string, suggestedFileName: string): Promise<string> =>
@@ -669,10 +753,13 @@ function registerIpcHandlers() {
       _event,
       appPath: string,
       outputPath: string,
-      volumeName?: string | null
+      volumeName?: string | null,
+      backgroundImagePath?: string | null,
+      volumeIconPath?: string | null
     ): Promise<DmgResult> =>
-      compileDmg({ appPath, outputPath, volumeName }, (progress) =>
-        emitToRenderer("lazify:dmg-progress", progress)
+      compileDmg(
+        { appPath, outputPath, volumeName, backgroundImagePath, volumeIconPath },
+        (progress) => emitToRenderer("lazify:dmg-progress", progress)
       )
   );
 
@@ -692,6 +779,12 @@ function registerIpcHandlers() {
 
   ipcMain.handle("lazify:set-lazy-shield", async (_event, next: boolean) =>
     setLazyShieldEnabled(next)
+  );
+
+  // "Always allow on this site" from the blocked-popup strip. The allowance is
+  // granted to the page that asked, not to the address it wanted to open.
+  ipcMain.handle("lazify:allow-popups-from", async (_event, sourceUrl: string) =>
+    allowPopupsFrom(sourceUrl)
   );
 
   // "Open in browser" from the preview toolbar — the one way a URL is meant to
@@ -717,10 +810,20 @@ function registerIpcHandlers() {
   );
 
   // Go-to-definition for the read-only editors: a name in, a file and line out.
+  // An import path comes through the same channel — it is the other thing a
+  // reader clicks to leave a file — and is resolved as a path, not a name.
   ipcMain.handle(
     "lazify:find-symbol-definition",
-    async (_event, projectPath: string, symbol: string) =>
-      findSymbolDefinition(projectPath, symbol)
+    async (
+      _event,
+      projectPath: string,
+      symbol: string,
+      fromPath?: string | null,
+      position?: { line: number; column: number } | null
+    ) =>
+      isModuleSpecifier(symbol)
+        ? findModuleDefinition(projectPath, symbol, fromPath)
+        : findReferenceDefinition(projectPath, symbol, fromPath, position)
   );
 
   // Agents are plain interactive CLIs: run them in a PTY and let xterm render.
@@ -831,11 +934,27 @@ app.whenReady().then(() => {
     (url, background) => emitToRenderer("lazify:browser-open-tab", { url, background }),
     // A popup is decided before any request exists, so the shield has to be
     // consulted here or an ad popup becomes a tab the filter can no longer stop.
-    shouldBlockPopup
+    shouldBlockPopup,
+    // Held back rather than thrown away: the browser page offers it in a strip
+    // so a popup the user actually wanted is one click from opening.
+    (blocked) => emitToRenderer("lazify:browser-popup-blocked", blocked)
   );
+
+  // Must precede the first page in a restored tab, or it loads under Electron's
+  // defaults — where a site asking for notifications is simply told yes.
+  installBrowserPermissionPolicy();
+
+  // Only now, once the guard above is registered — it has to see every window
+  // this app opens, and the splash is a window. Still ahead of the shield's
+  // engine load and the scans below, which are the slow part of a cold start.
+  showSplash();
 
   // Restores the saved shield preference before the browser page loads anything.
   void initLazyShield((blocked) => emitToRenderer("lazify:lazy-shield-blocked", { blocked }));
+
+  // Behind the picker, never in front of it: the bundled catalog already
+  // answers `lazify:templates`, so a slow network delays nothing.
+  void refreshCatalog();
 
   // There is one floating window and a button for it on more than one surface,
   // so every change — opened, re-pointed, closed from its own title bar — has to
@@ -863,6 +982,7 @@ app.whenReady().then(() => {
 
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) {
+      showSplash();
       mainWindow = createMainWindow();
     }
   });

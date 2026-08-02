@@ -766,7 +766,11 @@
     "start_search": "Search the web",
     "send_to_agent": "Send to agent",
     "no_agents_running": "No agents are running. Open one from the Agents page.",
-    "send_to_agent_hint": "Types the address into the agent's prompt without sending it."
+    "send_to_agent_hint": "Types the address into the agent's prompt without sending it.",
+    "popup_blocked": "Popup blocked",
+    "redirect_blocked": "Redirect blocked",
+    "popup_blocked_open": "Open",
+    "popup_blocked_allow_site": "Always allow on this site"
   },
   "lazy_shield": {
     "title": "Lazy Shield",
@@ -821,6 +825,40 @@
     "tile_size": "App size",
     "tile_format": "Format",
     "tile_layout": "Layout",
-    "layout_value": "Drag to install"
+    "layout_value": "Drag to install",
+    "step_styling": "Arranging the disk window…",
+    "window_section": "Mounted window",
+    "window_section_hint": "How the disk looks when someone opens it. Both are optional.",
+    "background_label": "Window background",
+    "background_hint": "Drawn behind the icons. Its size sets the window size.",
+    "volume_icon_label": "Disk icon",
+    "volume_icon_hint": "The mounted disk's icon. Defaults to the app's own.",
+    "image_choose": "Choose image…",
+    "image_replace": "Replace",
+    "image_clear": "Clear",
+    "image_default": "App icon",
+    "image_none": "None",
+    "image_unreadable": "Preview unavailable",
+    "preview_label": "Preview",
+    "preview_applications": "Applications",
+    "preview_caption": "What opens when the disk image is mounted.",
+    "warning_title": "Built, with one thing missing"
+  },
+  "code_find": {
+    "placeholder": "Find in file",
+    "no_results": "No results",
+    "previous_match": "Previous match",
+    "next_match": "Next match",
+    "close": "Close find"
+  },
+  "starter_failure": {
+    "offline_title": "No internet connection",
+    "offline_message": "Lazify could not reach the starter repository. Connect to the internet, then create the project again.",
+    "unreachable_title": "Starter not available",
+    "unreachable_message": "The starter repository, or this version of it, could not be found. Nothing was written to disk.",
+    "git_missing_title": "git is not installed",
+    "git_missing_message": "Lazify needs git to fetch a starter. Install git, make sure it is on your PATH, and try again.",
+    "clone_failed_title": "The starter could not be cloned",
+    "clone_failed_message": "The console log below has git's full output."
   }
 }

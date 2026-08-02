@@ -2,8 +2,8 @@ import clsx from "clsx";
 import { forwardRef } from "react";
 import UiIcon, { type UiIconName } from "@renderer/shared/ui/icons/UiIcon";
 
-type FieldVariant = "default" | "inverse";
-type FieldSize = "md" | "sm";
+export type FieldVariant = "default" | "inverse";
+export type FieldSize = "md" | "sm";
 
 interface SharedFieldProps {
   icon?: UiIconName;
@@ -27,6 +27,21 @@ const sizeClassName: Record<FieldSize, string> = {
   sm: "min-h-[34px] rounded-md px-2 py-1 text-sm"
 };
 
+/**
+ * The border, background, radius and padding every input-shaped control shares.
+ *
+ * Exported so a control that is not an `<input>` — a row that opens a file
+ * dialog, a slot showing a picked image — can look like one without copying the
+ * classes. Copies drift: change `sizeClassName.sm` and a hand-rolled row keeps
+ * the old padding while the `TextInput` beside it moves.
+ */
+export function fieldChromeClassName(
+  variant: FieldVariant = "default",
+  size: FieldSize = "md"
+): string {
+  return clsx(wrapperVariantClassName[variant], sizeClassName[size]);
+}
+
 function FieldShell({
   children,
   icon,
@@ -38,8 +53,7 @@ function FieldShell({
     <div
       className={clsx(
         "flex w-full items-center gap-3 transition-[border-color,box-shadow] duration-200",
-        wrapperVariantClassName[variant],
-        sizeClassName[size],
+        fieldChromeClassName(variant, size),
         wrapperClassName
       )}
     >

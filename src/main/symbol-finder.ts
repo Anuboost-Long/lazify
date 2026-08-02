@@ -109,7 +109,28 @@ function declarationPatterns(symbol: string): { pattern: RegExp; kind: "export" 
   ];
 }
 
-async function collectSourceFiles(projectPath: string): Promise<string[]> {
+/**
+ * The first declaration of `symbol` in one file's text, most specific pattern
+ * first. Shared with the reference finder, which asks the same question of a
+ * file it reached by following an import rather than by ranking the project.
+ */
+export function declarationLine(
+  contents: string,
+  symbol: string
+): { line: number; kind: "export" | "declaration" } | null {
+  const patterns = declarationPatterns(symbol);
+  const lines = contents.split("\n");
+
+  for (let index = 0; index < lines.length; index += 1) {
+    const match = patterns.find((candidate) => candidate.pattern.test(lines[index]));
+    if (match) return { line: index + 1, kind: match.kind };
+  }
+
+  return null;
+}
+
+/** Shared with the module resolver, which walks the same files for a path. */
+export async function collectSourceFiles(projectPath: string): Promise<string[]> {
   const cached = fileListCache.get(projectPath);
   if (cached && Date.now() - cached.readAt < FILE_LIST_TTL_MS) return cached.files;
 
@@ -184,7 +205,6 @@ export async function findSymbolDefinition(
   if (!projectPath || !isIdentifier(symbol)) return null;
 
   const files = rankFiles(await collectSourceFiles(projectPath), symbol);
-  const patterns = declarationPatterns(symbol);
   /** Kept in case nothing exported turns up. */
   let fallback: SymbolDefinition | null = null;
 
@@ -201,22 +221,18 @@ export async function findSymbolDefinition(
     // Cheap rejection before splitting a whole file into lines.
     if (!contents.includes(symbol)) continue;
 
-    const lines = contents.split("\n");
+    const found = declarationLine(contents, symbol);
 
-    for (let index = 0; index < lines.length; index += 1) {
-      const match = patterns.find((candidate) => candidate.pattern.test(lines[index]));
-      if (!match) continue;
-
+    if (found) {
       const hit: SymbolDefinition = {
         absolutePath: filePath,
         relativePath: path.relative(projectPath, filePath),
-        line: index + 1,
-        kind: match.kind
+        line: found.line,
+        kind: found.kind
       };
 
-      if (match.kind === "export") return hit;
+      if (found.kind === "export") return hit;
       fallback ??= hit;
-      break;
     }
 
     // A file named after the symbol that declares nothing matching is still

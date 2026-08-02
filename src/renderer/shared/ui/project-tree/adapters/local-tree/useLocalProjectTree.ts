@@ -1,14 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { templateBlueprints } from "@renderer/shared/ui/project-tree/constants/template-blueprints";
 import {
   addChildNode,
-  buildBaselineTree,
   collectFolderIds,
   createNode,
   findContainingFolderId,
   findFirstFileId,
   findNode,
-  getDefaultFileContent,
   getNodePath,
   mergeTrees,
   removeFromTree,
@@ -26,7 +23,6 @@ export function useLocalProjectTree({
   replaceTreeOnInitialChange = false,
   selectedStructurePaths,
   templateId,
-  useScaffoldBaseline = true,
 }: Pick<
   ProjectTreeEditorPanelProps,
   | "initialTree"
@@ -34,24 +30,10 @@ export function useLocalProjectTree({
   | "replaceTreeOnInitialChange"
   | "selectedStructurePaths"
   | "templateId"
-  | "useScaffoldBaseline"
 >) {
-  const baselineTree = useMemo(
-    () =>
-      useScaffoldBaseline
-        ? buildBaselineTree(templateId, selectedStructurePaths)
-        : [],
-    [selectedStructurePaths, templateId, useScaffoldBaseline]
-  );
-  const resolvedInitialTree = useMemo(
-    () =>
-      useScaffoldBaseline
-        ? initialTree
-          ? mergeTrees(baselineTree, initialTree)
-          : baselineTree
-        : initialTree ?? [],
-    [baselineTree, initialTree, useScaffoldBaseline]
-  );
+  // Every tree now comes from disk — a starter clone, a CLI's output, or an
+  // imported template. Nothing is synthesized from constants any more.
+  const resolvedInitialTree = useMemo(() => initialTree ?? [], [initialTree]);
   const [tree, setTree] = useState<TreeNode[]>(resolvedInitialTree);
   const [selectedId, setSelectedId] = useState<string | null>(() =>
     findFirstFileId(resolvedInitialTree)
@@ -75,7 +57,7 @@ export function useLocalProjectTree({
       return;
     }
 
-    if (!useScaffoldBaseline && replaceTreeOnInitialChange) {
+    if (replaceTreeOnInitialChange) {
       setTree(resolvedInitialTree);
       setExpandedIds(collectFolderIds(resolvedInitialTree));
       setSelectedId(findFirstFileId(resolvedInitialTree));
@@ -93,9 +75,6 @@ export function useLocalProjectTree({
     initialTree,
     replaceTreeOnInitialChange,
     resolvedInitialTree,
-    selectedStructurePaths,
-    templateId,
-    useScaffoldBaseline,
   ]);
 
   useEffect(() => {
@@ -105,9 +84,10 @@ export function useLocalProjectTree({
 
   const selectedNode = selectedId ? findNode(tree, selectedId) : null;
   const selectedPath = selectedId ? getNodePath(tree, selectedId) : null;
-  const lockedFolderNames = new Set(
-    (templateBlueprints[templateId]?.folders ?? []).map((folder) => folder.name)
-  );
+  // Locking came from the blueprint's folder list. What may not be removed is
+  // now the starter's `required`, applied as `locked` when the tree is built
+  // and enforced again in the main process.
+  const lockedFolderNames = new Set<string>();
   const selectedContextNode = contextMenu
     ? findNode(tree, contextMenu.nodeId)
     : null;
@@ -167,7 +147,7 @@ export function useLocalProjectTree({
       false,
       [],
       `custom-${type}-${slug(baseName)}-${Date.now()}`,
-      type === "file" ? getDefaultFileContent(baseName, templateId) : undefined
+      type === "file" ? "" : undefined
     );
 
     setTree((current) => addChildNode(current, parentId, newNode));

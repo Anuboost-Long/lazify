@@ -10,6 +10,9 @@ directories:
   buildResources: build
   output: release/mac
 
+# Ad-hoc signs the packaged app — see the script and mac.identity below
+afterPack: ./src/scripts/mac-adhoc-sign.mjs
+
 files:
   - dist/**/*
   - dist-electron/**/*
@@ -26,6 +29,22 @@ extraResources:
 mac:
   icon: build/icon.icns
   category: public.app-category.developer-tools
+  # There is no Developer ID Application certificate to sign with, and without
+  # one the build cannot be notarized. Left to auto-discovery electron-builder
+  # picks up the Apple Development certificate instead, which is only valid on
+  # Macs provisioned for the team — every other Mac reports the download as
+  # "damaged" with no way past it. Turning discovery off and ad-hoc signing in
+  # afterPack downgrades that to the approvable "unidentified developer" prompt.
+  identity: null
+  # The DMG compiler styles the window inside the images it builds by scripting
+  # Finder. Under the hardened runtime that needs the apple-events entitlement,
+  # and macOS refuses to even show the approval prompt without a reason string
+  entitlements: build/entitlements.mac.plist
+  entitlementsInherit: build/entitlements.mac.plist
+  extendInfo:
+    NSAppleEventsUsageDescription: >-
+      Lazify controls Finder to arrange the window layout inside the disk images
+      it builds.
   # Two separate thin builds — arm64 for Apple Silicon, x64 for Intel
   target:
     - target: dmg

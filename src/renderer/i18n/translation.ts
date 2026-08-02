@@ -766,7 +766,11 @@ export const translation = {
     "StartSearch": "browser.start_search",
     "SendToAgent": "browser.send_to_agent",
     "NoAgentsRunning": "browser.no_agents_running",
-    "SendToAgentHint": "browser.send_to_agent_hint"
+    "SendToAgentHint": "browser.send_to_agent_hint",
+    "PopupBlocked": "browser.popup_blocked",
+    "RedirectBlocked": "browser.redirect_blocked",
+    "PopupBlockedOpen": "browser.popup_blocked_open",
+    "PopupBlockedAllowSite": "browser.popup_blocked_allow_site"
   },
   "LazyShield": {
     "Title": "lazy_shield.title",
@@ -821,6 +825,40 @@ export const translation = {
     "TileSize": "dmg_compiler.tile_size",
     "TileFormat": "dmg_compiler.tile_format",
     "TileLayout": "dmg_compiler.tile_layout",
-    "LayoutValue": "dmg_compiler.layout_value"
+    "LayoutValue": "dmg_compiler.layout_value",
+    "StepStyling": "dmg_compiler.step_styling",
+    "WindowSection": "dmg_compiler.window_section",
+    "WindowSectionHint": "dmg_compiler.window_section_hint",
+    "BackgroundLabel": "dmg_compiler.background_label",
+    "BackgroundHint": "dmg_compiler.background_hint",
+    "VolumeIconLabel": "dmg_compiler.volume_icon_label",
+    "VolumeIconHint": "dmg_compiler.volume_icon_hint",
+    "ImageChoose": "dmg_compiler.image_choose",
+    "ImageReplace": "dmg_compiler.image_replace",
+    "ImageClear": "dmg_compiler.image_clear",
+    "ImageDefault": "dmg_compiler.image_default",
+    "ImageNone": "dmg_compiler.image_none",
+    "ImageUnreadable": "dmg_compiler.image_unreadable",
+    "PreviewLabel": "dmg_compiler.preview_label",
+    "PreviewApplications": "dmg_compiler.preview_applications",
+    "PreviewCaption": "dmg_compiler.preview_caption",
+    "WarningTitle": "dmg_compiler.warning_title"
+  },
+  "CodeFind": {
+    "Placeholder": "code_find.placeholder",
+    "NoResults": "code_find.no_results",
+    "PreviousMatch": "code_find.previous_match",
+    "NextMatch": "code_find.next_match",
+    "Close": "code_find.close"
+  },
+  "StarterFailure": {
+    "OfflineTitle": "starter_failure.offline_title",
+    "OfflineMessage": "starter_failure.offline_message",
+    "UnreachableTitle": "starter_failure.unreachable_title",
+    "UnreachableMessage": "starter_failure.unreachable_message",
+    "GitMissingTitle": "starter_failure.git_missing_title",
+    "GitMissingMessage": "starter_failure.git_missing_message",
+    "CloneFailedTitle": "starter_failure.clone_failed_title",
+    "CloneFailedMessage": "starter_failure.clone_failed_message"
   }
 } as const

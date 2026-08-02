@@ -263,6 +263,20 @@ i[class*=" devicon-"] {
 .shadow-accent-lg  { box-shadow: 0 3px 10px rgb(var(--color-accent) / 0.16); }
 
 /* ─────────────────────────────────────────────
+   CODE FIND MATCHES
+   Painted through the CSS Custom Highlight API,
+   so the highlighter's own spans are untouched.
+   ───────────────────────────────────────────── */
+::highlight(code-find) {
+  background-color: rgb(var(--color-warning) / 0.35);
+}
+
+::highlight(code-find-active) {
+  background-color: rgb(var(--color-warning) / 0.75);
+  color: rgb(11 18 32);
+}
+
+/* ─────────────────────────────────────────────
    REDUCE MOTION
    ───────────────────────────────────────────── */
 :root[data-reduce-motion="true"] *,

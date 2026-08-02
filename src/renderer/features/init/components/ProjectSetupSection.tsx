@@ -1,3 +1,4 @@
+import type { StarterFailureReason } from "@main/starter-provisioner";
 import { translation } from "@renderer/i18n/translation";
 import type {
   ImportedTemplateSnapshot,
@@ -33,6 +34,9 @@ interface ProjectSetupSectionProps {
   // Structure stage
   savedInitWorkflowConfig: SavedInitWorkflowConfig | null;
   selectedImportedTemplate: ImportedTemplateSnapshot | null;
+  preparedTree: ProjectTreeNode[] | null;
+  starterFailureReason: StarterFailureReason | null;
+  preparedOptionalFolders: { path: string; label: string }[];
   selectedStructurePaths: string[];
   onBackToConfig: () => void;
   onCreateProject: () => void;
@@ -62,6 +66,9 @@ export function ProjectSetupSection({
   createOptionValues,
   onCreateOptionChange,
   savedInitWorkflowConfig,
+  preparedTree,
+  starterFailureReason,
+  preparedOptionalFolders,
   selectedImportedTemplate,
   selectedStructurePaths,
   onBackToConfig,
@@ -84,6 +91,8 @@ export function ProjectSetupSection({
         <FileStructureSetupPanel
           busy={busy}
           importedTemplate={selectedImportedTemplate}
+          preparedTree={preparedTree}
+          preparedOptionalFolders={preparedOptionalFolders}
           savedConfig={savedInitWorkflowConfig}
           selectedStructurePaths={selectedStructurePaths}
           templateOptions={templateOptions}
@@ -99,6 +108,7 @@ export function ProjectSetupSection({
   // Configure stage: the back link lives inside the form's hero header.
   return (
     <WorkflowForm
+      starterFailureReason={starterFailureReason}
       sourceMode={sourceMode}
       sourceLabel={sourceLabel}
       projectName={projectName}

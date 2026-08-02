@@ -1,3 +1,4 @@
+import type { StarterFailureReason } from "@main/starter-provisioner";
 import { translation } from "@renderer/i18n/translation";
 import type {
   ImportedTemplateOption,
@@ -22,6 +23,9 @@ interface InitProjectPageProps {
   projectDirectory: string;
   projectName: string;
   savedInitWorkflowConfig: SavedInitWorkflowConfig | null;
+  preparedTree: ProjectTreeNode[] | null;
+  starterFailureReason: StarterFailureReason | null;
+  preparedOptionalFolders: { path: string; label: string }[];
   selectedImportedTemplate: ImportedTemplateSnapshot | null;
   selectedImportedTemplateId: string;
   selectedStructurePaths: string[];
@@ -52,6 +56,9 @@ export function InitProjectPage({
   projectDirectory,
   projectName,
   savedInitWorkflowConfig,
+  preparedTree,
+  starterFailureReason,
+  preparedOptionalFolders,
   selectedImportedTemplate,
   selectedImportedTemplateId,
   selectedStructurePaths,
@@ -128,6 +135,9 @@ export function InitProjectPage({
             onCreateOptionChange={onCreateOptionChange}
             savedInitWorkflowConfig={savedInitWorkflowConfig}
             selectedImportedTemplate={selectedImportedTemplate}
+            preparedTree={preparedTree}
+            starterFailureReason={starterFailureReason}
+            preparedOptionalFolders={preparedOptionalFolders}
             selectedStructurePaths={selectedStructurePaths}
             onBackToConfig={onBackToConfig}
             onCreateProject={onCreateProject}

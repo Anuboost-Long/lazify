@@ -2,8 +2,10 @@ import clsx from "clsx";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 import { useHighlightedLines } from "./CodeText";
+import { CodeFindBar } from "./find/CodeFindBar";
+import { useCodeFind } from "./find/use-code-find";
 import { PLAIN_LANGUAGE } from "./highlighter/languages";
-import { symbolHitAtPoint } from "./symbol-at-point";
+import { symbolHitAtPoint, type SymbolPosition } from "./symbol-at-point";
 import { useCodePalette } from "./highlighter/use-highlighter";
 import { languageOf } from "./tokenize";
 
@@ -24,9 +26,10 @@ interface CodeSurfaceProps {
   /**
    * Clicking an identifier asks to go to where it is declared. Read-only
    * surfaces only — the caller decides what "go" means, because each place
-   * this appears navigates its own way.
+   * this appears navigates its own way. The position comes along so the name
+   * can be read in its context rather than looked up on spelling alone.
    */
-  onOpenSymbol?: (symbol: string) => void;
+  onOpenSymbol?: (symbol: string, position?: SymbolPosition) => void;
   /** 1-based line to reveal and mark, e.g. the definition just jumped to. */
   focusLine?: number | null;
 }
@@ -98,14 +101,24 @@ export function CodeSurface({
   focusLine,
 }: Readonly<CodeSurfaceProps>) {
   const style = STYLES[variant];
+  const rootRef = useRef<HTMLDivElement | null>(null);
   const gutterRef = useRef<HTMLDivElement | null>(null);
   const codeRef = useRef<HTMLPreElement | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const language = languageOf(fileName);
   const lines = useHighlightedLines(
     content,
     onContentChange ? PLAIN_LANGUAGE : language,
   );
   const palette = useCodePalette();
+  // `lines` stands in for the painted text: it is rebuilt whenever the content
+  // or the highlighting behind it changes.
+  const find = useCodeFind({
+    root: rootRef,
+    scroller: codeRef,
+    revision: lines,
+    textarea: onContentChange ? textareaRef : undefined,
+  });
 
   // A dark code theme inside a light pane (or the reverse) has to bring its own
   // background, the way the VS Code editor does. Editable surfaces keep the
@@ -209,6 +222,8 @@ export function CodeSurface({
       lines.map((line, index) => (
         <div
           key={index}
+          // Find works on the painted text, and this is where one line ends.
+          data-code-line=""
           // The line jumped to keeps a tint until the next jump, the way an
           // editor leaves the caret line marked after a search.
           className={focusLine === index + 1 ? "bg-accent/[0.14]" : undefined}
@@ -246,13 +261,16 @@ export function CodeSurface({
     // The cue belongs to the word that was here; the jump replaces what is
     // under the pointer, so it goes with it.
     setLinkBoxes(null);
-    onOpenSymbol(hit.symbol);
+    onOpenSymbol(hit.symbol, hit.position);
   };
 
   return (
     <div
+      ref={rootRef}
       className={clsx(
-        "flex h-full overflow-hidden text-text",
+        // Relative so the find bar can float over the code rather than take
+        // width from it.
+        "relative flex h-full overflow-hidden text-text",
         style.frame,
         className,
       )}
@@ -270,6 +288,7 @@ export function CodeSurface({
       <div className={CODE_WRAP}>
         {onContentChange ? (
           <textarea
+            ref={textareaRef}
             value={content}
             onChange={(event) => onContentChange(event.target.value)}
             onScroll={(event) => syncGutter(event.currentTarget.scrollTop)}
@@ -319,6 +338,8 @@ export function CodeSurface({
           </pre>
         )}
       </div>
+
+      <CodeFindBar find={find} />
     </div>
   );
 }

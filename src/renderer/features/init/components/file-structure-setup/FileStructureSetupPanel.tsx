@@ -7,6 +7,8 @@ import { useTranslation } from "react-i18next";
 export function FileStructureSetupPanel({
   busy,
   importedTemplate,
+  preparedTree,
+  preparedOptionalFolders,
   savedConfig,
   selectedStructurePaths,
   templateOptions,
@@ -39,15 +41,19 @@ export function FileStructureSetupPanel({
       templateId={templateId}
       templateLabel={templateLabel}
       selectedStructurePaths={selectedStructurePaths}
-      initialTree={importedTemplate?.tree ?? null}
-      useScaffoldBaseline={savedConfig.sourceMode === "stack"}
-      showModuleSelectionToggle={savedConfig.sourceMode === "stack"}
+      initialTree={preparedTree ?? importedTemplate?.tree ?? null}
+      // Only offered when the starter actually declares optional folders; there
+      // is nothing to tick for a starter that ships everything it needs.
+      showModuleSelectionToggle={
+        savedConfig.sourceMode === "stack" && preparedOptionalFolders.length > 0
+      }
       primaryActionLabel={t(translation.FileStructure.CreateProject)}
       onPrimaryAction={onCreateProject}
       onTreeChange={onTreeChange}
       secondaryActionLabel={t(translation.FileStructure.BackToConfig)}
       onSecondaryAction={onBackToConfig}
       moduleSheet={{
+        options: preparedOptionalFolders,
         open: moduleSheetOpen,
         onOpen: () => setModuleSheetOpen(true),
         onClose: () => setModuleSheetOpen(false),

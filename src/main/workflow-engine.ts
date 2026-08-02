@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import fsPromises from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 
@@ -18,6 +19,19 @@ import {
   readProjectPackageJson,
   resolveManifestToLatest
 } from "./template-package-manifest";
+import type { StarterSource } from "./catalog";
+import {
+  forgetPreparedProject,
+  getPreparedProject,
+  rememberPreparedProject,
+  type PreparedProject
+} from "./prepared-projects";
+import type { StarterDescriptor, StarterOptionalFolder } from "./starter-descriptor";
+import {
+  provisionStarter,
+  StarterError,
+  type StarterFailureReason
+} from "./starter-provisioner";
 import { reconcileProjectStructure } from "./tree-reconciler";
 import { CommandRunner } from "./command-runner";
 import { choosePackageManager, scanEnvironment, type CommandBinary, type PackageManager } from "./scanner";
@@ -33,6 +47,8 @@ export interface WorkflowResult {
   success: boolean;
   message: string;
   projectPath?: string;
+  /** Set only when a starter clone failed, so the UI can name the cause. */
+  reason?: StarterFailureReason;
 }
 
 export interface CreateProjectPayload {
@@ -44,6 +60,25 @@ export interface CreateProjectPayload {
   structureTree: ProjectTreeNode[];
   /** Keyed by TemplateCreateOption.key; missing keys fall back to the option default. */
   createOptions?: Record<string, boolean>;
+}
+
+export interface PrepareProjectResult {
+  success: boolean;
+  message: string;
+  projectPath?: string;
+  reason?: StarterFailureReason;
+  /** Folders the starter offers but does not ship; empty for a CLI project. */
+  optionalFolders?: StarterOptionalFolder[];
+  /** Paths the picker may not remove. */
+  required?: string[];
+}
+
+export interface FinalizeProjectPayload {
+  projectPath: string;
+  /** Project-relative paths the user unticked. Anything in `required` is ignored. */
+  removePaths?: string[];
+  /** Project-relative optional folders the user ticked, each created with a .gitkeep. */
+  optionalFolderPaths?: string[];
 }
 
 export interface InstallPackagePayload {
@@ -83,6 +118,32 @@ export class WorkflowEngine {
       return this.createProjectFromImportedTemplate(payload, workflowId);
     }
 
+    // One shot: produce the tree and finish it without a review step. This is
+    // what the current init flow calls; once the picker reads the prepared tree
+    // from disk it will call the two halves itself and this can go.
+    const prepared = await this.prepareProject(payload);
+
+    if (!prepared.success || !prepared.projectPath) {
+      return { success: false, message: prepared.message, reason: prepared.reason };
+    }
+
+    return this.finalizeProject({ projectPath: prepared.projectPath });
+  }
+
+  /**
+   * Step one of two. Produces the project tree on disk — a starter clone or the
+   * framework CLI's output — and stops there, so the picker can browse the real
+   * thing before anything is installed. `finalizeProject` finishes the job, and
+   * `discardPreparedProject` backs it out.
+   */
+  async prepareProject(payload: CreateProjectPayload): Promise<PrepareProjectResult> {
+    const workflowId = `create-${Date.now()}`;
+    const environment = scanEnvironment();
+
+    if (environment.issues.length > 0) {
+      throw new Error(environment.issues.join(" "));
+    }
+
     if (!payload.templateId) {
       throw new Error("Choose a stack before creating the project.");
     }
@@ -90,6 +151,22 @@ export class WorkflowEngine {
     const template = getTemplate(payload.templateId);
     const baseDirectory = resolveUserPath(payload.baseDirectory);
     const projectPath = path.resolve(baseDirectory, payload.name);
+    const directoryExistedBefore = fs.existsSync(projectPath);
+
+    // Tier 1: the stack has a starter repo, so the project is a clone of a real
+    // application rather than CLI output with a tree synthesized over it.
+    if (template.starter) {
+      return this.prepareFromStarter({
+        workflowId,
+        template,
+        starter: template.starter,
+        baseDirectory,
+        projectPath,
+        projectName: payload.name,
+        directoryExistedBefore
+      });
+    }
+
     const createCommand = resolveTemplateCommand(template);
     const createArgs = template.createCommands[createCommand];
 
@@ -148,6 +225,51 @@ export class WorkflowEngine {
       };
     }
 
+    // Tier 2 has no starter descriptor, so nothing is protected from removal and
+    // there are no optional folders to offer — the picker just reads the tree.
+    rememberPreparedProject({
+      projectPath,
+      templateId: template.id,
+      createdDirectory: !directoryExistedBefore,
+      optionalFolders: [],
+      required: []
+    });
+
+    return {
+      success: true,
+      message: `Project created in ${projectPath}.`,
+      projectPath,
+      optionalFolders: [],
+      required: []
+    };
+  }
+
+  /**
+   * Step two of two: what the user chose in the picker, then install, then a
+   * repository. Everything here used to run straight after creation, before
+   * anyone could look at the tree.
+   */
+  async finalizeProject(payload: FinalizeProjectPayload): Promise<WorkflowResult> {
+    const workflowId = `finalize-${Date.now()}`;
+    const prepared = getPreparedProject(payload.projectPath);
+
+    if (!prepared) {
+      throw new Error("That project is no longer waiting to be finished.");
+    }
+
+    const { projectPath } = prepared;
+    const template = getTemplate(prepared.templateId);
+
+    await this.applyPickerChoices(payload, prepared, workflowId);
+
+    // Tier 1 finishes differently: a starter is a working app, so there is no
+    // structure to reconcile and no manifest to apply — its own package.json is
+    // the dependency list, and overlaying a synthesized tree here would
+    // reintroduce exactly the drift the starter repos exist to remove.
+    if (template.starter) {
+      return this.finalizeStarterProject(projectPath, workflowId);
+    }
+
     if (template.postInstallDependencies?.length) {
       this.emitProgress({
         workflowId,
@@ -179,22 +301,8 @@ export class WorkflowEngine {
       }
     }
 
-    if (payload.structureTree.length > 0) {
-      this.emitProgress({
-        workflowId,
-        status: "running",
-        step: "reconcile-project-structure",
-        message: "Applying Lazify file structure to the generated project."
-      });
-
-      // Expo scaffolds source into `src/`; replace it wholesale so the generated
-      // routes/components don't conflict with the configured structure.
-      reconcileProjectStructure(
-        projectPath,
-        payload.structureTree,
-        template.projectType === "expo" ? ["src"] : []
-      );
-    }
+    // The structure the user chose was applied to the real tree in
+    // applyPickerChoices. Nothing synthesized is overlaid here any more.
 
     this.emitProgress({
       workflowId,
@@ -296,6 +404,237 @@ export class WorkflowEngine {
       message: `Project created successfully at ${projectPath}.`,
       projectPath
     };
+  }
+
+  /**
+   * Removes what the user unticked and creates the optional folders they asked
+   * for. `required` is enforced here rather than only in the UI, because a
+   * starter is verified green by CI as a whole and these are the files without
+   * which it cannot build.
+   */
+  private async applyPickerChoices(
+    payload: FinalizeProjectPayload,
+    prepared: PreparedProject,
+    workflowId: string
+  ): Promise<void> {
+    const removals = (payload.removePaths ?? []).filter(
+      (relativePath) => !prepared.required.includes(relativePath)
+    );
+
+    if (removals.length > 0) {
+      this.emitProgress({
+        workflowId,
+        status: "running",
+        step: "apply-structure",
+        message: `Removing ${String(removals.length)} file(s) you unticked.`
+      });
+
+      for (const relativePath of removals) {
+        await fsPromises.rm(resolveInsideProject(prepared.projectPath, relativePath), {
+          recursive: true,
+          force: true
+        });
+      }
+    }
+
+    for (const relativePath of payload.optionalFolderPaths ?? []) {
+      const folderPath = resolveInsideProject(prepared.projectPath, relativePath);
+      await fsPromises.mkdir(folderPath, { recursive: true });
+      // A .gitkeep so an empty folder the user asked for survives the commit.
+      await fsPromises.writeFile(path.join(folderPath, ".gitkeep"), "");
+    }
+  }
+
+  /** Tier 1 finish: install what the starter declares, then make it a repository. */
+  private async finalizeStarterProject(
+    projectPath: string,
+    workflowId: string
+  ): Promise<WorkflowResult> {
+    this.emitProgress({
+      workflowId,
+      status: "running",
+      step: "install-dependencies",
+      message: "Installing the starter's dependencies."
+    });
+
+    const installResult = await this.commandRunner.runCommand({
+      command: choosePackageManager(projectPath),
+      args: ["install"],
+      cwd: projectPath
+    });
+
+    if (!installResult.success) {
+      this.emitProgress({
+        workflowId,
+        status: "error",
+        step: "install-dependencies",
+        message: "Project was created, but dependency installation failed."
+      });
+
+      return {
+        success: false,
+        message: "Project was created, but dependency installation failed.",
+        projectPath
+      };
+    }
+
+    // The starter's history was dropped during provisioning, so without this the
+    // project has no repository at all — worse than what the CLI tier produces.
+    await this.initializeRepository(projectPath, workflowId);
+
+    forgetPreparedProject(projectPath);
+
+    const message = `Project created successfully at ${projectPath}.`;
+    this.emitProgress({ workflowId, status: "success", step: "complete", message });
+
+    return { success: true, message, projectPath };
+  }
+
+  /**
+   * Backs out a prepared project. Only ever deletes a directory this run
+   * created — a folder that was already there is left exactly as it was, even
+   * though the tree was written into it.
+   */
+  async discardPreparedProject(projectPath: string): Promise<{ removed: boolean }> {
+    const prepared = getPreparedProject(projectPath);
+
+    if (!prepared) {
+      return { removed: false };
+    }
+
+    forgetPreparedProject(projectPath);
+
+    if (!prepared.createdDirectory) {
+      return { removed: false };
+    }
+
+    await fsPromises.rm(projectPath, { recursive: true, force: true });
+
+    return { removed: true };
+  }
+
+  /** Tier 1 step one: clone the starter and stop, so the picker sees the real tree. */
+  private async prepareFromStarter(options: {
+    workflowId: string;
+    template: TemplateDefinition;
+    starter: StarterSource;
+    baseDirectory: string;
+    projectPath: string;
+    projectName: string;
+    directoryExistedBefore: boolean;
+  }): Promise<PrepareProjectResult> {
+    const {
+      workflowId,
+      template,
+      starter,
+      baseDirectory,
+      projectPath,
+      projectName,
+      directoryExistedBefore
+    } = options;
+
+    this.emitProgress({
+      workflowId,
+      status: "running",
+      step: "preflight",
+      message: `Environment ready. Using the ${template.label} starter.`
+    });
+
+    this.emitProgress({
+      workflowId,
+      status: "running",
+      step: "create-project",
+      message: `Cloning ${starter.repo} at ${starter.ref} into ${projectPath}.`
+    });
+
+    fs.mkdirSync(baseDirectory, { recursive: true });
+
+    let descriptor: StarterDescriptor;
+
+    try {
+      descriptor = await provisionStarter({
+        repo: starter.repo,
+        ref: starter.ref,
+        projectPath,
+        projectName
+      });
+    } catch (error) {
+      const failure =
+        error instanceof StarterError
+          ? error
+          : new StarterError("clone-failed", (error as Error).message);
+
+      // A partial clone is worse than none: it looks like a project and cannot
+      // build. Only ever remove a directory this run created.
+      if (!directoryExistedBefore) {
+        fs.rmSync(projectPath, { recursive: true, force: true });
+      }
+
+      // The message carries git's own words, which is what makes a log useful.
+      // Turning the reason into something a person should read is the UI's job.
+      this.emitProgress({
+        workflowId,
+        status: "error",
+        step: "create-project",
+        message: failure.message
+      });
+
+      return { success: false, message: failure.message, reason: failure.reason };
+    }
+
+    rememberPreparedProject({
+      projectPath,
+      templateId: template.id,
+      createdDirectory: !directoryExistedBefore,
+      optionalFolders: descriptor.optionalFolders,
+      required: descriptor.required
+    });
+
+    const message = `Cloned ${starter.repo} into ${projectPath}.`;
+
+    // Running, not success: the project is not finished until it is installed.
+    this.emitProgress({ workflowId, status: "running", step: "review-structure", message });
+
+    return {
+      success: true,
+      message,
+      projectPath,
+      optionalFolders: descriptor.optionalFolders,
+      required: descriptor.required
+    };
+  }
+
+  /**
+   * Best effort: a project that exists but is not a git repo is still usable,
+   * so nothing here may turn a created project into a failed one. runCommand
+   * rejects rather than resolving when a binary cannot be spawned, so the whole
+   * sequence is wrapped rather than only its exit codes checked.
+   */
+  private async initializeRepository(projectPath: string, workflowId: string): Promise<void> {
+    const steps = [["init", "--quiet"], ["add", "-A"], ["commit", "--quiet", "-m", "Initial commit"]];
+
+    try {
+      for (const args of steps) {
+        const result = await this.commandRunner.runCommand({ command: "git", args, cwd: projectPath });
+
+        if (!result.success) {
+          break;
+        }
+
+        if (args === steps[steps.length - 1]) {
+          return;
+        }
+      }
+    } catch {
+      // Falls through to the same notice as a non-zero exit.
+    }
+
+    this.emitProgress({
+      workflowId,
+      status: "running",
+      step: "git-init",
+      message: "Project created, but the git repository could not be initialized."
+    });
   }
 
   private async createProjectFromImportedTemplate(
@@ -639,6 +978,21 @@ function resolveTemplateCommand(template: TemplateDefinition): CommandBinary {
   }
 
   return fallback;
+}
+
+/**
+ * Picker choices arrive from the renderer, so a path that climbs out of the
+ * project is refused rather than trusted — this one deletes files.
+ */
+function resolveInsideProject(projectPath: string, relativePath: string): string {
+  const resolved = path.resolve(projectPath, relativePath);
+  const root = path.resolve(projectPath);
+
+  if (resolved === root || !resolved.startsWith(root + path.sep)) {
+    throw new Error(`Refusing to touch a path outside the project: ${relativePath}`);
+  }
+
+  return resolved;
 }
 
 function resolveUserPath(inputPath: string): string {

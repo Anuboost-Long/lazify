@@ -605,7 +605,11 @@
     "start_search": "搜索网页",
     "send_to_agent": "发送给智能体",
     "no_agents_running": "没有正在运行的智能体。请在“智能体”页面打开一个。",
-    "send_to_agent_hint": "将网址输入智能体的提示框，但不会直接发送。"
+    "send_to_agent_hint": "将网址输入智能体的提示框，但不会直接发送。",
+    "popup_blocked": "已拦截弹出窗口",
+    "redirect_blocked": "已拦截跳转",
+    "popup_blocked_open": "打开",
+    "popup_blocked_allow_site": "始终允许此网站"
   },
   "lazy_shield": {
     "title": "Lazy Shield",
@@ -660,6 +664,40 @@
     "tile_size": "应用大小",
     "tile_format": "格式",
     "tile_layout": "布局",
-    "layout_value": "拖拽安装"
+    "layout_value": "拖动以安装",
+    "step_styling": "正在布置磁盘窗口…",
+    "window_section": "挂载窗口",
+    "window_section_hint": "打开磁盘时的外观。两项均为可选。",
+    "background_label": "窗口背景",
+    "background_hint": "绘制在图标后面。其尺寸决定窗口尺寸。",
+    "volume_icon_label": "磁盘图标",
+    "volume_icon_hint": "已挂载磁盘的图标。默认使用应用自身的图标。",
+    "image_choose": "选择图片…",
+    "image_replace": "替换",
+    "image_clear": "清除",
+    "image_default": "应用图标",
+    "image_none": "无",
+    "image_unreadable": "无法预览",
+    "preview_label": "预览",
+    "preview_applications": "Applications",
+    "preview_caption": "挂载磁盘映像时打开的窗口。",
+    "warning_title": "已生成，但缺少一项"
+  },
+  "code_find": {
+    "placeholder": "在文件中查找",
+    "no_results": "无结果",
+    "previous_match": "上一个匹配",
+    "next_match": "下一个匹配",
+    "close": "关闭查找"
+  },
+  "starter_failure": {
+    "offline_title": "没有网络连接",
+    "offline_message": "Lazify 无法访问 starter 仓库。请连接到互联网后重新创建项目。",
+    "unreachable_title": "找不到 Starter",
+    "unreachable_message": "找不到该 starter 仓库或此版本。磁盘上没有写入任何内容。",
+    "git_missing_title": "未安装 git",
+    "git_missing_message": "Lazify 需要 git 来获取 starter。请安装 git 并确保它在 PATH 中，然后重试。",
+    "clone_failed_title": "无法克隆 starter",
+    "clone_failed_message": "下方的控制台日志包含 git 的完整输出。"
   }
 }

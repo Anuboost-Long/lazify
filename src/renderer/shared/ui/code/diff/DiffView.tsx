@@ -6,6 +6,8 @@ import { translation } from "@renderer/i18n/translation";
 import { MonoText, SmallText } from "@renderer/shared/typography";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import { CodeLineText } from "@renderer/shared/ui/code/CodeText";
+import { CodeFindBar } from "@renderer/shared/ui/code/find/CodeFindBar";
+import { useCodeFind } from "@renderer/shared/ui/code/find/use-code-find";
 import { useCodePalette } from "@renderer/shared/ui/code/highlighter/use-highlighter";
 import { languageOf } from "@renderer/shared/ui/code/tokenize";
 import {
@@ -82,8 +84,11 @@ function CodeLine({
   const tone = rowTone(row?.type ?? "context");
 
   return (
-    <div className={clsx("flex min-w-0 flex-1", row ? tone.background : "bg-text/[0.02]")}>
-      <MonoText as="span" className={NUMBER_CLASS}>
+    <div
+      data-code-line=""
+      className={clsx("flex min-w-0 flex-1", row ? tone.background : "bg-text/[0.02]")}
+    >
+      <MonoText as="span" data-code-ignore="" className={NUMBER_CLASS}>
         {number ?? " "}
       </MonoText>
       <MonoText
@@ -143,6 +148,12 @@ export function DiffView({
   const [splitRatio, setSplitRatio] = useState(0.5);
   const [draggingSeam, setDraggingSeam] = useState(false);
   const frameRef = useRef<HTMLDivElement | null>(null);
+  const scrollerRef = useRef<HTMLDivElement | null>(null);
+
+  // A token that changes exactly when the rows on screen are rebuilt, which is
+  // what the find ranges are anchored to.
+  const painted = useMemo(() => ({}), [diff, mode, expanded, showHunkHeaders]);
+  const find = useCodeFind({ root: frameRef, scroller: scrollerRef, revision: painted });
 
   // Every change gets an index, so the reader can step between them.
   const blockIndexByRow = useMemo(() => {
@@ -282,12 +293,13 @@ export function DiffView({
         <div
           key={`${key}-r${index}`}
           ref={changeRef(row)}
+          data-code-line=""
           className={clsx("flex", tone.background)}
         >
-          <MonoText as="span" className={NUMBER_CLASS}>
+          <MonoText as="span" data-code-ignore="" className={NUMBER_CLASS}>
             {row.oldNumber ?? " "}
           </MonoText>
-          <MonoText as="span" className={NUMBER_CLASS}>
+          <MonoText as="span" data-code-ignore="" className={NUMBER_CLASS}>
             {row.newNumber ?? " "}
           </MonoText>
           {/* Mid-tone marker: it has to stay legible on a light or a dark code
@@ -319,6 +331,7 @@ export function DiffView({
   return (
     <div ref={frameRef} className="relative h-full min-h-0 flex-1 overflow-hidden">
       <div
+        ref={scrollerRef}
         className="h-full overflow-auto py-1"
         style={palette ? { background: palette.bg, color: palette.fg } : undefined}
       >
@@ -340,6 +353,8 @@ export function DiffView({
           </SmallText>
         ) : null}
       </div>
+
+      <CodeFindBar find={find} />
 
       {/* The seam between the two columns, draggable. It sits on the frame
           rather than inside the scroller, so it stays put as the diff scrolls.

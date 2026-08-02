@@ -189,7 +189,7 @@ export function SyncedProjectTreePanel({
             selectedFileState={adapter.selectedFileState}
             /* Go to definition stays inside this workbench: the file it finds
                opens as another tab here, next to what the user was reading. */
-            onOpenSymbol={(symbol) => void adapter.handleOpenSymbol(symbol)}
+            onOpenSymbol={(symbol, position) => void adapter.handleOpenSymbol(symbol, position)}
             focusLine={adapter.focusLine}
           />
         }

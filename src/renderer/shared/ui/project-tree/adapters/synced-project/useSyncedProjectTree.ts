@@ -4,6 +4,7 @@ import {
   findNodeById,
 } from "@renderer/shared/ui/project-tree-optimized/tree-utils";
 import type { EditorTab } from "@renderer/shared/ui/code/EditorTabBar";
+import type { SymbolPosition } from "@renderer/shared/ui/code/symbol-at-point";
 import type {
   FileContentState,
   TreeContextMenuState,
@@ -447,9 +448,16 @@ export function useSyncedProjectTree({
    * A name that resolves to nothing, or to a file outside the indexed tree, is
    * a no-op: a click on an ordinary word must not disturb what is open.
    */
-  const handleOpenSymbol = async (symbol: string) => {
+  const handleOpenSymbol = async (symbol: string, position?: SymbolPosition) => {
     const hit = await globalThis.lazify
-      .findSymbolDefinition(project.projectPath, symbol)
+      // The file in the active tab is what a relative import path is relative
+      // to, and what the clicked position is read in.
+      .findSymbolDefinition(
+        project.projectPath,
+        symbol,
+        activeFileNode?.absolutePath ?? null,
+        position
+      )
       .catch(() => null);
 
     if (!hit) return;

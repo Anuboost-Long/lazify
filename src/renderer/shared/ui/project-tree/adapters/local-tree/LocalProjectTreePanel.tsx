@@ -18,7 +18,6 @@ export function LocalProjectTreePanel({
   templateLabel,
   selectedStructurePaths,
   initialTree,
-  useScaffoldBaseline = true,
   replaceTreeOnInitialChange = false,
   showModuleSelectionToggle = false,
   primaryActionLabel,
@@ -35,7 +34,6 @@ export function LocalProjectTreePanel({
     replaceTreeOnInitialChange,
     selectedStructurePaths,
     templateId,
-    useScaffoldBaseline,
   });
 
   return (
@@ -96,6 +94,7 @@ export function LocalProjectTreePanel({
           <ModuleSheet
             open={moduleSheet.open}
             busy={busy}
+            options={moduleSheet.options}
             lockedFolderNames={adapter.lockedFolderNames}
             selectedStructurePaths={selectedStructurePaths}
             onClose={moduleSheet.onClose}

@@ -1,7 +1,4 @@
-import fs from "node:fs";
-import path from "node:path";
-import { app } from "electron";
-
+import { readCatalog, type StarterSource } from "./catalog";
 import type { CommandBinary, PackageManager } from "./scanner";
 
 /**
@@ -17,6 +14,13 @@ export interface TemplateCreateOption {
   offFlag: string;
 }
 
+/**
+ * One catalog entry: the whole surface for adding a stack. createCommands is
+ * what every entry can always fall back to; `starter` is optional, and its
+ * absence is what makes a stack CLI-only rather than a gap. No entry ever
+ * carries file content — conventions travel as recommendedPackages, because a
+ * dependency list does not rot the way a file importing from the framework does.
+ */
 export interface TemplateDefinition {
   id: string;
   label: string;
@@ -27,24 +31,15 @@ export interface TemplateDefinition {
   createOptions?: TemplateCreateOption[];
   postInstallDependencies?: string[];
   packageManifest?: string;
+  /** A name from the bundled icon set — never a URL, which would not render. */
+  icon?: string;
+  language?: string;
+  recommendedPackages?: string[];
+  starter?: StarterSource;
 }
 
-const TEMPLATE_DIRECTORY = app.isPackaged
-  ? path.join(process.resourcesPath, "templates")
-  : path.join(app.getAppPath(), "templates");
-
 export function listTemplates(): TemplateDefinition[] {
-  if (!fs.existsSync(TEMPLATE_DIRECTORY)) {
-    return [];
-  }
-
-  return fs
-    .readdirSync(TEMPLATE_DIRECTORY)
-    .filter((entry) => entry.endsWith(".json"))
-    .map((entry) => {
-      const raw = fs.readFileSync(path.join(TEMPLATE_DIRECTORY, entry), "utf8");
-      return JSON.parse(raw) as TemplateDefinition;
-    });
+  return readCatalog();
 }
 
 export function getTemplate(id: string): TemplateDefinition {
