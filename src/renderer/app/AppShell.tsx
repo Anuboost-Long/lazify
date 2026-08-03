@@ -96,12 +96,14 @@ export function AppShell() {
         location.pathname === page.path ||
         (page.id === "workspace" &&
           location.pathname.startsWith("/workspace/project/")) ||
+        (page.id === "templates" &&
+          location.pathname.startsWith(`${appRoute.templates}/`)) ||
         // Legal documents are reached from Settings, so keep it highlighted.
         (page.id === "settings" && location.pathname.startsWith("/legal/")),
     )?.id ?? null;
 
   const activePage =
-    location.pathname === appRoute.initProject
+    location.pathname.startsWith(appRoute.initProject)
       ? {
           path: appRoute.initProject,
           label: translation.Sidebar.InitProject,

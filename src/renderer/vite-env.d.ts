@@ -1,11 +1,11 @@
 /// <reference types="vite/client" />
 
-import type { LogEvent, CommandResult } from "../main/command-runner";
-import type { TemplateDefinition } from "../main/harmonizer";
-import type { NpmPackageSearchResult } from "../main/npm-registry";
-import type { EnvironmentScan } from "../main/scanner";
-import type { ToolScanReport, NvmVersionList, NvmInstallResult, NvmActionResult, ToolUpdateInfo } from "../main/environment-scanner";
-import type { TemplatePackageEntry } from "../main/template-package-manifest";
+import type { CommandChoicePrompt, LogEvent, CommandResult } from "../main/command-runner";
+import type { TemplateDefinition } from "../main/scaffolding/harmonizer";
+import type { NpmPackageSearchResult } from "../main/scaffolding/npm-registry";
+import type { EnvironmentScan } from "../main/environment/scanner";
+import type { ToolScanReport, NvmVersionList, NvmInstallResult, NvmActionResult, ToolUpdateInfo } from "../main/environment/environment-scanner";
+import type { TemplatePackageEntry } from "../main/scaffolding/template-package-manifest";
 import type {
   AgentFileChange,
   AgentUsageReport,
@@ -23,7 +23,7 @@ import type {
   InstallPackagePayload,
   WorkflowProgressEvent,
   WorkflowResult
-} from "../main/workflow-engine";
+} from "../main/scaffolding/workflow-engine";
 import type { VersionMatchReport } from "./shared/types/lazify";
 import type { AgentDescriptor } from "../main/agents/agent-registry";
 
@@ -37,6 +37,7 @@ declare global {
       platform: string;
       runCommand: (command: string, args: string[], cwd?: string) => Promise<CommandResult>;
       createProject: (payload: CreateProjectPayload) => Promise<WorkflowResult>;
+      chooseCommandOption: (promptId: string, optionId: string) => Promise<boolean>;
       installPackage: (payload: InstallPackagePayload) => Promise<WorkflowResult>;
       checkEnvironment: () => Promise<EnvironmentScan>;
       scanTools: (force?: boolean) => Promise<ToolScanReport>;
@@ -50,6 +51,7 @@ declare global {
       checkToolUpdate: (toolName: string, currentVersion: string) => Promise<ToolUpdateInfo>;
       updateTool: (toolName: string) => Promise<NvmActionResult>;
       relaunchApp: () => Promise<void>;
+      signalRendererReady: () => void;
       listTemplates: () => Promise<TemplateDefinition[]>;
       listImportedTemplates: () => Promise<ImportedTemplateOption[]>;
       getImportedTemplate: (templateId: string) => Promise<ImportedTemplateSnapshot>;
@@ -132,8 +134,8 @@ declare global {
       onScriptStatus: (callback: (event: import("./shared/types/lazify").ScriptStatusEvent) => void) => () => void;
       onSessionKilled: (callback: (event: { runId: string }) => void) => () => void;
       listProjectPackages: (projectPath: string) => Promise<import("./shared/types/lazify").InstalledPackage[]>;
-      addProjectPackage: (payload: import("../main/workflow-engine").AddProjectPackagePayload) => Promise<import("../main/workflow-engine").WorkflowResult>;
-      removeProjectPackage: (payload: import("../main/workflow-engine").RemoveProjectPackagePayload) => Promise<import("../main/workflow-engine").WorkflowResult>;
+      addProjectPackage: (payload: import("../main/scaffolding/workflow-engine").AddProjectPackagePayload) => Promise<import("../main/scaffolding/workflow-engine").WorkflowResult>;
+      removeProjectPackage: (payload: import("../main/scaffolding/workflow-engine").RemoveProjectPackagePayload) => Promise<import("../main/scaffolding/workflow-engine").WorkflowResult>;
       installProjectDependencies: (projectPath: string) => Promise<WorkflowResult>;
       saveImportedTemplate: (
         projectPath: string,
@@ -154,26 +156,26 @@ declare global {
       checkoutBranch: (
         projectPath: string,
         branch: string,
-      ) => Promise<import("../main/project-git-status").GitCheckoutResult>;
+      ) => Promise<import("../main/projects/project-git-status").GitCheckoutResult>;
       stageFiles: (
         projectPath: string,
         paths: string[],
-      ) => Promise<import("../main/git-actions").GitActionResult>;
+      ) => Promise<import("../main/projects/git-actions").GitActionResult>;
       unstageFiles: (
         projectPath: string,
         paths: string[],
-      ) => Promise<import("../main/git-actions").GitActionResult>;
+      ) => Promise<import("../main/projects/git-actions").GitActionResult>;
       discardChanges: (
         projectPath: string,
         paths: string[],
-      ) => Promise<import("../main/git-actions").GitActionResult>;
+      ) => Promise<import("../main/projects/git-actions").GitActionResult>;
       commitChanges: (
         projectPath: string,
         message: string,
-      ) => Promise<import("../main/git-actions").GitActionResult>;
+      ) => Promise<import("../main/projects/git-actions").GitActionResult>;
       pushBranch: (
         projectPath: string,
-      ) => Promise<import("../main/git-actions").GitActionResult>;
+      ) => Promise<import("../main/projects/git-actions").GitActionResult>;
       /** Where a dropped file lives on disk; empty when it has no path. */
       pathForDroppedFile: (file: File) => string;
       /** DMG compiler: pick an app, pick where the image goes, build it. */
@@ -183,23 +185,29 @@ declare global {
         appPath: string
       ) => Promise<import("../main/dmg-compiler").AppBundleInfo>;
       defaultDmgPath: (appPath: string, suggestedFileName: string) => Promise<string>;
+      /** Backdrop or volume icon for the mounted window. Null when cancelled. */
+      selectDmgImage: (kind: "background" | "icon") => Promise<string | null>;
+      /** Any image as a PNG data URL, for showing one that lives outside the app. */
+      dmgImagePreview: (imagePath: string, maxPixels?: number) => Promise<string | null>;
       compileDmg: (
         appPath: string,
         outputPath: string,
-        volumeName?: string | null
+        volumeName?: string | null,
+        backgroundImagePath?: string | null,
+        volumeIconPath?: string | null
       ) => Promise<import("../main/dmg-compiler").DmgResult>;
       onDmgProgress: (
         callback: (progress: import("../main/dmg-compiler").DmgProgress) => void
       ) => () => void;
-      listHighlightingAssets: () => Promise<import("../main/highlighting-store").HighlightingAssets>;
+      listHighlightingAssets: () => Promise<import("../main/code-intelligence/highlighting-store").HighlightingAssets>;
       openHighlightingFolder: () => Promise<void>;
       /** Opens a folder, or reveals a file selected inside its folder, in the OS file manager. */
       revealInFileManager: (targetPath: string) => Promise<void>;
       openExternalUrl: (url: string) => Promise<void>;
-      listListeningProcesses: () => Promise<import("../main/port-reaper").ListeningProcess[]>;
-      killListeningProcess: (pid: number) => Promise<import("../main/port-reaper").KillResult>;
-      getLazyShieldState: () => Promise<import("../main/lazy-shield").LazyShieldState>;
-      setLazyShield: (enabled: boolean) => Promise<import("../main/lazy-shield").LazyShieldState>;
+      listListeningProcesses: () => Promise<import("../main/environment/port-reaper").ListeningProcess[]>;
+      killListeningProcess: (pid: number) => Promise<import("../main/environment/port-reaper").KillResult>;
+      getLazyShieldState: () => Promise<import("../main/browser/lazy-shield").LazyShieldState>;
+      setLazyShield: (enabled: boolean) => Promise<import("../main/browser/lazy-shield").LazyShieldState>;
       onLazyShieldBlocked: (callback: (event: { blocked: number }) => void) => () => void;
       /**
        * A guest tried to open a popup; the browser page turns it into a tab.
@@ -208,19 +216,28 @@ declare global {
       onBrowserOpenTab: (
         callback: (event: { url: string; background: boolean }) => void
       ) => () => void;
+      /**
+       * A popup or a frame-driven redirect was held back. The browser page
+       * offers it rather than opening it, since the user never asked for it.
+       */
+      onBrowserPopupBlocked: (
+        callback: (event: import("../main/browser/popup-policy").BlockedPopup) => void
+      ) => () => void;
+      /** Remembers that this page's site may open popups from now on. */
+      allowPopupsFrom: (sourceUrl: string) => Promise<void>;
       openPictureInPicture: (
         url: string,
-        source: import("../main/picture-in-picture").PictureInPictureSource
-      ) => Promise<import("../main/picture-in-picture").PictureInPictureState>;
+        source: import("../main/media/picture-in-picture").PictureInPictureSource
+      ) => Promise<import("../main/media/picture-in-picture").PictureInPictureState>;
       closePictureInPicture: () => Promise<
-        import("../main/picture-in-picture").PictureInPictureState
+        import("../main/media/picture-in-picture").PictureInPictureState
       >;
       getPictureInPictureState: () => Promise<
-        import("../main/picture-in-picture").PictureInPictureState
+        import("../main/media/picture-in-picture").PictureInPictureState
       >;
       /** The one floating window opened, moved surface, or went away. */
       onPictureInPictureChanged: (
-        callback: (state: import("../main/picture-in-picture").PictureInPictureState) => void
+        callback: (state: import("../main/media/picture-in-picture").PictureInPictureState) => void
       ) => () => void;
       /**
        * Sends the guest's video to the OS mini player, or brings it back. Takes
@@ -229,12 +246,20 @@ declare global {
        */
       toggleMediaPictureInPicture: (
         webContentsId: number
-      ) => Promise<import("../main/media-pip").MediaPipResult>;
-      /** Where a symbol is declared in a project, or null when nothing matches. */
+      ) => Promise<import("../main/media/media-pip").MediaPipResult>;
+      /**
+       * Where a symbol is declared in a project, or null when nothing matches.
+       * An import path resolves too, against `fromPath` — the file it was read
+       * in, which is what makes a relative specifier mean anything. `position`
+       * is where the name was clicked, which is how a JSX prop is recognised as
+       * one and resolved through its component instead of by spelling.
+       */
       findSymbolDefinition: (
         projectPath: string,
-        symbol: string
-      ) => Promise<import("../main/symbol-finder").SymbolDefinition | null>;
+        symbol: string,
+        fromPath?: string | null,
+        position?: { line: number; column: number } | null
+      ) => Promise<import("../main/code-intelligence/symbol-finder").SymbolDefinition | null>;
       getAgentUsage: (sinceIso?: string, agentIds?: string[]) => Promise<AgentUsageReport>;
       setAgentBudget: (agentId: string, weeklyTokens: number) => Promise<Record<string, number>>;
       openAgentTerminal: (
@@ -245,6 +270,7 @@ declare global {
         resumeSessionId?: string
       ) => Promise<{ runId: string }>;
       onLog: (callback: (event: LogEvent) => void) => () => void;
+      onCommandChoicePrompt: (callback: (prompt: CommandChoicePrompt) => void) => () => void;
       /** Fires once an agent's transcript goes quiet — i.e. that agent's turn finished. */
       onAgentActivity: (
         callback: (event: import("../main/agents/agent-activity-watcher").AgentActivityEvent) => void

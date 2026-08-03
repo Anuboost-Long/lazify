@@ -205,6 +205,7 @@ export function WorkflowForm({
             {t(translation.WorkflowForm.EnterBoth)}
           </BodyText>
         ) : null}
+
       </div>
     </div>
   );

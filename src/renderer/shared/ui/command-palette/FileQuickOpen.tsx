@@ -5,15 +5,14 @@ import type {
   FileSearchEntry,
   FileSearchResult,
 } from "@renderer/shared/lib/fuzzy/file-search";
-import type { ImportedProjectIndexNode } from "@renderer/shared/types/lazify";
 import { CaptionText, MonoText } from "@renderer/shared/typography";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import { getFileVisual } from "@renderer/shared/ui/project-tree-optimized/tree-utils-editable";
 import { CommandPalette, HighlightedText } from "./CommandPalette";
-import { useFileQuickOpen } from "./useFileQuickOpen";
+import { useFileQuickOpen, type QuickOpenTreeNode } from "./useFileQuickOpen";
 
 interface FileQuickOpenProps {
-  tree: readonly ImportedProjectIndexNode[];
+  tree: readonly QuickOpenTreeNode[];
   /** Opens the picked file — typically the adapter's select-by-node. */
   onOpenFile: (entry: FileSearchEntry) => void;
 }

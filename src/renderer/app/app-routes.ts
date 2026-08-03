@@ -1,13 +1,15 @@
 export const appRoute = {
   root: "/",
   initProject: "/init-project",
+  initProjectSetup: "/init-project/setup",
+  initProjectProgress: "/init-project/progress",
   workspace: "/workspace",
   workspaceProject: "/workspace/project/:projectPath",
-  importProject: "/import-project",
   agents: "/agents",
   browser: "/browser",
-  console: "/console",
   templates: "/templates",
+  templateImport: "/templates/import",
+  templateEdit: "/templates/:templateId/edit",
   settings: "/settings",
   environment: "/environment",
   dmgCompiler: "/dmg-compiler",
@@ -18,6 +20,10 @@ export const defaultAppRoute = appRoute.workspace;
 
 export function getWorkspaceProjectRoute(projectPath: string) {
   return `/workspace/project/${encodeURIComponent(projectPath)}`;
+}
+
+export function getTemplateEditRoute(templateId: string) {
+  return `/templates/${encodeURIComponent(templateId)}/edit`;
 }
 
 export function getLegalRoute(doc: string) {

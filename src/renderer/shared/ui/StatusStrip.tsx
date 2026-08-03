@@ -7,11 +7,12 @@ import { useTranslation } from "react-i18next";
 
 interface StatusStripProps {
   environment: EnvironmentSummary | null;
+  label?: string;
   workflowStatus: WorkflowStatus;
   statusMessage: string;
 }
 
-export function StatusStrip({ environment, workflowStatus, statusMessage }: StatusStripProps) {
+export function StatusStrip({ environment, label, workflowStatus, statusMessage }: StatusStripProps) {
   const { t } = useTranslation();
 
   const statusIcon =
@@ -40,7 +41,9 @@ export function StatusStrip({ environment, workflowStatus, statusMessage }: Stat
             <UiIcon name={statusIcon} className="h-5 w-5" />
           </div>
           <div>
-            <OverlineText className="text-current">{t(translation.StatusStrip.RuntimeHealth)}</OverlineText>
+            <OverlineText className="text-current">
+              {label ?? t(translation.StatusStrip.RuntimeHealth)}
+            </OverlineText>
             <BodyText className="mt-1 text-current">{statusMessage}</BodyText>
           </div>
         </div>

@@ -1,9 +1,9 @@
 import { contextBridge, ipcRenderer, webUtils } from "electron";
 
 import type { AgentActivityEvent } from "../main/agents/agent-activity-watcher";
-import type { LogEvent } from "../main/command-runner";
-import type { TemplateDefinition } from "../main/harmonizer";
-import type { NpmPackageSearchResult } from "../main/npm-registry";
+import type { CommandChoicePrompt, LogEvent } from "../main/command-runner";
+import type { TemplateDefinition } from "../main/scaffolding/harmonizer";
+import type { NpmPackageSearchResult } from "../main/scaffolding/npm-registry";
 import type {
   AgentFileChange,
   AgentUsageReport,
@@ -19,18 +19,18 @@ import type {
   ImportedProjectScanResult,
   ProjectTreeNode
 } from "../renderer/shared/types/lazify";
-import type { EnvironmentScan } from "../main/scanner";
-import type { ToolScanReport, NvmVersionList, NvmInstallResult, NvmActionResult, ToolUpdateInfo } from "../main/environment-scanner";
-import type { TemplatePackageEntry } from "../main/template-package-manifest";
+import type { EnvironmentScan } from "../main/environment/scanner";
+import type { ToolScanReport, NvmVersionList, NvmInstallResult, NvmActionResult, ToolUpdateInfo } from "../main/environment/environment-scanner";
+import type { TemplatePackageEntry } from "../main/scaffolding/template-package-manifest";
 import type { AgentDescriptor } from "../main/agents/agent-registry";
 import type { AutopilotHold } from "../main/agents/autopilot-policy";
 import type { AppBundleInfo, DmgProgress, DmgResult } from "../main/dmg-compiler";
 import type { AutopilotSettings } from "../main/agents/autopilot-store";
 import type { AgentSessionSummary } from "../main/agents/agent-sessions";
 import type { CustomAgent, CustomAgentInput } from "../main/agents/custom-agents-store";
-import type { HighlightingAssets } from "../main/highlighting-store";
-import type { GitCheckoutResult } from "../main/project-git-status";
-import type { GitActionResult } from "../main/git-actions";
+import type { HighlightingAssets } from "../main/code-intelligence/highlighting-store";
+import type { GitCheckoutResult } from "../main/projects/project-git-status";
+import type { GitActionResult } from "../main/projects/git-actions";
 import type { VersionMatchReport } from "../brain/package-version-matcher";
 import type {
   AddProjectPackagePayload,
@@ -39,7 +39,7 @@ import type {
   RemoveProjectPackagePayload,
   WorkflowProgressEvent,
   WorkflowResult
-} from "../main/workflow-engine";
+} from "../main/scaffolding/workflow-engine";
 
 const lazifyApi = {
   /**
@@ -51,11 +51,13 @@ const lazifyApi = {
     ipcRenderer.invoke("lazify:run-command", command, args, cwd),
   createProject: (payload: CreateProjectPayload): Promise<WorkflowResult> =>
     ipcRenderer.invoke("lazify:create-project", payload),
+  chooseCommandOption: (promptId: string, optionId: string): Promise<boolean> =>
+    ipcRenderer.invoke("lazify:choose-command-option", promptId, optionId),
   installPackage: (payload: InstallPackagePayload): Promise<WorkflowResult> =>
     ipcRenderer.invoke("lazify:install-package", payload),
   checkEnvironment: (): Promise<EnvironmentScan> => ipcRenderer.invoke("lazify:environment"),
   scanTools: (force = false): Promise<ToolScanReport> => ipcRenderer.invoke("lazify:scan-tools", force),
-  probeTool: (name: string): Promise<import("../main/environment-scanner").DetectedTool | null> => ipcRenderer.invoke("lazify:probe-tool", name),
+  probeTool: (name: string): Promise<import("../main/environment/environment-scanner").DetectedTool | null> => ipcRenderer.invoke("lazify:probe-tool", name),
   nvmListVersions: (): Promise<NvmVersionList> => ipcRenderer.invoke("lazify:nvm-list-versions"),
   installNvm: (): Promise<NvmInstallResult> => ipcRenderer.invoke("lazify:install-nvm"),
   nvmSetDefault: (version: string): Promise<NvmActionResult> => ipcRenderer.invoke("lazify:nvm-set-default", version),
@@ -65,6 +67,10 @@ const lazifyApi = {
   checkToolUpdate: (toolName: string, currentVersion: string): Promise<ToolUpdateInfo> => ipcRenderer.invoke("lazify:check-tool-update", toolName, currentVersion),
   updateTool: (toolName: string): Promise<NvmActionResult> => ipcRenderer.invoke("lazify:update-tool", toolName),
   relaunchApp: (): Promise<void> => ipcRenderer.invoke("lazify:relaunch"),
+
+  // Tells the main process React has painted, which is what dismisses the splash
+  // and shows the window.
+  signalRendererReady: (): void => ipcRenderer.send("lazify:renderer-ready"),
   listTemplates: (): Promise<TemplateDefinition[]> => ipcRenderer.invoke("lazify:templates"),
   listImportedTemplates: (): Promise<ImportedTemplateOption[]> =>
     ipcRenderer.invoke("lazify:imported-templates"),
@@ -227,12 +233,25 @@ const lazifyApi = {
     ipcRenderer.invoke("lazify:inspect-app-bundle", appPath),
   defaultDmgPath: (appPath: string, suggestedFileName: string): Promise<string> =>
     ipcRenderer.invoke("lazify:default-dmg-path", appPath, suggestedFileName),
+  selectDmgImage: (kind: "background" | "icon"): Promise<string | null> =>
+    ipcRenderer.invoke("lazify:select-dmg-image", kind),
+  dmgImagePreview: (imagePath: string, maxPixels?: number): Promise<string | null> =>
+    ipcRenderer.invoke("lazify:dmg-image-preview", imagePath, maxPixels),
   compileDmg: (
     appPath: string,
     outputPath: string,
-    volumeName?: string | null
+    volumeName?: string | null,
+    backgroundImagePath?: string | null,
+    volumeIconPath?: string | null
   ): Promise<DmgResult> =>
-    ipcRenderer.invoke("lazify:compile-dmg", appPath, outputPath, volumeName),
+    ipcRenderer.invoke(
+      "lazify:compile-dmg",
+      appPath,
+      outputPath,
+      volumeName,
+      backgroundImagePath,
+      volumeIconPath
+    ),
   onDmgProgress: (callback: (progress: DmgProgress) => void) => {
     const listener = (_event: Electron.IpcRendererEvent, payload: DmgProgress) => callback(payload);
     ipcRenderer.on("lazify:dmg-progress", listener);
@@ -246,13 +265,13 @@ const lazifyApi = {
     ipcRenderer.invoke("lazify:reveal-in-file-manager", targetPath),
   openExternalUrl: (url: string): Promise<void> =>
     ipcRenderer.invoke("lazify:open-external-url", url),
-  listListeningProcesses: (): Promise<import("../main/port-reaper").ListeningProcess[]> =>
+  listListeningProcesses: (): Promise<import("../main/environment/port-reaper").ListeningProcess[]> =>
     ipcRenderer.invoke("lazify:listening-processes"),
-  killListeningProcess: (pid: number): Promise<import("../main/port-reaper").KillResult> =>
+  killListeningProcess: (pid: number): Promise<import("../main/environment/port-reaper").KillResult> =>
     ipcRenderer.invoke("lazify:kill-listening-process", pid),
-  getLazyShieldState: (): Promise<import("../main/lazy-shield").LazyShieldState> =>
+  getLazyShieldState: (): Promise<import("../main/browser/lazy-shield").LazyShieldState> =>
     ipcRenderer.invoke("lazify:lazy-shield-state"),
-  setLazyShield: (enabled: boolean): Promise<import("../main/lazy-shield").LazyShieldState> =>
+  setLazyShield: (enabled: boolean): Promise<import("../main/browser/lazy-shield").LazyShieldState> =>
     ipcRenderer.invoke("lazify:set-lazy-shield", enabled),
   onLazyShieldBlocked: (callback: (event: { blocked: number }) => void) => {
     const listener = (_event: Electron.IpcRendererEvent, payload: { blocked: number }) => callback(payload);
@@ -261,34 +280,42 @@ const lazifyApi = {
   },
   openPictureInPicture: (
     url: string,
-    source: import("../main/picture-in-picture").PictureInPictureSource
-  ): Promise<import("../main/picture-in-picture").PictureInPictureState> =>
+    source: import("../main/media/picture-in-picture").PictureInPictureSource
+  ): Promise<import("../main/media/picture-in-picture").PictureInPictureState> =>
     ipcRenderer.invoke("lazify:open-picture-in-picture", url, source),
   closePictureInPicture: (): Promise<
-    import("../main/picture-in-picture").PictureInPictureState
+    import("../main/media/picture-in-picture").PictureInPictureState
   > => ipcRenderer.invoke("lazify:close-picture-in-picture"),
   getPictureInPictureState: (): Promise<
-    import("../main/picture-in-picture").PictureInPictureState
+    import("../main/media/picture-in-picture").PictureInPictureState
   > => ipcRenderer.invoke("lazify:picture-in-picture-state"),
   onPictureInPictureChanged: (
-    callback: (state: import("../main/picture-in-picture").PictureInPictureState) => void
+    callback: (state: import("../main/media/picture-in-picture").PictureInPictureState) => void
   ) => {
     const listener = (
       _event: Electron.IpcRendererEvent,
-      payload: import("../main/picture-in-picture").PictureInPictureState
+      payload: import("../main/media/picture-in-picture").PictureInPictureState
     ) => callback(payload);
     ipcRenderer.on("lazify:picture-in-picture-changed", listener);
     return () => ipcRenderer.removeListener("lazify:picture-in-picture-changed", listener);
   },
   toggleMediaPictureInPicture: (
     webContentsId: number
-  ): Promise<import("../main/media-pip").MediaPipResult> =>
+  ): Promise<import("../main/media/media-pip").MediaPipResult> =>
     ipcRenderer.invoke("lazify:toggle-media-picture-in-picture", webContentsId),
   findSymbolDefinition: (
     projectPath: string,
-    symbol: string
-  ): Promise<import("../main/symbol-finder").SymbolDefinition | null> =>
-    ipcRenderer.invoke("lazify:find-symbol-definition", projectPath, symbol),
+    symbol: string,
+    fromPath?: string | null,
+    position?: { line: number; column: number } | null
+  ): Promise<import("../main/code-intelligence/symbol-finder").SymbolDefinition | null> =>
+    ipcRenderer.invoke(
+      "lazify:find-symbol-definition",
+      projectPath,
+      symbol,
+      fromPath,
+      position
+    ),
   onBrowserOpenTab: (callback: (event: { url: string; background: boolean }) => void) => {
     const listener = (
       _event: Electron.IpcRendererEvent,
@@ -297,6 +324,18 @@ const lazifyApi = {
     ipcRenderer.on("lazify:browser-open-tab", listener);
     return () => ipcRenderer.removeListener("lazify:browser-open-tab", listener);
   },
+  onBrowserPopupBlocked: (
+    callback: (event: import("../main/browser/popup-policy").BlockedPopup) => void
+  ) => {
+    const listener = (
+      _event: Electron.IpcRendererEvent,
+      payload: import("../main/browser/popup-policy").BlockedPopup
+    ) => callback(payload);
+    ipcRenderer.on("lazify:browser-popup-blocked", listener);
+    return () => ipcRenderer.removeListener("lazify:browser-popup-blocked", listener);
+  },
+  allowPopupsFrom: (sourceUrl: string): Promise<void> =>
+    ipcRenderer.invoke("lazify:allow-popups-from", sourceUrl),
   getAgentUsage: (sinceIso?: string, agentIds?: string[]): Promise<AgentUsageReport> =>
     ipcRenderer.invoke("lazify:agent-usage", sinceIso, agentIds),
   setAgentBudget: (agentId: string, weeklyTokens: number): Promise<Record<string, number>> =>
@@ -327,7 +366,7 @@ const lazifyApi = {
     ipcRenderer.invoke("lazify:install-project-dependencies", projectPath),
   matchPackageVersions: (projectPath: string): Promise<VersionMatchReport> =>
     ipcRenderer.invoke("lazify:match-package-versions", projectPath),
-  fixProjectPackageVersions: (projectPath: string): Promise<import("../main/workflow-engine").WorkflowResult> =>
+  fixProjectPackageVersions: (projectPath: string): Promise<import("../main/scaffolding/workflow-engine").WorkflowResult> =>
     ipcRenderer.invoke("lazify:fix-project-package-versions", projectPath),
   saveImportedTemplate: (
     projectPath: string,
@@ -346,6 +385,11 @@ const lazifyApi = {
     const listener = (_event: Electron.IpcRendererEvent, payload: LogEvent) => callback(payload);
     ipcRenderer.on("lazify:log", listener);
     return () => ipcRenderer.removeListener("lazify:log", listener);
+  },
+  onCommandChoicePrompt: (callback: (prompt: CommandChoicePrompt) => void) => {
+    const listener = (_event: Electron.IpcRendererEvent, payload: CommandChoicePrompt) => callback(payload);
+    ipcRenderer.on("lazify:command-choice-prompt", listener);
+    return () => ipcRenderer.removeListener("lazify:command-choice-prompt", listener);
   },
   onAgentActivity: (callback: (event: AgentActivityEvent) => void) => {
     const listener = (_event: Electron.IpcRendererEvent, payload: AgentActivityEvent) => callback(payload);

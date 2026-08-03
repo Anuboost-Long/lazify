@@ -4,6 +4,10 @@
   "description": "Create a new Next.js application with App Router, locale-aware routing, translations, and global state scaffolding.",
   "projectType": "next",
   "preferredPackageManager": "npm",
+  "starter": {
+    "repo": "anuboost-lazify/next-scaffold",
+    "ref": "v1.0.0"
+  },
   "createCommands": {
     "npm": ["create", "next-app@latest", "--", "{{projectName}}", "--use-npm", "--import-alias", "@/*", "--yes"],
     "npx": ["create-next-app@latest", "{{projectName}}", "--use-npm", "--import-alias", "@/*", "--yes"]

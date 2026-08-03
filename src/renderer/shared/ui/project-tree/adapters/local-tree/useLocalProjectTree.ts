@@ -1,14 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { templateBlueprints } from "@renderer/shared/ui/project-tree/constants/template-blueprints";
+import type { EditorTab } from "@renderer/shared/ui/code/EditorTabBar";
 import {
   addChildNode,
-  buildBaselineTree,
   collectFolderIds,
   createNode,
   findContainingFolderId,
   findFirstFileId,
   findNode,
-  getDefaultFileContent,
   getNodePath,
   mergeTrees,
   removeFromTree,
@@ -26,7 +24,6 @@ export function useLocalProjectTree({
   replaceTreeOnInitialChange = false,
   selectedStructurePaths,
   templateId,
-  useScaffoldBaseline = true,
 }: Pick<
   ProjectTreeEditorPanelProps,
   | "initialTree"
@@ -34,28 +31,21 @@ export function useLocalProjectTree({
   | "replaceTreeOnInitialChange"
   | "selectedStructurePaths"
   | "templateId"
-  | "useScaffoldBaseline"
 >) {
-  const baselineTree = useMemo(
-    () =>
-      useScaffoldBaseline
-        ? buildBaselineTree(templateId, selectedStructurePaths)
-        : [],
-    [selectedStructurePaths, templateId, useScaffoldBaseline]
-  );
-  const resolvedInitialTree = useMemo(
-    () =>
-      useScaffoldBaseline
-        ? initialTree
-          ? mergeTrees(baselineTree, initialTree)
-          : baselineTree
-        : initialTree ?? [],
-    [baselineTree, initialTree, useScaffoldBaseline]
-  );
+  // Every tree now comes from disk — a starter clone, a CLI's output, or an
+  // imported template. Nothing is synthesized from constants any more.
+  const resolvedInitialTree = useMemo(() => initialTree ?? [], [initialTree]);
   const [tree, setTree] = useState<TreeNode[]>(resolvedInitialTree);
   const [selectedId, setSelectedId] = useState<string | null>(() =>
     findFirstFileId(resolvedInitialTree)
   );
+  const [activeFileId, setActiveFileId] = useState<string | null>(() =>
+    findFirstFileId(resolvedInitialTree)
+  );
+  const [openFileIds, setOpenFileIds] = useState<string[]>(() => {
+    const firstFileId = findFirstFileId(resolvedInitialTree);
+    return firstFileId ? [firstFileId] : [];
+  });
   const [expandedIds, setExpandedIds] = useState<string[]>(() =>
     collectFolderIds(resolvedInitialTree)
   );
@@ -75,10 +65,13 @@ export function useLocalProjectTree({
       return;
     }
 
-    if (!useScaffoldBaseline && replaceTreeOnInitialChange) {
+    if (replaceTreeOnInitialChange) {
+      const firstFileId = findFirstFileId(resolvedInitialTree);
       setTree(resolvedInitialTree);
       setExpandedIds(collectFolderIds(resolvedInitialTree));
-      setSelectedId(findFirstFileId(resolvedInitialTree));
+      setSelectedId(firstFileId);
+      setActiveFileId(firstFileId);
+      setOpenFileIds(firstFileId ? [firstFileId] : []);
       return;
     }
 
@@ -88,14 +81,16 @@ export function useLocalProjectTree({
         new Set([...current, ...collectFolderIds(resolvedInitialTree)])
       )
     );
-    setSelectedId((current) => current ?? findFirstFileId(resolvedInitialTree));
+    const firstFileId = findFirstFileId(resolvedInitialTree);
+    setSelectedId((current) => current ?? firstFileId);
+    setActiveFileId((current) => current ?? firstFileId);
+    setOpenFileIds((current) =>
+      current.length > 0 || !firstFileId ? current : [firstFileId]
+    );
   }, [
     initialTree,
     replaceTreeOnInitialChange,
     resolvedInitialTree,
-    selectedStructurePaths,
-    templateId,
-    useScaffoldBaseline,
   ]);
 
   useEffect(() => {
@@ -104,10 +99,22 @@ export function useLocalProjectTree({
   }, [onTreeChange, tree]);
 
   const selectedNode = selectedId ? findNode(tree, selectedId) : null;
-  const selectedPath = selectedId ? getNodePath(tree, selectedId) : null;
-  const lockedFolderNames = new Set(
-    (templateBlueprints[templateId]?.folders ?? []).map((folder) => folder.name)
-  );
+  const activeFileNode = activeFileId ? findNode(tree, activeFileId) : null;
+  const activeFilePath = activeFileId ? getNodePath(tree, activeFileId) : null;
+  const openFiles = openFileIds.flatMap((id): EditorTab[] => {
+    const node = findNode(tree, id);
+    const path = getNodePath(tree, id);
+
+    return node?.type === "file" && path
+      ? [{ path, name: node.name, kind: "file", filePath: node.id }]
+      : [];
+  });
+  const activeTab =
+    openFiles.find((tab) => tab.filePath === activeFileId) ?? null;
+  // Locking came from the blueprint's folder list. What may not be removed is
+  // now the starter's `required`, applied as `locked` when the tree is built
+  // and enforced again in the main process.
+  const lockedFolderNames = new Set<string>();
   const selectedContextNode = contextMenu
     ? findNode(tree, contextMenu.nodeId)
     : null;
@@ -150,8 +157,25 @@ export function useLocalProjectTree({
     }
 
     const nextTree = removeFromTree(tree, nodeId);
+    const removedIds = new Set<string>();
+    const collectIds = (target: TreeNode) => {
+      removedIds.add(target.id);
+      target.children.forEach(collectIds);
+    };
+    collectIds(node);
+
     setTree(nextTree);
     setSelectedId(findFirstFileId(nextTree));
+    setOpenFileIds((current) => {
+      const activeIndex = current.indexOf(activeFileId ?? "");
+      const next = current.filter((id) => !removedIds.has(id));
+
+      if (activeFileId && removedIds.has(activeFileId)) {
+        setActiveFileId(next[activeIndex - 1] ?? next[activeIndex] ?? null);
+      }
+
+      return next;
+    });
     setContextMenu(null);
   };
 
@@ -167,7 +191,7 @@ export function useLocalProjectTree({
       false,
       [],
       `custom-${type}-${slug(baseName)}-${Date.now()}`,
-      type === "file" ? getDefaultFileContent(baseName, templateId) : undefined
+      type === "file" ? "" : undefined
     );
 
     setTree((current) => addChildNode(current, parentId, newNode));
@@ -179,22 +203,95 @@ export function useLocalProjectTree({
     }
 
     setSelectedId(newNode.id);
+    if (type === "file") {
+      setOpenFileIds((current) => [...current, newNode.id]);
+      setActiveFileId(newNode.id);
+    }
     setRenamingId(newNode.id);
     setRenameValue(baseName);
     setContextMenu(null);
   };
 
   const handleContentChange = (value: string) => {
-    if (!selectedNode || selectedNode.type !== "file") {
+    if (!activeFileNode || activeFileNode.type !== "file") {
       return;
     }
 
     setTree((current) =>
-      updateTree(current, selectedNode.id, (node) => ({
+      updateTree(current, activeFileNode.id, (node) => ({
         ...node,
         content: value,
       }))
     );
+  };
+
+  const handleSelectNode = (nodeId: string) => {
+    const node = findNode(tree, nodeId);
+    setSelectedId(nodeId);
+
+    if (node?.type !== "file") {
+      return;
+    }
+
+    setOpenFileIds((current) =>
+      current.includes(node.id) ? current : [...current, node.id]
+    );
+    setActiveFileId(node.id);
+  };
+
+  const handleSelectOpenFile = (path: string) => {
+    const tab = openFiles.find((candidate) => candidate.path === path);
+
+    if (tab) {
+      setActiveFileId(tab.filePath);
+      setSelectedId(tab.filePath);
+    }
+  };
+
+  const handleCloseOpenFile = (path: string) => {
+    const closingTab = openFiles.find((tab) => tab.path === path);
+
+    if (!closingTab) {
+      return;
+    }
+
+    setOpenFileIds((current) => {
+      const index = current.indexOf(closingTab.filePath);
+      const next = current.filter((id) => id !== closingTab.filePath);
+
+      if (closingTab.filePath === activeFileId) {
+        const fallbackId = next[index - 1] ?? next[index] ?? null;
+        setActiveFileId(fallbackId);
+        if (fallbackId) setSelectedId(fallbackId);
+      }
+
+      return next;
+    });
+  };
+
+  const handleCloseAllOpenFiles = () => {
+    setOpenFileIds([]);
+    setActiveFileId(null);
+  };
+
+  const handleReorderOpenFiles = (fromPath: string, toPath: string) => {
+    const fromId = openFiles.find((tab) => tab.path === fromPath)?.filePath;
+    const toId = openFiles.find((tab) => tab.path === toPath)?.filePath;
+
+    if (!fromId || !toId) {
+      return;
+    }
+
+    setOpenFileIds((current) => {
+      const from = current.indexOf(fromId);
+      const to = current.indexOf(toId);
+      if (from === -1 || to === -1 || from === to) return current;
+
+      const next = [...current];
+      const [moved] = next.splice(from, 1);
+      next.splice(to, 0, moved);
+      return next;
+    });
   };
 
   const handleOpenContextMenu = (
@@ -224,27 +321,34 @@ export function useLocalProjectTree({
   };
 
   return {
+    activeFileNode,
+    activeFilePath,
+    activeTab,
     contextMenu,
     expandedIds,
+    handleCloseAllOpenFiles,
+    handleCloseOpenFile,
     handleCommitRename,
     handleContentChange,
     handleCreateEntry,
     handleDeleteNode,
     handleOpenContextMenu,
+    handleReorderOpenFiles,
+    handleSelectNode,
+    handleSelectOpenFile,
     handleStartRename,
     handleToggleExpand,
     lockedFolderNames,
+    openFiles,
     renameValue,
     renamingId,
     selectedContextNode,
     selectedId,
     selectedNode,
-    selectedPath,
     setContextMenu,
     setExpandedIds,
     setRenamingId,
     setRenameValue,
-    setSelectedId,
     tree,
   };
 }

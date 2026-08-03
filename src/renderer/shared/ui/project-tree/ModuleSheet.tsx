@@ -1,14 +1,21 @@
 import clsx from "clsx";
 import { translation } from "@renderer/i18n/translation";
 import { BodyText, CardTitle, OverlineText, PillText } from "@renderer/shared/typography";
-import { structureOptions } from "@renderer/shared/ui/project-tree/constants/structure-options";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import { BaseBottomSheet } from "@renderer/shared/ui/modal/BaseBottomSheet";
 import { useTranslation } from "react-i18next";
 
+/** What a starter offers but does not ship, from its `starter.json`. */
+export interface ModuleSheetOption {
+  path: string;
+  label: string;
+  description?: string;
+}
+
 interface ModuleSheetProps {
   open: boolean;
   busy: boolean;
+  options: ModuleSheetOption[];
   lockedFolderNames: Set<string>;
   selectedStructurePaths: string[];
   onClose: () => void;
@@ -18,6 +25,7 @@ interface ModuleSheetProps {
 export function ModuleSheet({
   open,
   busy,
+  options,
   lockedFolderNames,
   selectedStructurePaths,
   onClose,
@@ -69,7 +77,7 @@ export function ModuleSheet({
 
       <div className="min-h-0 overflow-y-auto p-5">
         <div className="space-y-3">
-          {structureOptions.map((option) => {
+          {options.map((option) => {
             const locked = lockedFolderNames.has(option.path);
             const active = locked || selectedStructurePaths.includes(option.path);
 
@@ -107,7 +115,7 @@ export function ModuleSheet({
                     </div>
                     <BodyText className="mt-1 text-slate-600 dark:text-muted">
                       {locked
-                        ? `${option.description} ${t(translation.ProjectTree.RequiredFolderNotice)}`
+                        ? `${option.description ?? ""} ${t(translation.ProjectTree.RequiredFolderNotice)}`.trim()
                         : option.description}
                     </BodyText>
                   </div>

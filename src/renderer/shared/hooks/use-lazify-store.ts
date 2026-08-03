@@ -4,12 +4,13 @@ import type {
   ImportedTemplateSnapshot,
   LogEntry,
   ProjectTreeNode,
-  SavedInitWorkflowConfig,
   SyncedWorkspaceProject,
   TemplateOption,
   ToolScanReport,
   WorkflowStatus,
 } from "@renderer/shared/types/lazify";
+import type { StarterFailureReason } from "@main/scaffolding/starter-provisioner";
+import type { CommandChoicePrompt } from "@main/command-runner";
 import { atom, useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useCallback } from "react";
 
@@ -93,19 +94,13 @@ const selectedImportedTemplateIdAtom = atom("");
 const selectedImportedTemplateAtom = atom<ImportedTemplateSnapshot | null>(
   null,
 );
-const initWorkflowStageAtom = atom<"configure" | "structure">("configure");
-const savedInitWorkflowConfigAtom = atom<SavedInitWorkflowConfig | null>(null);
-const savedStructureTreeAtom = atom<ProjectTreeNode[] | null>(null);
-const selectedStructurePathsAtom = atom<string[]>([
-  "app",
-  "components",
-  "lib",
-  "hooks",
-]);
 const logsAtom = atom<LogEntry[]>([]);
+const commandChoicePromptAtom = atom<CommandChoicePrompt | null>(null);
 const busyAtom = atom(false);
 const workflowStatusAtom = atom<WorkflowStatus>("idle");
 const statusMessageAtom = atom("Checking local runtime prerequisites.");
+/** Set only when a starter clone failed, so the console can say why in plain words. */
+const starterFailureReasonAtom = atom<StarterFailureReason | null>(null);
 const environmentAtom = atom<EnvironmentSummary | null>(null);
 const templateOptionsAtom = atom<TemplateOption[]>([
   {
@@ -140,22 +135,12 @@ export function useLazifyStore() {
   const [selectedImportedTemplate, setSelectedImportedTemplate] = useAtom(
     selectedImportedTemplateAtom,
   );
-  const [initWorkflowStage, setInitWorkflowStage] = useAtom(
-    initWorkflowStageAtom,
-  );
-  const [savedInitWorkflowConfig, setSavedInitWorkflowConfig] = useAtom(
-    savedInitWorkflowConfigAtom,
-  );
-  const [savedStructureTree, setSavedStructureTree] = useAtom(
-    savedStructureTreeAtom,
-  );
-  const [selectedStructurePaths, setSelectedStructurePaths] = useAtom(
-    selectedStructurePathsAtom,
-  );
   const logs = useAtomValue(logsAtom);
+  const [commandChoicePrompt, setCommandChoicePrompt] = useAtom(commandChoicePromptAtom);
   const busy = useAtomValue(busyAtom);
   const workflowStatus = useAtomValue(workflowStatusAtom);
   const statusMessage = useAtomValue(statusMessageAtom);
+  const [starterFailureReason, setStarterFailureReason] = useAtom(starterFailureReasonAtom);
   const environment = useAtomValue(environmentAtom);
   const templateOptions = useAtomValue(templateOptionsAtom);
   const importedTemplateOptions = useAtomValue(importedTemplateOptionsAtom);
@@ -172,12 +157,6 @@ export function useLazifyStore() {
   const setTemplateOptions = useSetAtom(templateOptionsAtom);
   const setImportedTemplateOptions = useSetAtom(importedTemplateOptionsAtom);
   const setSyncedWorkspaceProjects = useSetAtom(syncedWorkspaceProjectsAtom);
-
-  const resetInitFlow = useCallback(() => {
-    setInitWorkflowStage("configure");
-    setSavedInitWorkflowConfig(null);
-    setSavedStructureTree(null);
-  }, [setInitWorkflowStage, setSavedInitWorkflowConfig, setSavedStructureTree]);
 
   const setActiveProjectPath = useCallback(
     (value: string) => {
@@ -310,13 +289,25 @@ export function useLazifyStore() {
     const stopProgress = globalThis.lazify.onWorkflowProgress((event) => {
       setWorkflowStatus(event.status);
       setStatusMessage(event.message);
+      if (event.status !== "running") setCommandChoicePrompt(null);
+    });
+
+    const stopCommandChoicePrompts = globalThis.lazify.onCommandChoicePrompt((prompt) => {
+      setCommandChoicePrompt(prompt);
     });
 
     return () => {
       stopLogs();
       stopProgress();
+      stopCommandChoicePrompts();
     };
-  }, [setLogs, setStatusMessage, setWorkflowStatus]);
+  }, [setCommandChoicePrompt, setLogs, setStatusMessage, setWorkflowStatus]);
+
+  const chooseCommandOption = useCallback(async (promptId: string, optionId: string) => {
+    const accepted = await globalThis.lazify.chooseCommandOption(promptId, optionId);
+    if (accepted) setCommandChoicePrompt(null);
+    return accepted;
+  }, [setCommandChoicePrompt]);
 
   const createProject = useCallback(async () => {
     if (!projectName.trim() || !projectDirectory.trim()) {
@@ -342,6 +333,9 @@ export function useLazifyStore() {
     setBusy(true);
     setWorkflowStatus("running");
     setStatusMessage("Starting project creation.");
+    setCommandChoicePrompt(null);
+    // Cleared up front so a previous failure's notice cannot outlive its run.
+    setStarterFailureReason(null);
 
     try {
       const result = await globalThis.lazify.createProject({
@@ -351,12 +345,15 @@ export function useLazifyStore() {
         templateId: initSourceMode === "stack" ? selectedTemplateId : null,
         importedTemplateId:
           initSourceMode === "imported" ? selectedImportedTemplateId : null,
-        structureTree: savedStructureTree ?? [],
-        createOptions: initSourceMode === "stack" ? createOptionValues : undefined,
+        structureTree: [],
+        createOptions:
+          initSourceMode === "stack" ? createOptionValues : undefined,
       });
 
       setWorkflowStatus(result.success ? "success" : "error");
       setStatusMessage(result.message);
+      setStarterFailureReason(result.reason ?? null);
+
     } catch (error) {
       setWorkflowStatus("error");
       setStatusMessage(
@@ -370,12 +367,13 @@ export function useLazifyStore() {
     initSourceMode,
     projectDirectory,
     projectName,
-    savedStructureTree,
     selectedImportedTemplateId,
     selectedTemplateId,
     setBusy,
+    setStarterFailureReason,
     setStatusMessage,
     setWorkflowStatus,
+    setCommandChoicePrompt,
   ]);
 
   const installPackage = useCallback(async () => {
@@ -441,78 +439,19 @@ export function useLazifyStore() {
     }
   }, [setProjectDirectory, setStatusMessage, setWorkflowStatus]);
 
-  const continueInitWorkflow = useCallback(() => {
-    if (initSourceMode === "stack" && !selectedTemplateId.trim()) {
-      setWorkflowStatus("error");
-      setStatusMessage("Choose a stack before continuing.");
-      return false;
-    }
-
-    if (initSourceMode === "imported" && !selectedImportedTemplateId.trim()) {
-      setWorkflowStatus("error");
-      setStatusMessage("Choose an imported template before continuing.");
-      return false;
-    }
-
-    if (!projectName.trim() || !projectDirectory.trim()) {
-      setWorkflowStatus("error");
-      setStatusMessage(
-        "Enter a project name and workspace directory before continuing.",
-      );
-      return false;
-    }
-
-    setSavedInitWorkflowConfig({
-      sourceMode: initSourceMode,
-      templateId: initSourceMode === "stack" ? selectedTemplateId : null,
-      importedTemplateId:
-        initSourceMode === "imported" ? selectedImportedTemplateId : null,
-      importedTemplateName:
-        initSourceMode === "imported"
-          ? (selectedImportedTemplate?.name ?? null)
-          : null,
-      projectName: projectName.trim(),
-      projectDirectory: projectDirectory.trim(),
-      packageNames: packageName
-        .split(",")
-        .map((item) => item.trim())
-        .filter(Boolean),
-    });
-    setInitWorkflowStage("structure");
-    setWorkflowStatus("success");
-    setStatusMessage(
-      "Project setup saved. Continue with file structure configuration.",
-    );
-    return true;
-  }, [
-    initSourceMode,
-    packageName,
-    projectDirectory,
-    projectName,
-    selectedImportedTemplate?.name,
-    selectedImportedTemplateId,
-    selectedTemplateId,
-    setInitWorkflowStage,
-    setSavedInitWorkflowConfig,
-    setStatusMessage,
-    setWorkflowStatus,
-  ]);
-
   const loadImportedTemplate = useCallback(
     async (templateId: string) => {
       if (!templateId) {
         setSelectedImportedTemplateId("");
         setSelectedImportedTemplate(null);
-        resetInitFlow();
         return;
       }
 
       const detail = await globalThis.lazify.getImportedTemplate(templateId);
       setSelectedImportedTemplateId(templateId);
       setSelectedImportedTemplate(detail);
-      resetInitFlow();
     },
-    [resetInitFlow, setSelectedImportedTemplate, setSelectedImportedTemplateId],
+    [setSelectedImportedTemplate, setSelectedImportedTemplateId],
   );
 
   const saveImportedTemplateChanges = useCallback(
@@ -662,17 +601,14 @@ export function useLazifyStore() {
     environment,
     importedTemplateOptions,
     initSourceMode,
-    initWorkflowStage,
     logs,
+    commandChoicePrompt,
     packageName,
     projectDirectory,
     activeProjectPath,
     projectName,
-    savedInitWorkflowConfig,
-    savedStructureTree,
     selectedImportedTemplate,
     selectedImportedTemplateId,
-    selectedStructurePaths,
     selectedTemplateId,
     syncedWorkspaceProjects,
     toolScanReport,
@@ -687,16 +623,8 @@ export function useLazifyStore() {
     },
     setActiveProjectPath,
     setPackageName,
-    setSavedStructureTree,
-    setSelectedStructurePaths,
-    setInitSourceMode: (value: "stack" | "imported") => {
-      setInitSourceMode(value);
-      resetInitFlow();
-    },
-    setSelectedTemplateId: (value: string) => {
-      setSelectedTemplateId(value);
-      resetInitFlow();
-    },
+    setInitSourceMode,
+    setSelectedTemplateId,
     loadImportedTemplate,
     saveImportedTemplateChanges,
     removeImportedTemplate,
@@ -704,15 +632,15 @@ export function useLazifyStore() {
     removeSyncedWorkspaceProject,
     reorderSyncedWorkspaceProjects,
     updateProjectNodeVersion,
-    setInitWorkflowStage,
     pickProjectDirectory,
     bootstrap,
     refreshToolScan,
     refreshSingleTool,
     refreshImportedTemplates,
     createProject,
+    chooseCommandOption,
+    starterFailureReason,
     installPackage,
-    continueInitWorkflow,
     bindEvents,
     createOptionValues,
     setCreateOptionValues,

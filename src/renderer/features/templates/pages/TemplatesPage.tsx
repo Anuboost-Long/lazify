@@ -1,96 +1,45 @@
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 import { translation } from "@renderer/i18n/translation";
-import { BodyText, OverlineText } from "@renderer/shared/typography";
-import { ProjectTreeEditorPanel } from "@renderer/shared/ui/project-tree/ProjectTreeEditorPanel";
-import type { TreeNode } from "@renderer/shared/ui/project-tree/types";
-import type {
-  ImportedTemplateOption,
-  ImportedTemplateSnapshot,
-} from "@renderer/shared/types/lazify";
-import { TextInput } from "@renderer/shared/ui/form/FormInput";
+import { BodyText, OverlineText, PillText, SectionTitle } from "@renderer/shared/typography";
+import type { ImportedTemplateOption } from "@renderer/shared/types/lazify";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import { ImportedTemplateCard } from "@renderer/shared/ui/ImportedTemplateCard";
+import { TextInput } from "@renderer/shared/ui/form/FormInput";
 import { useTranslation } from "react-i18next";
+import { PageCrumb } from "@renderer/app/components/PageChrome";
 
 interface TemplatesPageProps {
   importedTemplateOptions: ImportedTemplateOption[];
-  selectedImportedTemplate: ImportedTemplateSnapshot | null;
-  selectedImportedTemplateId: string;
   onSelectTemplate: (templateId: string) => void;
-  onSaveTemplate: (
-    templateId: string,
-    updates: { name?: string | null; tree?: TreeNode[] | null }
-  ) => Promise<ImportedTemplateSnapshot>;
   onDeleteTemplate: (templateId: string) => Promise<void>;
+  onImportProject: () => void;
 }
 
 export function TemplatesPage({
   importedTemplateOptions,
-  selectedImportedTemplate,
-  selectedImportedTemplateId,
   onSelectTemplate,
-  onSaveTemplate,
   onDeleteTemplate,
+  onImportProject,
 }: TemplatesPageProps) {
   const { t } = useTranslation();
-  const [draftName, setDraftName] = useState("");
-  const [draftTree, setDraftTree] = useState<TreeNode[]>([]);
-  const [busy, setBusy] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const filteredTemplates = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
 
-  useEffect(() => {
-    setDraftName(selectedImportedTemplate?.name ?? "");
-    setDraftTree(selectedImportedTemplate?.tree ?? []);
-    setErrorMessage(null);
-  }, [selectedImportedTemplate]);
+    if (!query) return importedTemplateOptions;
 
-  const handleSave = async () => {
-    if (!selectedImportedTemplate) {
-      return;
-    }
-
-    try {
-      setBusy(true);
-      setErrorMessage(null);
-      const savedTemplate = await onSaveTemplate(selectedImportedTemplate.id, {
-        name: draftName,
-        tree: draftTree,
-      });
-      setDraftName(savedTemplate.name);
-      setDraftTree(savedTemplate.tree);
-      setStatusMessage(t(translation.Templates.SavedSuccess, { name: savedTemplate.name }));
-    } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : t(translation.Templates.UpdateError));
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const handleDelete = async () => {
-    if (!selectedImportedTemplate) {
-      return;
-    }
-
-    const confirmed = globalThis.confirm(t(translation.Templates.RemoveConfirm, { name: selectedImportedTemplate.name }));
-
-    if (!confirmed) {
-      return;
-    }
-
-    try {
-      setBusy(true);
-      setErrorMessage(null);
-      const removedTemplateName = selectedImportedTemplate.name;
-      await onDeleteTemplate(selectedImportedTemplate.id);
-      setStatusMessage(t(translation.Templates.RemovedSuccess, { name: removedTemplateName }));
-    } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : t(translation.Templates.RemoveError));
-    } finally {
-      setBusy(false);
-    }
-  };
+    return importedTemplateOptions.filter((template) =>
+      [
+        template.name,
+        template.description,
+        template.stack,
+        template.sourceProjectPath,
+      ].some((value) => value.toLowerCase().includes(query))
+    );
+  }, [importedTemplateOptions, searchQuery]);
 
   const handleDeleteFromCard = async (
     event: React.MouseEvent,
@@ -116,95 +65,145 @@ export function TemplatesPage({
 
   return (
     <div className="flex flex-col gap-6">
+      <PageCrumb>
+        <span className="text-xs text-muted/50">/</span>
+        <span className="text-xs font-medium text-text">
+          {t(translation.Templates.SavedTemplates)}
+        </span>
+      </PageCrumb>
+
+      <section className="relative overflow-hidden rounded-[30px] border border-border bg-soft px-6 py-6 shadow-panel lg:px-8">
+        <div className="absolute inset-y-0 left-0 w-1 bg-accent" />
+        <div className="absolute -right-16 -top-24 h-56 w-56 rotate-12 rounded-[64px] border border-accent/15 bg-[linear-gradient(145deg,transparent,var(--color-accent-soft))]" />
+
+        <div className="relative flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <OverlineText className="tracking-[0.24em]">
+              {t(translation.Templates.Eyebrow)}
+            </OverlineText>
+            <SectionTitle className="mt-2 text-3xl">
+              {t(translation.Templates.Title)}
+            </SectionTitle>
+            <BodyText tone="muted" className="mt-3 max-w-2xl leading-6">
+              {t(translation.Templates.Description)}
+            </BodyText>
+          </div>
+
+          <button
+            type="button"
+            aria-label={t(translation.Templates.ImportProject)}
+            onClick={onImportProject}
+            className="group inline-flex items-center gap-3 self-start rounded-[18px] border border-accent/25 bg-accent/[0.07] px-4 py-3 text-left transition-[transform,border-color,background-color] hover:-translate-y-0.5 hover:border-accent hover:bg-accent/10 lg:self-auto"
+          >
+            <div className="flex h-10 w-10 items-center justify-center rounded-[13px] bg-accent text-white shadow-sm">
+              <UiIcon name="import" className="h-5 w-5" />
+            </div>
+            <span>
+              <BodyText className="font-semibold">
+                {t(translation.Templates.ImportProject)}
+              </BodyText>
+              <BodyText tone="muted" className="mt-0.5 text-xs">
+                {t(translation.Templates.ImportProjectDescription)}
+              </BodyText>
+            </span>
+            <UiIcon name="arrow-right" className="h-4 w-4 text-accent transition-transform group-hover:translate-x-1" />
+          </button>
+        </div>
+      </section>
+
+      {errorMessage ? (
+        <BodyText className="rounded-[16px] border border-error/30 bg-error/10 px-4 py-3 text-error">
+          {errorMessage}
+        </BodyText>
+      ) : null}
+      {statusMessage ? (
+        <BodyText className="rounded-[16px] border border-success/30 bg-success/10 px-4 py-3 text-success">
+          {statusMessage}
+        </BodyText>
+      ) : null}
+
       {importedTemplateOptions.length === 0 ? (
-        <section className="rounded-[24px] border border-border bg-soft p-6 shadow-panel">
-          <BodyText tone="muted" className="leading-6">
+        <section className="relative overflow-hidden rounded-[28px] border border-dashed border-border bg-bg/55 px-6 py-12 text-center">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-[22px] border border-accent/20 bg-accent/[0.07] text-accent">
+            <UiIcon name="package" className="h-7 w-7" />
+          </div>
+          <SectionTitle className="mt-5 text-xl">
+            {t(translation.Templates.EmptyTitle)}
+          </SectionTitle>
+          <BodyText tone="muted" className="mx-auto mt-2 max-w-xl leading-6">
             {t(translation.Templates.Empty)}
           </BodyText>
         </section>
       ) : (
         <>
-          <section className="grid gap-4 lg:grid-cols-2">
-            {importedTemplateOptions.map((template) => (
-              <ImportedTemplateCard
-                key={template.id}
-                template={template}
-                active={template.id === selectedImportedTemplateId}
-                isDeleting={deletingId === template.id}
-                disabled={busy}
-                onSelect={onSelectTemplate}
-                onDelete={handleDeleteFromCard}
-              />
-            ))}
+          <section className="relative overflow-hidden rounded-[24px] border border-border bg-soft p-4 shadow-sm sm:p-5">
+            <div className="absolute inset-y-0 left-0 w-1 bg-accent/70" />
+            <div className="flex flex-col gap-4 xl:flex-row xl:items-center">
+              <div className="min-w-0 xl:w-64 xl:shrink-0">
+                <div className="flex items-center gap-2">
+                  <OverlineText className="tracking-[0.22em]">
+                    {t(translation.Templates.Library)}
+                  </OverlineText>
+                  <PillText className="rounded-full border border-border bg-bg px-2.5 py-1 text-muted">
+                    {filteredTemplates.length}/{importedTemplateOptions.length}
+                  </PillText>
+                </div>
+                <BodyText tone="muted" className="mt-1 text-xs">
+                  {t(translation.Templates.SearchHint)}
+                </BodyText>
+              </div>
+
+              <div className="relative min-w-0 flex-1">
+                <TextInput
+                  type="search"
+                  value={searchQuery}
+                  onChange={(event) => setSearchQuery(event.target.value)}
+                  icon="search"
+                  placeholder={t(translation.Templates.SearchPlaceholder)}
+                  aria-label={t(translation.Templates.SearchPlaceholder)}
+                  className="!min-h-[48px] !rounded-[16px] bg-bg/80 pr-11"
+                  inputClassName="text-[15px]"
+                />
+                {searchQuery ? (
+                  <button
+                    type="button"
+                    onClick={() => setSearchQuery("")}
+                    aria-label={t(translation.Templates.ClearSearch)}
+                    className="absolute right-3 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-lg text-muted transition-colors hover:bg-text/10 hover:text-text"
+                  >
+                    <UiIcon name="xmark" className="h-4 w-4" />
+                  </button>
+                ) : null}
+              </div>
+            </div>
           </section>
 
-          {selectedImportedTemplate ? (
-            <>
-              <section className="rounded-[24px] border border-border bg-soft p-6 shadow-panel">
-                <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-                  <label className="block flex-1">
-                    <OverlineText as="span" className="tracking-[0.22em]">
-                      {t(translation.Templates.TemplateName)}
-                    </OverlineText>
-                    <TextInput
-                      value={draftName}
-                      onChange={(event) => setDraftName(event.target.value)}
-                      placeholder={t(translation.Templates.ImportedTemplate)}
-                      icon="package"
-                      className="mt-3"
-                    />
-                  </label>
-
-                  <div className="flex flex-wrap justify-end gap-3 self-end lg:max-w-md">
-                    <button
-                      type="button"
-                      disabled={busy}
-                      onClick={() => void handleDelete()}
-                      className="inline-flex items-center justify-center rounded-[16px] border border-red-300 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700 hover:border-red-400 disabled:cursor-not-allowed disabled:opacity-60"
-                    >
-                      {t(translation.Templates.RemoveTemplate)}
-                    </button>
-                    <button
-                      type="button"
-                      disabled={busy}
-                      onClick={() => void handleSave()}
-                      className="inline-flex items-center justify-center rounded-[16px] border border-transparent bg-accent px-4 py-3 text-sm font-semibold text-white hover:bg-accentHover disabled:cursor-not-allowed disabled:opacity-60"
-                    >
-                      {t(translation.Templates.SaveChanges)}
-                    </button>
-                  </div>
-                </div>
-
-                {errorMessage ? (
-                  <BodyText className="mt-4 rounded-[16px] border border-red-300/40 bg-red-50 px-4 py-3 text-red-700">
-                    {errorMessage}
-                  </BodyText>
-                ) : null}
-                {statusMessage ? (
-                  <BodyText className="mt-4 rounded-[16px] border border-emerald-300/40 bg-emerald-50 px-4 py-3 text-emerald-800">
-                    {statusMessage}
-                  </BodyText>
-                ) : null}
-              </section>
-
-              <ProjectTreeEditorPanel
-                busy={busy}
-                eyebrow={t(translation.Templates.EditorEyebrow)}
-                title={t(translation.Templates.EditorTitle)}
-                description={t(translation.Templates.EditorDesc)}
-                projectName={selectedImportedTemplate.name}
-                templateId="imported-template"
-                templateLabel={selectedImportedTemplate.name}
-                selectedStructurePaths={[]}
-                initialTree={selectedImportedTemplate.tree}
-                useScaffoldBaseline={false}
-                replaceTreeOnInitialChange
-                primaryActionLabel={t(translation.Templates.SaveChanges)}
-                onPrimaryAction={() => void handleSave()}
-                onTreeChange={setDraftTree}
-              />
-            </>
-          ) : null}
+          {filteredTemplates.length > 0 ? (
+            <section className="grid gap-4 xl:grid-cols-2">
+              {filteredTemplates.map((template) => (
+                <ImportedTemplateCard
+                  key={template.id}
+                  template={template}
+                  active={false}
+                  isDeleting={deletingId === template.id}
+                  onSelect={onSelectTemplate}
+                  onDelete={handleDeleteFromCard}
+                />
+              ))}
+            </section>
+          ) : (
+            <section className="rounded-[26px] border border-dashed border-border bg-bg/50 px-6 py-12 text-center">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-[16px] border border-border bg-soft text-muted">
+                <UiIcon name="search" className="h-5 w-5" />
+              </div>
+              <SectionTitle className="mt-4 text-lg">
+                {t(translation.Templates.NoSearchResults)}
+              </SectionTitle>
+              <BodyText tone="muted" className="mt-2">
+                {t(translation.Templates.NoSearchResultsDesc, { query: searchQuery })}
+              </BodyText>
+            </section>
+          )}
         </>
       )}
     </div>

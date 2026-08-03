@@ -1,17 +1,21 @@
 import { EnvironmentRoute } from "./EnvironmentRoute";
-import { InitProjectRoute } from "./InitProjectRoute";
-import { ImportProjectRoute } from "./ImportProjectRoute";
+import { InitProjectFlowRoute } from "./InitProjectFlowRoute";
+import { InitProjectSelectionRoute } from "./InitProjectSelectionRoute";
+import { InitProjectSetupRoute } from "./InitProjectSetupRoute";
+import { ImportTemplateRoute } from "./ImportTemplateRoute";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { AppShell } from "../AppShell";
 import { appRoute, defaultAppRoute } from "../app-routes";
 import { AgentsRoute } from "./AgentsRoute";
 import { BrowserRoute } from "./BrowserRoute";
-import { ConsoleRoute } from "./ConsoleRoute";
+import { InitProjectProgressRoute } from "./InitProjectProgressRoute";
 import { DmgCompilerRoute } from "./DmgCompilerRoute";
 import { LegalRoute } from "./LegalRoute";
 import { SettingsRoute } from "./SettingsRoute";
 import { SyncedProjectRoute } from "./SyncedProjectRoute";
 import { TemplatesRoute } from "./TemplatesRoute";
+import { TemplatesFlowRoute } from "./TemplatesFlowRoute";
+import { TemplateEditRoute } from "./TemplateEditRoute";
 import { WorkspaceRoute } from "./WorkspaceRoute";
 
 export function AppRoutes() {
@@ -19,14 +23,21 @@ export function AppRoutes() {
     <Routes>
       <Route path={appRoute.root} element={<AppShell />}>
         <Route index element={<Navigate to={defaultAppRoute} replace />} />
-        <Route path={appRoute.initProject.slice(1)} element={<InitProjectRoute />} />
+        <Route path={appRoute.initProject.slice(1)} element={<InitProjectFlowRoute />}>
+          <Route index element={<InitProjectSelectionRoute />} />
+          <Route path="setup" element={<InitProjectSetupRoute />} />
+          <Route path="progress" element={<InitProjectProgressRoute />} />
+        </Route>
         <Route path={appRoute.workspace.slice(1)} element={<WorkspaceRoute />} />
         <Route path={appRoute.workspaceProject.slice(1)} element={<SyncedProjectRoute />} />
-        <Route path={appRoute.importProject.slice(1)} element={<ImportProjectRoute />} />
+        <Route path="import-project" element={<Navigate to={appRoute.templateImport} replace />} />
         <Route path={appRoute.agents.slice(1)} element={<AgentsRoute />} />
         <Route path={appRoute.browser.slice(1)} element={<BrowserRoute />} />
-        <Route path={appRoute.console.slice(1)} element={<ConsoleRoute />} />
-        <Route path={appRoute.templates.slice(1)} element={<TemplatesRoute />} />
+        <Route path={appRoute.templates.slice(1)} element={<TemplatesFlowRoute />}>
+          <Route index element={<TemplatesRoute />} />
+          <Route path="import" element={<ImportTemplateRoute />} />
+          <Route path=":templateId/edit" element={<TemplateEditRoute />} />
+        </Route>
         <Route path={appRoute.settings.slice(1)} element={<SettingsRoute />} />
         <Route path={appRoute.environment.slice(1)} element={<EnvironmentRoute />} />
         <Route path={appRoute.dmgCompiler.slice(1)} element={<DmgCompilerRoute />} />

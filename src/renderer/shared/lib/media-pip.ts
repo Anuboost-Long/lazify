@@ -1,4 +1,4 @@
-export type MediaPipResult = import("../../../main/media-pip").MediaPipResult;
+export type MediaPipResult = import("../../../main/media/media-pip").MediaPipResult;
 
 export async function toggleMediaPictureInPicture(
   view: LazifyWebviewElement

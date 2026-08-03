@@ -10,6 +10,7 @@ import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import { BaseModal } from "@renderer/shared/ui/modal/BaseModal";
 import { CodeSurface } from "@renderer/shared/ui/code/CodeSurface";
 import { CopyButton } from "@renderer/shared/ui/CopyButton";
+import type { SymbolPosition } from "@renderer/shared/ui/code/symbol-at-point";
 
 interface AgentFileModalProps {
   /** The file being read, or null while the modal is closed. */
@@ -17,7 +18,7 @@ interface AgentFileModalProps {
   /** Absent when no terminal is open, which hides the send button. */
   onSendToTerminal: ((text: string) => void) | null;
   /** Clicking an identifier asks the panel to open where it is declared. */
-  onOpenSymbol?: (symbol: string) => void;
+  onOpenSymbol?: (symbol: string, position?: SymbolPosition) => void;
   /** 1-based line to reveal, set when this file was reached by a jump. */
   focusLine?: number | null;
   /** Returns to the file jumped from; absent when there is nowhere back to. */

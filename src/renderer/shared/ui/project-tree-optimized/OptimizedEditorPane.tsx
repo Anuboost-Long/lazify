@@ -1,7 +1,6 @@
 import clsx from "clsx";
 import { useState, type ReactNode } from "react";
 import { translation } from "@renderer/i18n/translation";
-import type { ImportedProjectIndexNode } from "@renderer/shared/types/lazify";
 import { SmallText } from "@renderer/shared/typography";
 import { CodeSurface } from "@renderer/shared/ui/code/CodeSurface";
 import { EditorEmptyState } from "@renderer/shared/ui/code/EditorEmptyState";
@@ -10,6 +9,7 @@ import { Tooltip } from "@renderer/shared/ui/Tooltip";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import { ConfirmModal } from "@renderer/shared/ui/modal/ConfirmModal";
 import type { EditorTab } from "@renderer/shared/ui/code/EditorTabBar";
+import type { SymbolPosition } from "@renderer/shared/ui/code/symbol-at-point";
 import {
   EditorPaneNotice,
   EditorPaneShell,
@@ -18,8 +18,16 @@ import type { FileContentState } from "@renderer/shared/ui/project-tree-optimize
 import { useTranslation } from "react-i18next";
 
 interface OptimizedEditorPaneProps {
-  selectedNode: ImportedProjectIndexNode | null;
+  selectedNode: {
+    name: string;
+    type: "file" | "folder";
+    absolutePath?: string;
+  } | null;
   selectedFileState: FileContentState | null;
+  editable?: boolean;
+  selectedPath?: string | null;
+  onContentChange?: (value: string) => void;
+  headerAction?: ReactNode;
   /** Open-file tabs rendered in the header instead of the title block. */
   tabs?: ReactNode;
   /** The tab being shown; a "diff" tab renders its patch, not the file. */
@@ -31,15 +39,19 @@ interface OptimizedEditorPaneProps {
   /** How many tabs closing all would take, named in the confirmation. */
   openTabCount?: number;
   /** Clicking an identifier in the file asks to go to its declaration. */
-  onOpenSymbol?: (symbol: string) => void;
+  onOpenSymbol?: (symbol: string, position?: SymbolPosition) => void;
   /** 1-based line to reveal and mark once the file is showing. */
   focusLine?: number | null;
 }
 
-/** The read-only pane: a file loaded on demand, so it also has load states. */
+/** Shared file editor: live projects are read-only; template snapshots opt into editing. */
 export function OptimizedEditorPane({
   selectedNode,
   selectedFileState,
+  editable = false,
+  selectedPath,
+  onContentChange,
+  headerAction,
   tabs,
   activeTab = null,
   chrome = "card",
@@ -50,7 +62,7 @@ export function OptimizedEditorPane({
 }: Readonly<OptimizedEditorPaneProps>) {
   const { t } = useTranslation();
   const flush = chrome === "flush";
-  const isDiff = activeTab?.kind === "diff";
+  const isDiff = !editable && activeTab?.kind === "diff";
   const [diffMode, setDiffMode] = useState<DiffViewMode>("unified");
   // Closing every tab at once throws away the whole reading context, so it is
   // gated the way closing an agent terminal is.
@@ -58,7 +70,7 @@ export function OptimizedEditorPane({
   const isFile = selectedNode?.type === "file";
   const status = selectedFileState?.status;
   const pending =
-    !selectedFileState || status === "idle" || status === "loading";
+    !editable && (!selectedFileState || status === "idle" || status === "loading");
 
   // Nothing open: no header and no badge, the way VS Code leaves an empty
   // editor group — but the surface still says so, matching the agent panel's
@@ -72,8 +84,8 @@ export function OptimizedEditorPane({
       return (
         <EditorPaneNotice
           chrome={chrome}
-          title={t(translation.ProjectTree.SelectFileToPreview)}
-          description={t(translation.ProjectTree.SelectFileToPreviewDesc)}
+          title={t(editable ? translation.ProjectTree.SelectFileToEdit : translation.ProjectTree.SelectFileToPreview)}
+          description={t(editable ? translation.ProjectTree.SelectFileToEditDesc : translation.ProjectTree.SelectFileToPreviewDesc)}
         />
       );
     }
@@ -88,13 +100,13 @@ export function OptimizedEditorPane({
       );
     }
 
-    if (status === "error") {
+    if (!editable && status === "error") {
       return (
         <EditorPaneNotice
           chrome={chrome}
           tone="error"
           title={t(translation.ProjectTree.LoadFilePreviewError)}
-          description={selectedFileState.content}
+          description={selectedFileState?.content}
         />
       );
     }
@@ -102,7 +114,7 @@ export function OptimizedEditorPane({
     if (isDiff) {
       return (
         <DiffView
-          diff={selectedFileState.content ?? ""}
+          diff={selectedFileState?.content ?? ""}
           mode={diffMode}
           fileName={selectedNode.name}
           // The diff carries the whole file, so its single "@@" line says
@@ -114,12 +126,14 @@ export function OptimizedEditorPane({
 
     return (
       <CodeSurface
+        editable={editable}
         variant={flush ? "flush" : "panel"}
-        content={selectedFileState.content ?? ""}
+        content={selectedFileState?.content ?? ""}
         fileName={selectedNode.name}
+        onContentChange={editable ? onContentChange : undefined}
         // Only the file view resolves symbols; a diff's line numbers belong to
         // the patch, not the file, so a jump into one would land nowhere.
-        onOpenSymbol={onOpenSymbol}
+        onOpenSymbol={editable ? undefined : onOpenSymbol}
         focusLine={focusLine}
       />
     );
@@ -131,6 +145,7 @@ export function OptimizedEditorPane({
       tabs={tabs}
       headerAction={
         <>
+          {headerAction}
           {isDiff ? (
             <div className="flex shrink-0 items-center rounded-md border border-border p-0.5">
               {(["unified", "split"] as const).map((mode) => (
@@ -173,16 +188,16 @@ export function OptimizedEditorPane({
           ) : null}
         </>
       }
-      icon="page"
+      icon={editable ? "package" : "page"}
       title={
         isFile ? selectedNode.name : t(translation.ProjectTree.NoFileSelected)
       }
       subtitle={
         isFile
-          ? selectedNode.absolutePath
+          ? (selectedPath ?? selectedNode.absolutePath ?? selectedNode.name)
           : t(translation.ProjectTree.SelectFileFromExplorer)
       }
-      badge={t(translation.ProjectTree.ReadOnly)}
+      badge={t(editable ? translation.ProjectTree.Editable : translation.ProjectTree.ReadOnly)}
     >
       {body()}
 

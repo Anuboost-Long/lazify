@@ -9,10 +9,12 @@ import { SmallText } from "@renderer/shared/typography";
 import { Tooltip } from "@renderer/shared/ui/Tooltip";
 import { IconButton } from "@renderer/shared/ui/IconButton";
 import UiIcon, { type UiIconName } from "@renderer/shared/ui/icons/UiIcon";
+import { BlockedPopupNotice } from "./BlockedPopupNotice";
 import { BrowserGuest, type GuestStatus } from "./BrowserGuest";
 import { BrowserStartPage } from "./BrowserStartPage";
 import { LazyShieldPanel } from "./LazyShieldPanel";
 import { SendToAgentButton } from "./SendToAgentButton";
+import { useBlockedPopups } from "../hooks/use-blocked-popups";
 import { useBrowserTabs, type BrowserTab } from "../hooks/use-browser-tabs";
 import { useLazyShield } from "../hooks/use-lazy-shield";
 import { tabLabel } from "../lib/browser-url";
@@ -87,6 +89,7 @@ export function BrowserSurface({ visible }: Readonly<BrowserSurfaceProps>) {
   } = useBrowserTabs();
 
   const shield = useLazyShield();
+  const popups = useBlockedPopups();
   const pagePip = usePictureInPicture("browser");
   const [statuses, setStatuses] = useState<Record<string, GuestStatus>>({});
   /** Explains a picture-in-picture request the page could not answer. */
@@ -363,6 +366,18 @@ export function BrowserSurface({ visible }: Readonly<BrowserSurfaceProps>) {
           }}
         />
       </form>
+
+      {popups.blocked ? (
+        <BlockedPopupNotice
+          blocked={popups.blocked}
+          onOpen={(url) => {
+            openTab(url);
+            popups.dismiss();
+          }}
+          onAllowSite={popups.allowSite}
+          onDismiss={popups.dismiss}
+        />
+      ) : null}
 
       {pipNotice ? (
         <SmallText className="!text-muted border-b border-border px-3 py-1.5">

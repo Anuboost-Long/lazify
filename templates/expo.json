@@ -4,6 +4,10 @@
   "description": "Create a new Expo application with a dependency pack that works well for React Native prototyping.",
   "projectType": "expo",
   "preferredPackageManager": "npm",
+  "starter": {
+    "repo": "anuboost-lazify/expo-scaffold",
+    "ref": "v1.0.0"
+  },
   "createCommands": {
     "npm": ["create", "expo-app@latest"],
     "npx": ["create-expo-app@latest"]

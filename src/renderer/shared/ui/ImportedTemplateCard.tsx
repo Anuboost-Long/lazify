@@ -31,110 +31,107 @@ export function ImportedTemplateCard({
   const presentation = getImportedTemplatePresentation(template.stack);
 
   return (
-    <div
-      role="button"
-      tabIndex={0}
-      onClick={() => onSelect(template.id)}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") onSelect(template.id);
-      }}
+    <article
       className={clsx(
-        "group relative cursor-pointer overflow-hidden rounded-[28px] border p-5 text-left",
-        "transition-[transform,box-shadow,border-color] duration-300 ease-out hover:-translate-y-1.5",
+        "group relative overflow-hidden rounded-[26px] border text-left",
+        "transition-[transform,box-shadow,border-color] duration-300 ease-out hover:-translate-y-1",
         active
           ? "border-accent bg-accent-gradient-180 shadow-panel"
-          : "border-border bg-soft hover:border-accent"
+          : "border-border bg-soft hover:border-accent/70 hover:shadow-panel"
       )}
     >
       {active ? <SelectionRail /> : null}
 
-      <div
-        className="absolute inset-x-0 top-0 h-px"
-        style={{
-          background: "linear-gradient(to right, transparent, var(--color-accent), transparent)"
-        }}
-      />
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={() => onSelect(template.id)}
+        aria-label={`${t(translation.GlobalTerm.Open)} ${template.name}`}
+        className="block w-full p-5 text-left disabled:cursor-not-allowed disabled:opacity-60"
+      >
+        <div className={clsx("flex items-start gap-4", onDelete && "pr-9")}>
+          <div
+            className={clsx(
+              "flex h-14 w-14 shrink-0 items-center justify-center rounded-[18px] border shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]",
+              presentation.frameClassName,
+              active && presentation.activeGlow
+            )}
+          >
+            <DevIcon
+              name={presentation.iconName}
+              className={presentation.iconClassName}
+              title={template.name}
+            />
+          </div>
 
-      <div className="absolute inset-x-5 top-5 flex items-center justify-between gap-3">
-        <PillText
-          as="span"
-          className={clsx(
-            "rounded-full border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.22em]",
-            presentation.chipClassName
-          )}
-        >
-          {presentation.badge}
-        </PillText>
-
-        {onDelete ? (
-          <Tooltip content={t(translation.TemplateCard.Delete)} side="top">
-            <button
-              type="button"
-              disabled={isDeleting || disabled}
-              onClick={(e) => onDelete(e, template.id, template.name)}
-              className={clsx(
-                "flex h-7 w-7 items-center justify-center rounded-full border",
-                "transition-colors duration-150",
-                isDeleting
-                  ? "border-error/30 bg-error/5 opacity-60"
-                  : "border-error/40 bg-error/8 text-error hover:border-error hover:bg-error/15"
-              )}
-            >
-              {isDeleting ? (
-                <UiIcon name="refresh-circle" className="h-3 w-3 animate-spin text-error" />
-              ) : (
-                <UiIcon name="xmark" className="h-3 w-3" />
-              )}
-            </button>
-          </Tooltip>
-        ) : null}
-      </div>
-
-      <div className="flex items-start gap-4 pt-12">
-        <div
-          className={clsx(
-            "flex h-16 w-16 shrink-0 items-center justify-center rounded-[22px] dark:border dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]",
-            presentation.frameClassName,
-            active && presentation.activeGlow
-          )}
-        >
-          <DevIcon
-            name={presentation.iconName}
-            className={presentation.iconClassName}
-            title={template.name}
-          />
-        </div>
-
-        <div className="min-w-0 flex-1">
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0">
-              <CardTitle className="truncate">{template.name}</CardTitle>
-              <CaptionText className="mt-1 font-semibold uppercase tracking-[0.22em]">
-                {template.stack.replace(/-/g, " ")}
-              </CaptionText>
-            </div>
-            {active ? (
-              <PillText tone="accent" className="shrink-0 rounded-full border border-accent/20 bg-accent/10 px-3 py-1 tracking-[0.22em]">
-                {t(translation.TemplateCard.Selected)}
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <PillText
+                as="span"
+                className={clsx(
+                  "rounded-full border px-2.5 py-1 text-[9px] font-semibold uppercase tracking-[0.2em]",
+                  presentation.chipClassName
+                )}
+              >
+                {presentation.badge}
               </PillText>
-            ) : null}
-          </div>
-          <BodyText tone="muted" className="mt-2 leading-6">{template.description}</BodyText>
-          <div className="mt-3 flex flex-wrap gap-2">
-            <CaptionText as="span" className="rounded-full border border-border bg-bg px-3 py-1 font-medium">
-              {t(translation.TemplateCard.FilesCount, { count: template.fileCount })}
-            </CaptionText>
-            <CaptionText as="span" className="rounded-full border border-border bg-bg px-3 py-1 font-medium">
-              {new Date(template.savedAt).toLocaleDateString()}
-            </CaptionText>
+              {active ? (
+                <PillText tone="accent" className="rounded-full border border-accent/20 bg-accent/10 px-2.5 py-1 tracking-[0.2em]">
+                  {t(translation.TemplateCard.Selected)}
+                </PillText>
+              ) : null}
+            </div>
+            <CardTitle className="mt-3 truncate text-lg transition-colors group-hover:text-accent">
+              {template.name}
+            </CardTitle>
+            <BodyText tone="muted" className="mt-1 line-clamp-2 min-h-10 text-sm leading-5">
+              {template.description}
+            </BodyText>
           </div>
         </div>
-      </div>
 
-      <div className="mt-5 rounded-[20px] border border-border/80 bg-bg/70 px-4 py-3">
-        <OverlineText tone="muted" className="text-[11px] tracking-[0.22em]">{t(translation.TemplateCard.Source)}</OverlineText>
-        <MonoText className="mt-1 truncate text-text/80">{template.sourceProjectPath}</MonoText>
-      </div>
-    </div>
+        <div className="mt-5 grid grid-cols-[auto_auto_minmax(0,1fr)] items-center gap-2 border-t border-border/80 pt-4">
+          <CaptionText as="span" className="rounded-lg bg-bg px-2.5 py-1.5 font-medium">
+            {t(translation.TemplateCard.FilesCount, { count: template.fileCount })}
+          </CaptionText>
+          <CaptionText as="span" className="rounded-lg bg-bg px-2.5 py-1.5 font-medium">
+            {new Date(template.savedAt).toLocaleDateString()}
+          </CaptionText>
+          <span className="flex min-w-0 items-center justify-end gap-2 text-muted transition-colors group-hover:text-accent">
+            <OverlineText as="span" tone="muted" className="sr-only">
+              {t(translation.TemplateCard.Source)}
+            </OverlineText>
+            <MonoText as="span" className="truncate text-xs text-inherit">
+              {template.sourceProjectPath}
+            </MonoText>
+            <UiIcon name="arrow-right" className="h-4 w-4 shrink-0 transition-transform group-hover:translate-x-1" />
+          </span>
+        </div>
+      </button>
+
+      {onDelete ? (
+        <Tooltip content={t(translation.TemplateCard.Delete)} side="top">
+          <button
+            type="button"
+            disabled={isDeleting || disabled}
+            onClick={(event) => onDelete(event, template.id, template.name)}
+            aria-label={`${t(translation.TemplateCard.Delete)} ${template.name}`}
+            className={clsx(
+              "absolute right-4 top-4 z-10 flex h-8 w-8 items-center justify-center rounded-[11px] border",
+              "transition-[color,background-color,border-color,opacity] duration-150",
+              isDeleting
+                ? "border-error/30 bg-error/5 opacity-60"
+                : "border-border bg-bg/80 text-muted opacity-70 hover:border-error/50 hover:bg-error/10 hover:text-error group-hover:opacity-100"
+            )}
+          >
+            {isDeleting ? (
+              <UiIcon name="refresh-circle" className="h-3.5 w-3.5 animate-spin text-error" />
+            ) : (
+              <UiIcon name="trash" className="h-3.5 w-3.5" />
+            )}
+          </button>
+        </Tooltip>
+      ) : null}
+    </article>
   );
 }

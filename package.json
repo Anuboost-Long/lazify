@@ -15,6 +15,8 @@
     "package:mac": "npm run build && electron-builder --config electron-builder.mac.yml && npm run rebuild",
     "package:win": "npm run build && electron-builder --config electron-builder.win.yml",
     "start": "electron .",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "make:lang": "tsx src/scripts/make-language.ts",
     "rebuild": "electron-rebuild -f -w node-pty",
     "mac:fix-electron": "node src/scripts/mac-fix-electron.mjs",
@@ -44,6 +46,8 @@
   },
   "devDependencies": {
     "@electron/rebuild": "^4.2.0",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
     "@types/node": "^22.15.17",
     "@types/react": "^18.3.23",
     "@types/react-dom": "^18.3.7",
@@ -54,12 +58,14 @@
     "electron": "^43.2.0",
     "electron-builder": "^26.8.1",
     "electronmon": "^2.0.2",
+    "jsdom": "^27.0.1",
     "patch-package": "^8.0.1",
     "postcss": "^8.5.3",
     "tailwindcss": "^3.4.17",
     "tsx": "^4.21.0",
     "typescript": "^5.8.3",
     "vite": "^7.3.6",
+    "vitest": "^3",
     "wait-on": "^8.0.3"
   }
 }

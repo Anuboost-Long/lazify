@@ -1,26 +1,21 @@
 import { TemplatesPage } from "@renderer/features/templates/pages/TemplatesPage";
 import { useLazifyStore } from "@renderer/shared/hooks/use-lazify-store";
+import { appRoute, getTemplateEditRoute } from "../app-routes";
+import { useNavigate } from "react-router-dom";
 
 export function TemplatesRoute() {
+  const navigate = useNavigate();
   const {
     importedTemplateOptions,
-    selectedImportedTemplate,
-    selectedImportedTemplateId,
-    loadImportedTemplate,
     removeImportedTemplate,
-    saveImportedTemplateChanges,
   } = useLazifyStore();
 
   return (
     <TemplatesPage
       importedTemplateOptions={importedTemplateOptions}
-      selectedImportedTemplate={selectedImportedTemplate}
-      selectedImportedTemplateId={selectedImportedTemplateId}
-      onSelectTemplate={(templateId) => loadImportedTemplate(templateId)}
+      onSelectTemplate={(templateId) => navigate(getTemplateEditRoute(templateId))}
       onDeleteTemplate={(templateId) => removeImportedTemplate(templateId)}
-      onSaveTemplate={(templateId, updates) =>
-        saveImportedTemplateChanges(templateId, updates)
-      }
+      onImportProject={() => navigate(appRoute.templateImport)}
     />
   );
 }

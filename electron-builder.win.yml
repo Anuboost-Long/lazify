@@ -13,6 +13,9 @@ directories:
 files:
   - dist/**/*
   - dist-electron/**/*
+  # Read at runtime for the window icon and the splash logo, so it has to
+  # travel inside the asar — see splash.ts
+  - build/icon.png
   - node_modules/**/*
   - package.json
 
