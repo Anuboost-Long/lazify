@@ -1,7 +1,11 @@
 # Starter-Repo Scaffolding
 
-Status: in progress — Phases 1–5 done, revised 2026-08-02
+Status: in progress — Phases 1–5 done, revised 2026-08-03
 Owner: Ly kimlong
+
+> Current init flow: project-structure review was removed on 2026-08-03.
+> Continue now opens Console and runs project creation as one operation. Picker
+> sections below describe the superseded review design, not active init behavior.
 
 Replace Lazify's hand-maintained scaffold constants with real, runnable starter
 repositories that Lazify clones. The starters are maintained as ordinary apps;
@@ -10,8 +14,7 @@ specific framework.
 
 A stack with no starter repo is not a gap in the design. It is created by its own
 framework CLI, with dependencies the user picks at create time. Both routes end in
-a real directory on disk, read by the same picker — so nothing inside Lazify
-synthesizes a file tree, for any stack, ever again.
+a real directory on disk without synthesizing a file tree inside Lazify.
 
 ---
 
@@ -20,7 +23,7 @@ synthesizes a file tree, for any stack, ever again.
 Today a new project is produced by two sources that must agree with each other:
 
 1. The framework CLI (`create-next-app`, `create-expo-app`) runs first —
-   `src/main/workflow-engine.ts:90-135`.
+   `src/main/scaffolding/workflow-engine.ts:90-135`.
 2. Lazify then overlays a tree synthesized from TypeScript string constants —
    `src/renderer/shared/ui/project-tree/constants/scaffold/*.ts` (~1,600 lines),
    `constants/template-blueprints.ts`, and the path→content mapping in
@@ -238,7 +241,7 @@ that declared its own pin would verify nothing, because the same push rewrites
 both. The catalog is fetched as a file and so is also hash-verified; a starter is
 cloned, and its tag is the whole pin.
 
-`TemplateDefinition` in `src/main/harmonizer.ts:20-30` becomes the catalog entry
+`TemplateDefinition` in `src/main/scaffolding/harmonizer.ts:20-30` becomes the catalog entry
 type and gains an optional `starter?: StarterSource`. The existing
 `createCommands` / `createOptions` fields stay valid throughout — they are now the
 tier 2 path rather than a migration leftover.
@@ -317,7 +320,7 @@ The cost is one clone per project instead of one per starter version. A shallow
 clone of a sub-1 MB repo is not what makes project creation slow; `npm install`
 is, and that runs either way.
 
-> Note: `src/main/imported-template-store.ts:18` resolved its directory from
+> Note: `src/main/scaffolding/imported-template-store.ts:18` resolved its directory from
 > `process.cwd()`, unwritable in a packaged app. Fixed to `app.getPath("userData")`
 > in Phase 1.
 
@@ -375,7 +378,7 @@ confined to the project directory (`resolveInsideProject`).
 
 ## 5. Post-fetch pipeline
 
-Runs in `src/main/workflow-engine.ts` as a third branch alongside the existing
+Runs in `src/main/scaffolding/workflow-engine.ts` as a third branch alongside the existing
 `imported` branch at line 82. The two tiers differ only in step 1 — they converge
 at step 2 and share every step after it.
 
@@ -423,7 +426,7 @@ we ship the first two:
 | `…/constants/template-blueprints.ts` | delete |
 | `…/tree-utils.ts` → `getDefaultFileContent`, `buildBaselineTree`, `createFolderNode` | delete; the tree comes from disk |
 | `templates/packages/*.json` | delete — the starter's own `package.json` **is** the dependency list |
-| `src/main/template-package-manifest.ts` | keep only the version-mismatch reporting; drop manifest loading |
+| `src/main/scaffolding/template-package-manifest.ts` | keep only the version-mismatch reporting; drop manifest loading |
 
 The project-tree UI stops synthesizing a tree and reads the real one. The
 synced-project adapter (`…/adapters/synced-project/`) already does exactly this
@@ -465,14 +468,14 @@ missing, and blocking everything downstream:
   paid on every clone.
 
 **Phase 1 — catalog reader** *(done 2026-08-02)*
-`src/main/catalog.ts` reads the bundled seed, then the cache, then the registry
+`src/main/scaffolding/catalog.ts` reads the bundled seed, then the cache, then the registry
 repo (§4.0). Seed-first, background refresh, dormant until `REGISTRY_PIN` is set.
 `TemplateDefinition` in `harmonizer.ts` is now the catalog entry type.
 
 **Phase 2 — provisioner** *(done 2026-08-02)*
-`src/main/starter-provisioner.ts`: clone the tag, drop `.git` and the starter's
+`src/main/scaffolding/starter-provisioner.ts`: clone the tag, drop `.git` and the starter's
 own scaffolding, apply the declared substitutions, and classify failures so the
-UI can name them. `src/main/starter-descriptor.ts` reads the optional
+UI can name them. `src/main/scaffolding/starter-descriptor.ts` reads the optional
 `starter.json`. No UI changes; covered by `yarn test`, including a real clone of
 a tagged fixture repo over git's `insteadOf`, so no network is needed.
 
@@ -563,7 +566,7 @@ means ticking optional folders, not authoring files.
 
 ## 10. Related cleanups spotted
 
-- `src/main/imported-template-store.ts:18` uses `process.cwd()` — wrong directory
+- `src/main/scaffolding/imported-template-store.ts:18` uses `process.cwd()` — wrong directory
   in a packaged app. Fix to `app.getPath("userData")` alongside the cache work.
 - `src/brain/template-engine/` is fully implemented and entirely unused; Phase 0
   is its first real consumer.

@@ -3,7 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-import { replaceStarterNameToken, STARTER_NAME_TOKEN } from "../../src/main/starter-name-token";
+import { replaceStarterNameToken, STARTER_NAME_TOKEN } from "../../src/main/scaffolding/starter-name-token";
 
 let projectPath: string;
 

@@ -39,10 +39,6 @@ export const translation = {
   "Navigation": {
     "Workspace": "navigation.workspace",
     "WorkspaceDesc": "navigation.workspace_desc",
-    "ImportProject": "navigation.import_project",
-    "ImportProjectDesc": "navigation.import_project_desc",
-    "Console": "navigation.console",
-    "ConsoleDesc": "navigation.console_desc",
     "Templates": "navigation.templates",
     "TemplatesDesc": "navigation.templates_desc",
     "Settings": "navigation.settings",
@@ -395,6 +391,17 @@ export const translation = {
     "Title": "templates.title",
     "Description": "templates.description",
     "Empty": "templates.empty",
+    "SavedTemplates": "templates.saved_templates",
+    "ImportProject": "templates.import_project",
+    "ImportProjectDescription": "templates.import_project_description",
+    "EmptyTitle": "templates.empty_title",
+    "Library": "templates.library",
+    "SearchPlaceholder": "templates.search_placeholder",
+    "SearchHint": "templates.search_hint",
+    "ClearSearch": "templates.clear_search",
+    "NoSearchResults": "templates.no_search_results",
+    "NoSearchResultsDesc": "templates.no_search_results_desc",
+    "Selected": "templates.selected",
     "TemplateName": "templates.template_name",
     "ImportedTemplate": "templates.imported_template",
     "RemoveTemplate": "templates.remove_template",
@@ -409,10 +416,16 @@ export const translation = {
     "RemoveError": "templates.remove_error"
   },
   "Console": {
-    "Eyebrow": "console.eyebrow",
-    "Title": "console.title",
-    "Description": "console.description",
-    "ProjectInitialized": "console.project_initialized"
+    "FlowEyebrow": "console.flow_eyebrow",
+    "FlowTitle": "console.flow_title",
+    "FlowDescription": "console.flow_description",
+    "SetupStep": "console.setup_step",
+    "CreationStep": "console.creation_step",
+    "CreationStatus": "console.creation_status",
+    "InputRequired": "console.input_required",
+    "ChooseOnlyDescription": "console.choose_only_description",
+    "ProjectInitialized": "console.project_initialized",
+    "ProjectCreationFailed": "console.project_creation_failed"
   },
   "LogPanel": {
     "Title": "log_panel.title",
@@ -425,7 +438,7 @@ export const translation = {
     "Title": "init_project.title",
     "DescriptionStack": "init_project.description_stack",
     "DescriptionImported": "init_project.description_imported",
-    "DescriptionStructure": "init_project.description_structure",
+    "ChooseSource": "init_project.choose_source",
     "FreshScaffold": "init_project.fresh_scaffold",
     "StartFromStack": "init_project.start_from_stack",
     "StartFromStackDesc": "init_project.start_from_stack_desc",
@@ -453,14 +466,6 @@ export const translation = {
     "SetupReadyDesc": "workflow_form.setup_ready_desc",
     "EnterBoth": "workflow_form.enter_both"
   },
-  "FileStructure": {
-    "Title": "file_structure.title",
-    "Subtitle": "file_structure.subtitle",
-    "Desc": "file_structure.desc",
-    "Template": "file_structure.template",
-    "CreateProject": "file_structure.create_project",
-    "BackToConfig": "file_structure.back_to_config"
-  },
   "ImportProject": {
     "Eyebrow": "import_project.eyebrow",
     "Title": "import_project.title",
@@ -471,6 +476,9 @@ export const translation = {
     "ChooseAnother": "import_project.choose_another",
     "ChooseFolder": "import_project.choose_folder",
     "EmptyPrompt": "import_project.empty_prompt",
+    "EmptyTitle": "import_project.empty_title",
+    "ReviewFiles": "import_project.review_files",
+    "SaveTemplate": "import_project.save_template",
     "DetectedStack": "import_project.detected_stack",
     "Confidence": "import_project.confidence",
     "Framework": "import_project.framework",

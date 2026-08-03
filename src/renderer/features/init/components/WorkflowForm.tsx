@@ -1,6 +1,4 @@
-import type { StarterFailureReason } from "@main/starter-provisioner";
 import { translation } from "@renderer/i18n/translation";
-import { StarterFailureNotice } from "@renderer/shared/ui/StarterFailureNotice";
 import type { TemplateOption } from "@renderer/shared/types/lazify";
 import {
   BodyText,
@@ -30,8 +28,6 @@ interface WorkflowFormProps {
   onPackageNameChange: (value: string) => void;
   onBrowseDirectory: () => void;
   onContinue: () => void;
-  /** Set when a starter clone failed on this step. */
-  starterFailureReason: StarterFailureReason | null;
   createOptionValues: Record<string, boolean>;
   onCreateOptionChange: (key: string, value: boolean) => void;
   onBack?: () => void;
@@ -55,7 +51,6 @@ export function WorkflowForm({
   onCreateOptionChange,
   onBack,
   backLabel,
-  starterFailureReason,
 }: Readonly<WorkflowFormProps>) {
   const { t } = useTranslation();
   const selectedTemplate = templateOptions.find(
@@ -211,13 +206,6 @@ export function WorkflowForm({
           </BodyText>
         ) : null}
 
-        {/* A clone that failed leaves the user on this step, so the reason has
-            to appear here — the console is somewhere they did not navigate to. */}
-        {starterFailureReason ? (
-          <div className="mt-3">
-            <StarterFailureNotice reason={starterFailureReason} />
-          </div>
-        ) : null}
       </div>
     </div>
   );

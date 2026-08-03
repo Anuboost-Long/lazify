@@ -1,28 +1,6 @@
 import type {
-  ImportedTemplateSnapshot,
-  ProjectTreeNode,
-  SavedInitWorkflowConfig,
-  TemplateOption
+  ProjectTreeNode
 } from "@renderer/shared/types/lazify";
-
-export interface FileStructureSetupPanelProps {
-  busy: boolean;
-  importedTemplate: ImportedTemplateSnapshot | null;
-  /**
-   * A stack project's real tree, already written to disk. When it is present
-   * nothing is synthesized: the editor shows the files that actually exist.
-   */
-  preparedTree: TreeNode[] | null;
-  /** Optional folders the starter offers; empty when it declares none. */
-  preparedOptionalFolders: { path: string; label: string }[];
-  savedConfig: SavedInitWorkflowConfig;
-  selectedStructurePaths: string[];
-  templateOptions: TemplateOption[];
-  onBackToConfig: () => void;
-  onCreateProject: () => void;
-  onTreeChange: (tree: TreeNode[]) => void;
-  onToggleStructurePath: (path: string) => void;
-}
 
 export interface ProjectTreeEditorPanelProps {
   busy: boolean;
@@ -35,6 +13,7 @@ export interface ProjectTreeEditorPanelProps {
   selectedStructurePaths: string[];
   initialTree?: TreeNode[] | null;
   replaceTreeOnInitialChange?: boolean;
+  layout?: "card" | "workbench";
   showModuleSelectionToggle?: boolean;
   primaryActionLabel?: string;
   onPrimaryAction?: () => void;
@@ -51,4 +30,3 @@ export interface ProjectTreeEditorPanelProps {
 }
 
 export type TreeNode = ProjectTreeNode;
-

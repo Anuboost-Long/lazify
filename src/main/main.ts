@@ -5,37 +5,37 @@ import path from "node:path";
 import type { ProjectTreeNode, InstalledPackage } from "../renderer/shared/types/lazify";
 import { CommandRunner } from "./command-runner";
 import { PtyRunner } from "./pty-runner";
-import { refreshCatalog } from "./catalog";
-import { getTemplate, listTemplates } from "./harmonizer";
+import { refreshCatalog } from "./scaffolding/catalog";
+import { getTemplate, listTemplates } from "./scaffolding/harmonizer";
 import {
   deleteImportedTemplate,
   getImportedTemplate,
   listImportedTemplates,
   saveImportedTemplateFromProject,
   updateImportedTemplate
-} from "./imported-template-store";
-import { searchNpmPackages } from "./npm-registry";
-import { importProjectFromDirectory } from "./project-importer";
+} from "./scaffolding/imported-template-store";
+import { searchNpmPackages } from "./scaffolding/npm-registry";
+import { importProjectFromDirectory } from "./projects/project-importer";
 import {
   importProjectIndexFromDirectory,
   readImportedProjectFile
-} from "./project-importer-optimized";
-import { checkoutProjectBranch, getProjectGitStatus } from "./project-git-status";
+} from "./projects/project-importer-optimized";
+import { checkoutProjectBranch, getProjectGitStatus } from "./projects/project-git-status";
 import {
   commitChanges,
   discardChanges,
   pushCurrentBranch,
   stageFiles,
   unstageFiles
-} from "./git-actions";
-import { cleanupShadowRepos, getFileDiff, getWorkingChanges } from "./agent-changes";
-import { getNpmOutdated, getNpmAudit } from "./project-health";
-import { choosePackageManager, scanEnvironment } from "./scanner";
-import { resolveDevPortInjection } from "./dev-port";
-import { isDotnetScript, listDotnetScripts, resolveDotnetLaunch, waitForDotnetPortsFree } from "./dotnet-runner";
-import { scanTools, probeSingleTool, listNvmVersions, installNvm, nvmSetDefault, nvmUse, installTool, uninstallTool, checkToolUpdate, updateTool, scanListeningPorts, buildProcessTree, getDescendantPids } from "./environment-scanner";
-import { listTemplatePackageEntries } from "./template-package-manifest";
-import { WorkflowEngine } from "./workflow-engine";
+} from "./projects/git-actions";
+import { cleanupShadowRepos, getFileDiff, getWorkingChanges } from "./agents/agent-changes";
+import { getNpmOutdated, getNpmAudit } from "./projects/project-health";
+import { choosePackageManager, scanEnvironment } from "./environment/scanner";
+import { resolveDevPortInjection } from "./environment/dev-port";
+import { isDotnetScript, listDotnetScripts, resolveDotnetLaunch, waitForDotnetPortsFree } from "./environment/dotnet-runner";
+import { scanTools, probeSingleTool, listNvmVersions, installNvm, nvmSetDefault, nvmUse, installTool, uninstallTool, checkToolUpdate, updateTool, scanListeningPorts, buildProcessTree, getDescendantPids } from "./environment/environment-scanner";
+import { listTemplatePackageEntries } from "./scaffolding/template-package-manifest";
+import { WorkflowEngine } from "./scaffolding/workflow-engine";
 import { getAgentDefinition, listAgents, resumeArgs } from "./agents/agent-registry";
 import { listAgentSessions } from "./agents/agent-sessions";
 import { AttentionDetector } from "./agents/attention-detector";
@@ -51,15 +51,15 @@ import { addCustomAgent, removeCustomAgent, type CustomAgentInput } from "./agen
 import { getAgentUsage } from "./agents/agent-usage";
 import { watchAgentActivity } from "./agents/agent-activity-watcher";
 import { setAgentBudget } from "./agents/agent-limits-store";
-import { listHighlightingAssets, openHighlightingFolder } from "./highlighting-store";
-import { toggleMediaPictureInPicture } from "./media-pip";
+import { listHighlightingAssets, openHighlightingFolder } from "./code-intelligence/highlighting-store";
+import { toggleMediaPictureInPicture } from "./media/media-pip";
 import {
   closePictureInPicture,
   getPictureInPictureState,
   onPictureInPictureChanged,
   openPictureInPicture,
   type PictureInPictureSource
-} from "./picture-in-picture";
+} from "./media/picture-in-picture";
 import {
   compileDmg,
   defaultOutputPath,
@@ -68,16 +68,16 @@ import {
   type AppBundleInfo,
   type DmgResult
 } from "./dmg-compiler";
-import { guardPreviewWebviews, openExternalUrl } from "./preview-guard";
-import { installBrowserPermissionPolicy } from "./browser-permissions";
-import { allowPopupsFrom } from "./popup-policy";
+import { guardPreviewWebviews, openExternalUrl } from "./browser/preview-guard";
+import { installBrowserPermissionPolicy } from "./browser/browser-permissions";
+import { allowPopupsFrom } from "./browser/popup-policy";
 import { closeSplash, showSplash } from "./splash";
-import { findModuleDefinition, isModuleSpecifier } from "./module-resolver";
-import { findReferenceDefinition } from "./reference-finder";
-import { killListeningProcess, listListeningProcesses } from "./port-reaper";
-import { getLazyShieldState, initLazyShield, setLazyShieldEnabled, shouldBlockPopup } from "./lazy-shield";
+import { findModuleDefinition, isModuleSpecifier } from "./code-intelligence/module-resolver";
+import { findReferenceDefinition } from "./code-intelligence/reference-finder";
+import { killListeningProcess, listListeningProcesses } from "./environment/port-reaper";
+import { getLazyShieldState, initLazyShield, setLazyShieldEnabled, shouldBlockPopup } from "./browser/lazy-shield";
 import { matchPackageVersions } from "../brain/package-version-matcher";
-import { normalizeRuntimePath } from "./runtime-path";
+import { normalizeRuntimePath } from "./environment/runtime-path";
 
 let mainWindow: BrowserWindow | null = null;
 let stopAgentActivityWatch: (() => void) | null = null;
@@ -86,7 +86,10 @@ const emitToRenderer = (channel: string, payload: unknown) => {
   mainWindow?.webContents.send(channel, payload);
 };
 
-const commandRunner = new CommandRunner((event) => emitToRenderer("lazify:log", event));
+const commandRunner = new CommandRunner(
+  (event) => emitToRenderer("lazify:log", event),
+  (prompt) => emitToRenderer("lazify:command-choice-prompt", prompt),
+);
 const workflowEngine = new WorkflowEngine(commandRunner, (event) =>
   emitToRenderer("lazify:workflow-progress", event)
 );
@@ -334,10 +337,9 @@ function registerIpcHandlers() {
   );
 
   ipcMain.handle("lazify:create-project", async (_event, payload) => workflowEngine.createProject(payload));
-  ipcMain.handle("lazify:prepare-project", async (_event, payload) => workflowEngine.prepareProject(payload));
-  ipcMain.handle("lazify:finalize-project", async (_event, payload) => workflowEngine.finalizeProject(payload));
-  ipcMain.handle("lazify:discard-prepared-project", async (_event, projectPath: string) =>
-    workflowEngine.discardPreparedProject(projectPath)
+
+  ipcMain.handle("lazify:choose-command-option", async (_event, promptId: string, optionId: string) =>
+    commandRunner.chooseCommandOption(promptId, optionId)
   );
 
   ipcMain.handle("lazify:install-package", async (_event, payload) => workflowEngine.installPackage(payload));

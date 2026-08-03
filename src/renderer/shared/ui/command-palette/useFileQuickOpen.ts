@@ -5,26 +5,37 @@ import {
   type FileSearchEntry,
   type FileSearchResult,
 } from "@renderer/shared/lib/fuzzy/file-search";
-import type { ImportedProjectIndexNode } from "@renderer/shared/types/lazify";
+
+export interface QuickOpenTreeNode {
+  id: string;
+  name: string;
+  type: "file" | "folder";
+  relativePath?: string;
+  absolutePath?: string;
+  children: readonly QuickOpenTreeNode[];
+}
 
 /** Most rows a human scans before retyping — also caps the sort cost. */
 const RESULT_LIMIT = 50;
 
 /** Depth-first walk collecting only files, the searchable leaves of the tree. */
 function collectFiles(
-  nodes: readonly ImportedProjectIndexNode[],
+  nodes: readonly QuickOpenTreeNode[],
   out: FileSearchEntry[],
+  parentPath = "",
 ): void {
   for (const node of nodes) {
+    const derivedPath = parentPath ? `${parentPath}/${node.name}` : node.name;
+
     if (node.type === "file") {
       out.push({
         id: node.id,
         name: node.name,
-        path: node.relativePath,
-        absolutePath: node.absolutePath,
+        path: node.relativePath ?? derivedPath,
+        absolutePath: node.absolutePath ?? derivedPath,
       });
     } else if (node.children.length > 0) {
-      collectFiles(node.children, out);
+      collectFiles(node.children, out, node.relativePath ?? derivedPath);
     }
   }
 }
@@ -46,7 +57,7 @@ export interface FileQuickOpen {
  * Cmd/Ctrl+Shift+P later without fighting this.
  */
 export function useFileQuickOpen(
-  tree: readonly ImportedProjectIndexNode[],
+  tree: readonly QuickOpenTreeNode[],
   onOpenFile: (entry: FileSearchEntry) => void,
 ): FileQuickOpen {
   const [open, setOpen] = useState(false);

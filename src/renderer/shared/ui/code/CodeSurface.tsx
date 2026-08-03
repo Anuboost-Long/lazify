@@ -4,16 +4,16 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import { useHighlightedLines } from "./CodeText";
 import { CodeFindBar } from "./find/CodeFindBar";
 import { useCodeFind } from "./find/use-code-find";
-import { PLAIN_LANGUAGE } from "./highlighter/languages";
 import { symbolHitAtPoint, type SymbolPosition } from "./symbol-at-point";
 import { useCodePalette } from "./highlighter/use-highlighter";
 import { languageOf } from "./tokenize";
 
 interface CodeSurfaceProps {
   content: string;
+  editable?: boolean;
   /** Drives which syntax rules apply; the file's own name is enough. */
   fileName?: string | null;
-  /** Omit to render read-only, which is also the only highlighted mode. */
+  /** Omit to render read-only; editable mode overlays a textarea on highlighted code. */
   onContentChange?: (value: string) => void;
   placeholder?: string;
   /**
@@ -86,12 +86,13 @@ function sameBoxes(a: LinkBox[] | null, b: LinkBox[]): boolean {
 
 /**
  * The gutter-plus-code area both editor panes were carrying their own copy of.
- * Read-only content is syntax highlighted; an editable surface stays a plain
- * textarea, because keeping highlight spans aligned under a caret is a
- * different problem from painting static text.
+ * Read-only content is syntax highlighted directly. Editable content uses the
+ * same highlighted document as a non-interactive underlay, with a transparent
+ * textarea above it carrying the caret, selection, and native editing behavior.
  */
 export function CodeSurface({
   content,
+  editable = false,
   fileName,
   onContentChange,
   placeholder,
@@ -104,11 +105,12 @@ export function CodeSurface({
   const rootRef = useRef<HTMLDivElement | null>(null);
   const gutterRef = useRef<HTMLDivElement | null>(null);
   const codeRef = useRef<HTMLPreElement | null>(null);
+  const editableHighlightRef = useRef<HTMLPreElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const language = languageOf(fileName);
   const lines = useHighlightedLines(
     content,
-    onContentChange ? PLAIN_LANGUAGE : language,
+    language,
   );
   const palette = useCodePalette();
   // `lines` stands in for the painted text: it is rebuilt whenever the content
@@ -117,16 +119,14 @@ export function CodeSurface({
     root: rootRef,
     scroller: codeRef,
     revision: lines,
-    textarea: onContentChange ? textareaRef : undefined,
+    textarea: editable ? textareaRef : undefined,
   });
 
   // A dark code theme inside a light pane (or the reverse) has to bring its own
-  // background, the way the VS Code editor does. Editable surfaces keep the
-  // app's colours, since they are not themed.
-  const themed =
-    palette && !onContentChange
-      ? { background: palette.bg, color: palette.fg }
-      : undefined;
+  // background, the way the VS Code editor does.
+  const themed = palette
+    ? { background: palette.bg, color: palette.fg }
+    : undefined;
 
   const syncGutter = (scrollTop: number) => {
     if (gutterRef.current) gutterRef.current.scrollTop = scrollTop;
@@ -286,20 +286,44 @@ export function CodeSurface({
       </div>
 
       <div className={CODE_WRAP}>
-        {onContentChange ? (
-          <textarea
-            ref={textareaRef}
-            value={content}
-            onChange={(event) => onContentChange(event.target.value)}
-            onScroll={(event) => syncGutter(event.currentTarget.scrollTop)}
-            spellCheck={false}
-            className={clsx(
-              CODE_BASE,
-              style.code,
-              "resize-none overflow-y-auto bg-transparent text-text outline-none",
-            )}
-            placeholder={placeholder}
-          />
+        {editable ? (
+          <>
+            <pre
+              ref={editableHighlightRef}
+              aria-hidden="true"
+              data-editable-highlight=""
+              className={clsx(
+                CODE_BASE,
+                style.code,
+                "pointer-events-none overflow-hidden whitespace-pre",
+              )}
+              style={themed}
+            >
+              {renderedLines}
+            </pre>
+            <textarea
+              ref={textareaRef}
+              value={content}
+              wrap="off"
+              onChange={(event) => onContentChange?.(event.target.value)}
+              onScroll={(event) => {
+                const { scrollLeft, scrollTop } = event.currentTarget;
+                syncGutter(scrollTop);
+                if (editableHighlightRef.current) {
+                  editableHighlightRef.current.scrollLeft = scrollLeft;
+                  editableHighlightRef.current.scrollTop = scrollTop;
+                }
+              }}
+              spellCheck={false}
+              className={clsx(
+                CODE_BASE,
+                style.code,
+                "resize-none overflow-auto whitespace-pre bg-transparent text-transparent outline-none placeholder:text-muted",
+              )}
+              style={{ caretColor: themed?.color ?? "rgb(var(--color-text))" }}
+              placeholder={placeholder}
+            />
+          </>
         ) : (
           <pre
             ref={codeRef}

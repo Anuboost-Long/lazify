@@ -1,5 +1,5 @@
 import type { PackageOption } from "@renderer/shared/types/lazify";
-import type { TemplatePackageEntry } from "../../../../../main/template-package-manifest";
+import type { TemplatePackageEntry } from "../../../../../main/scaffolding/template-package-manifest";
 import type { TemplatePackagePreview } from "./types";
 
 export function parsePackageNames(value: string): string[] {

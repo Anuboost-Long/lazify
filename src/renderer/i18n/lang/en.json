@@ -39,12 +39,8 @@
   "navigation": {
     "workspace": "Workspace",
     "workspace_desc": "Create apps and install packages.",
-    "import_project": "Import Project",
-    "import_project_desc": "Scan a local project folder into the tree viewer.",
-    "console": "Console",
-    "console_desc": "Watch live command output.",
     "templates": "Templates",
-    "templates_desc": "Review imported project templates.",
+    "templates_desc": "Import projects and manage reusable templates.",
     "settings": "Settings",
     "settings_desc": "Customize appearance, language, and more.",
     "environment": "Environment",
@@ -393,8 +389,19 @@
   "templates": {
     "eyebrow": "Imported Templates",
     "title": "Templates",
-    "description": "Review saved imported project templates, rename them, edit their file trees, and remove snapshots you no longer want to keep.",
-    "empty": "No imported templates have been saved yet. Go to Import Project, choose the files to keep, and save the result as a template.",
+    "description": "Import local projects as reusable templates, then review, rename, edit, or remove them here.",
+    "empty": "No templates have been saved yet. Import a local project to create your first reusable template.",
+    "saved_templates": "Saved templates",
+    "import_project": "Import project",
+    "import_project_description": "Turn a local codebase into a reusable starting point.",
+    "empty_title": "Your template shelf is ready",
+    "library": "Template library",
+    "search_placeholder": "Search templates by name, stack, or source…",
+    "search_hint": "Find a reusable starting point",
+    "clear_search": "Clear template search",
+    "no_search_results": "No templates match your search",
+    "no_search_results_desc": "Nothing matched “{{query}}”. Try a template name, technology, or source folder.",
+    "selected": "Selected",
     "template_name": "Template name",
     "imported_template": "Imported template",
     "remove_template": "Remove template",
@@ -409,10 +416,16 @@
     "remove_error": "Unable to remove the imported template."
   },
   "console": {
-    "eyebrow": "Command Stream",
-    "title": "Console",
-    "description": "Inspect every background command Lazify runs, including workflow events, stdout, and errors.",
-    "project_initialized": "Project initialized"
+    "flow_eyebrow": "Init Project · Build",
+    "flow_title": "Creating {{name}}",
+    "flow_description": "Your setup is locked in. Lazify is now preparing the project and streaming every command below.",
+    "setup_step": "Project setup",
+    "creation_step": "Create project",
+    "creation_status": "Creation status",
+    "input_required": "Input required",
+    "choose_only_description": "Choose one of the options provided by the command. Manual console input is disabled.",
+    "project_initialized": "Project initialized",
+    "project_creation_failed": "Project creation failed"
   },
   "log_panel": {
     "title": "Live Console",
@@ -425,18 +438,18 @@
     "title": "Init Project",
     "description_stack": "Start fresh with a stack, or switch to a saved imported template.",
     "description_imported": "Choose one of your saved imported templates or switch back to stack-based setup.",
-    "description_structure": "Set up the starter file structure before generating the new project.",
+    "choose_source": "Choose source",
     "fresh_scaffold": "Fresh scaffold",
     "start_from_stack": "Start from stack",
     "start_from_stack_desc": "Pick Expo, Next.js, Vite, or another stack and generate a fresh project baseline.",
     "choose_runtime_first": "Choose runtime first, then shape the scaffold before generation.",
     "saved_snapshot": "Saved snapshot",
     "use_imported_template": "Use imported template",
-    "use_imported_template_desc": "Reuse a previously imported project template saved as JSON from the Import Project flow.",
+    "use_imported_template_desc": "Reuse a project imported and saved from the Templates section.",
     "start_from_template": "Start from an approved template snapshot and keep its existing structure.",
     "selected_stack": "Selected stack",
     "change_selection": "Change selection",
-    "no_templates_saved": "No imported templates have been saved yet. Use Import Project first, then save one as JSON."
+    "no_templates_saved": "No imported templates have been saved yet. Open Templates and import a project first."
   },
   "workflow_form": {
     "title": "Project setup",
@@ -453,14 +466,6 @@
     "setup_ready_desc": "Continue with the next workflow step.",
     "enter_both": "Enter both a project name and workspace directory to continue."
   },
-  "file_structure": {
-    "title": "File structure",
-    "subtitle": "Configure the project tree like a real explorer",
-    "desc": "Your setup config is saved. Now edit the starter structure directly: add files, create folders, rename entries, and reshape the scaffold before generation.",
-    "template": "Template",
-    "create_project": "Create project",
-    "back_to_config": "Back to config"
-  },
   "import_project": {
     "eyebrow": "Import Workflow",
     "title": "Import Project",
@@ -471,6 +476,9 @@
     "choose_another": "Choose another folder",
     "choose_folder": "Choose project folder",
     "empty_prompt": "Choose a project folder to scan and load its file tree.",
+    "empty_title": "Choose a project to begin",
+    "review_files": "Review files",
+    "save_template": "Save template",
     "detected_stack": "Detected stack",
     "confidence": "Confidence {{value}}",
     "framework": "Framework",

@@ -6,7 +6,7 @@ import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import { IconButton } from "@renderer/shared/ui/IconButton";
 import { LabelButton } from "@renderer/shared/ui/LabelButton";
 import type { InstalledPackage } from "@renderer/shared/types/lazify";
-import type { NpmPackageSearchResult } from "../../../../main/npm-registry";
+import type { NpmPackageSearchResult } from "../../../../main/scaffolding/npm-registry";
 import { useTranslation } from "react-i18next";
 
 type Tab = "all" | "dep" | "dev";

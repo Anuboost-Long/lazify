@@ -10,8 +10,8 @@ import {
   classifyCloneFailure,
   provisionStarter,
   StarterError
-} from "../../src/main/starter-provisioner";
-import type { StarterDescriptor } from "../../src/main/starter-descriptor";
+} from "../../src/main/scaffolding/starter-provisioner";
+import type { StarterDescriptor } from "../../src/main/scaffolding/starter-descriptor";
 
 const execFileAsync = promisify(execFile);
 
@@ -103,7 +103,7 @@ describe("applySubstitutions", () => {
       JSON.stringify({ name: "next-scaffold", version: "0.1.0" })
     );
 
-    // next-scaffold ships no starter.json, and a user who typed "my-app" must
+    // Even when a descriptor declares nothing, a user who typed "my-app" must
     // not end up with a project named after the starter repo.
     await applySubstitutions(projectPath, descriptor(), "my-app");
 

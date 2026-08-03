@@ -92,16 +92,6 @@ export interface PackageOption {
   publisher: string | null;
 }
 
-export interface SavedInitWorkflowConfig {
-  sourceMode: "stack" | "imported";
-  templateId: string | null;
-  importedTemplateId: string | null;
-  importedTemplateName: string | null;
-  projectName: string;
-  projectDirectory: string;
-  packageNames: string[];
-}
-
 export interface ProjectTreeNode {
   id: string;
   name: string;

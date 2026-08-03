@@ -34,12 +34,8 @@
   "navigation": {
     "workspace": "កន្លែងធ្វើការ",
     "workspace_desc": "បង្កើតកម្មវិធី និងដំឡើងកញ្ចប់។",
-    "import_project": "នាំចូលគម្រោង",
-    "import_project_desc": "ស្កែនថតគម្រោងក្នុងម៉ាស៊ីន។",
-    "console": "កុងសូល",
-    "console_desc": "មើលលទ្ធផលពាក្យបញ្ជាផ្ទាល់។",
     "templates": "គំរូ",
-    "templates_desc": "ពិនិត្យគំរូគម្រោងដែលបាននាំចូល។",
+    "templates_desc": "នាំចូលគម្រោង និងគ្រប់គ្រងគំរូដែលអាចប្រើឡើងវិញ។",
     "settings": "ការកំណត់",
     "settings_desc": "កំណត់ប្ដូររូបរាង ភាសា និងច្រើនទៀត។",
     "environment": "បរិស្ថាន",
@@ -343,8 +339,19 @@
   "templates": {
     "eyebrow": "គំរូដែលបាននាំចូល",
     "title": "គំរូ",
-    "description": "ពិនិត្យគំរូគម្រោងដែលបានរក្សា ប្ដូរឈ្មោះ កែ file tree និងលុបSnapshot ដែលអ្នកលែងចង់ប្រើ។",
-    "empty": "មិនទាន់មានគំរូត្រូវបានរក្សា។ ទៅ Import Project ជ្រើសរើសឯកសារ ហើយរក្សាទុកជាគំរូ។",
+    "description": "នាំចូលគម្រោងក្នុងម៉ាស៊ីនជាគំរូដែលអាចប្រើឡើងវិញ ហើយពិនិត្យ ប្ដូរឈ្មោះ កែ ឬលុបវានៅទីនេះ។",
+    "empty": "មិនទាន់មានគំរូត្រូវបានរក្សា។ នាំចូលគម្រោងក្នុងម៉ាស៊ីន ដើម្បីបង្កើតគំរូដំបូងរបស់អ្នក។",
+    "saved_templates": "គំរូដែលបានរក្សា",
+    "import_project": "នាំចូលគម្រោង",
+    "import_project_description": "បំលែង codebase ក្នុងម៉ាស៊ីនទៅជាចំណុចចាប់ផ្ដើមដែលអាចប្រើឡើងវិញ។",
+    "empty_title": "កន្លែងគំរូរបស់អ្នករួចរាល់",
+    "library": "បណ្ណាល័យគំរូ",
+    "search_placeholder": "ស្វែងរកគំរូតាមឈ្មោះ stack ឬប្រភព…",
+    "search_hint": "ស្វែងរកចំណុចចាប់ផ្ដើមដែលអាចប្រើឡើងវិញ",
+    "clear_search": "សម្អាតការស្វែងរកគំរូ",
+    "no_search_results": "រកមិនឃើញគំរូដែលត្រូវគ្នា",
+    "no_search_results_desc": "មិនមានអ្វីត្រូវនឹង “{{query}}” ទេ។ សាកល្បងឈ្មោះគំរូ បច្ចេកវិទ្យា ឬថតប្រភព។",
+    "selected": "បានជ្រើស",
     "template_name": "ឈ្មោះគំរូ",
     "imported_template": "គំរូដែលបាននាំចូល",
     "remove_template": "លុបគំរូ",
@@ -356,10 +363,16 @@
     "removed_success": "បានលុប \"{{name}}\" ចេញពីគំរូដែលបាននាំចូល។"
   },
   "console": {
-    "eyebrow": "ស្ទ្រីមពាក្យបញ្ជា",
-    "title": "កុងសូល",
-    "description": "ពិនិត្យរាល់ពាក្យបញ្ជាផ្ទៃខាងក្រោយដែល Lazify run រួមមាន workflow events, stdout, និងកំហុស។",
-    "project_initialized": "គម្រោងត្រូវបានបង្កើត"
+    "flow_eyebrow": "បង្កើតគម្រោង · កំពុងដំណើរការ",
+    "flow_title": "កំពុងបង្កើត {{name}}",
+    "flow_description": "ការកំណត់របស់អ្នករួចរាល់។ Lazify កំពុងរៀបចំគម្រោង និងបង្ហាញពាក្យបញ្ជាទាំងអស់ខាងក្រោម។",
+    "setup_step": "កំណត់គម្រោង",
+    "creation_step": "បង្កើតគម្រោង",
+    "creation_status": "ស្ថានភាពបង្កើត",
+    "input_required": "ត្រូវការជម្រើស",
+    "choose_only_description": "ជ្រើសរើសជម្រើសមួយដែលពាក្យបញ្ជាបានផ្តល់។ ការបញ្ចូលអក្សរដោយដៃក្នុង console ត្រូវបានបិទ។",
+    "project_initialized": "គម្រោងត្រូវបានបង្កើត",
+    "project_creation_failed": "ការបង្កើតគម្រោងបានបរាជ័យ"
   },
   "log_panel": {
     "title": "Live Console",
@@ -376,13 +389,13 @@
     "choose_runtime_first": "ជ្រើស runtime ជាមុន ហើយរៀបចំ scaffold មុនការបង្កើត។",
     "saved_snapshot": "Snapshot ដែលបានរក្សា",
     "use_imported_template": "ប្រើគំរូដែលបាននាំចូល",
-    "use_imported_template_desc": "Reuse គំរូគម្រោងដែលបាននាំចូល និងរក្សាជា JSON ពី Import Project flow។",
+    "use_imported_template_desc": "ប្រើឡើងវិញនូវគម្រោងដែលបាននាំចូល និងរក្សាទុកពីផ្នែកគំរូ។",
     "start_from_template": "ចាប់ផ្ដើមពី template snapshot ដែលបានអនុម័ត ហើយរក្សារចនាសម្ព័ន្ធដែលមានស្រាប់។",
     "change_selection": "ប្ដូរការជ្រើសរើស",
-    "no_templates_saved": "មិនទាន់មានគំរូ។ ប្រើ Import Project ជាមុន ហើយរក្សាជា JSON។",
+    "no_templates_saved": "មិនទាន់មានគំរូ។ បើកផ្នែកគំរូ ហើយនាំចូលគម្រោងជាមុន។",
     "description_stack": "ចាប់ផ្ដើមដោយ stack ថ្មី ឬប្ដូរទៅ template ដែលបាននាំចូល។",
     "description_imported": "ជ្រើស template ដែលបានរក្សា ឬត្រឡប់ទៅ stack-based setup។",
-    "description_structure": "ដំឡើងរចនាសម្ព័ន្ធឯកសារ starter មុនពេលបង្កើតគម្រោងថ្មី។"
+    "choose_source": "ជ្រើសរើសប្រភព"
   },
   "workflow_form": {
     "title": "ការដំឡើងគម្រោង",
@@ -398,13 +411,6 @@
     "setup_ready_desc": "បន្តជំហានបន្ទាប់នៃ workflow។",
     "enter_both": "បំពេញទាំងឈ្មោះគម្រោង និង workspace directory ដើម្បីបន្ត។"
   },
-  "file_structure": {
-    "title": "រចនាសម្ព័ន្ធឯកសារ",
-    "subtitle": "កំណត់ project tree ដូច explorer ពិតប្រាកដ",
-    "desc": "ការកំណត់របស់អ្នកត្រូវបានរក្សា។ ឥឡូវកែរចនាសម្ព័ន្ធចម្បងដោយផ្ទាល់: បន្ថែមឯកសារ បង្កើតថត ប្ដូរឈ្មោះ ហើយរៀបចំ scaffold មុនការបង្កើត។",
-    "create_project": "បង្កើតគម្រោង",
-    "back_to_config": "ត្រឡប់ទៅការកំណត់"
-  },
   "import_project": {
     "eyebrow": "Import Workflow",
     "title": "នាំចូលគម្រោង",
@@ -415,6 +421,9 @@
     "choose_another": "ជ្រើសថតផ្សេង",
     "choose_folder": "ជ្រើសថតគម្រោង",
     "empty_prompt": "ជ្រើសថតគម្រោងដើម្បីស្កែន និងផ្ទុក file tree។",
+    "empty_title": "ជ្រើសរើសគម្រោងដើម្បីចាប់ផ្ដើម",
+    "review_files": "ពិនិត្យឯកសារ",
+    "save_template": "រក្សាទុកគំរូ",
     "detected_stack": "Stack ដែលរកឃើញ",
     "confidence": "ជំនឿ {{value}}",
     "framework": "Framework",

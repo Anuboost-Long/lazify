@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 
-import type { StarterFailureReason } from "@main/starter-provisioner";
+import type { StarterFailureReason } from "@main/scaffolding/starter-provisioner";
 import { translation } from "@renderer/i18n/translation";
 import { CardTitle, SmallText } from "@renderer/shared/typography";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
