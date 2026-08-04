@@ -148,6 +148,39 @@ export function XTermPanel({
     // Forward keyboard/paste to the PTY.
     term.onData((data) => globalThis.lazify.ptyWrite(runId, data));
 
+    // xterm's own paste handling relies on the browser firing a native
+    // "paste" event against its off-screen helper textarea, which is
+    // unreliable in Chromium on Windows (macOS's text-input responder chain
+    // is more forgiving of a programmatically-focused, near-invisible
+    // field). Reading the clipboard directly sidesteps that native event
+    // entirely, so paste works the same way on every platform.
+    const pasteFromClipboard = () => {
+      void navigator.clipboard.readText().then((text) => {
+        if (text) term.paste(text);
+      });
+    };
+
+    const handlePasteShortcut = (event: KeyboardEvent) => {
+      const isPasteShortcut =
+        (event.ctrlKey || event.metaKey) && !event.shiftKey && !event.altKey && event.key.toLowerCase() === "v";
+      if (!isPasteShortcut) return;
+      event.preventDefault();
+      // xterm's own textarea keydown handler stops propagation for keys it
+      // recognizes (including Ctrl+V) before a bubble-phase listener would
+      // ever see them, so this has to run in the capture phase to get there
+      // first — and stop it here too, so xterm doesn't also process the key.
+      event.stopPropagation();
+      pasteFromClipboard();
+    };
+
+    const handleContextMenu = (event: MouseEvent) => {
+      event.preventDefault();
+      pasteFromClipboard();
+    };
+
+    container.addEventListener("keydown", handlePasteShortcut, true);
+    container.addEventListener("contextmenu", handleContextMenu);
+
     // Paths in the output are clickable, the way they are in an IDE terminal.
     // xterm asks for one hovered row at a time, so the work is a regex over
     // that row plus a resolve for each candidate on it.
@@ -239,6 +272,8 @@ export function XTermPanel({
 
     return () => {
       disposed = true;
+      container.removeEventListener("keydown", handlePasteShortcut, true);
+      container.removeEventListener("contextmenu", handleContextMenu);
       stopData();
       term.dispose();
       termRef.current = null;
