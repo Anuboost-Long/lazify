@@ -41,9 +41,10 @@ const MAX_RENDERED_ROWS = 3000;
 const MIN_SPLIT_RATIO = 0.15;
 const SEAM_KEYBOARD_STEP = 0.05;
 
-const LINE_CLASS = "whitespace-pre-wrap break-words text-[11px] leading-4";
+// Keep the same type size and 25px line rhythm as CodeSurface's flush variant.
+const LINE_CLASS = "whitespace-pre text-[12px] leading-[25px]";
 const NUMBER_CLASS =
-  "w-9 shrink-0 select-none pr-1.5 text-right text-[11px] leading-4 text-muted/80";
+  "w-12 shrink-0 select-none border-r border-border bg-bg/60 px-2 text-right text-[11px] leading-[25px] text-muted/80";
 
 function rowTone(type: DiffRow["type"]) {
   // Alpha kept at/below ~0.2: enough that a changed line is found at a glance,
@@ -93,7 +94,7 @@ function CodeLine({
       </MonoText>
       <MonoText
         as="span"
-        className={clsx("min-w-0 flex-1 pr-2", LINE_CLASS, !themed && tone.text)}
+        className={clsx("min-w-0 flex-1 px-3", LINE_CLASS, !themed && tone.text)}
       >
         {row ? <CodeLineText text={row.text} language={language} /> : " "}
       </MonoText>
@@ -316,7 +317,7 @@ export function DiffView({
           </MonoText>
           <MonoText
             as="span"
-            className={clsx("min-w-0 flex-1 pr-2", LINE_CLASS, !themed && tone.text)}
+            className={clsx("min-w-0 flex-1 px-3", LINE_CLASS, !themed && tone.text)}
           >
             <CodeLineText text={row.text} language={language} />
           </MonoText>
@@ -332,7 +333,7 @@ export function DiffView({
     <div ref={frameRef} className="relative h-full min-h-0 flex-1 overflow-hidden">
       <div
         ref={scrollerRef}
-        className="h-full overflow-auto py-1"
+        className="h-full overflow-auto py-2"
         style={palette ? { background: palette.bg, color: palette.fg } : undefined}
       >
         {visible.map((region, index) =>

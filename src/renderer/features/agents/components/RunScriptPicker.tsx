@@ -65,15 +65,24 @@ export function RunScriptPicker({
       }
       setOpen(false);
     };
-    const onReflow = () => setOpen(false);
+    const onResize = () => setOpen(false);
+    const onScroll = (event: Event) => {
+      const target = event.target;
+
+      // The menu owns its list scroll. Only outside scrolling can move the
+      // fixed menu away from the button it is anchored to.
+      if (target instanceof Node && menuRef.current?.contains(target)) return;
+
+      setOpen(false);
+    };
 
     globalThis.addEventListener("pointerdown", onPointerDown);
-    globalThis.addEventListener("resize", onReflow);
-    globalThis.addEventListener("scroll", onReflow, true);
+    globalThis.addEventListener("resize", onResize);
+    globalThis.addEventListener("scroll", onScroll, true);
     return () => {
       globalThis.removeEventListener("pointerdown", onPointerDown);
-      globalThis.removeEventListener("resize", onReflow);
-      globalThis.removeEventListener("scroll", onReflow, true);
+      globalThis.removeEventListener("resize", onResize);
+      globalThis.removeEventListener("scroll", onScroll, true);
     };
   }, [open]);
 
