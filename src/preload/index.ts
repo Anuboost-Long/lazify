@@ -263,6 +263,8 @@ const lazifyApi = {
     ipcRenderer.invoke("lazify:open-highlighting-folder"),
   revealInFileManager: (targetPath: string): Promise<void> =>
     ipcRenderer.invoke("lazify:reveal-in-file-manager", targetPath),
+  openTerminal: (targetPath: string): Promise<void> =>
+    ipcRenderer.invoke("lazify:open-terminal", targetPath),
   openExternalUrl: (url: string): Promise<void> =>
     ipcRenderer.invoke("lazify:open-external-url", url),
   listListeningProcesses: (): Promise<import("../main/environment/port-reaper").ListeningProcess[]> =>

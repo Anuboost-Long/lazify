@@ -10,6 +10,7 @@ interface SyncedProjectViewerProps {
   editable?: boolean;
   project: ImportedProjectIndexResult;
   toolViews?: SidebarView[];
+  onOpenConsole?: () => void;
 }
 
 export function SyncedProjectViewer(props: Readonly<SyncedProjectViewerProps>) {

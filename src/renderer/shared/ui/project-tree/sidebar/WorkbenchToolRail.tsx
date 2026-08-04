@@ -1,4 +1,6 @@
 import clsx from "clsx";
+import { useTranslation } from "react-i18next";
+import { translation } from "@renderer/i18n/translation";
 import { Tooltip } from "@renderer/shared/ui/Tooltip";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import type { SidebarView } from "./types";
@@ -17,13 +19,19 @@ interface WorkbenchToolRailProps {
   /** Null when every panel is closed. */
   activeId: string | null;
   onChange: (id: string | null) => void;
+  /** Opens the OS terminal at the project's folder. Absent hides the button —
+      it is not a panel, so it takes no part in activeId/onChange. */
+  onOpenConsole?: () => void;
 }
 
 export function WorkbenchToolRail({
   views,
   activeId,
-  onChange
+  onChange,
+  onOpenConsole
 }: Readonly<WorkbenchToolRailProps>) {
+  const { t } = useTranslation();
+
   return (
     <div className="flex h-full w-10 shrink-0 flex-col items-center gap-1 border-l border-border bg-soft py-2">
       {views.map((view) => {
@@ -52,6 +60,19 @@ export function WorkbenchToolRail({
           </Tooltip>
         );
       })}
+
+      {onOpenConsole ? (
+        <Tooltip content={t(translation.Agents.Console)} side="left">
+          <button
+            type="button"
+            onClick={onOpenConsole}
+            aria-label={t(translation.Agents.Console)}
+            className="relative flex h-8 w-8 items-center justify-center rounded-md text-muted transition-colors hover:bg-accent/[0.06] hover:text-text"
+          >
+            <UiIcon name="terminal" className="h-4 w-4" />
+          </button>
+        </Tooltip>
+      ) : null}
     </div>
   );
 }

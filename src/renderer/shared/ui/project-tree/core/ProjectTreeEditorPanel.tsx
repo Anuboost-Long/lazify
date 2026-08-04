@@ -44,6 +44,9 @@ interface ProjectTreeEditorPanelProps<TNode extends ExplorerNode> {
    * default, so the editor keeps the full frame height. Workbench layout only.
    */
   toolViews?: SidebarView[];
+  /** Opens the OS terminal at the project's folder, from the same rail as
+      `toolViews`. Absent hides the button. Workbench layout only. */
+  onOpenConsole?: () => void;
   headerAccessory?: ReactNode;
   editor: ReactNode;
   leftPane?: ReactNode;
@@ -88,6 +91,7 @@ export function ProjectTreeEditorPanel<TNode extends ExplorerNode>({
   layout = "card",
   leftPane,
   mode = "editable",
+  onOpenConsole,
   onCancelRename,
   onClearContextMenu,
   onCollapseAll,
@@ -185,6 +189,7 @@ export function ProjectTreeEditorPanel<TNode extends ExplorerNode>({
                     views={toolViews}
                     activeId={activeToolId}
                     onChange={setActiveToolId}
+                    onOpenConsole={onOpenConsole}
                   />
                 </div>
               ) : (

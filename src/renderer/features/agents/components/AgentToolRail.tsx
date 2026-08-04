@@ -35,6 +35,8 @@ interface AgentToolRailProps {
   /** Opens Finder and types whatever is picked into the running agent. Null
       while no agent is on screen to receive it, which hides the button. */
   onPickPath: (() => void) | null;
+  /** Opens the OS terminal at the project's folder. */
+  onOpenConsole: () => void;
 }
 
 interface RailButtonProps {
@@ -101,6 +103,7 @@ export function AgentToolRail({
   changeCount,
   activityUnread,
   onPickPath,
+  onOpenConsole,
 }: Readonly<AgentToolRailProps>) {
   const { t } = useTranslation();
 
@@ -145,6 +148,15 @@ export function AgentToolRail({
         label={t(translation.Agents.Files)}
         selected={railTab === "files"}
         onClick={() => onToggleRail("files")}
+      />
+
+      {/* Not a panel: it hands off to the OS terminal, so nothing here stays
+          selected afterwards. */}
+      <RailButton
+        icon="terminal"
+        label={t(translation.Agents.Console)}
+        selected={false}
+        onClick={onOpenConsole}
       />
 
       {/* Not a panel either: it opens Finder and hands the pick to the agent,

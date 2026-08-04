@@ -93,6 +93,7 @@ export const translation = {
     "PathCopied": "agents.path_copied",
     "SendPathToTerminal": "agents.send_path_to_terminal",
     "PathToAgent": "agents.path_to_agent",
+    "Console": "agents.console",
     "DiffUnchangedLines": "agents.diff_unchanged_lines",
     "DiffPreviousChange": "agents.diff_previous_change",
     "DiffNextChange": "agents.diff_next_change",

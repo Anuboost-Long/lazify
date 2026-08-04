@@ -88,6 +88,7 @@
     "path_copied": "បានចម្លង",
     "send_path_to_terminal": "ផ្ញើទៅភ្នាក់ងារ",
     "path_to_agent": "ផ្លូវទៅភ្នាក់ងារ",
+    "console": "ស្ថានីយ",
     "diff_unchanged_lines": "{{lines}} បន្ទាត់មិនផ្លាស់ប្តូរ",
     "diff_previous_change": "ការផ្លាស់ប្តូរមុន",
     "diff_next_change": "ការផ្លាស់ប្តូរបន្ទាប់",

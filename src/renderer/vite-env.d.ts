@@ -203,6 +203,8 @@ declare global {
       openHighlightingFolder: () => Promise<void>;
       /** Opens a folder, or reveals a file selected inside its folder, in the OS file manager. */
       revealInFileManager: (targetPath: string) => Promise<void>;
+      /** Opens the OS terminal rooted at the given folder. */
+      openTerminal: (targetPath: string) => Promise<void>;
       openExternalUrl: (url: string) => Promise<void>;
       listListeningProcesses: () => Promise<import("../main/environment/port-reaper").ListeningProcess[]>;
       killListeningProcess: (pid: number) => Promise<import("../main/environment/port-reaper").KillResult>;

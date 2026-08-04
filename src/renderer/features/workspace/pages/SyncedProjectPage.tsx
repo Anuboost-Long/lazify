@@ -263,6 +263,9 @@ export function SyncedProjectPage({
             editable
             project={projectData}
             toolViews={toolViews}
+            onOpenConsole={() =>
+              void globalThis.lazify.openTerminal(syncedProject.projectPath)
+            }
           />
         </div>
       )}

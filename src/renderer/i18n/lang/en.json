@@ -93,6 +93,7 @@
     "path_copied": "Copied",
     "send_path_to_terminal": "Send to agent",
     "path_to_agent": "Path to agent",
+    "console": "Console",
     "diff_unchanged_lines": "{{lines}} unchanged lines",
     "diff_previous_change": "Previous change",
     "diff_next_change": "Next change",

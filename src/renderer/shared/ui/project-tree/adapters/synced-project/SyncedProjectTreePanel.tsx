@@ -26,6 +26,8 @@ interface SyncedProjectTreePanelProps {
   project: ImportedProjectIndexResult;
   /** Project tools shown in the workbench's right-hand rail. */
   toolViews?: SidebarView[];
+  /** Opens the OS terminal at the project's folder, from the same rail. */
+  onOpenConsole?: () => void;
   renderGitInfo?: (props: {
     gitStatus: ProjectGitStatusResult | null;
     loading: boolean;
@@ -50,6 +52,7 @@ export function SyncedProjectTreePanel({
   editable = false,
   project,
   toolViews,
+  onOpenConsole,
   renderGitInfo,
   renderGitPane,
 }: Readonly<SyncedProjectTreePanelProps>) {
@@ -72,6 +75,7 @@ export function SyncedProjectTreePanel({
         subLabel={project.projectPath}
         layout="workbench"
         toolViews={toolViews}
+        onOpenConsole={onOpenConsole}
         tree={adapter.editableTree}
         expandedIds={adapter.expandedIds}
         selectedId={adapter.selectedId}

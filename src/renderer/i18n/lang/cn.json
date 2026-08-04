@@ -88,6 +88,7 @@
     "path_copied": "已复制",
     "send_path_to_terminal": "发送给助手",
     "path_to_agent": "路径发送给助手",
+    "console": "终端",
     "diff_unchanged_lines": "{{lines}} 行未更改",
     "diff_previous_change": "上一处更改",
     "diff_next_change": "下一处更改",

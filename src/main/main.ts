@@ -53,6 +53,7 @@ import { watchAgentActivity } from "./agents/agent-activity-watcher";
 import { setAgentBudget } from "./agents/agent-limits-store";
 import { listHighlightingAssets, openHighlightingFolder } from "./code-intelligence/highlighting-store";
 import { toggleMediaPictureInPicture } from "./media/media-pip";
+import { openTerminal } from "./environment/open-terminal";
 import {
   closePictureInPicture,
   getPictureInPictureState,
@@ -657,6 +658,12 @@ function registerIpcHandlers() {
     }
 
     shell.showItemInFolder(targetPath);
+  });
+
+  // "Console" from a project's tool rail: the OS terminal, opened rooted at
+  // that project's folder.
+  ipcMain.handle("lazify:open-terminal", async (_event, targetPath: string) => {
+    openTerminal(targetPath);
   });
 
   // ── DMG compiler ──────────────────────────────────────────────────────────
