@@ -1,7 +1,7 @@
 "use client";
 
 import clsx from "clsx";
-import { Menu, X } from "lucide-react";
+import { Heart, Menu, X } from "lucide-react";
 import { useState } from "react";
 import { BrandIcon } from "./brand-icon";
 
@@ -9,6 +9,7 @@ const links = [
   { label: "Product", href: "#product" },
   { label: "Features", href: "#features" },
   { label: "Download", href: "#download" },
+  { label: "Donate", href: "/donate" },
 ];
 
 export function SiteHeader() {
@@ -33,7 +34,15 @@ export function SiteHeader() {
 
         <div className="hidden items-center gap-8 md:flex">
           {links.map((link) => (
-            <a key={link.href} href={link.href} className="text-sm text-stone-400 transition-colors hover:text-white">
+            <a
+              key={link.href}
+              href={link.href}
+              className={clsx(
+                "flex items-center gap-1.5 text-sm transition-colors",
+                link.label === "Donate" ? "text-rose-300 hover:text-rose-200" : "text-stone-400 hover:text-white",
+              )}
+            >
+              {link.label === "Donate" ? <Heart size={13} className="fill-rose-300/20" /> : null}
               {link.label}
             </a>
           ))}
@@ -65,7 +74,16 @@ export function SiteHeader() {
       {open ? (
         <div className="mx-auto mt-2 flex max-w-7xl flex-col gap-1 rounded-2xl border border-white/10 bg-[#0c1412] p-2 shadow-2xl md:hidden">
           {links.map((link) => (
-            <a key={link.href} href={link.href} onClick={() => setOpen(false)} className="rounded-xl px-4 py-3 text-sm text-stone-300 hover:bg-white/5">
+            <a
+              key={link.href}
+              href={link.href}
+              onClick={() => setOpen(false)}
+              className={clsx(
+                "flex items-center gap-1.5 rounded-xl px-4 py-3 text-sm hover:bg-white/5",
+                link.label === "Donate" ? "text-rose-300" : "text-stone-300",
+              )}
+            >
+              {link.label === "Donate" ? <Heart size={13} className="fill-rose-300/20" /> : null}
               {link.label}
             </a>
           ))}

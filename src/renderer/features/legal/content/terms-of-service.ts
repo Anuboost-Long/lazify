@@ -19,7 +19,7 @@ export const termsOfService: LegalDocument = {
       blocks: [
         {
           kind: "paragraph",
-          text: 'These Terms of Service (the "Terms") are a binding agreement between you and [COMPANY LEGAL NAME] ("we", "us", or "our") regarding the Lazify desktop application (the "App"). If you do not agree to these Terms, do not install or use the App.',
+          text: 'These Terms of Service (the "Terms") are a binding agreement between you and Anuboost-Long ("we", "us", or "our") regarding the Lazify desktop application (the "App"). If you do not agree to these Terms, do not install or use the App.',
         },
       ],
     },
@@ -145,7 +145,7 @@ export const termsOfService: LegalDocument = {
       blocks: [
         {
           kind: "paragraph",
-          text: "Questions about these Terms can be sent to [COMPANY LEGAL NAME], [MAILING ADDRESS], or [CONTACT EMAIL].",
+          text: "Questions about these Terms can be sent to Anuboost-Long at kimlongly57@gmail.com.",
         },
       ],
     },

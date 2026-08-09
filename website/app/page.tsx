@@ -7,6 +7,7 @@ import {
   Code2,
   Eye,
   GitBranch,
+  Heart,
   MonitorPlay,
   ShieldCheck,
   TerminalSquare,
@@ -204,11 +205,36 @@ export default function Home() {
         </div>
       </section>
 
+      <section className="px-5 pb-4 pt-2 sm:px-8">
+        <a
+          href="/donate"
+          className={clsx(
+            "mx-auto flex max-w-7xl flex-col items-center gap-4 rounded-2xl sm:flex-row sm:justify-between",
+            "border border-rose-300/20 bg-rose-300/[.05]",
+            "px-6 py-6 text-center sm:px-8 sm:text-left",
+            "transition-colors hover:bg-rose-300/[.09]",
+          )}
+        >
+          <div className="flex items-center gap-4">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-rose-300/25 bg-rose-300/10 text-rose-300">
+              <Heart size={18} strokeWidth={1.8} />
+            </div>
+            <div>
+              <p className="font-display text-lg font-semibold text-white">Enjoying Lazify?</p>
+              <p className="mt-0.5 text-sm text-stone-400">Support the person building it—scan a KHQR code and send a coffee.</p>
+            </div>
+          </div>
+          <span className="inline-flex items-center gap-2 rounded-xl border border-rose-300/30 px-4 py-2 text-xs font-semibold text-rose-200">
+            Donate <ArrowRight size={13} />
+          </span>
+        </a>
+      </section>
+
       <footer className="px-5 pb-10 pt-6 sm:px-8">
         <div className="mx-auto flex max-w-7xl flex-col gap-6 border-t border-white/[.08] pt-8 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2.5 text-sm font-semibold"><BrandIcon size={28} className="rounded-lg" /> Lazify</div>
           <p className="font-mono text-[9px] uppercase tracking-[.15em] text-stone-600">The desktop workspace for shipping software.</p>
-          <div className="flex flex-wrap items-center gap-5 text-xs text-stone-500"><a href="#product" className="hover:text-white">Product</a><a href="#download" className="hover:text-white">Download</a><a href="/privacy" className="hover:text-white">Privacy</a><a href="/terms" className="hover:text-white">Terms</a><a href="https://github.com/Anuboost-Long/lazify" target="_blank" rel="noreferrer" className="hover:text-white">GitHub</a></div>
+          <div className="flex flex-wrap items-center gap-5 text-xs text-stone-500"><a href="#product" className="hover:text-white">Product</a><a href="#download" className="hover:text-white">Download</a><a href="/donate" className="text-rose-300/80 hover:text-rose-200">Donate</a><a href="/privacy" className="hover:text-white">Privacy</a><a href="/terms" className="hover:text-white">Terms</a><a href="https://github.com/Anuboost-Long/lazify" target="_blank" rel="noreferrer" className="hover:text-white">GitHub</a></div>
         </div>
       </footer>
     </main>

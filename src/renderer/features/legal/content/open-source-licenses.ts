@@ -74,7 +74,7 @@ export const openSourceLicenses: LegalDocument = {
       blocks: [
         {
           kind: "paragraph",
-          text: "The components above are a summary. The App also depends, directly or transitively, on additional open-source packages. A complete, machine-generated list of every dependency and its license is maintained in the THIRD-PARTY-NOTICES file distributed with the application. If you would like a copy or have questions about attribution, contact [CONTACT EMAIL].",
+          text: "The components above are a summary. The App also depends, directly or transitively, on additional open-source packages. A complete, machine-generated list of every dependency and its license is maintained in the THIRD-PARTY-NOTICES file distributed with the application. If you would like a copy or have questions about attribution, contact kimlongly57@gmail.com.",
         },
       ],
     },

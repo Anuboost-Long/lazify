@@ -80,6 +80,14 @@ import { getLazyShieldState, initLazyShield, setLazyShieldEnabled, shouldBlockPo
 import { matchPackageVersions } from "../brain/package-version-matcher";
 import { normalizeRuntimePath } from "./environment/runtime-path";
 
+// Windows ties toast notifications to an AppUserModelID. Without one set here,
+// `new Notification()` reports success but never actually shows a toast —
+// especially in dev, where the process has no Start Menu shortcut to inherit
+// one from. Must match `appId` in electron-builder.win.yml.
+if (process.platform === "win32") {
+  app.setAppUserModelId("com.lazify.app");
+}
+
 let mainWindow: BrowserWindow | null = null;
 let stopAgentActivityWatch: (() => void) | null = null;
 

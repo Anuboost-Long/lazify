@@ -20,7 +20,7 @@ export const privacyPolicy: LegalDocument = {
       blocks: [
         {
           kind: "paragraph",
-          text: 'Lazify (the "App") is a desktop developer workflow tool provided by [COMPANY LEGAL NAME] ("we", "us", or "our"). This policy covers the App and does not cover any third-party service you choose to connect to it. You can reach us at [CONTACT EMAIL].',
+          text: 'Lazify (the "App") is a desktop developer workflow tool provided by Anuboost-Long ("we", "us", or "our"). This policy covers the App and does not cover any third-party service you choose to connect to it. You can reach us at kimlongly57@gmail.com.',
         },
       ],
     },
@@ -96,7 +96,7 @@ export const privacyPolicy: LegalDocument = {
       blocks: [
         {
           kind: "paragraph",
-          text: "Depending on where you live, you may have rights to access, correct, or delete personal information. Because most data stays on your device, you can exercise many of these rights directly by managing your local files and settings. For anything else, contact us at [CONTACT EMAIL].",
+          text: "Depending on where you live, you may have rights to access, correct, or delete personal information. Because most data stays on your device, you can exercise many of these rights directly by managing your local files and settings. For anything else, contact us at kimlongly57@gmail.com.",
         },
       ],
     },
@@ -114,7 +114,7 @@ export const privacyPolicy: LegalDocument = {
       blocks: [
         {
           kind: "paragraph",
-          text: "Questions about this policy can be sent to [COMPANY LEGAL NAME], [MAILING ADDRESS], or [CONTACT EMAIL].",
+          text: "Questions about this policy can be sent to Anuboost-Long at kimlongly57@gmail.com.",
         },
       ],
     },
