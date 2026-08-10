@@ -4,20 +4,26 @@ import {
   Bot,
   Boxes,
   Check,
+  Clock,
   Code2,
   Eye,
   GitBranch,
   Heart,
+  Laptop,
+  Monitor,
   MonitorPlay,
   ShieldCheck,
+  Terminal,
   TerminalSquare,
   Wrench,
 } from "lucide-react";
 import { BrandIcon } from "@/components/brand-icon";
+import { CopyCommand } from "@/components/copy-command";
 import { DownloadButton } from "@/components/download-button";
 import { MockReviews } from "@/components/mock-reviews";
 import { ProductWindow } from "@/components/product-window";
 import { SiteHeader } from "@/components/site-header";
+import { site } from "@/lib/site";
 
 const capabilities = [
   {
@@ -38,6 +44,12 @@ const capabilities = [
     description:
       "Read files, inspect session diffs, switch branches, and understand what changed before anything ships.",
   },
+];
+
+const windowsHighlights = [
+  "The same agents, terminals, and live preview",
+  "Installs to your user profile — no admin rights",
+  "Updates in place from Settings → About",
 ];
 
 const workspaceFeatures = [
@@ -73,11 +85,24 @@ export default function Home() {
             </p>
 
             <div className="reveal reveal-4 mt-9 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center">
-              <DownloadButton platform="macOS" primary />
-              <DownloadButton platform="Windows" />
+              <DownloadButton href={site.macDownloads[0].href} primary>
+                Download for macOS
+              </DownloadButton>
+              <a
+                href="#download"
+                className={clsx(
+                  "inline-flex min-h-12 items-center justify-center gap-3 rounded-xl",
+                  "bg-white/[.05] text-white",
+                  "border border-white/12",
+                  "px-5 py-3 text-sm font-bold",
+                  "transition-[transform,background-color] hover:-translate-y-0.5 hover:bg-white/[.09]",
+                )}
+              >
+                <Terminal size={16} className="opacity-70" /> Install from Terminal
+              </a>
             </div>
             <p className="reveal reveal-4 mt-4 font-mono text-[9px] uppercase tracking-[.14em] text-stone-600">
-              Mock installers for now · macOS and Windows
+              Apple Silicon &amp; Intel · Windows coming soon
             </p>
           </div>
 
@@ -168,39 +193,120 @@ export default function Home() {
       <section id="download" className="scroll-mt-20 px-5 py-10 sm:px-8 lg:py-16">
         <div className="relative mx-auto max-w-7xl overflow-hidden rounded-[30px] border border-emerald-300/20 bg-[#0c1813] px-6 py-14 sm:px-10 lg:px-16 lg:py-20">
           <div className="pointer-events-none absolute -right-20 -top-24 opacity-[.08]"><BrandIcon size={390} /></div>
-          <div className="relative grid gap-12 lg:grid-cols-[1fr_.8fr] lg:items-end">
-            <div>
-              <div className="flex items-center gap-3"><BrandIcon size={50} className="rounded-xl" /><span className="font-mono text-[10px] uppercase tracking-[.18em] text-emerald-300">Lazify Desktop</span></div>
-              <h2 className="mt-8 max-w-3xl font-display text-5xl font-semibold leading-[1.02] tracking-[-.015em] text-white sm:text-7xl">
-                Ready when your installers are.
-              </h2>
-              <p className="mt-6 max-w-xl text-base leading-7 text-stone-300">
-                Installers are coming soon. The download buttons are ready to connect to signed macOS and Windows releases.
-              </p>
-            </div>
-
-            <div className="flex flex-col gap-3 lg:items-stretch">
-              <DownloadButton platform="macOS" primary className="w-full" />
-              <DownloadButton platform="Windows" className="w-full" />
-              <a
-                href="https://github.com/Anuboost-Long/lazify"
-                target="_blank"
-                rel="noreferrer"
-                className={clsx(
-                  "inline-flex min-h-12 items-center justify-center gap-3 rounded-xl",
-                  "bg-transparent text-stone-300",
-                  "border border-white/10",
-                  "px-5 py-3 text-sm font-semibold",
-                  "transition-colors hover:bg-white/[.05]",
-                )}
-              >
-                <Code2 size={16} /> View source <ArrowRight size={14} />
-              </a>
-            </div>
+          <div className="relative">
+            <div className="flex items-center gap-3"><BrandIcon size={50} className="rounded-xl" /><span className="font-mono text-[10px] uppercase tracking-[.18em] text-emerald-300">Lazify Desktop</span></div>
+            <h2 className="mt-8 max-w-3xl font-display text-5xl font-semibold leading-[1.02] tracking-[-.015em] text-white sm:text-7xl">
+              Pick your platform.
+            </h2>
+            <p className="mt-6 max-w-xl text-base leading-7 text-stone-300">
+              Both builds ship from the same public releases repo.
+            </p>
           </div>
 
-          <div className="relative mt-14 flex flex-wrap gap-x-7 gap-y-3 border-t border-white/10 pt-6 font-mono text-[9px] uppercase tracking-[.12em] text-stone-500">
-            {["Local-first", "Electron desktop app", "Open source", "macOS + Windows"].map((item) => <span key={item} className="flex items-center gap-1.5"><Check size={11} className="text-emerald-300" /> {item}</span>)}
+          <div className="relative mt-12 grid gap-5 lg:grid-cols-2">
+            <article className="flex h-full flex-col rounded-2xl border border-white/10 bg-white/[.03] p-7 sm:p-8">
+              <header className="flex items-center gap-4">
+                <span className="inline-flex size-12 items-center justify-center rounded-xl border border-white/10 bg-white/[.05]">
+                  <Laptop size={22} strokeWidth={1.6} className="text-emerald-300" />
+                </span>
+                <div>
+                  <h3 className="font-display text-2xl font-semibold text-white">macOS</h3>
+                  <p className="text-sm text-stone-400">Monterey 12.0 or later</p>
+                </div>
+              </header>
+
+              {/* A thin build per architecture, so the choice cannot be hidden
+                  behind one button the way a universal binary allows. */}
+              <div className="mt-7 grid gap-3 sm:grid-cols-2">
+                {site.macDownloads.map((build, index) => (
+                  <DownloadButton
+                    key={build.label}
+                    href={build.href}
+                    primary={index === 0}
+                    hint={build.hint}
+                    className="w-full"
+                  >
+                    {build.label}
+                  </DownloadButton>
+                ))}
+              </div>
+
+              <div className="mt-7 flex-1">
+                <p className="mb-3 font-mono text-[10px] uppercase tracking-[.14em] text-stone-500">
+                  or install from Terminal
+                </p>
+                <CopyCommand
+                  command={site.installCommand}
+                  display="curl -fsSL …/install.sh | bash"
+                />
+              </div>
+
+              <p className="mt-6 text-sm leading-relaxed text-stone-400">
+                The one-line installer picks the right build for your Mac and clears
+                the quarantine flag for you — which is exactly why it&apos;s the
+                route we recommend.
+              </p>
+            </article>
+
+            <article className="flex h-full flex-col rounded-2xl border border-white/10 bg-white/[.03] p-7 sm:p-8">
+              <header className="flex items-center gap-4">
+                <span className="inline-flex size-12 items-center justify-center rounded-xl border border-white/10 bg-white/[.05]">
+                  <Monitor size={22} strokeWidth={1.6} className="text-emerald-300" />
+                </span>
+                <div>
+                  <h3 className="font-display text-2xl font-semibold text-white">Windows</h3>
+                  <p className="text-sm text-stone-400">Windows 10 or later · x64</p>
+                </div>
+              </header>
+
+              {site.windowsReleased ? (
+                <DownloadButton href={site.latestRelease} className="mt-7 w-full">
+                  Download the installer
+                </DownloadButton>
+              ) : (
+                <div className="mt-7 flex min-h-12 items-center justify-center gap-2.5 rounded-xl border border-dashed border-white/12 px-5 py-3 text-sm font-semibold text-stone-400">
+                  <Clock size={15} className="text-stone-500" /> Build in progress
+                </div>
+              )}
+
+              <div className="mt-7 flex-1">
+                <p className="mb-3 font-mono text-[10px] uppercase tracking-[.14em] text-stone-500">
+                  what you get
+                </p>
+                <ul className="space-y-2.5">
+                  {windowsHighlights.map((item) => (
+                    <li key={item} className="flex gap-3 text-sm leading-relaxed text-stone-300">
+                      <span className="mt-2 size-1.5 shrink-0 rounded-full bg-emerald-300" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <p className="mt-6 text-sm leading-relaxed text-stone-400">
+                The Windows installer is built on Windows for its native terminal
+                module, so it follows shortly behind the macOS release.
+              </p>
+            </article>
+          </div>
+
+          <div className="relative mt-5 rounded-2xl border border-white/10 bg-white/[.03] p-7 sm:p-8">
+            <h3 className="font-display text-lg font-semibold text-white">
+              ⚠️ macOS says the app is &ldquo;damaged&rdquo;?
+            </h3>
+            <p className="mt-2.5 max-w-3xl text-[15px] leading-7 text-stone-400">
+              Your download is fine. Lazify is signed ad-hoc rather than with a paid
+              Apple Developer ID certificate, and macOS reports that as damage for
+              anything arriving through a browser. Clear the flag once:
+            </p>
+            <CopyCommand command={site.quarantineCommand} className="mt-5 max-w-2xl" />
+          </div>
+
+          <div className="relative mt-14 flex flex-wrap items-center gap-x-7 gap-y-3 border-t border-white/10 pt-6 font-mono text-[9px] uppercase tracking-[.12em] text-stone-500">
+            {["Local-first", "Electron desktop app", "Apple Silicon + Intel"].map((item) => <span key={item} className="flex items-center gap-1.5"><Check size={11} className="text-emerald-300" /> {item}</span>)}
+            <a href={site.releases} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 transition-colors hover:text-white">
+              All releases <ArrowRight size={11} />
+            </a>
           </div>
         </div>
       </section>
@@ -234,7 +340,7 @@ export default function Home() {
         <div className="mx-auto flex max-w-7xl flex-col gap-6 border-t border-white/[.08] pt-8 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2.5 text-sm font-semibold"><BrandIcon size={28} className="rounded-lg" /> Lazify</div>
           <p className="font-mono text-[9px] uppercase tracking-[.15em] text-stone-600">The desktop workspace for shipping software.</p>
-          <div className="flex flex-wrap items-center gap-5 text-xs text-stone-500"><a href="#product" className="hover:text-white">Product</a><a href="#download" className="hover:text-white">Download</a><a href="/donate" className="text-rose-300/80 hover:text-rose-200">Donate</a><a href="/privacy" className="hover:text-white">Privacy</a><a href="/terms" className="hover:text-white">Terms</a><a href="https://github.com/Anuboost-Long/lazify" target="_blank" rel="noreferrer" className="hover:text-white">GitHub</a></div>
+          <div className="flex flex-wrap items-center gap-5 text-xs text-stone-500"><a href="#product" className="hover:text-white">Product</a><a href="#download" className="hover:text-white">Download</a><a href="/donate" className="text-rose-300/80 hover:text-rose-200">Donate</a><a href="/privacy" className="hover:text-white">Privacy</a><a href="/terms" className="hover:text-white">Terms</a><a href={site.distRepo} target="_blank" rel="noreferrer" className="hover:text-white">GitHub</a></div>
         </div>
       </footer>
     </main>
