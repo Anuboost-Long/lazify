@@ -255,14 +255,26 @@ export default function Home() {
                 </span>
                 <div>
                   <h3 className="font-display text-2xl font-semibold text-white">Windows</h3>
-                  <p className="text-sm text-stone-400">Windows 10 or later · x64</p>
+                  <p className="text-sm text-stone-400">Windows 10 or later</p>
                 </div>
               </header>
 
-              {site.windowsReleased ? (
-                <DownloadButton href={site.latestRelease} className="mt-7 w-full">
-                  Download the installer
-                </DownloadButton>
+              {/* Same shape as the macOS card: one button per architecture,
+                  so neither platform hides the choice behind a single file. */}
+              {site.windowsDownloads.length > 0 ? (
+                <div className="mt-7 grid gap-3 sm:grid-cols-2">
+                  {site.windowsDownloads.map((build, index) => (
+                    <DownloadButton
+                      key={build.label}
+                      href={build.href}
+                      primary={index === 0}
+                      hint={build.hint}
+                      className="w-full"
+                    >
+                      {build.label}
+                    </DownloadButton>
+                  ))}
+                </div>
               ) : (
                 <div className="mt-7 flex min-h-12 items-center justify-center gap-2.5 rounded-xl border border-dashed border-white/12 px-5 py-3 text-sm font-semibold text-stone-400">
                   <Clock size={15} className="text-stone-500" /> Build in progress

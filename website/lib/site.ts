@@ -36,10 +36,18 @@ export const site = {
   ],
 
   /**
-   * The Windows installer has to be built on Windows for node-pty's native
-   * module, so it lands with the first tagged CI run rather than with the mac
-   * builds. Flip this to true once that release is published — the download
-   * card reads it and needs no other edit.
+   * Windows takes the same shape as macOS: a build per architecture, one
+   * button each, rather than one installer pretending to cover both. The list
+   * is empty until the first tagged CI run publishes them — the card reads its
+   * length and shows "Build in progress" meanwhile, so shipping is a matter of
+   * adding entries here and nothing else.
+   *
+   * x64 first. arm64 follows once node-pty is confirmed to cross-compile on
+   * the Windows runner — see electron-builder.win.yml.
    */
-  windowsReleased: false,
+  windowsDownloads: [] as ReadonlyArray<{
+    label: string;
+    hint: string;
+    href: string;
+  }>,
 } as const;

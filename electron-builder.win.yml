@@ -34,7 +34,14 @@ extraResources:
 
 win:
   icon: build/icon.ico
-  # x64 only — node-pty native binaries are compiled for x64 on this machine
+  # Named per arch the way the mac builds are, so the download URLs are stable
+  # and an arm64 installer can never be mistaken for the x64 one.
+  artifactName: ${productName}-Setup-${arch}.${ext}
+  # x64 only for now. The plan is a build per architecture, matching macOS —
+  # but node-pty ships a prebuilt binary per arch and has to be rebuilt against
+  # Electron, and cross-compiling it for arm64 on the x64 CI runner is the part
+  # that is unproven. Adding arm64 here fails the whole Windows job if it does
+  # not work, x64 included, so it goes in only after an x64 release is green.
   target:
     - target: nsis
       arch:
