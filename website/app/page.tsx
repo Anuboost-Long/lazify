@@ -20,7 +20,6 @@ import {
 import { BrandIcon } from "@/components/brand-icon";
 import { CopyCommand } from "@/components/copy-command";
 import { DownloadButton } from "@/components/download-button";
-import { MockReviews } from "@/components/mock-reviews";
 import { ProductWindow } from "@/components/product-window";
 import { SiteHeader } from "@/components/site-header";
 import { site } from "@/lib/site";
@@ -187,8 +186,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-
-      <MockReviews />
 
       <section id="download" className="scroll-mt-20 px-5 py-10 sm:px-8 lg:py-16">
         <div className="relative mx-auto max-w-7xl overflow-hidden rounded-[30px] border border-emerald-300/20 bg-[#0c1813] px-6 py-14 sm:px-10 lg:px-16 lg:py-20">
