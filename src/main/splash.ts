@@ -1,6 +1,7 @@
-import { app, BrowserWindow } from "electron";
+import { BrowserWindow } from "electron";
 import fs from "node:fs";
-import path from "node:path";
+
+import { APP_ICON_PATH } from "./icon-path";
 
 const WIDTH = 380;
 const HEIGHT = 300;
@@ -8,12 +9,11 @@ const HEIGHT = 300;
 let splashWindow: BrowserWindow | null = null;
 
 // The splash is a frameless data: URL window, so the icon has to travel inside
-// the markup — build/icon.png is already shipped in the packaged files list,
-// which is what makes the same path work in dev and from inside the asar.
+// the markup — APP_ICON_PATH is what makes the same call work in dev and from
+// the packaged resources folder.
 function readIconDataUri(): string {
   try {
-    const iconPath = path.join(app.getAppPath(), "build/icon.png");
-    return `data:image/png;base64,${fs.readFileSync(iconPath).toString("base64")}`;
+    return `data:image/png;base64,${fs.readFileSync(APP_ICON_PATH).toString("base64")}`;
   } catch {
     // A missing icon is not worth failing a launch over — the card still draws.
     return "";

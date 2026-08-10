@@ -27,15 +27,18 @@ afterPack: ./src/scripts/mac-adhoc-sign.mjs
 files:
   - dist/**/*
   - dist-electron/**/*
-  - build/icon.png
   - node_modules/**/*
   - package.json
 
-# Templates are bundled as plain files in the resources folder
-# so app.isPackaged path resolution in harmonizer.ts can find them
+# Templates and the icon are bundled as plain files in the resources folder —
+# electron-builder always excludes directories.buildResources (build/) from
+# `files`, even when explicitly listed, so app.isPackaged path resolution
+# (see icon-path.ts and harmonizer.ts) has to look for them here instead.
 extraResources:
   - from: templates
     to: templates
+  - from: build/icon.png
+    to: icon.png
 
 mac:
   icon: build/icon.icns

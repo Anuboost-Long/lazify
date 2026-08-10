@@ -4,6 +4,7 @@ import path from "node:path";
 
 import type { ProjectTreeNode, InstalledPackage } from "../renderer/shared/types/lazify";
 import { CommandRunner } from "./command-runner";
+import { APP_ICON_PATH } from "./icon-path";
 import { PtyRunner } from "./pty-runner";
 import { refreshCatalog } from "./scaffolding/catalog";
 import { getTemplate, listTemplates } from "./scaffolding/harmonizer";
@@ -310,7 +311,7 @@ function createMainWindow(): BrowserWindow {
     // The navy the renderer boots into, so the splash hands over to the same
     // colour rather than flashing through a lighter one.
     backgroundColor: "#0b1220",
-    icon: path.join(app.getAppPath(), "build/icon.png"),
+    icon: APP_ICON_PATH,
     webPreferences: {
       preload: path.join(__dirname, "../preload/index.js"),
       nodeIntegration: false,
@@ -1007,7 +1008,7 @@ app.whenReady().then(() => {
   );
 
   if (process.platform === "darwin") {
-    app.dock?.setIcon(path.join(app.getAppPath(), "build/icon.png"));
+    app.dock?.setIcon(APP_ICON_PATH);
   }
 
   registerIpcHandlers();
