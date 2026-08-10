@@ -10,6 +10,13 @@ directories:
   buildResources: build
   output: release/win
 
+# The update feed — see the note in electron-builder.mac.yml.
+publish:
+  provider: github
+  owner: Anuboost-Long
+  repo: lazify-dist
+  releaseType: release
+
 files:
   - dist/**/*
   - dist-electron/**/*

@@ -10,6 +10,17 @@ directories:
   buildResources: build
   output: release/mac
 
+# The update feed. Artifacts go to a public repo of their own, because the
+# updater reads the feed anonymously — pointed at this private source repo it
+# would need a GitHub token shipped inside the app.
+publish:
+  provider: github
+  owner: Anuboost-Long
+  repo: lazify-dist
+  # electron-builder drafts releases by default, and the updater cannot see a
+  # draft. The workflow publishes straight to a real release instead.
+  releaseType: release
+
 # Ad-hoc signs the packaged app — see the script and mac.identity below
 afterPack: ./src/scripts/mac-adhoc-sign.mjs
 
@@ -29,6 +40,11 @@ extraResources:
 mac:
   icon: build/icon.icns
   category: public.app-category.developer-tools
+  # No version in the name, so `releases/latest/download/Lazify-arm64.zip` is a
+  # stable URL. install.sh and the README link to it by that name and never
+  # need editing when a release goes out. Covers the zip; the dmg overrides it
+  # below with the same shape.
+  artifactName: ${productName}-${arch}.${ext}
   # There is no Developer ID Application certificate to sign with, and without
   # one the build cannot be notarized. Left to auto-discovery electron-builder
   # picks up the Apple Development certificate instead, which is only valid on
@@ -59,7 +75,7 @@ mac:
 dmg:
   # Always suffix the arch — electron-builder omits it for x64 by default,
   # leaving the Intel disk image indistinguishable from a universal one
-  artifactName: ${productName}-${version}-${arch}.${ext}
+  artifactName: ${productName}-${arch}.${ext}
   title: Lazify ${version} (${arch})
   window:
     width: 540

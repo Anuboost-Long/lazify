@@ -10,6 +10,13 @@ import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import { BaseModal } from "@renderer/shared/ui/modal/BaseModal";
 import { CodeSurface } from "@renderer/shared/ui/code/CodeSurface";
 import { CopyButton } from "@renderer/shared/ui/CopyButton";
+import { FilePreview } from "@renderer/shared/ui/code/preview/FilePreview";
+import {
+  getFilePreviewKind,
+  getRenderedPreviewKind,
+  needsAssetBytes,
+} from "@renderer/shared/ui/code/preview/file-preview-kind";
+import { PreviewModeToggle } from "@renderer/shared/ui/code/preview/PreviewModeToggle";
 import type { SymbolPosition } from "@renderer/shared/ui/code/symbol-at-point";
 
 interface AgentFileModalProps {
@@ -39,29 +46,58 @@ export function AgentFileModal({
   onClose
 }: Readonly<AgentFileModalProps>) {
   const { t } = useTranslation();
-  const [content, setContent] = useState("");
+  /** File text, or base64 bytes once `mimeType` says this one is rendered. */
+  const [loaded, setLoaded] = useState<{
+    content: string;
+    mimeType?: string;
+    byteLength?: number;
+  }>({ content: "" });
+  // Same bargain as the workbench editor: an SVG opens as the picture, and the
+  // reader can ask for the source behind it.
+  const [svgMode, setSvgMode] = useState<"preview" | "code">("preview");
 
   useEffect(() => {
     if (!file) {
-      setContent("");
+      setLoaded({ content: "" });
       return;
     }
 
     let cancelled = false;
 
-    void globalThis.lazify
-      .readImportedProjectFile(file.absolutePath)
+    // Images and PDFs have no text to show, so their bytes come over whole.
+    const load = needsAssetBytes(file.name)
+      ? globalThis.lazify.readProjectAssetFile(file.absolutePath).then((asset) => ({
+          content: asset.base64,
+          mimeType: asset.mimeType,
+          byteLength: asset.byteLength
+        }))
+      : globalThis.lazify
+          .readImportedProjectFile(file.absolutePath)
+          .then((content) => ({ content }));
+
+    void load
       .then((result) => {
-        if (!cancelled) setContent(result);
+        if (!cancelled) setLoaded(result);
       })
-      .catch(() => {
-        if (!cancelled) setContent("");
+      .catch((error) => {
+        // A file too large to preview says so, rather than leaving a blank
+        // pane the reader has to guess at.
+        if (!cancelled) {
+          setLoaded({ content: error instanceof Error ? error.message : "" });
+        }
       });
 
     return () => {
       cancelled = true;
     };
   }, [file]);
+
+  const previewKind = file ? getFilePreviewKind(file.name) : "text";
+  const renderedKind = getRenderedPreviewKind(
+    previewKind,
+    svgMode,
+    Boolean(loaded.mimeType)
+  );
 
   return (
     <BaseModal open={file !== null} onClose={onClose}>
@@ -93,6 +129,17 @@ export function AgentFileModal({
           </span>
 
           <div className="ml-auto flex shrink-0 items-center gap-1">
+            {previewKind === "svg" ? (
+              <PreviewModeToggle
+                value={svgMode}
+                onChange={setSvgMode}
+                options={[
+                  { id: "preview", label: t(translation.ProjectTree.PreviewImage) },
+                  { id: "code", label: t(translation.ProjectTree.PreviewCode) }
+                ]}
+              />
+            ) : null}
+
             {/* Pasting the path into the agent beats retyping it by hand. */}
             {onSendToTerminal ? (
               <button
@@ -130,13 +177,25 @@ export function AgentFileModal({
         </header>
 
         <div className="min-h-0 flex-1">
-          <CodeSurface
-            variant="flush"
-            content={content}
-            fileName={file?.name}
-            onOpenSymbol={onOpenSymbol}
-            focusLine={focusLine}
-          />
+          {renderedKind ? (
+            <FilePreview
+              kind={renderedKind}
+              fileName={file?.name ?? ""}
+              content={loaded.content}
+              // An SVG renders from the source already in hand, so it brings
+              // its own type rather than one the loader reported.
+              mimeType={loaded.mimeType ?? "image/svg+xml"}
+              byteLength={loaded.byteLength}
+            />
+          ) : (
+            <CodeSurface
+              variant="flush"
+              content={loaded.content}
+              fileName={file?.name}
+              onOpenSymbol={onOpenSymbol}
+              focusLine={focusLine}
+            />
+          )}
         </div>
       </div>
     </BaseModal>

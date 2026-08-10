@@ -215,7 +215,21 @@
     "scan_package_managers": "扫描",
     "package_manager_modal_title": "选择包管理器",
     "package_manager_modal_desc": "选择您偏好的 JS 包管理器。只有已安装的才能被选择。",
-    "select_package_manager": "确认"
+    "select_package_manager": "确认",
+    "updates": "更新",
+    "update_check": "检查更新",
+    "update_checking": "正在检查更新…",
+    "update_idle": "检查是否有更新的版本",
+    "update_current": "Lazify {{version}} 已是最新版本",
+    "update_available": "有可用版本 {{version}}",
+    "update_download": "下载",
+    "update_downloading": "正在下载…",
+    "update_downloaded": "版本 {{version}} 已准备好安装",
+    "update_restart": "重启并安装",
+    "update_error": "更新失败",
+    "update_unsupported": "仅在已安装的应用中可用",
+    "update_install_title": "重启以安装？",
+    "update_install_desc": "Lazify 将关闭并重新打开。正在运行的代理、脚本和终端都会停止。"
   },
   "workspace": {
     "eyebrow": "桌面工作流编排器",
@@ -529,7 +543,12 @@
     "saving_template": "正在保存模板...",
     "save_as_template": "另存为模板",
     "select_stack_warning": "保存模板前请选择项目技术栈。",
-    "essentials_locked": "脚手架核心文件已锁定"
+    "essentials_locked": "脚手架核心文件已锁定",
+    "preview_image": "预览",
+    "preview_code": "代码",
+    "preview_fit": "适应",
+    "preview_actual": "实际大小",
+    "preview_render_error": "无法渲染此文件"
   },
   "status_strip": {
     "runtime_health": "运行时状态"

@@ -252,7 +252,21 @@
     "scan_package_managers": "Scan",
     "package_manager_modal_title": "Select Package Manager",
     "package_manager_modal_desc": "Choose your preferred JS package manager. Only installed ones can be selected.",
-    "select_package_manager": "Confirm"
+    "select_package_manager": "Confirm",
+    "updates": "Updates",
+    "update_check": "Check for updates",
+    "update_checking": "Checking for updates…",
+    "update_idle": "Check whether a newer version is available",
+    "update_current": "Lazify {{version}} is the latest version",
+    "update_available": "Version {{version}} is available",
+    "update_download": "Download",
+    "update_downloading": "Downloading version…",
+    "update_downloaded": "Version {{version}} is ready to install",
+    "update_restart": "Restart & install",
+    "update_error": "Update failed",
+    "update_unsupported": "Updates are only available in the installed app",
+    "update_install_title": "Restart to install?",
+    "update_install_desc": "Lazify will close and reopen. Running agents, scripts, and terminals will stop."
   },
   "workspace": {
     "eyebrow": "Desktop Workflow Orchestrator",
@@ -636,7 +650,12 @@
     "loading_file_preview_desc": "Content is fetched only for the selected file.",
     "load_file_preview_error": "Unable to load file preview",
     "select_file_to_preview": "Select a file to preview its contents",
-    "select_file_to_preview_desc": "Folders are listed in the explorer, but file content is loaded only on demand."
+    "select_file_to_preview_desc": "Folders are listed in the explorer, but file content is loaded only on demand.",
+    "preview_image": "Preview",
+    "preview_code": "Code",
+    "preview_fit": "Fit",
+    "preview_actual": "Actual size",
+    "preview_render_error": "Unable to render this file"
   },
   "status_strip": {
     "runtime_health": "Runtime health"

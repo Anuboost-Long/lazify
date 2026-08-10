@@ -21,7 +21,11 @@ export interface VisibleRow {
 
 export interface FileContentState {
   status: "idle" | "loading" | "loaded" | "error";
+  /** File text, or base64 bytes when `mimeType` says this is an asset. */
   content: string;
+  /** Set only for files the editor renders — images and PDFs. */
+  mimeType?: string;
+  byteLength?: number;
 }
 
 export interface TreeContextMenuState {

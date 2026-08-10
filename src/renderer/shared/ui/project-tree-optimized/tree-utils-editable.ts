@@ -6,8 +6,12 @@ export const OVERSCAN_COUNT = 12;
 export function getFileVisual(name: string): { icon: UiIconName; color: string } {
   const extension = name.includes(".") ? name.split(".").pop()?.toLowerCase() ?? "" : "";
 
-  if (["png", "jpg", "jpeg", "gif", "webp", "svg", "ico", "bmp", "avif"].includes(extension)) {
+  if (["png", "jpg", "jpeg", "gif", "webp", "svg", "ico", "bmp", "avif", "apng"].includes(extension)) {
     return { icon: "media-image", color: "text-pink-300" };
+  }
+
+  if (extension === "pdf") {
+    return { icon: "journal-page", color: "text-rose-300" };
   }
 
   if (["mp4", "mov", "webm", "avi", "mkv"].includes(extension)) {

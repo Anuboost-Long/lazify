@@ -16,7 +16,9 @@ import type {
   ImportedTemplateSnapshot,
   ImportedProjectIndexResult,
   ImportedProjectScanResult,
-  ProjectTreeNode
+  ProjectAssetFile,
+  ProjectTreeNode,
+  UpdateState
 } from "./shared/types/lazify";
 import type {
   CreateProjectPayload,
@@ -68,6 +70,12 @@ declare global {
       importProjectFromDirectory: (projectPath: string) => Promise<ImportedProjectScanResult>;
       importProjectIndexFromDirectory: (projectPath: string) => Promise<ImportedProjectIndexResult>;
       readImportedProjectFile: (filePath: string) => Promise<string>;
+      readProjectAssetFile: (filePath: string) => Promise<ProjectAssetFile>;
+      getUpdateState: () => Promise<UpdateState>;
+      checkForUpdates: () => Promise<UpdateState>;
+      downloadUpdate: () => Promise<UpdateState>;
+      quitAndInstallUpdate: () => Promise<void>;
+      onUpdateStateChanged: (callback: (state: UpdateState) => void) => () => void;
       getProjectGitStatus: (projectPath: string) => Promise<ProjectGitStatusResult>;
       getWorkingChanges: (projectPath: string) => Promise<AgentFileChange[]>;
       getFileDiff: (

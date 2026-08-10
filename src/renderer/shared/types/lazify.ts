@@ -189,6 +189,39 @@ export interface ImportedProjectIndexResult {
   tree: ImportedProjectIndexNode[];
 }
 
+/**
+ * Where the in-app updater has got to. "unsupported" is the development build,
+ * which has no packaged app to replace.
+ */
+export type UpdateState =
+  | { status: "idle" }
+  | { status: "unsupported" }
+  | { status: "checking" }
+  | { status: "current"; version: string }
+  | {
+      status: "available";
+      version: string;
+      releaseDate: string | null;
+      releaseNotes: string | null;
+    }
+  | {
+      status: "downloading";
+      percent: number;
+      bytesPerSecond: number;
+      transferred: number;
+      total: number;
+    }
+  | { status: "downloaded"; version: string }
+  | { status: "error"; message: string };
+
+/** A file the editor renders instead of reading: an image or a PDF. */
+export interface ProjectAssetFile {
+  mimeType: string;
+  /** The file's bytes, base64 encoded for the trip across IPC. */
+  base64: string;
+  byteLength: number;
+}
+
 export interface GitStatusEntry {
   path: string;
   absolutePath: string;

@@ -9,6 +9,12 @@ import { Tooltip } from "@renderer/shared/ui/Tooltip";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import { ConfirmModal } from "@renderer/shared/ui/modal/ConfirmModal";
 import type { EditorTab } from "@renderer/shared/ui/code/EditorTabBar";
+import { FilePreview } from "@renderer/shared/ui/code/preview/FilePreview";
+import {
+  getFilePreviewKind,
+  getRenderedPreviewKind,
+} from "@renderer/shared/ui/code/preview/file-preview-kind";
+import { PreviewModeToggle } from "@renderer/shared/ui/code/preview/PreviewModeToggle";
 import type { SymbolPosition } from "@renderer/shared/ui/code/symbol-at-point";
 import {
   EditorPaneNotice,
@@ -64,6 +70,9 @@ export function OptimizedEditorPane({
   const flush = chrome === "flush";
   const isDiff = !editable && activeTab?.kind === "diff";
   const [diffMode, setDiffMode] = useState<DiffViewMode>("unified");
+  // An SVG is a picture and a document at once, so the reader picks. It opens
+  // as the picture — that is the part the code cannot show.
+  const [svgMode, setSvgMode] = useState<"preview" | "code">("preview");
   // Closing every tab at once throws away the whole reading context, so it is
   // gated the way closing an agent terminal is.
   const [confirmCloseAll, setConfirmCloseAll] = useState(false);
@@ -71,6 +80,13 @@ export function OptimizedEditorPane({
   const status = selectedFileState?.status;
   const pending =
     !editable && (!selectedFileState || status === "idle" || status === "loading");
+  // A diff is text whatever it patches, so only a file tab is ever rendered.
+  const previewKind = isFile && !isDiff ? getFilePreviewKind(selectedNode.name) : "text";
+  const renderedKind = getRenderedPreviewKind(
+    previewKind,
+    svgMode,
+    Boolean(selectedFileState?.mimeType)
+  );
 
   // Nothing open: no header and no badge, the way VS Code leaves an empty
   // editor group — but the surface still says so, matching the agent panel's
@@ -124,6 +140,20 @@ export function OptimizedEditorPane({
       );
     }
 
+    if (renderedKind) {
+      return (
+        <FilePreview
+          kind={renderedKind}
+          fileName={selectedNode.name}
+          content={selectedFileState?.content ?? ""}
+          // An SVG renders from the source the editor already holds, so it
+          // brings its own type rather than one the loader reported.
+          mimeType={selectedFileState?.mimeType ?? "image/svg+xml"}
+          byteLength={selectedFileState?.byteLength}
+        />
+      );
+    }
+
     return (
       <CodeSurface
         editable={editable}
@@ -168,6 +198,17 @@ export function OptimizedEditorPane({
                 </button>
               ))}
             </div>
+          ) : null}
+
+          {previewKind === "svg" ? (
+            <PreviewModeToggle
+              value={svgMode}
+              onChange={setSvgMode}
+              options={[
+                { id: "preview", label: t(translation.ProjectTree.PreviewImage) },
+                { id: "code", label: t(translation.ProjectTree.PreviewCode) },
+              ]}
+            />
           ) : null}
 
           {/* Only worth offering once something is open. */}

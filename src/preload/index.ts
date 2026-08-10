@@ -17,7 +17,9 @@ import type {
   ImportedTemplateSnapshot,
   ImportedProjectIndexResult,
   ImportedProjectScanResult,
-  ProjectTreeNode
+  ProjectAssetFile,
+  ProjectTreeNode,
+  UpdateState
 } from "../renderer/shared/types/lazify";
 import type { EnvironmentScan } from "../main/environment/scanner";
 import type { ToolScanReport, NvmVersionList, NvmInstallResult, NvmActionResult, ToolUpdateInfo } from "../main/environment/environment-scanner";
@@ -96,6 +98,18 @@ const lazifyApi = {
     ipcRenderer.invoke("lazify:import-project-index-from-directory", projectPath),
   readImportedProjectFile: (filePath: string): Promise<string> =>
     ipcRenderer.invoke("lazify:read-imported-project-file", filePath),
+  readProjectAssetFile: (filePath: string): Promise<ProjectAssetFile> =>
+    ipcRenderer.invoke("lazify:read-project-asset-file", filePath),
+  getUpdateState: (): Promise<UpdateState> => ipcRenderer.invoke("lazify:update-state"),
+  checkForUpdates: (): Promise<UpdateState> => ipcRenderer.invoke("lazify:check-for-updates"),
+  downloadUpdate: (): Promise<UpdateState> => ipcRenderer.invoke("lazify:download-update"),
+  quitAndInstallUpdate: (): Promise<void> =>
+    ipcRenderer.invoke("lazify:quit-and-install-update"),
+  onUpdateStateChanged: (callback: (state: UpdateState) => void) => {
+    const listener = (_event: unknown, payload: UpdateState) => callback(payload);
+    ipcRenderer.on("lazify:update-state-changed", listener);
+    return () => ipcRenderer.removeListener("lazify:update-state-changed", listener);
+  },
   getProjectGitStatus: (projectPath: string): Promise<ProjectGitStatusResult> =>
     ipcRenderer.invoke("lazify:project-git-status", projectPath),
   getWorkingChanges: (projectPath: string): Promise<AgentFileChange[]> =>

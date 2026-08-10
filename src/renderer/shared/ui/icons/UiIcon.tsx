@@ -9,6 +9,7 @@ import {
   Collapse,
   Css3,
   Database,
+  Download,
   EmptyPage,
   Expand,
   Folder,
@@ -53,6 +54,7 @@ export type UiIconName =
   | "code"
   | "css"
   | "database"
+  | "download"
   | "empty-page"
   | "expand"
   | "folder"
@@ -103,6 +105,7 @@ const iconMap: Record<UiIconName, ComponentType<SVGProps<SVGSVGElement>>> = {
   code: Code,
   css: Css3,
   database: Database,
+  download: Download,
   "empty-page": EmptyPage,
   expand: Expand,
   folder: Folder,

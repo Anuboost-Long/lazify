@@ -4,6 +4,7 @@ import {
   findNodeById,
 } from "@renderer/shared/ui/project-tree-optimized/tree-utils";
 import type { EditorTab } from "@renderer/shared/ui/code/EditorTabBar";
+import { needsAssetBytes } from "@renderer/shared/ui/code/preview/file-preview-kind";
 import type { SymbolPosition } from "@renderer/shared/ui/code/symbol-at-point";
 import type {
   FileContentState,
@@ -267,15 +268,26 @@ export function useSyncedProjectTree({
       }
     }));
 
-    const load =
+    const filePath = activeTab?.filePath ?? activeFilePath;
+    const load: Promise<Omit<FileContentState, "status">> =
       activeTab?.kind === "diff"
         ? // Full-file context: the changes read in place inside the whole
           // source rather than as detached hunks.
-          globalThis.lazify.getFileDiff(project.projectPath, activeTab.filePath, true)
-        : globalThis.lazify.readImportedProjectFile(activeTab?.filePath ?? activeFilePath);
+          globalThis.lazify
+            .getFileDiff(project.projectPath, activeTab.filePath, true)
+            .then((content) => ({ content }))
+        : needsAssetBytes(filePath)
+          ? // Images and PDFs have no text to show: their bytes come over
+            // whole so the editor can render the file itself.
+            globalThis.lazify.readProjectAssetFile(filePath).then((asset) => ({
+              content: asset.base64,
+              mimeType: asset.mimeType,
+              byteLength: asset.byteLength
+            }))
+          : globalThis.lazify.readImportedProjectFile(filePath).then((content) => ({ content }));
 
     void load
-      .then((content) => {
+      .then((entry) => {
         if (activeRequestIdRef.current !== requestId) {
           return;
         }
@@ -284,7 +296,7 @@ export function useSyncedProjectTree({
           ...current,
           [activeFilePath]: {
             status: "loaded",
-            content
+            ...entry
           }
         }));
       })

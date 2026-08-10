@@ -252,7 +252,21 @@ export const translation = {
     "ScanPackageManagers": "settings.scan_package_managers",
     "PackageManagerModalTitle": "settings.package_manager_modal_title",
     "PackageManagerModalDesc": "settings.package_manager_modal_desc",
-    "SelectPackageManager": "settings.select_package_manager"
+    "SelectPackageManager": "settings.select_package_manager",
+    "Updates": "settings.updates",
+    "UpdateCheck": "settings.update_check",
+    "UpdateChecking": "settings.update_checking",
+    "UpdateIdle": "settings.update_idle",
+    "UpdateCurrent": "settings.update_current",
+    "UpdateAvailable": "settings.update_available",
+    "UpdateDownload": "settings.update_download",
+    "UpdateDownloading": "settings.update_downloading",
+    "UpdateDownloaded": "settings.update_downloaded",
+    "UpdateRestart": "settings.update_restart",
+    "UpdateError": "settings.update_error",
+    "UpdateUnsupported": "settings.update_unsupported",
+    "UpdateInstallTitle": "settings.update_install_title",
+    "UpdateInstallDesc": "settings.update_install_desc"
   },
   "Workspace": {
     "Eyebrow": "workspace.eyebrow",
@@ -636,7 +650,12 @@ export const translation = {
     "LoadingFilePreviewDesc": "project_tree.loading_file_preview_desc",
     "LoadFilePreviewError": "project_tree.load_file_preview_error",
     "SelectFileToPreview": "project_tree.select_file_to_preview",
-    "SelectFileToPreviewDesc": "project_tree.select_file_to_preview_desc"
+    "SelectFileToPreviewDesc": "project_tree.select_file_to_preview_desc",
+    "PreviewImage": "project_tree.preview_image",
+    "PreviewCode": "project_tree.preview_code",
+    "PreviewFit": "project_tree.preview_fit",
+    "PreviewActual": "project_tree.preview_actual",
+    "PreviewRenderError": "project_tree.preview_render_error"
   },
   "StatusStrip": {
     "RuntimeHealth": "status_strip.runtime_health"

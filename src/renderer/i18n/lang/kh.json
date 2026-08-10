@@ -215,7 +215,21 @@
     "scan_package_managers": "ស្កែន",
     "package_manager_modal_title": "ជ្រើសរើស Package Manager",
     "package_manager_modal_desc": "ជ្រើសរើស package manager ដែលអ្នកចូលចិត្ត។ មានតែដែលបានដំឡើងប៉ុណ្ណោះអាចជ្រើសរើសបាន។",
-    "select_package_manager": "បញ្ជាក់"
+    "select_package_manager": "បញ្ជាក់",
+    "updates": "ការធ្វើបច្ចុប្បន្នភាព",
+    "update_check": "ពិនិត្យបច្ចុប្បន្នភាព",
+    "update_checking": "កំពុងពិនិត្យបច្ចុប្បន្នភាព…",
+    "update_idle": "ពិនិត្យមើលថាតើមានជំនាន់ថ្មីជាងនេះឬទេ",
+    "update_current": "Lazify {{version}} គឺជាជំនាន់ចុងក្រោយ",
+    "update_available": "មានជំនាន់ {{version}}",
+    "update_download": "ទាញយក",
+    "update_downloading": "កំពុងទាញយក…",
+    "update_downloaded": "ជំនាន់ {{version}} រួចរាល់សម្រាប់ដំឡើង",
+    "update_restart": "ចាប់ផ្ដើមឡើងវិញ និងដំឡើង",
+    "update_error": "ការធ្វើបច្ចុប្បន្នភាពបានបរាជ័យ",
+    "update_unsupported": "បច្ចុប្បន្នភាពមានតែក្នុងកម្មវិធីដែលបានដំឡើង",
+    "update_install_title": "ចាប់ផ្ដើមឡើងវិញដើម្បីដំឡើង?",
+    "update_install_desc": "Lazify នឹងបិទ ហើយបើកឡើងវិញ។ ភ្នាក់ងារ ស្គ្រីប និងទែមីណលដែលកំពុងដំណើរការនឹងឈប់។"
   },
   "workspace": {
     "eyebrow": "ប្រព័ន្ធគ្រប់គ្រងលំហូរការងារ Desktop",
@@ -529,7 +543,12 @@
     "saving_template": "កំពុងរក្សាគំរូ...",
     "save_as_template": "រក្សាជាគំរូ",
     "select_stack_warning": "ជ្រើស stack គម្រោងមុនការរក្សាគំរូ។",
-    "essentials_locked": "Scaffold essentials ត្រូវបានចាក់សោ"
+    "essentials_locked": "Scaffold essentials ត្រូវបានចាក់សោ",
+    "preview_image": "មើលជាមុន",
+    "preview_code": "កូដ",
+    "preview_fit": "សម",
+    "preview_actual": "ទំហំពិត",
+    "preview_render_error": "មិនអាចបង្ហាញឯកសារនេះបានទេ"
   },
   "status_strip": {
     "runtime_health": "សុខភាព Runtime"

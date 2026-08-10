@@ -20,6 +20,7 @@ import {
   importProjectIndexFromDirectory,
   readImportedProjectFile
 } from "./projects/project-importer-optimized";
+import { readProjectAssetFile } from "./projects/project-asset-reader";
 import { checkoutProjectBranch, getProjectGitStatus } from "./projects/project-git-status";
 import {
   commitChanges,
@@ -79,6 +80,13 @@ import { killListeningProcess, listListeningProcesses } from "./environment/port
 import { getLazyShieldState, initLazyShield, setLazyShieldEnabled, shouldBlockPopup } from "./browser/lazy-shield";
 import { matchPackageVersions } from "../brain/package-version-matcher";
 import { normalizeRuntimePath } from "./environment/runtime-path";
+import {
+  checkForUpdates,
+  downloadUpdate,
+  getUpdateState,
+  initUpdater,
+  quitAndInstall
+} from "./updater";
 
 // Windows ties toast notifications to an AppUserModelID. Without one set here,
 // `new Notification()` reports success but never actually shows a toast —
@@ -308,7 +316,10 @@ function createMainWindow(): BrowserWindow {
       sandbox: true,
       // Powers the agent preview browser. The guest is locked to loopback by
       // `guardPreviewWebviews` — everything else leaves for the real browser.
-      webviewTag: true
+      webviewTag: true,
+      // Chromium's PDF viewer counts as a plugin; without this the editor's
+      // PDF preview frame renders nothing.
+      plugins: true
     }
   });
 
@@ -442,6 +453,15 @@ function registerIpcHandlers() {
   ipcMain.handle("lazify:read-imported-project-file", async (_event, filePath: string) =>
     readImportedProjectFile(filePath)
   );
+
+  ipcMain.handle("lazify:read-project-asset-file", async (_event, filePath: string) =>
+    readProjectAssetFile(filePath)
+  );
+
+  ipcMain.handle("lazify:update-state", () => getUpdateState());
+  ipcMain.handle("lazify:check-for-updates", async () => checkForUpdates());
+  ipcMain.handle("lazify:download-update", async () => downloadUpdate());
+  ipcMain.handle("lazify:quit-and-install-update", () => quitAndInstall());
 
   ipcMain.handle("lazify:project-git-status", async (_event, projectPath: string) =>
     getProjectGitStatus(projectPath)
@@ -991,6 +1011,10 @@ app.whenReady().then(() => {
   // with nothing to drive it — and on macOS it would also stop the dock icon
   // from bringing the real window back.
   mainWindow.on("closed", () => closePictureInPicture());
+
+  // Wired after the window exists, so the first state change has somewhere to
+  // go. Nothing is checked until the user asks from Settings.
+  initUpdater((state) => emitToRenderer("lazify:update-state-changed", state));
 
   // The usage panel listens for this instead of polling on a timer.
   stopAgentActivityWatch = watchAgentActivity((event) =>
