@@ -1,0 +1,31 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: macos-14
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: yarn
+
+      - run: yarn install --frozen-lockfile
+
+      - name: Typecheck renderer
+        run: npx tsc --noEmit -p tsconfig.json
+
+      - name: Typecheck main and preload
+        run: npx tsc --noEmit -p tsconfig.node.json
+
+      - run: yarn test
+
+      # Catches a renderer that typechecks but will not bundle.
+      - run: yarn build:renderer

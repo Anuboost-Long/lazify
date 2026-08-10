@@ -1,0 +1,50 @@
+name: Release
+
+# Cutting a release is tagging one. The tag has to match the version in
+# package.json — the updater compares against that, not against the tag.
+on:
+  push:
+    tags:
+      - "v*"
+  # Lets a failed publish be retried without moving the tag.
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      # One platform failing should not bin the artifacts the other produced.
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-14
+            config: electron-builder.mac.yml
+          - os: windows-latest
+            config: electron-builder.win.yml
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: yarn
+
+      # postinstall rebuilds node-pty against Electron, so each runner compiles
+      # the native module for its own platform — the reason this cannot all be
+      # built from one machine.
+      - run: yarn install --frozen-lockfile
+
+      - run: npx tsc --noEmit -p tsconfig.json
+
+      - run: yarn test
+
+      - run: yarn build
+
+      - name: Publish to the releases repo
+        run: npx electron-builder --config ${{ matrix.config }} --publish always
+        env:
+          # A token with contents:write on the PUBLIC releases repo, not on this
+          # one. Store it as a repository secret named LAZIFY_DIST_TOKEN.
+          GH_TOKEN: ${{ secrets.LAZIFY_DIST_TOKEN }}
