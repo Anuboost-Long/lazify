@@ -266,7 +266,12 @@ export const translation = {
     "UpdateError": "settings.update_error",
     "UpdateUnsupported": "settings.update_unsupported",
     "UpdateInstallTitle": "settings.update_install_title",
-    "UpdateInstallDesc": "settings.update_install_desc"
+    "UpdateInstallDesc": "settings.update_install_desc",
+    "Diagnostics": "settings.diagnostics",
+    "DiagnosticsDesc": "settings.diagnostics_desc",
+    "LogFile": "settings.log_file",
+    "RevealLogs": "settings.reveal_logs",
+    "ReportIssue": "settings.report_issue"
   },
   "Workspace": {
     "Eyebrow": "workspace.eyebrow",

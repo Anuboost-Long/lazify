@@ -229,7 +229,12 @@
     "update_error": "更新失败",
     "update_unsupported": "仅在已安装的应用中可用",
     "update_install_title": "重启以安装？",
-    "update_install_desc": "Lazify 将关闭并重新打开。正在运行的代理、脚本和终端都会停止。"
+    "update_install_desc": "Lazify 将关闭并重新打开。正在运行的代理、脚本和终端都会停止。",
+    "diagnostics": "诊断",
+    "diagnostics_desc": "日志仅保存在本机，不会发送到任何地方。",
+    "log_file": "日志文件",
+    "reveal_logs": "显示日志",
+    "report_issue": "报告问题"
   },
   "workspace": {
     "eyebrow": "桌面工作流编排器",

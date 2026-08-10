@@ -1,5 +1,6 @@
 import path from "node:path";
 import type { ScriptStatusEvent } from "../renderer/shared/types/lazify";
+import { logError } from "./diagnostics/logger";
 
 export interface PtyDataEvent {
   runId: string;
@@ -35,8 +36,7 @@ function loadNodePty(): typeof import("node-pty") | null {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     return require("node-pty") as typeof import("node-pty");
   } catch (err) {
-    // eslint-disable-next-line no-console
-    console.error("[pty-runner] node-pty failed to load:", err);
+    logError("pty-runner", "node-pty failed to load", err);
     return null;
   }
 }

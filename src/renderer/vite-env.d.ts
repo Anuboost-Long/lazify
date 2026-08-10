@@ -71,6 +71,7 @@ declare global {
       importProjectIndexFromDirectory: (projectPath: string) => Promise<ImportedProjectIndexResult>;
       readImportedProjectFile: (filePath: string) => Promise<string>;
       readProjectAssetFile: (filePath: string) => Promise<ProjectAssetFile>;
+      getDiagnosticsPaths: () => Promise<import("../main/diagnostics/logger").DiagnosticsPaths>;
       getUpdateState: () => Promise<UpdateState>;
       checkForUpdates: () => Promise<UpdateState>;
       downloadUpdate: () => Promise<UpdateState>;

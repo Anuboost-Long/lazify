@@ -4,6 +4,7 @@ import { createHash } from "node:crypto";
 import { app } from "electron";
 
 import type { TemplateDefinition } from "./harmonizer";
+import { logError } from "../diagnostics/logger";
 
 /**
  * Where a stack's starter is cloned from. A tag, never a branch: a push to the
@@ -155,8 +156,9 @@ export async function refreshCatalog(): Promise<void> {
     // A mismatch is a tampering signal rather than an availability problem, so
     // it is reported and nothing is written — the seed stays in use.
     if (sha256(bytes) !== REGISTRY_PIN.sha256) {
-      console.error(
-        `Catalog integrity check failed for ${REGISTRY_PIN.repo}@${REGISTRY_PIN.ref}; keeping the bundled catalog.`
+      logError(
+        "catalog",
+        `Integrity check failed for ${REGISTRY_PIN.repo}@${REGISTRY_PIN.ref}; keeping the bundled catalog.`
       );
       return;
     }

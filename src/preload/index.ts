@@ -33,6 +33,7 @@ import type { CustomAgent, CustomAgentInput } from "../main/agents/custom-agents
 import type { HighlightingAssets } from "../main/code-intelligence/highlighting-store";
 import type { GitCheckoutResult } from "../main/projects/project-git-status";
 import type { GitActionResult } from "../main/projects/git-actions";
+import type { DiagnosticsPaths } from "../main/diagnostics/logger";
 import type { VersionMatchReport } from "../brain/package-version-matcher";
 import type {
   AddProjectPackagePayload,
@@ -100,6 +101,8 @@ const lazifyApi = {
     ipcRenderer.invoke("lazify:read-imported-project-file", filePath),
   readProjectAssetFile: (filePath: string): Promise<ProjectAssetFile> =>
     ipcRenderer.invoke("lazify:read-project-asset-file", filePath),
+  getDiagnosticsPaths: (): Promise<DiagnosticsPaths> =>
+    ipcRenderer.invoke("lazify:diagnostics-paths"),
   getUpdateState: (): Promise<UpdateState> => ipcRenderer.invoke("lazify:update-state"),
   checkForUpdates: (): Promise<UpdateState> => ipcRenderer.invoke("lazify:check-for-updates"),
   downloadUpdate: (): Promise<UpdateState> => ipcRenderer.invoke("lazify:download-update"),

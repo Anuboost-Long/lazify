@@ -5,6 +5,7 @@ import path from "node:path";
 import { Request } from "@ghostery/adblocker";
 import { ElectronBlocker } from "@ghostery/adblocker-electron";
 import { BROWSER_PARTITION } from "./preview-guard";
+import { logError } from "../diagnostics/logger";
 
 /**
  * Lazy Shield — request filtering for the browser page.
@@ -217,6 +218,6 @@ export async function initLazyShield(onCount: (count: number) => void): Promise<
   } catch (error) {
     // A failed list fetch leaves the shield down rather than the app broken;
     // the user can retry from the toolbar.
-    console.error("[lazy-shield] failed to enable at startup:", error);
+    logError("lazy-shield", "Failed to enable at startup", error);
   }
 }

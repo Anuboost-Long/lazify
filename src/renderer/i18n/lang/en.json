@@ -266,7 +266,12 @@
     "update_error": "Update failed",
     "update_unsupported": "Updates are only available in the installed app",
     "update_install_title": "Restart to install?",
-    "update_install_desc": "Lazify will close and reopen. Running agents, scripts, and terminals will stop."
+    "update_install_desc": "Lazify will close and reopen. Running agents, scripts, and terminals will stop.",
+    "diagnostics": "Diagnostics",
+    "diagnostics_desc": "Logs are written to your machine only. Nothing is sent anywhere.",
+    "log_file": "Log file",
+    "reveal_logs": "Reveal logs",
+    "report_issue": "Report an issue"
   },
   "workspace": {
     "eyebrow": "Desktop Workflow Orchestrator",

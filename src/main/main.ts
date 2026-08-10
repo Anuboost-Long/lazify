@@ -80,6 +80,8 @@ import { killListeningProcess, listListeningProcesses } from "./environment/port
 import { getLazyShieldState, initLazyShield, setLazyShieldEnabled, shouldBlockPopup } from "./browser/lazy-shield";
 import { matchPackageVersions } from "../brain/package-version-matcher";
 import { normalizeRuntimePath } from "./environment/runtime-path";
+import { installCrashHandlers, watchWindowCrashes } from "./diagnostics/crash-handlers";
+import { getDiagnosticsPaths } from "./diagnostics/logger";
 import {
   checkForUpdates,
   downloadUpdate,
@@ -457,6 +459,8 @@ function registerIpcHandlers() {
   ipcMain.handle("lazify:read-project-asset-file", async (_event, filePath: string) =>
     readProjectAssetFile(filePath)
   );
+
+  ipcMain.handle("lazify:diagnostics-paths", () => getDiagnosticsPaths());
 
   ipcMain.handle("lazify:update-state", () => getUpdateState());
   ipcMain.handle("lazify:check-for-updates", async () => checkForUpdates());
@@ -962,6 +966,8 @@ function registerIpcHandlers() {
 }
 
 app.whenReady().then(() => {
+  // First, so anything that fails below is written down rather than lost.
+  installCrashHandlers();
   normalizeRuntimePath();
   // Sweeps up anything a previous run was killed before it could delete.
   cleanupShadowRepos();
@@ -1006,6 +1012,7 @@ app.whenReady().then(() => {
 
   registerIpcHandlers();
   mainWindow = createMainWindow();
+  watchWindowCrashes(mainWindow);
 
   // A floater outliving the window that opened it would keep the app running
   // with nothing to drive it — and on macOS it would also stop the dock icon

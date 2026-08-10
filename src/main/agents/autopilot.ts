@@ -24,6 +24,7 @@
 import { detectTerminalIntent } from "./terminal-intent";
 import { parseAgentPrompt } from "./prompt-parser";
 import { decideAutopilot, type AutopilotHold } from "./autopilot-policy";
+import { logError } from "../diagnostics/logger";
 
 /**
  * How long to let a prompt settle before reading it.
@@ -128,7 +129,7 @@ export class Autopilot {
         this.resolve(runId, state);
       } catch (error) {
         // A bug in here must not swallow the prompt. Hand it back and say so.
-        console.error("[autopilot] failed to read a prompt:", error);
+        logError("autopilot", "Failed to read a prompt", error);
         this.deps.onHeld(runId, { question: null, hold: "unreadable", matched: null });
       }
     }, SETTLE_MS);
