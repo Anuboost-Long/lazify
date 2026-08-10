@@ -5,6 +5,11 @@ import path from "node:path";
 import { promisify } from "node:util";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
+// Same reasoning as command-runner-prompts: these shell out to real `git` and
+// touch a real filesystem, so their cost tracks how busy the machine is. The
+// 5s default is sized for pure-function tests, not for these.
+vi.setConfig({ testTimeout: 30_000 });
+
 import {
   applySubstitutions,
   classifyCloneFailure,

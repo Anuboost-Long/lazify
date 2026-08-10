@@ -36,6 +36,10 @@ describe("detectCommandChoicePrompt", () => {
     expect(detectCommandChoicePrompt("Installing packages...\nDone.")).toBeNull();
   });
 
+  // The only test here that spawns a real process and talks to it over stdio.
+  // That costs ~1.5s idle and climbs past the 5s default once vitest's workers
+  // are competing for the machine — which is a loaded CI box, not a bug. The
+  // budget is generous on purpose: a genuine hang still fails, just later.
   it("writes only a validated option response to the running command", async () => {
     let resolvePrompt: (prompt: CommandChoicePrompt) => void = () => undefined;
     const promptReceived = new Promise<CommandChoicePrompt>((resolve) => {
@@ -54,5 +58,5 @@ describe("detectCommandChoicePrompt", () => {
     expect(runner.chooseCommandOption(prompt.id, "not-offered")).toBe(false);
     expect(runner.chooseCommandOption(prompt.id, "yes")).toBe(true);
     await expect(resultPromise).resolves.toMatchObject({ success: true, exitCode: 0 });
-  });
+  }, 30_000);
 });
