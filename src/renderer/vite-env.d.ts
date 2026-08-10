@@ -94,6 +94,7 @@ declare global {
       ptyWrite: (runId: string, data: string) => void;
       ptyBacklog: (runId: string) => Promise<import("../main/pty-runner").PtyBacklog>;
       ptyResize: (runId: string, cols: number, rows: number) => void;
+      saveClipboardImage: () => Promise<string | null>;
       onAgentAttention: (
         callback: (event: {
           runId: string;

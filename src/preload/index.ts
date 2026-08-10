@@ -139,6 +139,9 @@ const lazifyApi = {
     ipcRenderer.invoke("lazify:pty-backlog", runId),
   ptyResize: (runId: string, cols: number, rows: number): void =>
     ipcRenderer.send("lazify:pty-resize", runId, cols, rows),
+  /** Saves whatever image is on the clipboard to a temp PNG; null if it's not an image. */
+  saveClipboardImage: (): Promise<string | null> =>
+    ipcRenderer.invoke("lazify:save-clipboard-image"),
   onAgentAttention: (
     callback: (event: {
       runId: string;

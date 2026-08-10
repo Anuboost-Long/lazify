@@ -155,8 +155,18 @@ export function XTermPanel({
     // field). Reading the clipboard directly sidesteps that native event
     // entirely, so paste works the same way on every platform.
     const pasteFromClipboard = () => {
-      void navigator.clipboard.readText().then((text) => {
-        if (text) term.paste(text);
+      // A copied screenshot has no text representation, so check for an
+      // image first — otherwise it would paste as nothing at all. Saved to
+      // disk and pasted as a path, the agent can open it with its own
+      // file-reading tools the same way it would a path the user typed.
+      void globalThis.lazify.saveClipboardImage().then((imagePath) => {
+        if (imagePath) {
+          term.paste(`"${imagePath}"`);
+          return;
+        }
+        void navigator.clipboard.readText().then((text) => {
+          if (text) term.paste(text);
+        });
       });
     };
 

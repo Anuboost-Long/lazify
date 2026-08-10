@@ -39,6 +39,7 @@ import { scanTools, probeSingleTool, listNvmVersions, installNvm, nvmSetDefault,
 import { listTemplatePackageEntries } from "./scaffolding/template-package-manifest";
 import { WorkflowEngine } from "./scaffolding/workflow-engine";
 import { getAgentDefinition, listAgents, resumeArgs } from "./agents/agent-registry";
+import { saveClipboardImageToTempFile } from "./agents/clipboard-image";
 import { listAgentSessions } from "./agents/agent-sessions";
 import { AttentionDetector } from "./agents/attention-detector";
 import { Autopilot, type AutopilotAnswered } from "./agents/autopilot";
@@ -606,6 +607,10 @@ function registerIpcHandlers() {
   ipcMain.on("lazify:pty-resize", (_event, runId: string, cols: number, rows: number) => {
     ptyRunner.resize(runId, cols, rows);
   });
+
+  // Pasting into a PTY only ever forwards text, so a clipboard screenshot
+  // (no text representation) would otherwise vanish silently on paste.
+  ipcMain.handle("lazify:save-clipboard-image", () => saveClipboardImageToTempFile());
 
   ipcMain.handle("lazify:list-agents", async () => listAgents());
 
