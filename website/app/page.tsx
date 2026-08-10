@@ -302,16 +302,54 @@ export default function Home() {
             </article>
           </div>
 
-          <div className="relative mt-5 rounded-2xl border border-white/10 bg-white/[.03] p-7 sm:p-8">
-            <h3 className="font-display text-lg font-semibold text-white">
-              ⚠️ macOS says the app is &ldquo;damaged&rdquo;?
-            </h3>
-            <p className="mt-2.5 max-w-3xl text-[15px] leading-7 text-stone-400">
-              Your download is fine. Lazify is signed ad-hoc rather than with a paid
-              Apple Developer ID certificate, and macOS reports that as damage for
-              anything arriving through a browser. Clear the flag once:
-            </p>
-            <CopyCommand command={site.quarantineCommand} className="mt-5 max-w-2xl" />
+          {/* Both platforms warn on an unsigned build, so both get the same
+              reassurance in the same shape — the fix sits at the foot of each
+              card, aligned, whether it is a command or two clicks. */}
+          <div className="relative mt-5 grid gap-5 lg:grid-cols-2">
+            <div className="flex h-full flex-col rounded-2xl border border-white/10 bg-white/[.03] p-7 sm:p-8">
+              <h3 className="font-display text-lg font-semibold text-white">
+                <span className="mr-2">⚠️</span>macOS says the app is &ldquo;damaged&rdquo;?
+              </h3>
+              <p className="mt-3 rounded-lg border border-amber-300/15 bg-amber-300/[.05] px-4 py-3 text-[13px] leading-6 text-amber-200/70">
+                &ldquo;Lazify&rdquo; is damaged and can&apos;t be opened. You should move
+                it to the Trash.
+              </p>
+              <p className="mt-4 flex-1 text-[15px] leading-7 text-stone-400">
+                <span className="font-semibold text-white">Your download is fine.</span>{" "}
+                Lazify is signed ad-hoc rather than with a paid Apple Developer ID
+                certificate, and macOS reports that as damage for anything arriving
+                through a browser. Clear the flag once:
+              </p>
+              <CopyCommand
+                command={site.quarantineCommand}
+                display="xattr -dr com.apple.quarantine …"
+                className="mt-5"
+              />
+            </div>
+
+            <div className="flex h-full flex-col rounded-2xl border border-white/10 bg-white/[.03] p-7 sm:p-8">
+              <h3 className="font-display text-lg font-semibold text-white">
+                <span className="mr-2">⚠️</span>Windows says the publisher is unknown?
+              </h3>
+              <p className="mt-3 rounded-lg border border-amber-300/15 bg-amber-300/[.05] px-4 py-3 text-[13px] leading-6 text-amber-200/70">
+                Windows protected your PC — Microsoft Defender SmartScreen prevented an
+                unrecognised app from starting.
+              </p>
+              <p className="mt-4 flex-1 text-[15px] leading-7 text-stone-400">
+                <span className="font-semibold text-white">Your download is fine.</span>{" "}
+                Lazify isn&apos;t yet signed with a paid code-signing certificate, so
+                Windows has no publisher identity to vouch for. This is the same trust
+                gap the macOS build has — just Windows&apos; version of the warning.
+              </p>
+              {/* No command to copy, so the two clicks take the same slot the
+                  mac card gives its command, and the pair stay level. */}
+              <div className="mt-5 flex items-center gap-3 rounded-xl border border-white/10 bg-black/30 p-2 pl-4 text-sm">
+                <span className="text-stone-300">
+                  Click <span className="font-semibold text-white">More info</span>, then{" "}
+                  <span className="font-semibold text-white">Run anyway</span>
+                </span>
+              </div>
+            </div>
           </div>
 
           <div className="relative mt-14 flex flex-wrap items-center gap-x-7 gap-y-3 border-t border-white/10 pt-6 font-mono text-[9px] uppercase tracking-[.12em] text-stone-500">
