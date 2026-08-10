@@ -1,0 +1,20 @@
+Copyright (c) 2026 Anuboost-Long. All rights reserved.
+
+Lazify (the "Software"), including its source code, build scripts, templates,
+assets, and documentation, is proprietary and confidential.
+
+No license or right to use, copy, modify, merge, publish, distribute,
+sublicense, create derivative works from, or sell any part of the Software is
+granted by this file or by the Software being made available to you. Access to
+this repository does not grant any such right.
+
+Use of the distributed Lazify application is governed separately by the Terms
+of Service and Privacy Policy shipped with the application, not by this file.
+
+The Software depends on third-party open-source components, each licensed by
+its own author under its own terms. Those licenses govern those components and
+are unaffected by this notice; a machine-generated list of every dependency and
+its license is maintained in the THIRD-PARTY-NOTICES file distributed with the
+application.
+
+For licensing enquiries, contact kimlongly57@gmail.com.
