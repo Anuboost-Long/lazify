@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { useBrowserSettings } from "@renderer/shared/hooks/use-browser-settings";
 import { resolveBrowserInput } from "../lib/browser-url";
 
 /**
@@ -24,6 +25,16 @@ export interface BrowserTab {
   /** What the guest reports it is showing, once it has said so. */
   currentUrl: string;
   title: string;
+  /**
+   * Counts the times the address bar has been submitted for this tab.
+   *
+   * The address alone cannot say "go there" twice: asking for the address you
+   * are already on — after following links away from it, say — leaves `url`
+   * untouched, and a guest watching only `url` would sit there. Bumping this
+   * makes each submission a request in its own right, which is also what makes
+   * Enter on an unchanged address reload the way a browser should.
+   */
+  navSeq: number;
 }
 
 interface StoredTab {
@@ -35,7 +46,7 @@ interface StoredTab {
 const newTabId = () => `tab-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
 
 function makeTab(url = "", title = ""): BrowserTab {
-  return { id: newTabId(), url, currentUrl: url, title };
+  return { id: newTabId(), url, currentUrl: url, title, navSeq: 0 };
 }
 
 function readStoredTabs(): BrowserTab[] {
@@ -50,7 +61,8 @@ function readStoredTabs(): BrowserTab[] {
         id: entry.id || newTabId(),
         url: entry.url,
         currentUrl: entry.url,
-        title: entry.title ?? ""
+        title: entry.title ?? "",
+        navSeq: 0
       }));
   } catch {
     return [];
@@ -58,8 +70,12 @@ function readStoredTabs(): BrowserTab[] {
 }
 
 export function useBrowserTabs() {
+  const { restoreTabs } = useBrowserSettings();
+
   const [tabs, setTabs] = useState<BrowserTab[]>(() => {
-    const restored = readStoredTabs();
+    // Read once, on the mount that opens the browser: flipping the setting
+    // later is about the next start, not about closing what is already open.
+    const restored = restoreTabs ? readStoredTabs() : [];
     return restored.length > 0 ? restored : [makeTab()];
   });
   const [activeId, setActiveId] = useState<string>(() => "");
@@ -69,14 +85,23 @@ export function useBrowserTabs() {
 
   // Persist the addresses, not the live guest state — a restored tab reloads
   // from its URL rather than pretending it kept a session.
+  //
+  // Turning restore off drops what was already stored rather than merely
+  // ignoring it: a session left on disk that nothing will ever read again is
+  // the browsing history of someone who asked not to have one.
   useEffect(() => {
+    if (!restoreTabs) {
+      globalThis.localStorage.removeItem(TABS_KEY);
+      return;
+    }
+
     const stored: StoredTab[] = tabs.map((tab) => ({
       id: tab.id,
       url: tab.currentUrl || tab.url,
       title: tab.title
     }));
     globalThis.localStorage.setItem(TABS_KEY, JSON.stringify(stored));
-  }, [tabs]);
+  }, [restoreTabs, tabs]);
 
   const patchTab = useCallback((id: string, patch: Partial<BrowserTab>) => {
     setTabs((current) =>
@@ -131,7 +156,10 @@ export function useBrowserTabs() {
   const navigateActive = useCallback(
     (rawInput: string) => {
       if (!activeTab) return;
-      patchTab(activeTab.id, { url: resolveBrowserInput(rawInput) });
+      patchTab(activeTab.id, {
+        url: resolveBrowserInput(rawInput),
+        navSeq: activeTab.navSeq + 1
+      });
     },
     [activeTab, patchTab]
   );

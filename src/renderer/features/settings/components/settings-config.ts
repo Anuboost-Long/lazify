@@ -2,7 +2,7 @@ import type { SupportedLanguage } from "@renderer/i18n/i18n";
 import { translation } from "@renderer/i18n/translation";
 import type { UiIconName } from "@renderer/shared/ui/icons/UiIcon";
 
-export type SettingsSection = "appearance" | "language" | "about";
+export type SettingsSection = "appearance" | "language" | "browser" | "about";
 
 export const settingsNavItems: {
   id: SettingsSection;
@@ -21,6 +21,12 @@ export const settingsNavItems: {
     label: translation.Settings.Language,
     icon: "journal-page",
     description: translation.Settings.LanguageDesc
+  },
+  {
+    id: "browser",
+    label: translation.Settings.Browser,
+    icon: "globe",
+    description: translation.Settings.BrowserDesc
   },
   {
     id: "about",
