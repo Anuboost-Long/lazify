@@ -2,7 +2,7 @@ import "@xterm/xterm/css/xterm.css";
 
 import { FitAddon } from "@xterm/addon-fit";
 import { Terminal, type ILink } from "@xterm/xterm";
-import { useEffect, useLayoutEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import { useResolvedTheme } from "@renderer/shared/hooks/use-theme";
 
@@ -110,11 +110,40 @@ export function XTermPanel({
   const termRef = useRef<Terminal | null>(null);
   const fitRef = useRef<FitAddon | null>(null);
   const unsubRef = useRef<(() => void) | null>(null);
+  const [measurable, setMeasurable] = useState(false);
+
+  /**
+   * xterm measures its character cell against the live DOM when it opens, and
+   * an element inside a closed panel measures zero — leaving a terminal whose
+   * cell size is 0 and which therefore paints nothing, however often it is
+   * fitted afterwards. Panels that mount hidden (the workbench tool rail opens
+   * closed, so a pane returned to after leaving the page mounts behind it) came
+   * back blank for exactly this reason, so the build waits for the first layout
+   * that has real dimensions to measure against.
+   */
+  useLayoutEffect(() => {
+    const container = containerRef.current;
+    if (!container || measurable) return;
+
+    if (container.offsetWidth > 0 && container.offsetHeight > 0) {
+      setMeasurable(true);
+      return;
+    }
+
+    const observer = new ResizeObserver(() => {
+      if (container.offsetWidth === 0 || container.offsetHeight === 0) return;
+
+      setMeasurable(true);
+    });
+
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, [measurable]);
 
   // Build the terminal once per runId (key handles remount on new run).
   useLayoutEffect(() => {
     const container = containerRef.current;
-    if (!container) return;
+    if (!container || !measurable) return;
 
     const term = new Terminal({
       cursorBlink: true,
@@ -290,7 +319,7 @@ export function XTermPanel({
       fitRef.current = null;
       unsubRef.current = null;
     };
-  }, [runId]);
+  }, [measurable, runId]);
 
   // Repainting in place keeps the scrollback; rebuilding would lose it.
   useEffect(() => {
