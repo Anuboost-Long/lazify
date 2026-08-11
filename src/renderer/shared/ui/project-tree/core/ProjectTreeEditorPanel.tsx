@@ -47,6 +47,9 @@ interface ProjectTreeEditorPanelProps<TNode extends ExplorerNode> {
   /** Opens the OS terminal at the project's folder, from the same rail as
       `toolViews`. Absent hides the button. Workbench layout only. */
   onOpenConsole?: () => void;
+  /** Starts a coding agent on this project, from the same rail as `toolViews`.
+      Absent hides the button. Workbench layout only. */
+  onStartAgent?: () => void;
   headerAccessory?: ReactNode;
   editor: ReactNode;
   leftPane?: ReactNode;
@@ -102,6 +105,7 @@ export function ProjectTreeEditorPanel<TNode extends ExplorerNode>({
   onRenameValueChange,
   onSecondaryAction,
   onSelect,
+  onStartAgent,
   overlays,
   onToggleChecked,
   onToggleExpand,
@@ -190,6 +194,7 @@ export function ProjectTreeEditorPanel<TNode extends ExplorerNode>({
                     activeId={activeToolId}
                     onChange={setActiveToolId}
                     onOpenConsole={onOpenConsole}
+                    onStartAgent={onStartAgent}
                   />
                 </div>
               ) : (

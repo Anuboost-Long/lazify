@@ -46,6 +46,21 @@ export const BrowserGuest = memo(function BrowserGuest({
   // reloads the page underneath the user.
   const initialSrc = useRef(tab.url);
 
+  /**
+   * The address we last asked this guest to load.
+   *
+   * The tab's address is compared against this rather than against the guest's
+   * own URL, because the two are not the same thing and were never going to
+   * match: a page that redirects — or merely normalises, `https://youtube.com`
+   * arriving as `https://www.youtube.com/` — reports something the user never
+   * typed. Comparing against that made every such page load a second time, and
+   * a second navigation landing on a player that is still starting up leaves
+   * the video sitting there doing nothing until the page is reloaded by hand.
+   */
+  const requestedUrl = useRef(tab.url);
+  /** Which submission that address came from; see `navSeq` on the tab. */
+  const requestedSeq = useRef(tab.navSeq);
+
   useEffect(() => {
     const view = viewRef.current;
     if (!view) return;
@@ -108,14 +123,19 @@ export const BrowserGuest = memo(function BrowserGuest({
   useEffect(() => {
     const view = viewRef.current;
     if (!view || !ready) return;
+    if (tab.url === requestedUrl.current && tab.navSeq === requestedSeq.current) {
+      return;
+    }
+
+    requestedUrl.current = tab.url;
+    requestedSeq.current = tab.navSeq;
 
     try {
-      if (view.getURL() === tab.url) return;
       void view.loadURL(tab.url).catch(() => undefined);
     } catch {
       // Detached mid-flight; the next dom-ready resyncs it.
     }
-  }, [ready, tab.url]);
+  }, [ready, tab.navSeq, tab.url]);
 
   return (
     <div

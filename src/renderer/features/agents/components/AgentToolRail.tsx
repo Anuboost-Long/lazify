@@ -7,77 +7,74 @@ import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import type { UiIconName } from "@renderer/shared/ui/icons/UiIcon";
 import type { AgentRailTab } from "./AgentTabBar";
 
-/**
- * The vertical icon strip on the right edge of the agents workbench.
- *
- * Same shape as the workbench tool rail: clicking an icon opens its panel,
- * clicking the open one closes it. It lives here rather than in the tab bar
- * because the tab bar scrolls — with a handful of agents open, labelled tool
- * buttons crowded the tabs and then slid out of reach. A fixed strip stays put.
- */
-
 interface AgentToolRailProps {
-  /** Which side panel is open, if any. */
   railTab: AgentRailTab | null;
   onToggleRail: (tab: AgentRailTab) => void;
-  /** Whether there is a run to debug at all. */
+
   showDebug: boolean;
-  /** True while that run is live, which tints the debug and preview icons. */
+
   isScriptRunning: boolean;
-  /** True while the preview tab is the one on screen. */
+
   previewActive: boolean;
-  /** Opens the preview tab when there is none, and shows it either way. */
+
   onSelectPreview: () => void;
-  /** Files touched since this project's agent session started. */
+
   changeCount: number;
-  /** Alerts recorded since the activity feed was last looked at. */
+
   activityUnread: number;
-  /** Opens Finder and types whatever is picked into the running agent. Null
-      while no agent is on screen to receive it, which hides the button. */
+
   onPickPath: (() => void) | null;
-  /** Opens the OS terminal at the project's folder. */
+
   onOpenConsole: () => void;
+
+  onOpenMonitor: () => void;
 }
 
-interface RailButtonProps {
+export interface RailButtonProps {
   icon: UiIconName;
   label: string;
   selected: boolean;
   onClick: () => void;
-  /** Tinted when the icon is reporting a live run. */
+
   live?: boolean;
-  /** Shown as a count in the corner; zero and below is no badge at all. */
+
   badge?: number;
+
+  disabled?: boolean;
 }
 
-/**
- * The rail is icons only, so the tooltip is the entire label. It opens to the
- * left because the rail is pinned to the window's right edge — a bubble on the
- * usual side would be off screen.
- */
-function RailButton({ icon, label, selected, onClick, live, badge }: Readonly<RailButtonProps>) {
+export function RailButton({
+  icon,
+  label,
+  selected,
+  onClick,
+  live,
+  badge,
+  disabled = false,
+}: Readonly<RailButtonProps>) {
   return (
     <Tooltip content={label} side="left">
       <button
         type="button"
         onClick={onClick}
+        disabled={disabled}
         aria-label={label}
         aria-pressed={selected}
         className={clsx(
           "relative flex h-8 w-8 shrink-0 items-center justify-center rounded-md transition-colors",
           selected
             ? "bg-accent/10 text-accent"
-            : "text-muted hover:bg-accent/[0.06] hover:text-text"
+            : "text-muted enabled:hover:bg-accent/[0.06] enabled:hover:text-text",
+          disabled && "cursor-not-allowed opacity-40"
         )}
       >
-        {/* Accent rule on the outer edge marks the open panel. */}
+
         {selected ? (
           <span aria-hidden className="absolute inset-y-1 -right-2 w-0.5 rounded-full bg-accent" />
         ) : null}
 
         <UiIcon name={icon} className={clsx("h-4 w-4", live && !selected && "text-accent")} />
 
-        {/* The count the label used to carry, now that there is no room for one. */}
         {badge && badge > 0 ? (
           <span
             className={clsx(
@@ -104,6 +101,7 @@ export function AgentToolRail({
   activityUnread,
   onPickPath,
   onOpenConsole,
+  onOpenMonitor,
 }: Readonly<AgentToolRailProps>) {
   const { t } = useTranslation();
 
@@ -114,7 +112,16 @@ export function AgentToolRail({
         "border-l border-border bg-soft py-2"
       )}
     >
-      {/* Only offered once there is a run to control. */}
+
+      <RailButton
+        icon="multi-window"
+        label={t(translation.Agents.LiveMonitor)}
+        selected={false}
+        onClick={onOpenMonitor}
+      />
+
+      <span aria-hidden className="my-1 h-px w-5 shrink-0 rounded-full bg-border" />
+
       {showDebug ? (
         <RailButton
           icon="bug"
@@ -125,8 +132,6 @@ export function AgentToolRail({
         />
       ) : null}
 
-      {/* Not a panel: the preview is a tab, so this shows that tab rather than
-          opening a rail beside the terminal. */}
       <RailButton
         icon="globe"
         label={t(translation.Agents.Preview)}
@@ -150,8 +155,6 @@ export function AgentToolRail({
         onClick={() => onToggleRail("files")}
       />
 
-      {/* Not a panel: it hands off to the OS terminal, so nothing here stays
-          selected afterwards. */}
       <RailButton
         icon="terminal"
         label={t(translation.Agents.Console)}
@@ -159,8 +162,6 @@ export function AgentToolRail({
         onClick={onOpenConsole}
       />
 
-      {/* Not a panel either: it opens Finder and hands the pick to the agent,
-          so there is nothing to leave selected afterwards. */}
       {onPickPath ? (
         <RailButton
           icon="folder-plus"

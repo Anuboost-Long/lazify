@@ -112,9 +112,13 @@ export function AppShell() {
         }
       : (pages.find((page) => page.id === activePageId) ?? pages[0]);
 
-  // The project workbench manages its own height and scrolling, so it opts out
-  // of the padded, scrolling container every other route uses.
-  const fullBleed = location.pathname.startsWith("/workspace/project/");
+  // The project workbench and the agents wall both manage their own height and
+  // scrolling, so they opt out of the padded, scrolling container every other
+  // route uses. Terminals are the reason: they need every pixel of width a big
+  // screen has, and a fixed max-width would leave them stranded mid-window.
+  const fullBleed =
+    location.pathname.startsWith("/workspace/project/") ||
+    location.pathname === appRoute.agents;
 
   // Slots pages portal their breadcrumb tail and actions into.
   const [crumbSlot, setCrumbSlot] = useState<HTMLElement | null>(null);
@@ -207,7 +211,7 @@ export function AppShell() {
                 className={clsx(
                   "mx-auto w-full",
                   fullBleed
-                    ? "h-full max-w-none px-4 py-3"
+                    ? "h-full max-w-none p-4"
                     : "max-w-[1560px] px-6 py-6 lg:px-8",
                 )}
               >

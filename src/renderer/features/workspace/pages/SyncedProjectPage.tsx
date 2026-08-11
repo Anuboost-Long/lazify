@@ -3,6 +3,7 @@ import { DependencyPane } from "@renderer/features/workspace/components/Dependen
 import { HealthPane } from "@renderer/features/workspace/components/HealthPane";
 import { NodeVersionPane } from "@renderer/features/workspace/components/NodeVersionPane";
 import { PackageVersionPane } from "@renderer/features/workspace/components/PackageVersionPane";
+import { ProjectAgentLauncher } from "@renderer/features/workspace/components/ProjectAgentLauncher";
 import { ScriptsPane } from "@renderer/features/workspace/components/ScriptsPane";
 import { SyncedProjectViewer } from "@renderer/features/workspace/components/SyncedProjectViewer";
 import { translation } from "@renderer/i18n/translation";
@@ -41,6 +42,8 @@ export function SyncedProjectPage({
   const [projectData, setProjectData] =
     useState<ImportedProjectIndexResult | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const [agentPickerOpen, setAgentPickerOpen] = useState(false);
 
   const [installing, setInstalling] = useState(false);
   const [installFeedback, setInstallFeedback] = useState<{
@@ -266,8 +269,17 @@ export function SyncedProjectPage({
             onOpenConsole={() =>
               void globalThis.lazify.openTerminal(syncedProject.projectPath)
             }
+            onStartAgent={() => setAgentPickerOpen(true)}
           />
         </div>
+      )}
+
+      {syncedProject && (
+        <ProjectAgentLauncher
+          open={agentPickerOpen}
+          projectPath={syncedProject.projectPath}
+          onClose={() => setAgentPickerOpen(false)}
+        />
       )}
     </div>
   );

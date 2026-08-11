@@ -9,6 +9,7 @@ import { IconButton } from "@renderer/shared/ui/IconButton";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import { AgentDiffModal } from "./AgentDiffModal";
 import { splitPath } from "../utils/paths";
+import { railPanelShell, type RailPanelVariant } from "./rail-panel-shell";
 
 interface AgentChangesPanelProps {
   projectPath: string;
@@ -17,34 +18,27 @@ interface AgentChangesPanelProps {
   onRefresh: () => void;
   onReset: () => void;
   onClose: () => void;
+
+  variant?: RailPanelVariant;
 }
 
-/**
- * Colours come from theme tokens, so the panel follows light and dark the way
- * the terminal it sits beside does.
- */
 export function AgentChangesPanel({
   projectPath,
   changes,
   loading,
   onRefresh,
   onReset,
-  onClose
+  onClose,
+  variant = "rail"
 }: Readonly<AgentChangesPanelProps>) {
   const { t } = useTranslation();
-  // The file being reviewed in the modal, or null when it is closed.
+
   const [selected, setSelected] = useState<AgentFileChange | null>(null);
 
-  // Drop the open file whenever the project changes underneath us.
   useEffect(() => setSelected(null), [projectPath]);
 
   return (
-    <aside
-      className={clsx(
-        "flex w-72 shrink-0 flex-col overflow-hidden border-l border-border",
-        "bg-text/[0.02]"
-      )}
-    >
+    <aside className={railPanelShell(variant)}>
       <header className="flex items-center gap-1 border-b border-border px-2 py-1.5">
         <UiIcon name="journal-page" className="ml-1 h-3.5 w-3.5 text-muted" />
 

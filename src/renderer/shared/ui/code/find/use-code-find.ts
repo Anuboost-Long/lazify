@@ -1,6 +1,12 @@
 import { useCallback, useEffect, useRef, useState, type RefObject } from "react";
 
 import { registerFindTarget } from "./find-registry";
+import {
+  matchAtOrAfter,
+  rangeAtOrAfter,
+  seedFromElement,
+  seedFromTextarea
+} from "./selection";
 import { findRanges, matchOffsets } from "./text-ranges";
 
 /** Painting stops here: past it the highlights cost more than they help. */
@@ -91,17 +97,46 @@ export function useCodeFind({
   const ranges = useRef<Range[]>([]);
   const offsets = useRef<number[]>([]);
   const owner = useRef(Symbol("code-find"));
+  // Mirrors `open` for the registry callback, which is registered once and so
+  // would otherwise read the state as it stood at mount.
+  const opened = useRef(false);
+  // Where the seeded search should start. Steers the one search it was captured
+  // for: from there on, editing the query searches from the top, the way typing
+  // a query from scratch always has.
+  const startedAt = useRef<number | Range | null>(null);
+
+  const takeStart = () => {
+    const from = startedAt.current;
+    startedAt.current = null;
+
+    return from;
+  };
 
   useEffect(
     () =>
       registerFindTarget({
         element: () => root.current,
         open: () => {
+          // Only on the way in: pressing the shortcut again is how the reader
+          // gets back to the bar to retype, and re-seeding would overwrite what
+          // they had already put there.
+          if (!opened.current) {
+            const seed = textarea
+              ? seedFromTextarea(textarea.current)
+              : seedFromElement(scroller.current);
+
+            if (seed) {
+              setQuery(seed.text);
+              startedAt.current = seed.at;
+            }
+          }
+
+          opened.current = true;
           setOpen(true);
           setOpenedAt((count) => count + 1);
         }
       }),
-    [root]
+    [root, scroller, textarea]
   );
 
   // Re-run for every keystroke and every repaint of the code underneath.
@@ -120,7 +155,9 @@ export function useCodeFind({
     if (editable) {
       offsets.current = matchOffsets(editable.value, query, MAX_MATCHES);
       setCount(offsets.current.length);
-      setIndex(0);
+
+      const from = takeStart();
+      setIndex(typeof from === "number" ? matchAtOrAfter(offsets.current, from) : 0);
       return;
     }
 
@@ -129,7 +166,9 @@ export function useCodeFind({
 
     ranges.current = findRanges(host, query, MAX_MATCHES);
     setCount(ranges.current.length);
-    setIndex(0);
+
+    const from = takeStart();
+    setIndex(from instanceof Range ? rangeAtOrAfter(ranges.current, from) : 0);
   }, [open, query, revision, scroller, textarea]);
 
   // Painting and revealing follow the active match, whether it moved because the
@@ -189,6 +228,8 @@ export function useCodeFind({
   );
 
   const close = useCallback(() => {
+    opened.current = false;
+    startedAt.current = null;
     setOpen(false);
     setQuery("");
     ranges.current = [];

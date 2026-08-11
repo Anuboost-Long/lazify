@@ -28,6 +28,8 @@ interface SyncedProjectTreePanelProps {
   toolViews?: SidebarView[];
   /** Opens the OS terminal at the project's folder, from the same rail. */
   onOpenConsole?: () => void;
+  /** Starts a coding agent on this project, from the same rail. */
+  onStartAgent?: () => void;
   renderGitInfo?: (props: {
     gitStatus: ProjectGitStatusResult | null;
     loading: boolean;
@@ -53,6 +55,7 @@ export function SyncedProjectTreePanel({
   project,
   toolViews,
   onOpenConsole,
+  onStartAgent,
   renderGitInfo,
   renderGitPane,
 }: Readonly<SyncedProjectTreePanelProps>) {
@@ -76,6 +79,7 @@ export function SyncedProjectTreePanel({
         layout="workbench"
         toolViews={toolViews}
         onOpenConsole={onOpenConsole}
+        onStartAgent={onStartAgent}
         tree={adapter.editableTree}
         expandedIds={adapter.expandedIds}
         selectedId={adapter.selectedId}

@@ -24,15 +24,33 @@ function freshState(): ProjectScriptsState {
   };
 }
 
+const STORAGE_KEY = "lazify-script-tabs";
+
+function loadPersisted(): Record<string, ProjectScriptsState> {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "{}") as Record<
+      string,
+      ProjectScriptsState
+    >;
+  } catch {
+    return {};
+  }
+}
+
 /**
  * Script terminal tabs kept per project in a module-level atom rather than in
  * component state. Running a script spawns a PTY in the main process that keeps
  * going regardless of the renderer, so parking the tab layout here lets the
  * pane remember its runs — and reconnect to them — after the user navigates
- * away and back. This is in-memory only: it survives page changes but resets on
- * app restart.
+ * away and back.
+ *
+ * Written through to localStorage as well, because the renderer reloading is
+ * not the same as the run ending: the session it left behind is still going in
+ * the main process, and a tab layout that reset on reload would leave no way
+ * back to it. What is restored is only a claim about what was running — the
+ * pane reconciles it against the sessions that are actually alive on mount.
  */
-const scriptsByProjectAtom = atom<Record<string, ProjectScriptsState>>({});
+const scriptsByProjectAtom = atom<Record<string, ProjectScriptsState>>(loadPersisted());
 
 export function useProjectScripts(projectPath: string) {
   const [byProject, setByProject] = useAtom(scriptsByProjectAtom);
@@ -42,7 +60,11 @@ export function useProjectScripts(projectPath: string) {
     (updater: (prev: ProjectScriptsState) => ProjectScriptsState) => {
       setByProject((prev) => {
         const current = prev[projectPath] ?? freshState();
-        return { ...prev, [projectPath]: updater(current) };
+        const next = { ...prev, [projectPath]: updater(current) };
+
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+
+        return next;
       });
     },
     [projectPath, setByProject],

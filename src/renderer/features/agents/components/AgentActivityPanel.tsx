@@ -8,26 +8,28 @@ import { IconButton } from "@renderer/shared/ui/IconButton";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import type { AutopilotHold } from "../../../../main/agents/autopilot-policy";
 import type { AgentActivityEntry } from "../hooks/use-agent-activity";
+import { railPanelShell, type RailPanelVariant } from "./rail-panel-shell";
 
 interface AgentActivityPanelProps {
   entries: AgentActivityEntry[];
-  /** The project on screen, so its own rows can be told from the others'. */
+
   projectPath: string;
-  /** Marks everything currently listed as seen. */
+
   onMarkRead: () => void;
   onClear: () => void;
-  /** Selects the run a row points at, switching project if it is elsewhere. */
+
   onOpenRun: (entry: AgentActivityEntry) => void;
   onClose: () => void;
-  /** Autopilot's master switch. */
+
   autopilotEnabled: boolean;
-  /** Whether it is active in the project on screen. */
+
   autopilotProjectEnabled: boolean;
   onToggleAutopilot: (next: boolean) => void;
   onToggleAutopilotProject: (next: boolean) => void;
+
+  variant?: RailPanelVariant;
 }
 
-/** Clock time is enough: the feed is about today, not about history. */
 function timeOf(at: number) {
   return new Date(at).toLocaleTimeString([], {
     hour: "2-digit",
@@ -35,13 +37,6 @@ function timeOf(at: number) {
   });
 }
 
-/**
- * Why autopilot left a prompt alone, in the user's words.
- *
- * Worth a line of its own on the row: the bell says a session wants you, and
- * this says whether you are walking over to approve a `yarn` command or to make
- * a decision about a force-push. They deserve different urgency.
- */
 const HOLD_LABELS: Record<AutopilotHold, string> = {
   critical: translation.Agents.AutopilotHoldCritical,
   opinion: translation.Agents.AutopilotHoldOpinion,
@@ -53,7 +48,6 @@ const HOLD_LABELS: Record<AutopilotHold, string> = {
   unreadable: translation.Agents.AutopilotHoldUnreadable
 };
 
-/** The switch from Lazy Shield's panel, sized for this narrower one. */
 function Switch({
   checked,
   label,
@@ -86,11 +80,6 @@ function Switch({
   );
 }
 
-/**
- * The log behind the alerts: every question asked and every turn finished,
- * across all projects, newest first. Deliberately not filtered to the selected
- * project — knowing which of the others wants you is the point.
- */
 export function AgentActivityPanel({
   entries,
   projectPath,
@@ -101,21 +90,15 @@ export function AgentActivityPanel({
   autopilotEnabled,
   autopilotProjectEnabled,
   onToggleAutopilot,
-  onToggleAutopilotProject
+  onToggleAutopilotProject,
+  variant = "rail"
 }: Readonly<AgentActivityPanelProps>) {
   const { t } = useTranslation();
 
-  // On screen is read. Runs again as rows arrive while the panel is open, so
-  // the badge does not come back for something the user is looking at.
   useEffect(() => onMarkRead(), [entries, onMarkRead]);
 
   return (
-    <aside
-      className={clsx(
-        "flex w-72 shrink-0 flex-col overflow-hidden border-l border-border",
-        "bg-text/[0.02]"
-      )}
-    >
+    <aside className={railPanelShell(variant)}>
       <header className="flex items-center gap-1 border-b border-border px-2 py-1.5">
         <UiIcon name="bell" className="ml-1 h-3.5 w-3.5 text-muted" />
 
@@ -142,9 +125,6 @@ export function AgentActivityPanel({
         </div>
       </header>
 
-      {/* Autopilot's switch lives here rather than in settings: this panel is
-          the record of what it did, and the place someone reads that record is
-          the place they decide whether to keep letting it. */}
       <div className="border-b border-border px-3 py-2">
         <div className="flex items-center gap-2">
           <UiIcon
@@ -167,8 +147,6 @@ export function AgentActivityPanel({
           {t(translation.Agents.AutopilotHint)}
         </CaptionText>
 
-        {/* The per-project switch only means anything while the master one is on,
-            and offering it otherwise invites turning off something already off. */}
         {autopilotEnabled ? (
           <div className="mt-1.5 flex items-center gap-2">
             <SmallText as="span" className="!text-muted flex-1 truncate">
@@ -193,8 +171,7 @@ export function AgentActivityPanel({
           entries.map((entry) => {
             const waiting = entry.kind === "waiting";
             const answered = entry.kind === "autopilot";
-            // Waiting rows say why they are still waiting; autopilot rows say
-            // what was answered. Either way it is the same slot on the row.
+
             const note = answered
               ? entry.optionLabel
               : entry.hold
@@ -231,10 +208,6 @@ export function AgentActivityPanel({
                     )}
                   </SmallText>
 
-                  {/* What was answered, or what is standing in the way of
-                      answering it. The question itself goes in the tooltip:
-                      the row has no space for it and the terminal is one
-                      click away. */}
                   {note ? (
                     <CaptionText
                       tone="muted"
@@ -243,9 +216,7 @@ export function AgentActivityPanel({
                       {note}
                     </CaptionText>
                   ) : null}
-                  {/* The project is what tells rows apart once several are
-                      running, so it stays even on the selected one — only its
-                      weight changes. */}
+
                   <SmallText
                     as="span"
                     className={clsx(

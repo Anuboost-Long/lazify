@@ -10,19 +10,18 @@ import type { GitStatusEntry } from "@renderer/shared/types/lazify";
 export function statusChar(entry: GitStatusEntry): string {
   const unstaged = entry.unstagedStatus.trim();
   const staged = entry.stagedStatus.trim();
+  const code = (unstaged || staged || "M").slice(0, 1);
 
-  return (unstaged || staged || "M").slice(0, 1);
+  return code === "?" ? "A" : code;
 }
 
 export function statusToneClass(entry: GitStatusEntry): string {
   const codes = `${entry.stagedStatus}${entry.unstagedStatus}`;
 
   if (codes.includes("D")) return "text-error";
-  if (codes.includes("A")) return "text-accent";
+  if (codes.includes("A") || codes.includes("?")) return "text-success";
   if (codes.includes("R")) return "text-warning";
-  if (codes.includes("?")) return "text-muted";
 
-  // Modified
   return "text-warning";
 }
 

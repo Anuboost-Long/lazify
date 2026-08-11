@@ -22,13 +22,17 @@ interface WorkbenchToolRailProps {
   /** Opens the OS terminal at the project's folder. Absent hides the button —
       it is not a panel, so it takes no part in activeId/onChange. */
   onOpenConsole?: () => void;
+  /** Starts a coding agent on this project. Like the console button, it opens
+      something outside the rail rather than a panel. Absent hides it. */
+  onStartAgent?: () => void;
 }
 
 export function WorkbenchToolRail({
   views,
   activeId,
   onChange,
-  onOpenConsole
+  onOpenConsole,
+  onStartAgent
 }: Readonly<WorkbenchToolRailProps>) {
   const { t } = useTranslation();
 
@@ -60,6 +64,19 @@ export function WorkbenchToolRail({
           </Tooltip>
         );
       })}
+
+      {onStartAgent ? (
+        <Tooltip content={t(translation.Agents.StartAgent)} side="left">
+          <button
+            type="button"
+            onClick={onStartAgent}
+            aria-label={t(translation.Agents.StartAgent)}
+            className="relative flex h-8 w-8 items-center justify-center rounded-md text-muted transition-colors hover:bg-accent/[0.06] hover:text-text"
+          >
+            <UiIcon name="sparks" className="h-4 w-4" />
+          </button>
+        </Tooltip>
+      ) : null}
 
       {onOpenConsole ? (
         <Tooltip content={t(translation.Agents.Console)} side="left">

@@ -8,12 +8,11 @@ import { MonoText, SmallText } from "@renderer/shared/typography";
 import { Tooltip } from "@renderer/shared/ui/Tooltip";
 import { IconButton } from "@renderer/shared/ui/IconButton";
 import UiIcon, { type UiIconName } from "@renderer/shared/ui/icons/UiIcon";
-import type { AgentTerminal } from "../hooks/use-agent-terminals";
+import type { AgentTerminal } from "../hooks/agent-terminals";
 
 interface AgentDebugPanelProps {
-  /** The live run these controls act on, or null when nothing is running. */
   terminal: AgentTerminal | null;
-  /** What the start button would launch when nothing is running yet. */
+
   runnableScript: string | null;
   onStart: () => void;
   onRestart: () => void;
@@ -29,7 +28,6 @@ interface ControlProps {
   onClick: () => void;
 }
 
-/** One toolbar button. Sized to read as a control strip, not a text button. */
 function Control({ icon, label, tone, disabled = false, onClick }: Readonly<ControlProps>) {
   return (
     <Tooltip content={label} side="top">
@@ -55,7 +53,6 @@ function Control({ icon, label, tone, disabled = false, onClick }: Readonly<Cont
   );
 }
 
-/** A label over its value, for the status block under the toolbar. */
 function StatusRow({ label, value }: Readonly<{ label: string; value: string }>) {
   return (
     <div className="px-1.5 py-1">
@@ -69,11 +66,6 @@ function StatusRow({ label, value }: Readonly<{ label: string; value: string }>)
   );
 }
 
-/**
- * Run controls for the active project, kept out of the tab bar so the strip
- * has room to grow as real debugging lands. Today it drives the process:
- * start, restart, stop, plus what the run is bound to.
- */
 export function AgentDebugPanel({
   terminal,
   runnableScript,
@@ -89,8 +81,6 @@ export function AgentDebugPanel({
   const runId = terminal?.runId ?? null;
   const isRunning = Boolean(runId) && !terminal?.exited;
 
-  // Ports are discovered by scanning the process tree, so they appear a moment
-  // after the server binds rather than the instant the run starts.
   useEffect(() => {
     if (!runId || !isRunning) {
       setPorts([]);

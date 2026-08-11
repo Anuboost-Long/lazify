@@ -2,24 +2,14 @@ import clsx from "clsx";
 
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 
-/**
- * Brand marks for the agents in the registry.
- *
- * Kept renderer-side (the main-process registry stays free of presentation) and
- * keyed by agent id, with a generic fallback so a newly registered agent still
- * renders something sensible before it gets artwork.
- */
-
 interface AgentGlyphProps {
   agentId: string;
   className?: string;
-  /** Icon (data URL) for a custom agent; wins over the built-in brand marks. */
+
   image?: string;
 }
 
-/** Anthropic's radiating burst. */
 function ClaudeMark({ className }: Readonly<{ className?: string }>) {
-  // Ray angles and inner radii, mirrored across the vertical axis.
   const rays = [
     { angle: -90, inner: 2.4 },
     { angle: -55, inner: 3.2 },
@@ -57,11 +47,6 @@ function ClaudeMark({ className }: Readonly<{ className?: string }>) {
   );
 }
 
-/**
- * OpenAI's hexagonal knot, simplified to nested hexagons.
- * Deliberately not the three-ellipse rosette — that reads as the React logo,
- * which already appears in this app as a stack label.
- */
 function CodexMark({ className }: Readonly<{ className?: string }>) {
   const hexagon = (radius: number, offsetDegrees: number) =>
     [0, 1, 2, 3, 4, 5]
@@ -89,7 +74,6 @@ function CodexMark({ className }: Readonly<{ className?: string }>) {
   );
 }
 
-/** Gemini's four-pointed spark, drawn as two crossed curves. */
 function GeminiMark({ className }: Readonly<{ className?: string }>) {
   return (
     <svg viewBox="0 0 24 24" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -103,7 +87,6 @@ function GeminiMark({ className }: Readonly<{ className?: string }>) {
   );
 }
 
-/** A pilot's visor: enough to read as Copilot without copying the mark. */
 function CopilotMark({ className }: Readonly<{ className?: string }>) {
   return (
     <svg viewBox="0 0 24 24" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -123,7 +106,6 @@ function CopilotMark({ className }: Readonly<{ className?: string }>) {
   );
 }
 
-/** The pointer the editor is named for. */
 function CursorMark({ className }: Readonly<{ className?: string }>) {
   return (
     <svg viewBox="0 0 24 24" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -145,7 +127,6 @@ const MARKS: Record<string, (props: { className?: string }) => JSX.Element> = {
   cursor: CursorMark,
 };
 
-/** Brand tints, so the agents stay distinguishable at a glance. */
 const TINTS: Record<string, string> = {
   claude: "text-[#D97757]",
   codex: "text-text",

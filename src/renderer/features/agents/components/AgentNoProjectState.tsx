@@ -13,17 +13,7 @@ import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import type { AgentDescriptor } from "../../../../main/agents/agent-registry";
 import { AgentGlyph } from "./AgentGlyph";
 
-/**
- * Landing surface for the agents page before any project is synced.
- *
- * Follows the playful-doc-console direction: a framed surface with clipped
- * geometry, a document-sheet motif and tactile hover motion — no gradients and
- * no blobs. Unlike the terminal panel's blank state this sits on the themed
- * page, so it uses theme tokens rather than fixed light-on-dark colours.
- */
-
 interface AgentNoProjectStateProps {
-  /** Agents detected on this machine, shown so the value is visible up front. */
   agents: AgentDescriptor[];
   syncing: boolean;
   onSync: () => void;
@@ -35,18 +25,15 @@ function BackdropArt() {
       aria-hidden="true"
       className="pointer-events-none absolute inset-0 overflow-hidden"
     >
-      {/* Rotated rounded squares */}
+
       <div className="absolute -left-12 -top-8 h-44 w-44 rotate-12 rounded-[32px] border border-border" />
       <div className="absolute -bottom-10 right-10 h-32 w-32 -rotate-6 rounded-[24px] border border-accent/20 bg-accent/[0.04]" />
 
-      {/* Circle */}
       <div className="absolute -right-10 -top-12 h-40 w-40 rounded-full border border-border" />
 
-      {/* Slim capsules */}
       <div className="absolute right-1/3 top-6 h-2.5 w-20 rotate-12 rounded-full bg-accent/10" />
       <div className="absolute bottom-8 left-1/4 h-2.5 w-14 -rotate-6 rounded-full bg-border" />
 
-      {/* Small grid marks */}
       <div className="absolute bottom-10 right-1/4 grid grid-cols-3 gap-1.5">
         {Array.from({ length: 9 }).map((_, index) => (
           <span key={index} className="h-1 w-1 rounded-full bg-muted/30" />
@@ -56,17 +43,13 @@ function BackdropArt() {
   );
 }
 
-/**
- * Layered sheets with a folded corner: the document motif the direction calls
- * for, standing in for the project folder that has not been synced yet.
- */
 function SheetArt() {
   return (
     <div
       aria-hidden="true"
       className="relative h-[104px] w-[92px] shrink-0"
     >
-      {/* Back sheets fan out further on hover, so the stack feels physical. */}
+
       <div
         className={clsx(
           "absolute left-3 top-2 h-[88px] w-[68px] -rotate-6 rounded-[14px]",
@@ -89,17 +72,15 @@ function SheetArt() {
           "group-hover:-translate-y-1"
         )}
       >
-        {/* Folded corner */}
+
         <div className="absolute right-0 top-0 h-5 w-5 rounded-bl-[10px] rounded-tr-[13px] border-b border-l border-accent/25 bg-accent/[0.07]" />
 
-        {/* Text lines */}
         <div className="flex flex-col gap-1.5 p-3 pt-6">
           <span className="h-1 w-10 rounded-full bg-muted/40" />
           <span className="h-1 w-12 rounded-full bg-muted/30" />
           <span className="h-1 w-8 rounded-full bg-muted/30" />
         </div>
 
-        {/* Icon chip clipped to the sheet's lower edge */}
         <div
           className={clsx(
             "absolute -bottom-3 left-3 flex h-8 w-8 items-center justify-center",
@@ -146,7 +127,6 @@ export function AgentNoProjectState({
               {t(translation.Workspace.NoProjectsDesc)}
             </BodyText>
 
-            {/* What is already installed, so the payoff is visible before syncing. */}
             {agents.length > 0 ? (
               <div className="mt-1 flex flex-wrap gap-2">
                 {agents.map((agent, index) => (
