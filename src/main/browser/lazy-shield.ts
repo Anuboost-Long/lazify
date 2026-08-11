@@ -39,6 +39,31 @@ const PRELOAD_PATH = require.resolve("@ghostery/adblocker-electron-preload");
 const COSMETIC_CHANNEL = "@ghostery/adblocker/inject-cosmetic-filters";
 const MUTATION_CHANNEL = "@ghostery/adblocker/is-mutation-observer-enabled";
 
+/**
+ * Hosts that get network filtering but no cosmetic filtering.
+ *
+ * YouTube builds its player lazily: the watch page renders, and the player is
+ * only constructed once its container is actually on screen. Cosmetic filtering
+ * hides elements, and hiding anything the player is waiting behind means it is
+ * never built at all — no player element, and not so much as a request for one.
+ * It shows on the path through the site rather than a direct load: open the home
+ * page and click a video and there is no player, while loading the watch URL
+ * outright is fine, which is why reloading appears to "fix" it.
+ *
+ * Network filtering still applies here in full; only the element hiding is off.
+ * A player that works beats an ad slot that is hidden.
+ */
+const NO_COSMETIC_HOSTS = [/(^|\.)youtube\.com$/, /(^|\.)youtube-nocookie\.com$/];
+
+function cosmeticAllowed(url: string): boolean {
+  try {
+    return !NO_COSMETIC_HOSTS.some((host) => host.test(new URL(url).hostname));
+  } catch {
+    // Not a URL we can read; nothing to make an exception for.
+    return true;
+  }
+}
+
 /** webRequest wants an explicit filter; every request is a candidate. */
 const ALL_URLS = { urls: ["<all_urls>"] };
 
@@ -97,6 +122,140 @@ async function loadBlocker(): Promise<ElectronBlocker> {
   return blocker;
 }
 
+/** In flight while the engine is being built; shared by everything waiting. */
+let building: Promise<ElectronBlocker> | null = null;
+
+function engineReady(): Promise<ElectronBlocker> {
+  building ??= loadBlocker();
+  return building;
+}
+
+/** How long a request waits for a cold engine before it is let through. */
+const HOLD_LIMIT_MS = 5000;
+
+/**
+ * The engine for a request that arrived before it was built — or null when it
+ * has taken long enough that holding the page is the worse failure of the two.
+ *
+ * The build carries on regardless, so the wait is paid once, by whatever loads
+ * during a cold start, and never again.
+ */
+function engineForRequest(): Promise<ElectronBlocker | null> {
+  if (blocker) return Promise.resolve(blocker);
+
+  return Promise.race([
+    engineReady().catch(() => null),
+    new Promise<null>((resolve) => {
+      // Unreferenced so a pending hold can never be what keeps the app alive.
+      setTimeout(() => resolve(null), HOLD_LIMIT_MS).unref?.();
+    })
+  ]);
+}
+
+/**
+ * Puts the filtering handlers in place, before the engine they will use exists.
+ *
+ * Attaching only once the engine is ready looks tidier and is wrong: building it
+ * means a disk read at best and a list fetch at worst, and the browser page does
+ * not wait — a restored tab starts loading the moment the window does. The
+ * handlers would then land partway through that load, and the page would be
+ * filtered from whichever request happened to arrive next.
+ *
+ * Half-filtered is its own kind of broken, and worse than either extreme. A
+ * video page whose first scripts arrived unfiltered and whose later ones did not
+ * ends up with a player that never starts — and no amount of waiting fixes it,
+ * because the load it needed already happened. Reloading by hand appears to fix
+ * "the site" only because the second load is consistent from its first byte.
+ *
+ * So: attach now, and hold anything that arrives early until the engine can
+ * answer for it. Requests that arrive after it is built pay nothing.
+ */
+/**
+ * Drops a response Electron cannot carry out, rather than passing it on.
+ *
+ * `$redirect` rules do not cancel a request — they answer it with a stub, as a
+ * `data:` URL, so the page carries on believing the resource loaded. That is
+ * the entire point of them: neutralise without breaking. Chromium refuses a
+ * webRequest redirect to `data:` outright, so what reaches the page instead is
+ * `ERR_UNSAFE_REDIRECT` — a failed load, the one outcome those rules exist to
+ * avoid.
+ *
+ * YouTube is where this shows: its player asks for an ad-status probe before
+ * building itself, and a probe that fails is not the same as one answered with
+ * a stub. The player is simply never created, and no amount of waiting helps —
+ * reloading only appears to fix "the site" because the page is then built down
+ * a path that does not ask.
+ *
+ * So a redirect that cannot be performed is treated as no rule at all. Blocking
+ * outright is not the safer choice it looks like: a page cannot tell a
+ * cancelled script from a broken one, so it would fail in exactly the same way.
+ */
+function honourable(callback: (response: Electron.CallbackResponse) => void) {
+  return (response: Electron.CallbackResponse) => {
+    if (response.redirectURL?.startsWith("data:")) {
+      callback({});
+      return;
+    }
+
+    callback(response);
+  };
+}
+
+function attachFiltering(ses: Electron.Session) {
+  ses.webRequest.onBeforeRequest(ALL_URLS, (details, callback) => {
+    const answer = honourable(callback);
+
+    if (blocker) {
+      blocker.onBeforeRequest(details, answer);
+      return;
+    }
+
+    // A shield that could not be built in time must not also swallow the page.
+    void engineForRequest().then((engine) => {
+      if (engine) engine.onBeforeRequest(details, answer);
+      else answer({});
+    });
+  });
+
+  ses.webRequest.onHeadersReceived(ALL_URLS, (details, callback) => {
+    if (blocker) {
+      blocker.onHeadersReceived(details, callback);
+      return;
+    }
+
+    void engineForRequest().then((engine) => {
+      if (engine) engine.onHeadersReceived(details, callback);
+      else callback({});
+    });
+  });
+
+  // Cosmetic side: the guest preload asks main what to hide and what to
+  // inject, over these two channels. Registered against the same wait, so a
+  // guest that starts early is answered rather than thrown an error.
+  ipcMain.handle(COSMETIC_CHANNEL, async (event, url: string, msg) => {
+    if (!cosmeticAllowed(url)) return;
+
+    const engine = await engineForRequest();
+    if (engine) await engine.onInjectCosmeticFilters(event, url, msg);
+  });
+  ipcMain.handle(MUTATION_CHANNEL, async (event) => {
+    const engine = await engineForRequest();
+    return engine ? engine.onIsMutationObserverEnabled(event) : false;
+  });
+  ses.setPreloads([PRELOAD_PATH]);
+}
+
+function detachFiltering(ses: Electron.Session) {
+  // Passing null is how a webRequest listener is detached; the session then
+  // behaves exactly as it did before the shield was ever raised.
+  ses.webRequest.onBeforeRequest(null);
+  ses.webRequest.onHeadersReceived(null);
+
+  ses.setPreloads([]);
+  ipcMain.removeHandler(COSMETIC_CHANNEL);
+  ipcMain.removeHandler(MUTATION_CHANNEL);
+}
+
 /**
  * Whether a popup should be refused rather than turned into a tab.
  *
@@ -149,27 +308,24 @@ export async function setLazyShieldEnabled(next: boolean): Promise<LazyShieldSta
   const ses = browserSession();
 
   if (next) {
-    const engine = await loadBlocker();
-
-    ses.webRequest.onBeforeRequest(ALL_URLS, engine.onBeforeRequest);
-    ses.webRequest.onHeadersReceived(ALL_URLS, engine.onHeadersReceived);
-
-    // Cosmetic side: the guest preload asks main what to hide and what to
-    // inject, over these two channels.
-    ipcMain.handle(COSMETIC_CHANNEL, engine.onInjectCosmeticFilters);
-    ipcMain.handle(MUTATION_CHANNEL, engine.onIsMutationObserverEnabled);
-    ses.setPreloads([PRELOAD_PATH]);
-
+    // Ahead of the engine on purpose — see `attachFiltering`. Marked enabled
+    // straight away too, so a page loading right now is already covered rather
+    // than covered from whenever the build finishes.
+    attachFiltering(ses);
     enabled = true;
-  } else {
-    // Passing null is how a webRequest listener is detached; the session then
-    // behaves exactly as it did before the shield was ever raised.
-    ses.webRequest.onBeforeRequest(null);
-    ses.webRequest.onHeadersReceived(null);
 
-    ses.setPreloads([]);
-    ipcMain.removeHandler(COSMETIC_CHANNEL);
-    ipcMain.removeHandler(MUTATION_CHANNEL);
+    try {
+      await engineReady();
+    } catch (error) {
+      // Down rather than pretending to a protection that is not there. The
+      // requests held while it was building were let through as they failed.
+      building = null;
+      detachFiltering(ses);
+      enabled = false;
+      throw error;
+    }
+  } else {
+    detachFiltering(ses);
 
     enabled = false;
     blockedCount = 0;
