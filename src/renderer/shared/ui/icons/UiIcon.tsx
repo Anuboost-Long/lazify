@@ -37,6 +37,7 @@ import {
   Shield,
   ShieldCheck,
   ShieldXmark,
+  Sparks,
   SunLight,
   Pause,
   Terminal,
@@ -76,6 +77,7 @@ export type UiIconName =
   | "shield"
   | "shield-check"
   | "shield-off"
+  | "sparks"
   | "sun"
   | "terminal"
   | "warning-triangle"
@@ -127,6 +129,7 @@ const iconMap: Record<UiIconName, ComponentType<SVGProps<SVGSVGElement>>> = {
   shield: Shield,
   "shield-check": ShieldCheck,
   "shield-off": ShieldXmark,
+  sparks: Sparks,
   sun: SunLight,
   terminal: Terminal,
   "warning-triangle": WarningTriangle,

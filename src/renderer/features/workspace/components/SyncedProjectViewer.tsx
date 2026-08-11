@@ -11,6 +11,7 @@ interface SyncedProjectViewerProps {
   project: ImportedProjectIndexResult;
   toolViews?: SidebarView[];
   onOpenConsole?: () => void;
+  onStartAgent?: () => void;
 }
 
 export function SyncedProjectViewer(props: Readonly<SyncedProjectViewerProps>) {
