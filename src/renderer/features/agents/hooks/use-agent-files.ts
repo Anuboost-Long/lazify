@@ -4,20 +4,14 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import type { ImportedProjectIndexNode } from "@renderer/shared/types/lazify";
 import { splitPath } from "../utils/paths";
 
-/** A file the search turned up, flattened out of the tree. */
 export interface AgentFileMatch {
   node: ImportedProjectIndexNode;
-  /** Folder part of the path, for the second line of a result row. */
+
   directory: string;
 }
 
-/**
- * Scanning a project takes a moment, so trees are kept at module level: the
- * rail can be opened and closed, and projects switched, without rescanning.
- */
 const treeAtom = atom<Record<string, ImportedProjectIndexNode[]>>({});
 
-/** Depth-first walk yielding every file, folders excluded. */
 function* walkFiles(nodes: ImportedProjectIndexNode[]): Generator<ImportedProjectIndexNode> {
   for (const node of nodes) {
     if (node.type === "folder") {
@@ -29,7 +23,6 @@ function* walkFiles(nodes: ImportedProjectIndexNode[]): Generator<ImportedProjec
   }
 }
 
-/** How many results the rail will show before it stops looking. */
 const MAX_MATCHES = 200;
 
 export function useAgentFiles(projectPath: string, isOpen: boolean) {
@@ -48,21 +41,18 @@ export function useAgentFiles(projectPath: string, isOpen: boolean) {
 
       setTrees((previous) => ({ ...previous, [projectPath]: result.tree }));
     } catch {
-      // An unreadable project just leaves the rail empty.
       setTrees((previous) => ({ ...previous, [projectPath]: [] }));
     } finally {
       setLoading(false);
     }
   }, [projectPath, setTrees]);
 
-  // Scanned the first time the rail is opened for a project, not before.
   useEffect(() => {
     if (!isOpen || !projectPath || trees[projectPath]) return;
 
     void refresh();
   }, [isOpen, projectPath, refresh, trees]);
 
-  // Searching by name is how you find a component you half-remember.
   const matches = useMemo<AgentFileMatch[]>(() => {
     const needle = query.trim().toLowerCase();
 

@@ -9,23 +9,17 @@ import { Tooltip } from "@renderer/shared/ui/Tooltip";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 
 interface RunScriptPickerProps {
-  /** Every runnable script for this project, name -> command. */
   scripts: Record<string, string>;
-  /** The script currently wired to the run button, or null when none. */
+
   selected: string | null;
-  /** Launches the selected script. */
+
   onRun: () => void;
-  /** Rebinds the run button to a chosen script. */
+
   onSelect: (scriptName: string) => void;
 }
 
 const MENU_WIDTH = 256;
 
-/**
- * The run button, plus a chevron menu to bind it to any package.json script.
- * Auto-detection only finds `dev`/`start`/`serve`, so a project that names its
- * dev script something else can point the button at it here.
- */
 export function RunScriptPicker({
   scripts,
   selected,
@@ -34,9 +28,7 @@ export function RunScriptPicker({
 }: Readonly<RunScriptPickerProps>) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
-  // Where to anchor the menu. The tab bar scrolls with overflow, which clips a
-  // normally-positioned dropdown, so it is portalled to the body and pinned to
-  // the toggle's on-screen rect instead.
+
   const [anchor, setAnchor] = useState<{ top: number; right: number } | null>(
     null
   );
@@ -51,7 +43,6 @@ export function RunScriptPicker({
     setOpen(true);
   };
 
-  // Close on outside click, and on scroll/resize where the anchor would drift.
   useEffect(() => {
     if (!open) return;
 
@@ -69,8 +60,6 @@ export function RunScriptPicker({
     const onScroll = (event: Event) => {
       const target = event.target;
 
-      // The menu owns its list scroll. Only outside scrolling can move the
-      // fixed menu away from the button it is anchored to.
       if (target instanceof Node && menuRef.current?.contains(target)) return;
 
       setOpen(false);

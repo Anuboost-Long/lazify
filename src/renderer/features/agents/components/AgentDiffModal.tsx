@@ -11,17 +11,13 @@ import { splitPath } from "../utils/paths";
 
 interface AgentDiffModalProps {
   projectPath: string;
-  /** The file to review, or null while the modal is closed. */
+
   filePath: string | null;
   additions: number;
   deletions: number;
   onClose: () => void;
 }
 
-/**
- * Reviewing code needs room the rail cannot give, so the diff opens here
- * instead — dark like the panel it was opened from.
- */
 export function AgentDiffModal({
   projectPath,
   filePath,
@@ -41,8 +37,6 @@ export function AgentDiffModal({
 
     let cancelled = false;
 
-    // The whole file, with the changes marked in place, so the edit can be
-    // read against the structure around it.
     void globalThis.lazify.getFileDiff(projectPath, filePath, true).then((result) => {
       if (!cancelled) setDiff(result);
     });
@@ -120,8 +114,6 @@ export function AgentDiffModal({
           </div>
         </header>
 
-        {/* The file name is what picks the language: without it the diff is
-            tokenised as plain text and comes out uncoloured. */}
         <div className="min-h-0 flex-1">
           <DiffView
             diff={diff}
