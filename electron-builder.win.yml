@@ -1,4 +1,4 @@
-appId: com.lazify.app
+appId: com.lazify.desktop
 productName: Lazify
 
 # Native modules must be unpacked from asar so Windows can load the .node binary

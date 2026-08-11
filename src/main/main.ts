@@ -97,7 +97,7 @@ import {
 // especially in dev, where the process has no Start Menu shortcut to inherit
 // one from. Must match `appId` in electron-builder.win.yml.
 if (process.platform === "win32") {
-  app.setAppUserModelId("com.lazify.app");
+  app.setAppUserModelId("com.lazify.desktop");
 }
 
 let mainWindow: BrowserWindow | null = null;
@@ -326,6 +326,20 @@ function createMainWindow(): BrowserWindow {
       plugins: true
     }
   });
+
+  // Without this, Windows' taskbar button group (right-click menu, jump list)
+  // falls back to Chromium's generic "Electron" identity — separate from both
+  // the window's own icon above and the icon rcedit embeds in the .exe, and
+  // not covered by either.
+  if (process.platform === "win32") {
+    window.setAppDetails({
+      appId: "com.lazify.desktop",
+      appIconPath: process.execPath,
+      appIconIndex: 0,
+      relaunchCommand: `"${process.execPath}"`,
+      relaunchDisplayName: "Lazify"
+    });
+  }
 
   const devServerUrl = process.env.VITE_DEV_SERVER_URL;
 
