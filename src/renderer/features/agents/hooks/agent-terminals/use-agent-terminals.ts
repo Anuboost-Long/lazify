@@ -8,6 +8,7 @@ import {
   loadRunScriptOverrides,
   RUNNABLE_SCRIPTS,
   RUN_SCRIPT_OVERRIDES_KEY,
+  revealRunIdAtom,
   sessionsToTerminals,
   terminalsAtom,
   waitingProjectByRunIdAtom,
@@ -34,6 +35,12 @@ export function useFocusAgentRun() {
     },
     [terminals, setActiveByProject],
   );
+}
+
+export function useRevealAgentRun() {
+  const setReveal = useSetAtom(revealRunIdAtom);
+
+  return useCallback((runId: string) => setReveal(runId), [setReveal]);
 }
 
 export function useAgentTerminals(projectPath: string) {
@@ -269,6 +276,8 @@ export function useAgentTerminals(projectPath: string) {
           terminal.tabId === tabId ? { ...terminal, runId } : terminal,
         ),
       );
+
+      return runId;
     },
     [projectPath, setActiveTab, setTerminals],
   );
@@ -279,7 +288,7 @@ export function useAgentTerminals(projectPath: string) {
         (candidate) => candidate.id === agentId,
       );
 
-      await addTerminal(
+      return await addTerminal(
         { kind: "agent", sourceId: agentId, label: agent?.label ?? agentId },
         async () => {
           const { runId } = await globalThis.lazify.openAgentTerminal(
@@ -484,6 +493,7 @@ export function useAgentTerminals(projectPath: string) {
 
     syncSessions,
     terminals: projectTerminals,
+    allTerminals: terminals,
     activeTerminal,
     activeTabId,
     runnableScript,

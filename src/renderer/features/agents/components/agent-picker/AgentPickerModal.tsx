@@ -29,6 +29,7 @@ interface AgentPickerModalProps {
   onClose: () => void;
   onCreate: (input: CustomAgentInput) => Promise<void>;
   onDelete: (agentId: string) => Promise<void>;
+  onBack?: () => void;
 }
 
 const ACCENT_LINE = {
@@ -44,6 +45,7 @@ export function AgentPickerModal({
   onClose,
   onCreate,
   onDelete,
+  onBack,
 }: Readonly<AgentPickerModalProps>) {
   const { t } = useTranslation();
   const [creating, setCreating] = useState(false);
@@ -134,10 +136,10 @@ export function AgentPickerModal({
           <div className="pointer-events-none absolute inset-x-0 top-0 h-px" style={ACCENT_LINE} />
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              {creating || browsing ? (
+              {creating || browsing || onBack ? (
                 <button
                   type="button"
-                  onClick={resetForm}
+                  onClick={creating || browsing ? resetForm : onBack}
                   aria-label={t(translation.GlobalTerm.Back)}
                   className={clsx(
                     "rounded-xl border border-border bg-bg p-2 transition-colors duration-150",

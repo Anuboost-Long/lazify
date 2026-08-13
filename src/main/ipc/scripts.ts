@@ -1,6 +1,7 @@
 import { ipcMain } from "electron";
 import fs from "node:fs";
 import path from "node:path";
+import { logInfo } from "../diagnostics/logger";
 import { resolveDevPortInjection } from "../environment/dev-port";
 import { isDotnetScript, listDotnetScripts, resolveDotnetLaunch, waitForDotnetPortsFree } from "../environment/dotnet-runner";
 import { buildProcessTree, getDescendantPids, scanListeningPorts } from "../environment/environment-scanner";
@@ -30,6 +31,14 @@ export function registerScriptHandlers(ctx: IpcContext) {
     const args = dotnetLaunch
       ? dotnetLaunch.args
       : [...(packageManager === "yarn" ? [scriptName] : ["run", scriptName]), ...extraArgs];
+
+    // Which runner a script ended up on, and the exact argv it was given. The
+    // package manager is inferred from a lockfile rather than chosen, so when a
+    // script misbehaves this is the first thing worth knowing.
+    logInfo("scripts", `running "${scriptName}" with ${command}`, {
+      argv: [command, ...args].join(" "),
+      cwd: projectPath
+    });
 
     if (ctx.ptyRunner.available) {
       const runId = ctx.ptyRunner.start(command, args, projectPath, scriptName, cols as number, rows as number, env);

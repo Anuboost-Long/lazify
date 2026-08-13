@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { translation } from "@renderer/i18n/translation";
 import { BodyText, MonoText, PillText } from "@renderer/shared/typography";
 import { LabelButton } from "@renderer/shared/ui/LabelButton";
+import { CodeField } from "@renderer/shared/ui/code/CodeField";
 import { SelectionRail, type RailTone } from "@renderer/shared/ui/card/SelectionRail";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import type { DmgResult } from "../hooks/use-dmg-compiler";
@@ -59,16 +60,15 @@ export function BuildOutcome({ result }: BuildOutcomeProps) {
 
           {/* The tool's own words: `hdiutil` failures are specific, and
               paraphrasing them would only hide which one happened. */}
-          <MonoText
-            as="pre"
+          <CodeField
             className={clsx(
-              "mt-2 max-h-40 overflow-auto",
+              "mt-2 max-h-40 overflow-auto font-mono",
               "border border-border rounded-lg bg-bg px-2.5 py-2",
               "text-[11px] leading-relaxed text-muted whitespace-pre-wrap"
             )}
           >
             {result.message}
-          </MonoText>
+          </CodeField>
         </div>
       </OutcomeCard>
     );

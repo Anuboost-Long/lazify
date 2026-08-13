@@ -20,6 +20,11 @@ jobs:
             config: electron-builder.mac.yml
           - os: windows-latest
             config: electron-builder.win.yml
+          # Deliberately not ubuntu-latest: the build links against the
+          # runner's glibc, and one built on 24.04 will not start on anything
+          # older. The oldest supported runner is the widest audience.
+          - os: ubuntu-22.04
+            config: electron-builder.linux.yml
 
     runs-on: ${{ matrix.os }}
 

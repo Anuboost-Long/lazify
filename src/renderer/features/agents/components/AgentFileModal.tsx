@@ -180,6 +180,7 @@ export function AgentFileModal({
               variant="flush"
               content={loaded.content}
               fileName={file?.name}
+              filePath={file?.absolutePath}
               onOpenSymbol={onOpenSymbol}
               focusLine={focusLine}
             />

@@ -14,7 +14,14 @@ async function runNpmJson(
   timeoutMs: number
 ): Promise<string> {
   try {
-    const { stdout } = await execAsync("npm", args, { cwd, timeout: timeoutMs });
+    // npm is a .cmd shim on Windows, which CreateProcess will not run without
+    // a shell to resolve PATHEXT — without this the health pane reports every
+    // project as unreadable there.
+    const { stdout } = await execAsync("npm", args, {
+      cwd,
+      timeout: timeoutMs,
+      shell: process.platform === "win32"
+    });
     return stdout;
   } catch (err) {
     const e = err as ExecError;

@@ -5,6 +5,7 @@ import { Terminal, type ILink } from "@xterm/xterm";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import { useResolvedTheme } from "@renderer/shared/hooks/use-theme";
+import { registerTerminalPaste } from "@renderer/shared/lib/terminal-paste";
 
 interface XTermPanelProps {
   runId: string;
@@ -177,6 +178,8 @@ export function XTermPanel({
     // Forward keyboard/paste to the PTY.
     term.onData((data) => globalThis.lazify.ptyWrite(runId, data));
 
+    const unregisterPaste = registerTerminalPaste(runId, (text) => term.paste(text));
+
     // xterm's own paste handling relies on the browser firing a native
     // "paste" event against its off-screen helper textarea, which is
     // unreliable in Chromium on Windows (macOS's text-input responder chain
@@ -313,6 +316,7 @@ export function XTermPanel({
       disposed = true;
       container.removeEventListener("keydown", handlePasteShortcut, true);
       container.removeEventListener("contextmenu", handleContextMenu);
+      unregisterPaste();
       stopData();
       term.dispose();
       termRef.current = null;

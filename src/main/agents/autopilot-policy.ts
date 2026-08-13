@@ -89,7 +89,9 @@ const CRITICAL_GUARDS: Guard[] = [
   { name: "pipe-to-shell", pattern: /(?:curl|wget)\b[^\n|]*\|\s*(?:sudo\s+)?(?:ba|z|k|fi)?sh\b|\|\s*(?:python3?|node|ruby|perl)\b/i },
 
   // ── Privilege and system state ─────────────────────────────────────────
-  { name: "sudo", pattern: /(?:^|[\s;&|(])(?:sudo|doas|su)\s/i },
+  // pkexec is the desktop-Linux route to the same thing, and asks through a
+  // dialog rather than the terminal — so it is the easier one to wave through.
+  { name: "sudo", pattern: /(?:^|[\s;&|(])(?:sudo|doas|su|pkexec)\s/i },
   { name: "permission-change", pattern: /\bchmod\s+(?:-R\s+)?(?:777|a\+w)|\bchown\b/i },
   { name: "global-install", pattern: /\b(?:npm|pnpm|yarn|bun)\s+(?:i|install|add)\b[^\n]*\s-g\b|\bnpm\s+install\s+--global\b|\bbrew\s+(?:install|uninstall|upgrade)\b/i },
   { name: "kill-process", pattern: /\b(?:killall|pkill)\b|\bkill\s+-9\b/i },

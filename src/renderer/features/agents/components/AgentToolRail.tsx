@@ -73,7 +73,11 @@ export function RailButton({
           <span aria-hidden className="absolute inset-y-1 -right-2 w-0.5 rounded-full bg-accent" />
         ) : null}
 
-        <UiIcon name={icon} className={clsx("h-4 w-4", live && !selected && "text-accent")} />
+        <UiIcon
+          name={icon}
+          filled={selected}
+          className={clsx("h-4 w-4", live && !selected && "text-accent")}
+        />
 
         {badge && badge > 0 ? (
           <span

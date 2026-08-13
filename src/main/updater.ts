@@ -86,10 +86,27 @@ export function initUpdater(onChange: (next: UpdateState) => void) {
   );
 }
 
+/**
+ * Builds the updater cannot replace on its own.
+ *
+ * On Linux it can only swap out an AppImage — a .deb or .rpm was put there by
+ * the system package manager and has to be updated through it. electron-updater
+ * throws in that case, which would surface as a raw error where the honest
+ * answer is that this build updates elsewhere. `APPIMAGE` is set by the
+ * AppImage runtime itself, so its absence is the test.
+ */
+function unsupportedReason(): "development" | "package-manager" | null {
+  if (!app.isPackaged) return "development";
+  if (process.platform === "linux" && !process.env.APPIMAGE) return "package-manager";
+
+  return null;
+}
+
 /** Asks the release feed what is out there. Never throws — the state says. */
 export async function checkForUpdates(): Promise<UpdateState> {
-  if (!app.isPackaged) {
-    setState({ status: "unsupported" });
+  const unsupported = unsupportedReason();
+  if (unsupported) {
+    setState({ status: "unsupported", reason: unsupported });
     return state;
   }
 
@@ -107,8 +124,9 @@ export async function checkForUpdates(): Promise<UpdateState> {
 
 /** Pulls the update the last check found. Progress arrives as state changes. */
 export async function downloadUpdate(): Promise<UpdateState> {
-  if (!app.isPackaged) {
-    setState({ status: "unsupported" });
+  const unsupported = unsupportedReason();
+  if (unsupported) {
+    setState({ status: "unsupported", reason: unsupported });
     return state;
   }
 

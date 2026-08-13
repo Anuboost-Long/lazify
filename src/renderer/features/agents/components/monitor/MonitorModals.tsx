@@ -27,6 +27,7 @@ export interface MonitorModalsProps {
   columns: MonitorColumns;
   onColumnsChange: (columns: MonitorColumns) => void;
   onCloseLayout: () => void;
+  setupKey: number;
   choosing: boolean;
   onCloseChoosing: () => void;
   onPickScript: (project: SyncedWorkspaceProject, scriptName: string) => void;
@@ -35,6 +36,7 @@ export interface MonitorModalsProps {
   availableAgents: AgentDescriptor[];
   onSelectAgent: (agentId: string, resumeSessionId?: string) => void;
   onCloseAgentPicker: () => void;
+  onBackFromAgentPicker: () => void;
   onCreateAgent: (input: { label: string; command: string; image?: string }) => Promise<void>;
   onDeleteAgent: (agentId: string) => Promise<void>;
 }
@@ -55,6 +57,7 @@ export function MonitorModals({
   columns,
   onColumnsChange,
   onCloseLayout,
+  setupKey,
   choosing,
   onCloseChoosing,
   onPickScript,
@@ -63,6 +66,7 @@ export function MonitorModals({
   availableAgents,
   onSelectAgent,
   onCloseAgentPicker,
+  onBackFromAgentPicker,
   onCreateAgent,
   onDeleteAgent,
 }: Readonly<MonitorModalsProps>) {
@@ -103,6 +107,7 @@ export function MonitorModals({
       />
 
       <AgentMonitorSetupModal
+        key={setupKey}
         open={choosing}
         projects={projects}
         onClose={onCloseChoosing}
@@ -117,6 +122,7 @@ export function MonitorModals({
           projectPath={agentProject.projectPath}
           onSelect={onSelectAgent}
           onClose={onCloseAgentPicker}
+          onBack={onBackFromAgentPicker}
           onCreate={onCreateAgent}
           onDelete={onDeleteAgent}
         />

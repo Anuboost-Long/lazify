@@ -195,7 +195,10 @@ export interface ImportedProjectIndexResult {
  */
 export type UpdateState =
   | { status: "idle" }
-  | { status: "unsupported" }
+  // `reason` distinguishes a dev run, where there is nothing to update, from a
+  // build the updater cannot replace — a Linux .deb or .rpm, which belongs to
+  // the package manager that installed it.
+  | { status: "unsupported"; reason?: "development" | "package-manager" }
   | { status: "checking" }
   | { status: "current"; version: string }
   | {

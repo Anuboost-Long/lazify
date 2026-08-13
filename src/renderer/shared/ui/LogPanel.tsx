@@ -2,6 +2,7 @@ import clsx from "clsx";
 import type { LogEntry } from "@renderer/shared/types/lazify";
 import { translation } from "@renderer/i18n/translation";
 import { BodyText, PageTitle, PillText, Typography } from "@renderer/shared/typography";
+import { CodeField } from "./code/CodeField";
 import UiIcon from "./icons/UiIcon";
 import { useTranslation } from "react-i18next";
 import { formatTime, useDateTimeFormat } from "@renderer/shared/hooks/use-date-time-format";
@@ -44,7 +45,10 @@ export function LogPanel({ logs }: LogPanelProps) {
         </PillText>
       </div>
 
-      <div className="h-[30rem] overflow-y-auto rounded-[22px] border border-border bg-bg px-4 py-3 font-mono text-sm shadow-inner">
+      <CodeField
+        revision={logs}
+        className="h-[30rem] overflow-y-auto rounded-[22px] border border-border bg-bg px-4 py-3 font-mono text-sm shadow-inner"
+      >
         {logs.length === 0 ? (
           <div className="flex h-full items-center justify-center text-muted">
             <Typography as="span" variant="body" tone="inherit">{t(translation.LogPanel.Empty)}</Typography>
@@ -53,19 +57,20 @@ export function LogPanel({ logs }: LogPanelProps) {
           logs.map((entry) => (
             <div
               key={entry.key}
+              data-code-line=""
               className={clsx(
                 "whitespace-pre-wrap border-b border-border py-2 last:border-b-0",
                 streamStyles[entry.stream]
               )}
             >
-              <Typography as="span" variant="pill" className="mr-3 text-muted">
+              <Typography as="span" variant="pill" data-code-ignore="" className="mr-3 text-muted">
                 {formatTime(new Date(entry.timestamp), timeFormat)}
               </Typography>
               {entry.message}
             </div>
           ))
         )}
-      </div>
+      </CodeField>
     </section>
   );
 }

@@ -129,7 +129,7 @@ export function Sidebar({
             )}
             aria-label={t(translation.Sidebar.StartNewWorkflow)}
           >
-            <UiIcon name="play" className="h-4 w-4 shrink-0 text-accent" />
+            <UiIcon name="play" filled className="h-4 w-4 shrink-0 text-accent" />
             {!collapsed && (
               <Typography as="span" variant="body" className="text-inherit">
                 {t(translation.Sidebar.NewWorkflow)}

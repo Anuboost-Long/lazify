@@ -15,6 +15,7 @@
     "build:electron": "tsc -p tsconfig.node.json",
     "package:mac": "npm run build && electron-builder --config electron-builder.mac.yml --publish never && npm run rebuild",
     "package:win": "npm run build && electron-builder --config electron-builder.win.yml --publish never",
+    "package:linux": "npm run build && electron-builder --config electron-builder.linux.yml --publish never",
     "start": "electron .",
     "test": "vitest run",
     "test:watch": "vitest",

@@ -5,6 +5,7 @@ import { NodeVersionPane } from "@renderer/features/workspace/components/NodeVer
 import { PackageVersionPane } from "@renderer/features/workspace/components/PackageVersionPane";
 import { ProjectAgentLauncher } from "@renderer/features/workspace/components/ProjectAgentLauncher";
 import { ScriptsPane } from "@renderer/features/workspace/components/ScriptsPane";
+import { ProjectCodeActions } from "@renderer/features/workspace/components/ProjectCodeActions";
 import { SyncedProjectViewer } from "@renderer/features/workspace/components/SyncedProjectViewer";
 import { translation } from "@renderer/i18n/translation";
 import type {
@@ -260,17 +261,19 @@ export function SyncedProjectPage({
       {/* ── Workbench: explorer, editor, and the project tool rail ── */}
       {syncedProject && projectData && (
         <div className="min-h-0 flex-1">
-          <SyncedProjectViewer
-            allowGitStatus
-            busy={busy || loading}
-            editable
-            project={projectData}
-            toolViews={toolViews}
-            onOpenConsole={() =>
-              void globalThis.lazify.openTerminal(syncedProject.projectPath)
-            }
-            onStartAgent={() => setAgentPickerOpen(true)}
-          />
+          <ProjectCodeActions projectPath={syncedProject.projectPath}>
+            <SyncedProjectViewer
+              allowGitStatus
+              busy={busy || loading}
+              editable
+              project={projectData}
+              toolViews={toolViews}
+              onOpenConsole={() =>
+                void globalThis.lazify.openTerminal(syncedProject.projectPath)
+              }
+              onStartAgent={() => setAgentPickerOpen(true)}
+            />
+          </ProjectCodeActions>
         </div>
       )}
 

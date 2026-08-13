@@ -1,9 +1,4 @@
-import { execFile } from "node:child_process";
-import { promisify } from "node:util";
-
-import { buildProcessTree, getDescendantPids, scanListeningPorts } from "./environment-scanner";
-
-const execFileAsync = promisify(execFile);
+import { buildProcessTree, getDescendantPids, readCommandLines, scanListeningPorts } from "./ports";
 
 /**
  * "Something is already using port 3000" — and then what.
@@ -48,25 +43,6 @@ export interface ListeningProcess {
   isProtected: boolean;
   /** A script Lazify started. Killable, but the Scripts pane is tidier. */
   isManaged: boolean;
-}
-
-/** pid -> full command line, from a single ps call. */
-async function readCommandLines(): Promise<Map<number, string>> {
-  const lines = new Map<number, string>();
-  try {
-    const { stdout } = await execFileAsync("ps", ["-eo", "pid=,command="], {
-      timeout: 4000,
-      maxBuffer: 4 * 1024 * 1024
-    });
-
-    for (const row of stdout.split("\n")) {
-      const match = row.trim().match(/^(\d+)\s+(.*)$/);
-      if (match) lines.set(Number(match[1]), match[2]);
-    }
-  } catch {
-    // Without argv the list still works, just with terser labels.
-  }
-  return lines;
 }
 
 /**

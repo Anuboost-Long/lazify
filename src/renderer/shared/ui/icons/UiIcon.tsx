@@ -2,9 +2,12 @@ import type { ComponentType, SVGProps } from "react";
 import {
   Activity,
   BellNotification,
+  BellNotificationSolid,
   Bug,
+  BugSolid,
   ChatBubbleQuestion,
   CheckCircle,
+  CheckCircleSolid,
   Code,
   Collapse,
   Css3,
@@ -31,6 +34,7 @@ import {
   Plus,
   Package,
   Play,
+  PlaySolid,
   RefreshCircle,
   Search,
   Settings,
@@ -45,6 +49,19 @@ import {
   WarningTriangle,
   Xmark
 } from "iconoir-react";
+import {
+  ActivitySolid,
+  CodeSolid,
+  FolderPlusSolid,
+  FolderSolid,
+  GlobeSolid,
+  HardDriveSolid,
+  JournalPageSolid,
+  MultiWindowSolid,
+  PackageSolid,
+  SettingsSolid,
+  TerminalSolid
+} from "./solid-icons";
 
 export type UiIconName =
   | "activity"
@@ -96,6 +113,8 @@ export type UiIconName =
 interface UiIconProps extends SVGProps<SVGSVGElement> {
   name: UiIconName;
   className?: string;
+  /** Draw the filled weight, for selected states. Falls back to the line icon. */
+  filled?: boolean;
 }
 
 const iconMap: Record<UiIconName, ComponentType<SVGProps<SVGSVGElement>>> = {
@@ -146,8 +165,32 @@ const iconMap: Record<UiIconName, ComponentType<SVGProps<SVGSVGElement>>> = {
   pause: Pause
 };
 
-export default function UiIcon({ name, className = "", ...props }: UiIconProps) {
-  const Icon = iconMap[name];
+/**
+ * Only the icons that carry a selected state — the sidebar rows and the
+ * right-hand tool rails — are drawn twice; every other name stays line-only.
+ * `play`, `bell`, `bug` and `check-circle` are the names iconoir already ships
+ * a solid weight for; the rest come from ./solid-icons.
+ */
+const solidIconMap: Partial<Record<UiIconName, ComponentType<SVGProps<SVGSVGElement>>>> = {
+  activity: ActivitySolid,
+  bell: BellNotificationSolid,
+  bug: BugSolid,
+  "check-circle": CheckCircleSolid,
+  code: CodeSolid,
+  folder: FolderSolid,
+  "folder-plus": FolderPlusSolid,
+  globe: GlobeSolid,
+  "hard-drive": HardDriveSolid,
+  "journal-page": JournalPageSolid,
+  "multi-window": MultiWindowSolid,
+  package: PackageSolid,
+  play: PlaySolid,
+  settings: SettingsSolid,
+  terminal: TerminalSolid
+};
+
+export default function UiIcon({ name, filled = false, className = "", ...props }: UiIconProps) {
+  const Icon = (filled && solidIconMap[name]) || iconMap[name];
 
   return <Icon aria-hidden="true" className={className} {...props} />;
 }

@@ -160,6 +160,7 @@ export function OptimizedEditorPane({
         variant={flush ? "flush" : "panel"}
         content={selectedFileState?.content ?? ""}
         fileName={selectedNode.name}
+        filePath={selectedNode.absolutePath ?? selectedPath}
         onContentChange={editable ? onContentChange : undefined}
         // Only the file view resolves symbols; a diff's line numbers belong to
         // the patch, not the file, so a jump into one would land nowhere.

@@ -3,6 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 import { CommandRunner } from "./command-runner";
+import { logWarn } from "./diagnostics/logger";
 import { APP_ICON_PATH } from "./icon-path";
 import { PtyRunner } from "./pty-runner";
 import { refreshCatalog } from "./scaffolding/catalog";
@@ -84,7 +85,10 @@ const emitAttention = (runId: string, waiting: boolean, hold: AutopilotHold | nu
   if (Notification.isSupported()) {
     new Notification({
       title: `${session.scriptName} needs you`,
-      body: `${session.projectName} is waiting for a response.`
+      body: `${session.projectName} is waiting for a response.`,
+      // Linux notifications carry no application identity of their own — with
+      // no icon the banner arrives blank, from nothing the user can recognise.
+      icon: APP_ICON_PATH
     }).show();
   }
 
@@ -126,7 +130,8 @@ const emitTurnDone = (runId: string) => {
   if (Notification.isSupported()) {
     const notification = new Notification({
       title: `${session.scriptName} is done`,
-      body: `${session.projectName} finished the task you gave it.`
+      body: `${session.projectName} finished the task you gave it.`,
+      icon: APP_ICON_PATH
     });
 
     notification.on("click", () => focusRun(payload));
@@ -161,6 +166,14 @@ const ptyRunner = new PtyRunner(
     // The session is already gone from the runner by the time this fires, so
     // there is nothing to look up — the renderer clears its own badge off the
     // same status event.
+    // A script that exits non-zero is the thing a support request is about, and
+    // the terminal pane holding the reason is gone as soon as the tab is.
+    if (typeof event.exitCode === "number" && event.exitCode !== 0) {
+      logWarn("scripts", `"${event.scriptName}" exited with ${event.exitCode}`, {
+        runId: event.runId
+      });
+    }
+
     if (event.status === "done" || event.status === "error") {
       attentionDetector.forget(event.runId);
       autopilot.forget(event.runId);

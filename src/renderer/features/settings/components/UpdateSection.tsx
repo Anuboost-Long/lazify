@@ -39,7 +39,10 @@ export function UpdateSection() {
       case "error":
         return `${t(translation.Settings.UpdateError)} — ${state.message}`;
       case "unsupported":
-        return t(translation.Settings.UpdateUnsupported);
+        // A .deb or .rpm is not a broken updater — it is one owned by apt.
+        return state.reason === "package-manager"
+          ? t(translation.Settings.UpdateUnsupportedPackageManager)
+          : t(translation.Settings.UpdateUnsupported);
       default:
         return t(translation.Settings.UpdateIdle);
     }
