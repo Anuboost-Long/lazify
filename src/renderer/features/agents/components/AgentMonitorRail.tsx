@@ -58,6 +58,14 @@ export function AgentMonitorRail({
       />
 
       <RailButton
+        icon="key"
+        label={forTarget(t(translation.EnvPane.Title))}
+        selected={railTab === "env"}
+        disabled={!scoped}
+        onClick={() => onToggleRail("env")}
+      />
+
+      <RailButton
         icon="terminal"
         label={forTarget(t(translation.Agents.Console))}
         selected={false}

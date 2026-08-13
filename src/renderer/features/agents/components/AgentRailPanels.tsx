@@ -4,6 +4,7 @@ import type { AgentFileChange, AgentUsageReport } from "@renderer/shared/types/l
 import { AgentActivityPanel } from "./AgentActivityPanel";
 import { AgentChangesPanel } from "./AgentChangesPanel";
 import { AgentDebugPanel } from "./AgentDebugPanel";
+import { AgentEnvPanel } from "./env/AgentEnvPanel";
 import { AgentFilesPanel } from "./files";
 import { AgentPreviewPanel } from "./preview";
 import { AgentRailPanelHost } from "./AgentRailPanelHost";
@@ -127,6 +128,12 @@ export function AgentRailPanels({
             onToggleAutopilot={onToggleAutopilot}
             onToggleAutopilotProject={onToggleAutopilotProject}
           />
+        </AgentRailPanelHost>
+      ) : null}
+
+      {railTab === "env" ? (
+        <AgentRailPanelHost asModal={asModal} onClose={onCloseRail}>
+          <AgentEnvPanel variant={variant} projectPath={projectPath} onClose={onCloseRail} />
         </AgentRailPanelHost>
       ) : null}
 

@@ -7,6 +7,9 @@ import type { NpmPackageSearchResult } from "../main/scaffolding/npm-registry";
 import type {
   AgentFileChange,
   AgentUsageReport,
+  EnvFileSummary,
+  EnvVariablePatch,
+  ProjectEnvFile,
   InstalledPackage,
   NpmAuditResult,
   NpmOutdatedResult,
@@ -123,6 +126,29 @@ const lazifyApi = {
     ipcRenderer.invoke("lazify:npm-outdated", projectPath),
   getNpmAudit: (projectPath: string): Promise<NpmAuditResult> =>
     ipcRenderer.invoke("lazify:npm-audit", projectPath),
+  listEnvFiles: (projectPath: string): Promise<EnvFileSummary[]> =>
+    ipcRenderer.invoke("lazify:list-env-files", projectPath),
+  readEnvFile: (projectPath: string, fileName: string): Promise<ProjectEnvFile> =>
+    ipcRenderer.invoke("lazify:read-env-file", projectPath, fileName),
+  updateEnvVariable: (
+    projectPath: string,
+    fileName: string,
+    line: number,
+    expectedKey: string,
+    patch: EnvVariablePatch
+  ): Promise<ProjectEnvFile> =>
+    ipcRenderer.invoke("lazify:update-env-variable", projectPath, fileName, line, expectedKey, patch),
+  deleteEnvVariable: (
+    projectPath: string,
+    fileName: string,
+    line: number,
+    expectedKey: string
+  ): Promise<ProjectEnvFile> =>
+    ipcRenderer.invoke("lazify:delete-env-variable", projectPath, fileName, line, expectedKey),
+  addEnvVariable: (projectPath: string, fileName: string, key: string, value: string): Promise<ProjectEnvFile> =>
+    ipcRenderer.invoke("lazify:add-env-variable", projectPath, fileName, key, value),
+  createEnvFile: (projectPath: string, fileName: string): Promise<ProjectEnvFile> =>
+    ipcRenderer.invoke("lazify:create-env-file", projectPath, fileName),
   listScripts: (projectPath: string): Promise<Record<string, string>> =>
     ipcRenderer.invoke("lazify:list-scripts", projectPath),
   runScript: (projectPath: string, scriptName: string, cols?: number, rows?: number): Promise<{ runId: string; ptyAvailable: boolean }> =>

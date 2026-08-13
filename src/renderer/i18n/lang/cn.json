@@ -674,6 +674,31 @@
     "loading": "检查中…",
     "error": "检查失败"
   },
+  "env_pane": {
+    "title": "环境变量",
+    "name": "名称",
+    "value": "值",
+    "name_placeholder": "VARIABLE_NAME",
+    "value_placeholder": "值",
+    "add_variable": "添加变量",
+    "edit_variable": "编辑",
+    "confirm_delete": "确认删除",
+    "enable": "启用",
+    "disable": "注释掉",
+    "show_values": "显示值",
+    "hide_values": "隐藏值",
+    "empty_value": "（空）",
+    "empty": "此文件中没有变量。",
+    "no_files": "此项目没有 .env 文件。",
+    "create_file": "创建 .env",
+    "no_project": "打开一个项目以读取其环境变量。",
+    "summary": "{{count}} 个启用",
+    "summary_with_disabled": "{{count}} 个启用 · {{disabled}} 个关闭",
+    "group_active": "启用中",
+    "group_disabled": "已注释",
+    "duplicate_name": "{{name}} 已存在于此文件中。",
+    "invalid_name": "请使用字母、数字、下划线或点，并以字母或下划线开头。"
+  },
   "template_card": {
     "delete": "删除模板",
     "selected": "已选择"

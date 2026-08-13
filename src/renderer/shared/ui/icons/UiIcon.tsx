@@ -13,6 +13,7 @@ import {
   Css3,
   Database,
   Download,
+  EditPencil,
   EmptyPage,
   Expand,
   Folder,
@@ -23,6 +24,7 @@ import {
   Html5,
   Import,
   JournalPage,
+  Key,
   Menu,
   MediaImage,
   MediaVideo,
@@ -57,6 +59,7 @@ import {
   GlobeSolid,
   HardDriveSolid,
   JournalPageSolid,
+  KeySolid,
   MultiWindowSolid,
   PackageSolid,
   SettingsSolid,
@@ -73,6 +76,7 @@ export type UiIconName =
   | "css"
   | "database"
   | "download"
+  | "edit"
   | "empty-page"
   | "expand"
   | "folder"
@@ -82,6 +86,7 @@ export type UiIconName =
   | "html"
   | "import"
   | "journal-page"
+  | "key"
   | "media-image"
   | "media-video"
   | "multi-window"
@@ -127,6 +132,7 @@ const iconMap: Record<UiIconName, ComponentType<SVGProps<SVGSVGElement>>> = {
   css: Css3,
   database: Database,
   download: Download,
+  edit: EditPencil,
   "empty-page": EmptyPage,
   expand: Expand,
   folder: Folder,
@@ -136,6 +142,7 @@ const iconMap: Record<UiIconName, ComponentType<SVGProps<SVGSVGElement>>> = {
   html: Html5,
   import: Import,
   "journal-page": JournalPage,
+  key: Key,
   "media-image": MediaImage,
   "media-video": MediaVideo,
   "multi-window": MultiWindow,
@@ -182,6 +189,7 @@ const solidIconMap: Partial<Record<UiIconName, ComponentType<SVGProps<SVGSVGElem
   globe: GlobeSolid,
   "hard-drive": HardDriveSolid,
   "journal-page": JournalPageSolid,
+  key: KeySolid,
   "multi-window": MultiWindowSolid,
   package: PackageSolid,
   play: PlaySolid,

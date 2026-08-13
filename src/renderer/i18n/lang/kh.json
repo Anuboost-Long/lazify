@@ -674,6 +674,31 @@
     "loading": "កំពុងពិនិត្យ…",
     "error": "ការពិនិត្យបរាជ័យ"
   },
+  "env_pane": {
+    "title": "បរិស្ថាន",
+    "name": "ឈ្មោះ",
+    "value": "តម្លៃ",
+    "name_placeholder": "VARIABLE_NAME",
+    "value_placeholder": "តម្លៃ",
+    "add_variable": "បន្ថែមអថេរ",
+    "edit_variable": "កែសម្រួល",
+    "confirm_delete": "លុបជាស្ថាពរ",
+    "enable": "បើក",
+    "disable": "ដាក់ជាមតិយោបល់",
+    "show_values": "បង្ហាញតម្លៃ",
+    "hide_values": "លាក់តម្លៃ",
+    "empty_value": "(ទទេ)",
+    "empty": "គ្មានអថេរនៅក្នុងឯកសារនេះទេ។",
+    "no_files": "គ្មានឯកសារ .env នៅក្នុងគម្រោងនេះទេ។",
+    "create_file": "បង្កើត .env",
+    "no_project": "បើកគម្រោងមួយដើម្បីអានបរិស្ថានរបស់វា។",
+    "summary": "សកម្ម {{count}}",
+    "summary_with_disabled": "សកម្ម {{count}} · បិទ {{disabled}}",
+    "group_active": "សកម្ម",
+    "group_disabled": "ដាក់ជាមតិយោបល់",
+    "duplicate_name": "{{name}} មាននៅក្នុងឯកសារនេះរួចហើយ។",
+    "invalid_name": "ប្រើអក្សរ លេខ សញ្ញាគូស ឬចុច ដោយចាប់ផ្តើមដោយអក្សរ ឬសញ្ញាគូស។"
+  },
   "template_card": {
     "delete": "លុបគំរូ",
     "selected": "បានជ្រើស"

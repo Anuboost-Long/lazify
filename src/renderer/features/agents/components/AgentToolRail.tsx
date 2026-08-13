@@ -160,6 +160,13 @@ export function AgentToolRail({
       />
 
       <RailButton
+        icon="key"
+        label={t(translation.EnvPane.Title)}
+        selected={railTab === "env"}
+        onClick={() => onToggleRail("env")}
+      />
+
+      <RailButton
         icon="terminal"
         label={t(translation.Agents.Console)}
         selected={false}

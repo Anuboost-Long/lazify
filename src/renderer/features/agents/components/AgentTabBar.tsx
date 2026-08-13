@@ -13,7 +13,7 @@ import { AgentPickerModal } from "./agent-picker";
 import { RunScriptPicker } from "./RunScriptPicker";
 import { AgentTab } from "./tab-bar/AgentTab";
 
-export type AgentRailTab = "changes" | "usage" | "files" | "debug" | "activity";
+export type AgentRailTab = "changes" | "usage" | "files" | "debug" | "activity" | "env";
 
 interface AgentTabBarProps {
   terminals: AgentTerminal[];

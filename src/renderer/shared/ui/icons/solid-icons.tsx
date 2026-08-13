@@ -150,6 +150,17 @@ export function JournalPageSolid(props: SVGProps<SVGSVGElement>) {
   );
 }
 
+export function KeySolid(props: SVGProps<SVGSVGElement>) {
+  return (
+    <KnockoutSvg maskName="key-solid" detail={<circle cx="6" cy="12" r="0.6" />} {...props}>
+      <path d="M6 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8Z" />
+      <g fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+        <path d="M10 12h12v3" />
+      </g>
+    </KnockoutSvg>
+  );
+}
+
 export function TerminalSolid(props: SVGProps<SVGSVGElement>) {
   return (
     <StrokeSvg {...props}>

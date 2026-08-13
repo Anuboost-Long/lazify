@@ -9,6 +9,9 @@ import type { TemplatePackageEntry } from "../main/scaffolding/template-package-
 import type {
   AgentFileChange,
   AgentUsageReport,
+  EnvFileSummary,
+  EnvVariablePatch,
+  ProjectEnvFile,
   NpmAuditResult,
   NpmOutdatedResult,
   ProjectGitStatusResult,
@@ -87,6 +90,34 @@ declare global {
       getNpmOutdated: (projectPath: string) => Promise<NpmOutdatedResult>;
       getNpmAudit: (projectPath: string) => Promise<NpmAuditResult>;
       listSessions: () => Promise<import("./shared/types/lazify").PtySession[]>;
+      /** The project's .env files, and the variables inside the one asked for. */
+      listEnvFiles: (projectPath: string) => Promise<EnvFileSummary[]>;
+      readEnvFile: (projectPath: string, fileName: string) => Promise<ProjectEnvFile>;
+      /**
+       * Each mutation names the line *and* the key it expects to find there, so
+       * an edit racing a change on disk is refused rather than misapplied. All
+       * of them answer with the whole re-parsed file.
+       */
+      updateEnvVariable: (
+        projectPath: string,
+        fileName: string,
+        line: number,
+        expectedKey: string,
+        patch: EnvVariablePatch
+      ) => Promise<ProjectEnvFile>;
+      deleteEnvVariable: (
+        projectPath: string,
+        fileName: string,
+        line: number,
+        expectedKey: string
+      ) => Promise<ProjectEnvFile>;
+      addEnvVariable: (
+        projectPath: string,
+        fileName: string,
+        key: string,
+        value: string
+      ) => Promise<ProjectEnvFile>;
+      createEnvFile: (projectPath: string, fileName: string) => Promise<ProjectEnvFile>;
       listScripts: (projectPath: string) => Promise<Record<string, string>>;
       runScript: (projectPath: string, scriptName: string, cols?: number, rows?: number) => Promise<{ runId: string; ptyAvailable: boolean }>;
       stopScript: (runId: string) => Promise<void>;

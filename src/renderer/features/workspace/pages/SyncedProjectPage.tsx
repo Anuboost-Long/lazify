@@ -1,4 +1,5 @@
 import { PageActions, PageCrumb } from "@renderer/app/components/PageChrome";
+import { EnvPane } from "@renderer/features/env";
 import { DependencyPane } from "@renderer/features/workspace/components/DependencyPane";
 import { HealthPane } from "@renderer/features/workspace/components/HealthPane";
 import { NodeVersionPane } from "@renderer/features/workspace/components/NodeVersionPane";
@@ -171,6 +172,12 @@ export function SyncedProjectPage({
           content: (
             <PackageVersionPane projectPath={syncedProject.projectPath} />
           ),
+        },
+        {
+          id: "env",
+          label: t(translation.EnvPane.Title),
+          icon: "key",
+          content: <EnvPane projectPath={syncedProject.projectPath} />,
         },
       ]
     : [];
