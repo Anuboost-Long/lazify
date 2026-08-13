@@ -1,5 +1,6 @@
 import clsx from "clsx";
 import { useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 
 import { SmallText } from "@renderer/shared/typography";
 import UiIcon, { type UiIconName } from "@renderer/shared/ui/icons/UiIcon";
@@ -58,12 +59,19 @@ export function CodeContextMenu({
   const left = Math.min(position.x, globalThis.innerWidth - MENU_WIDTH - VIEWPORT_MARGIN);
   const top = Math.min(position.y, globalThis.innerHeight - height - VIEWPORT_MARGIN);
 
-  return (
+  /* Portalled to the body, not left where the code is: the pointer's
+     coordinates are the viewport's, and `fixed` only means the viewport while
+     no ancestor carries a transform, filter or backdrop-filter. Modals do —
+     BaseModal translates its content and blurs its backdrop — so a menu
+     rendered inside one is offset by the modal's own position, landing far
+     from the text that was right-clicked. At the body it has no such ancestor,
+     and z-[60] clears the modal layer it used to sit inside. */
+  return createPortal(
     <div
       ref={rootRef}
       role="menu"
       className={clsx(
-        "fixed z-40 min-w-[13rem] rounded-[16px] border border-border",
+        "fixed z-[60] min-w-[13rem] rounded-[16px] border border-border",
         "bg-soft p-2 shadow-panel"
       )}
       style={{ left: Math.max(VIEWPORT_MARGIN, left), top: Math.max(VIEWPORT_MARGIN, top) }}
@@ -91,6 +99,7 @@ export function CodeContextMenu({
           </SmallText>
         </button>
       ))}
-    </div>
+    </div>,
+    document.body
   );
 }

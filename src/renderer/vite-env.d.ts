@@ -217,6 +217,9 @@ declare global {
       pushBranch: (
         projectPath: string,
       ) => Promise<import("../main/projects/git-actions").GitActionResult>;
+      pullBranch: (
+        projectPath: string,
+      ) => Promise<import("../main/projects/git-actions").GitActionResult>;
       /** Where a dropped file lives on disk; empty when it has no path. */
       pathForDroppedFile: (file: File) => string;
       /** DMG compiler: pick an app, pick where the image goes, build it. */

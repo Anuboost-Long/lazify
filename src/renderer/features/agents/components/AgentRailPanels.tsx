@@ -6,6 +6,7 @@ import { AgentChangesPanel } from "./AgentChangesPanel";
 import { AgentDebugPanel } from "./AgentDebugPanel";
 import { AgentEnvPanel } from "./env/AgentEnvPanel";
 import { AgentFilesPanel } from "./files";
+import { AgentGitModal } from "./git";
 import { AgentPreviewPanel } from "./preview";
 import { AgentRailPanelHost } from "./AgentRailPanelHost";
 import { AgentUsagePanel } from "./usage";
@@ -111,6 +112,11 @@ export function AgentRailPanels({
             onClose={onCloseRail}
           />
         </AgentRailPanelHost>
+      ) : null}
+
+      {/* Source control is a modal in both layouts, never a rail panel. */}
+      {railTab === "git" ? (
+        <AgentGitModal projectPath={projectPath} onClose={onCloseRail} />
       ) : null}
 
       {railTab === "activity" ? (

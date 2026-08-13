@@ -1,6 +1,6 @@
 import { ipcMain } from "electron";
 import { getFileDiff, getWorkingChanges } from "../agents/agent-changes";
-import { commitChanges, discardChanges, pushCurrentBranch, stageFiles, unstageFiles } from "../projects/git-actions";
+import { commitChanges, discardChanges, pullCurrentBranch, pushCurrentBranch, stageFiles, unstageFiles } from "../projects/git-actions";
 import { checkoutProjectBranch, getProjectGitStatus } from "../projects/project-git-status";
 
 export function registerGitHandlers() {
@@ -40,5 +40,9 @@ export function registerGitHandlers() {
 
   ipcMain.handle("lazify:push-branch", async (_event, projectPath: string) =>
     pushCurrentBranch(projectPath)
+  );
+
+  ipcMain.handle("lazify:pull-branch", async (_event, projectPath: string) =>
+    pullCurrentBranch(projectPath)
   );
 }

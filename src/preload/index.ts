@@ -256,6 +256,8 @@ const lazifyApi = {
     ipcRenderer.invoke("lazify:commit-changes", projectPath, message),
   pushBranch: (projectPath: string): Promise<GitActionResult> =>
     ipcRenderer.invoke("lazify:push-branch", projectPath),
+  pullBranch: (projectPath: string): Promise<GitActionResult> =>
+    ipcRenderer.invoke("lazify:pull-branch", projectPath),
   /**
    * Where a dropped file actually lives on disk.
    *

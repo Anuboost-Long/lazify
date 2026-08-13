@@ -78,6 +78,24 @@ describe("right-click menu over a code selection", () => {
     expect(selection.text).toContain("const answer = 42;");
   });
 
+  it("opens on the body at the pointer, clear of any transformed ancestor", () => {
+    const { container } = renderSurface([
+      { id: "send", label: "Send to agent", onSelect: () => {} }
+    ]);
+
+    highlight(container, 0, 0);
+    fireEvent.contextMenu(container.querySelector("pre")!, { clientX: 400, clientY: 300 });
+
+    const menu = screen.getByRole("menu");
+
+    // Inside a modal — a transformed ancestor — a fixed menu would be offset by
+    // the modal's own position instead of landing on the click.
+    expect(container.contains(menu)).toBe(false);
+    expect(menu.parentElement).toBe(document.body);
+    expect(menu.style.left).toBe("400px");
+    expect(menu.style.top).toBe("300px");
+  });
+
   it("stays out of the way when nothing is highlighted", () => {
     const { container } = renderSurface([
       { id: "send", label: "Send to agent", onSelect: () => {} }

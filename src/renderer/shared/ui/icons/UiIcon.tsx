@@ -18,6 +18,7 @@ import {
   Expand,
   Folder,
   FolderPlus,
+  GitBranch,
   Globe,
   HalfMoon,
   HardDrive,
@@ -81,6 +82,7 @@ export type UiIconName =
   | "expand"
   | "folder"
   | "folder-plus"
+  | "git-branch"
   | "globe"
   | "hard-drive"
   | "html"
@@ -137,6 +139,7 @@ const iconMap: Record<UiIconName, ComponentType<SVGProps<SVGSVGElement>>> = {
   expand: Expand,
   folder: Folder,
   "folder-plus": FolderPlus,
+  "git-branch": GitBranch,
   globe: Globe,
   "hard-drive": HardDrive,
   html: Html5,

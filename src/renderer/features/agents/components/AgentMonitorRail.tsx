@@ -50,6 +50,14 @@ export function AgentMonitorRail({
       />
 
       <RailButton
+        icon="git-branch"
+        label={forTarget(t(translation.Agents.GitChanges))}
+        selected={railTab === "git"}
+        disabled={!scoped}
+        onClick={() => onToggleRail("git")}
+      />
+
+      <RailButton
         icon="folder"
         label={forTarget(t(translation.Agents.Files))}
         selected={railTab === "files"}

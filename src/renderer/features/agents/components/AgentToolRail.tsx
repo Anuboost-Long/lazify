@@ -153,6 +153,13 @@ export function AgentToolRail({
       />
 
       <RailButton
+        icon="git-branch"
+        label={t(translation.Agents.GitChanges)}
+        selected={railTab === "git"}
+        onClick={() => onToggleRail("git")}
+      />
+
+      <RailButton
         icon="folder"
         label={t(translation.Agents.Files)}
         selected={railTab === "files"}
