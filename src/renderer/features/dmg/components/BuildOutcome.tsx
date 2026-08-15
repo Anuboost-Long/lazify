@@ -26,7 +26,7 @@ function OutcomeCard({
       className={clsx(
         "relative flex gap-4 overflow-hidden",
         align,
-        "border border-border rounded-[20px] bg-soft px-4 py-3.5 shadow-panel",
+        "rounded-2xl border border-border bg-soft px-4 py-3.5",
         "animate-fadeIn"
       )}
     >

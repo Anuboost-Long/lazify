@@ -9,6 +9,7 @@ import { AgentFilesPanel } from "./files";
 import { AgentGitModal } from "./git";
 import { AgentPreviewPanel } from "./preview";
 import { AgentRailPanelHost } from "./AgentRailPanelHost";
+import { AgentTaskPanel } from "../../tasks/components/AgentTaskPanel";
 import { AgentUsagePanel } from "./usage";
 import type { AgentRailTab } from "./AgentTabBar";
 
@@ -41,6 +42,7 @@ interface AgentRailPanelsProps {
   onToggleAutopilotProject: (next: boolean) => void;
 
   onSendToTerminal: ((text: string) => void) | null;
+
 
   previewOpen: boolean;
   previewUrl: string | null;
@@ -140,6 +142,16 @@ export function AgentRailPanels({
       {railTab === "env" ? (
         <AgentRailPanelHost asModal={asModal} onClose={onCloseRail}>
           <AgentEnvPanel variant={variant} projectPath={projectPath} onClose={onCloseRail} />
+        </AgentRailPanelHost>
+      ) : null}
+
+      {railTab === "tasks" ? (
+        <AgentRailPanelHost asModal={asModal} onClose={onCloseRail}>
+          <AgentTaskPanel
+            variant={variant}
+            projectPath={projectPath}
+            onClose={onCloseRail}
+          />
         </AgentRailPanelHost>
       ) : null}
 

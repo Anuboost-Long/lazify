@@ -123,15 +123,17 @@ export function Sidebar({
             onClick={onStartWorkflow}
             className={clsx(
               "mb-4 flex items-center gap-3",
-              "rounded-xl border border-border bg-bg px-3 py-3",
-              "text-sm font-medium text-text hover:border-accent",
+              "rounded-xl bg-accent px-3 py-3 transition-colors hover:bg-accentHover",
+              "text-sm font-medium text-white",
               collapsed && "justify-center px-0"
             )}
             aria-label={t(translation.Sidebar.StartNewWorkflow)}
           >
-            <UiIcon name="play" filled className="h-4 w-4 shrink-0 text-accent" />
+            <UiIcon name="play" filled className="h-4 w-4 shrink-0 text-white" />
+            {/* Forced rather than inherited: the variant carries `text-text`,
+                which flips with the theme and would go dark on the accent. */}
             {!collapsed && (
-              <Typography as="span" variant="body" className="text-inherit">
+              <Typography as="span" variant="body" className="!text-white">
                 {t(translation.Sidebar.NewWorkflow)}
               </Typography>
             )}

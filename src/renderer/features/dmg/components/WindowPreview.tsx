@@ -39,7 +39,7 @@ export function WindowPreview({
         </PillText>
       </div>
 
-      <div className="overflow-hidden border border-border rounded-xl bg-bg shadow-panel">
+      <div className="overflow-hidden rounded-xl border border-border bg-bg">
         {/* Title bar. Traffic lights in the border colour rather than in red,
             amber and green — this is a diagram of a window, not a copy of one. */}
         <div className="flex items-center gap-2 border-b border-border bg-soft px-2.5 py-1.5">

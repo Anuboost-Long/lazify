@@ -85,6 +85,10 @@ export function useAgentActivityRecorder(): void {
         projectName: event.projectName,
         agentLabel: event.agentLabel,
       });
+
+      // Any task run this agent was still holding open is over. The task keeps
+      // its own status: the agent's turn ending is not the work being finished.
+      void globalThis.lazify.completeAgentTaskRuns(event.runId);
     });
   }, [record]);
 }

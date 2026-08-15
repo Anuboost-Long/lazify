@@ -2,7 +2,9 @@ import clsx from "clsx";
 import { useTranslation } from "react-i18next";
 
 import { translation } from "@renderer/i18n/translation";
-import { BodyText, CardTitle } from "@renderer/shared/typography";
+import { dmgCompilerTool } from "@renderer/features/tools/catalog";
+import { toolColorVars } from "@renderer/features/tools/lib/tool-colors";
+import { CaptionText, CardTitle } from "@renderer/shared/typography";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import { FlowHint } from "./FlowHint";
 
@@ -11,7 +13,13 @@ interface AppPickerDropzoneProps {
   onChoose: () => void;
 }
 
-/** Nothing picked yet: the panel is one large tactile target. */
+/**
+ * Nothing picked yet.
+ *
+ * A bounded, dashed target rather than text floating in an open panel: the one
+ * thing this state has to say is "the app goes here", and a drop target that
+ * does not look like one says it badly.
+ */
 export function AppPickerDropzone({ dragging, onChoose }: AppPickerDropzoneProps) {
   const { t } = useTranslation();
 
@@ -19,42 +27,38 @@ export function AppPickerDropzone({ dragging, onChoose }: AppPickerDropzoneProps
     <button
       type="button"
       onClick={onChoose}
+      style={toolColorVars(dmgCompilerTool)}
       className={clsx(
-        "flex w-full flex-col items-center gap-3",
-        "rounded-[20px] px-6 py-12 text-center",
-        "transition-[transform,background-color] duration-300",
-        dragging ? "bg-accent/[0.05]" : "hover:-translate-y-1 hover:bg-accent/[0.03]"
+        "flex w-full flex-col items-center justify-center gap-3",
+        "min-h-[220px] rounded-2xl border border-dashed px-6 py-8 text-center",
+        "outline-none transition-colors duration-200",
+        "focus-visible:ring-2 focus-visible:ring-accent/60",
+        dragging
+          ? "border-[var(--tool)] bg-[var(--tool-tile)]"
+          : "border-border hover:border-[var(--tool-border)] hover:bg-[var(--tool-tile)]"
       )}
     >
       <span
         className={clsx(
-          "flex h-16 w-16 items-center justify-center",
-          "border rounded-[22px]",
-          // Colours belong in the list: this chip goes muted → accent on hover
-          // and on drag-over, and leaving `color` and `background-color` out
-          // made the one moment the page is meant to feel responsive snap
-          // instead of ease.
-          "transition-[transform,box-shadow,border-color,background-color,color]",
-          "duration-300",
-          dragging
-            ? "scale-105 border-accent/40 bg-accent/10 text-accent shadow-accent-icon"
-            : "border-border bg-soft text-muted group-hover:-rotate-3 group-hover:scale-105 group-hover:border-accent/20 group-hover:text-accent"
+          "flex h-12 w-12 items-center justify-center rounded-2xl",
+          "bg-[var(--tool-icon)] text-[var(--tool)] transition-transform duration-200",
+          dragging && "scale-105"
         )}
       >
-        <UiIcon name={dragging ? "package" : "hard-drive"} className="h-7 w-7" />
+        <UiIcon name={dragging ? "package" : "hard-drive"} filled={dragging} className="h-5 w-5" />
       </span>
 
-      <CardTitle className="text-xl">
-        {t(dragging ? translation.DmgCompiler.DropNow : translation.DmgCompiler.ChooseApp)}
-      </CardTitle>
+      <div className="flex flex-col items-center gap-1">
+        <CardTitle className="!text-text">
+          {t(dragging ? translation.DmgCompiler.DropNow : translation.DmgCompiler.ChooseApp)}
+        </CardTitle>
 
-      <BodyText tone="muted" className="max-w-sm leading-relaxed">
-        {t(translation.DmgCompiler.ChooseAppHint)}
-      </BodyText>
-
-      <div className="mt-2">
-        <FlowHint />
+        <CaptionText tone="muted" className="max-w-sm leading-6">
+          {t(translation.DmgCompiler.ChooseAppHint)}
+        </CaptionText>
       </div>
+
+      <FlowHint />
     </button>
   );
 }

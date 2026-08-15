@@ -1,5 +1,6 @@
 export const appRoute = {
   root: "/",
+  home: "/home",
   initProject: "/init-project",
   initProjectSetup: "/init-project/setup",
   initProjectProgress: "/init-project/progress",
@@ -12,11 +13,15 @@ export const appRoute = {
   templateEdit: "/templates/:templateId/edit",
   settings: "/settings",
   environment: "/environment",
+  tools: "/tools",
+  toolsPromptBuilder: "/tools/prompt-builder",
+  toolsDmgCompiler: "/tools/dmg-compiler",
+  toolsEnvironment: "/tools/environment",
   dmgCompiler: "/dmg-compiler",
   legal: "/legal/:doc",
 } as const;
 
-export const defaultAppRoute = appRoute.workspace;
+export const defaultAppRoute = appRoute.home;
 
 export function getWorkspaceProjectRoute(projectPath: string) {
   return `/workspace/project/${encodeURIComponent(projectPath)}`;

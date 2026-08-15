@@ -1,4 +1,5 @@
 import { PageActions, PageCrumb } from "@renderer/app/components/PageChrome";
+import { WorkspaceTaskModal } from "@renderer/features/tasks/components/WorkspaceTaskModal";
 import { EnvPane } from "@renderer/features/env";
 import { DependencyPane } from "@renderer/features/workspace/components/DependencyPane";
 import { HealthPane } from "@renderer/features/workspace/components/HealthPane";
@@ -46,6 +47,7 @@ export function SyncedProjectPage({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const [agentPickerOpen, setAgentPickerOpen] = useState(false);
+  const [addingTask, setAddingTask] = useState(false);
 
   const [installing, setInstalling] = useState(false);
   const [installFeedback, setInstallFeedback] = useState<{
@@ -184,6 +186,12 @@ export function SyncedProjectPage({
 
   return (
     <div className="flex h-full min-h-0 flex-col gap-3">
+      <WorkspaceTaskModal
+        open={addingTask}
+        projectPath={decodedPath}
+        onClose={() => setAddingTask(false)}
+      />
+
       {/* The page's identity and actions live in the shell's top bar, so the
           page body starts straight at the content. "Workspace" in the
           breadcrumb is the way back. */}
@@ -196,6 +204,15 @@ export function SyncedProjectPage({
 
       {syncedProject && (
         <PageActions>
+          <button
+            type="button"
+            onClick={() => setAddingTask(true)}
+            className="inline-flex items-center gap-1.5 rounded-[8px] border border-border px-3 py-1 text-xs font-semibold text-text transition-colors hover:border-accent/40 hover:text-accent"
+          >
+            <UiIcon name="check-circle" className="h-3.5 w-3.5" />
+            {t(translation.Tasks.AddTask)}
+          </button>
+
           <button
             type="button"
             onClick={() => void handleInstallDependencies()}

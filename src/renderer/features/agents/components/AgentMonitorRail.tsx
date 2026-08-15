@@ -74,6 +74,14 @@ export function AgentMonitorRail({
       />
 
       <RailButton
+        icon="check-circle"
+        label={forTarget(t(translation.Tasks.Title))}
+        selected={railTab === "tasks"}
+        disabled={!scoped}
+        onClick={() => onToggleRail("tasks")}
+      />
+
+      <RailButton
         icon="terminal"
         label={forTarget(t(translation.Agents.Console))}
         selected={false}

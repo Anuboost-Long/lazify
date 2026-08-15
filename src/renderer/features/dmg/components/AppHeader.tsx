@@ -28,7 +28,7 @@ export function AppHeader({ app, building, onChangeApp }: AppHeaderProps) {
       <span
         className={clsx(
           "flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden",
-          "border rounded-[20px]",
+          "rounded-2xl border",
           // The chip changes shape *and* palette when an app lands — accent
           // placeholder to neutral icon frame — so the colours ease with the
           // rotation rather than cutting to the new state.

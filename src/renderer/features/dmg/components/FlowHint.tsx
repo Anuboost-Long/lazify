@@ -19,12 +19,7 @@ export function FlowHint() {
     <div className="flex flex-wrap items-center justify-center gap-1.5">
       {steps.map((step, index) => (
         <div key={step.label} className="flex items-center gap-1.5">
-          <span
-            className={clsx(
-              "flex items-center gap-1.5",
-              "border border-border rounded-full bg-soft px-2.5 py-1 text-muted"
-            )}
-          >
+          <span className={clsx("flex items-center gap-1.5", "text-muted")}>
             <UiIcon name={step.icon} className="h-3 w-3" />
             <PillText as="span">{t(step.label)}</PillText>
           </span>

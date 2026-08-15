@@ -98,6 +98,7 @@ export function AppShell() {
           location.pathname.startsWith("/workspace/project/")) ||
         (page.id === "templates" &&
           location.pathname.startsWith(`${appRoute.templates}/`)) ||
+        (page.id === "tools" && location.pathname.startsWith(`${appRoute.tools}/`)) ||
         // Legal documents are reached from Settings, so keep it highlighted.
         (page.id === "settings" && location.pathname.startsWith("/legal/")),
     )?.id ?? null;
@@ -118,7 +119,10 @@ export function AppShell() {
   // screen has, and a fixed max-width would leave them stranded mid-window.
   const fullBleed =
     location.pathname.startsWith("/workspace/project/") ||
-    location.pathname === appRoute.agents;
+    location.pathname === appRoute.agents ||
+    // Tools are workbenches: they fill the window and scroll their own panes,
+    // rather than sitting as a card in a scrolling page.
+    location.pathname.startsWith(`${appRoute.tools}/`);
 
   // Slots pages portal their breadcrumb tail and actions into.
   const [crumbSlot, setCrumbSlot] = useState<HTMLElement | null>(null);

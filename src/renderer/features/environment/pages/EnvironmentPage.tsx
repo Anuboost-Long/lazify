@@ -2,6 +2,9 @@ import clsx from "clsx";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { PageActions } from "@renderer/app/components/PageChrome";
+import { environmentTool } from "@renderer/features/tools/catalog";
+import { ToolCrumb } from "@renderer/features/tools/components/ToolCrumb";
+import { ToolPageBody } from "@renderer/features/tools/components/ToolPageBody";
 import { BodyText } from "@renderer/shared/typography";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import type { ToolCategory, ToolScanReport } from "@renderer/shared/types/lazify";
@@ -82,7 +85,9 @@ export function EnvironmentPage({ report, loading, onRefresh }: EnvironmentPageP
   );
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex h-full min-h-0 flex-col">
+      <ToolCrumb tool={environmentTool} />
+
       {/* The page's name and icon are already in the shell's top bar, so the
           only thing worth putting up there is the action. */}
       <PageActions>
@@ -109,6 +114,7 @@ export function EnvironmentPage({ report, loading, onRefresh }: EnvironmentPageP
         </button>
       </PageActions>
 
+      <ToolPageBody width="wide">
       {loading && !report && (
         <div className="flex items-center gap-3 text-sm text-muted">
           <UiIcon name="refresh-circle" className="h-4 w-4 animate-spin" />
@@ -176,6 +182,7 @@ export function EnvironmentPage({ report, loading, onRefresh }: EnvironmentPageP
         onClose={closeUpdate}
         onUpdated={(toolName) => void refreshSingleTool(toolName)}
       />
+      </ToolPageBody>
     </div>
   );
 }

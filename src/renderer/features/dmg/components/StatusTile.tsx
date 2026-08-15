@@ -32,7 +32,7 @@ export function StatusTile({
       style={{ animationDelay: `${delayMs}ms` }}
       className={clsx(
         "flex items-center gap-2.5 overflow-hidden",
-        "border border-border rounded-[18px] bg-bg/75 px-3 py-2.5",
+        "rounded-xl border border-border bg-bg px-3 py-2.5",
         "animate-fadeIn"
       )}
     >

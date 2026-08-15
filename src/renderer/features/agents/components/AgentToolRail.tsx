@@ -174,6 +174,13 @@ export function AgentToolRail({
       />
 
       <RailButton
+        icon="check-circle"
+        label={t(translation.Tasks.Title)}
+        selected={railTab === "tasks"}
+        onClick={() => onToggleRail("tasks")}
+      />
+
+      <RailButton
         icon="terminal"
         label={t(translation.Agents.Console)}
         selected={false}
