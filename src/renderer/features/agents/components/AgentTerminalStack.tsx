@@ -30,7 +30,7 @@ export function AgentTerminalStack({
         terminal.runId ? (
           <div
             key={terminal.tabId}
-            className="absolute inset-0 p-2"
+            className="absolute inset-0 bg-terminal p-2"
             style={{ display: terminal.tabId === activeTabId ? "block" : "none" }}
           >
             <XTermPanel

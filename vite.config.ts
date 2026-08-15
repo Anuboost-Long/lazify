@@ -14,7 +14,11 @@ export default defineConfig({
   root: ".",
   resolve: {
     alias: {
-      "@renderer": path.resolve(__dirname, "src/renderer")
+      "@renderer": path.resolve(__dirname, "src/renderer"),
+      // The renderer imports pure modules from main — the context types and the
+      // lines they render — so a form previews exactly what a prompt will say.
+      // Only side-effect-free modules may be reached this way.
+      "@main": path.resolve(__dirname, "src/main")
     }
   },
   server: {

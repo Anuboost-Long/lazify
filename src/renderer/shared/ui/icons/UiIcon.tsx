@@ -22,6 +22,7 @@ import {
   Globe,
   HalfMoon,
   HardDrive,
+  HomeSimple,
   Html5,
   Import,
   JournalPage,
@@ -48,6 +49,7 @@ import {
   SunLight,
   Pause,
   Terminal,
+  Wrench,
   Trash,
   WarningTriangle,
   Xmark
@@ -59,12 +61,14 @@ import {
   FolderSolid,
   GlobeSolid,
   HardDriveSolid,
+  HomeSolid,
   JournalPageSolid,
   KeySolid,
   MultiWindowSolid,
   PackageSolid,
   SettingsSolid,
-  TerminalSolid
+  TerminalSolid,
+  ToolsSolid
 } from "./solid-icons";
 
 export type UiIconName =
@@ -85,6 +89,7 @@ export type UiIconName =
   | "git-branch"
   | "globe"
   | "hard-drive"
+  | "home"
   | "html"
   | "import"
   | "journal-page"
@@ -104,6 +109,7 @@ export type UiIconName =
   | "sparks"
   | "sun"
   | "terminal"
+  | "tools"
   | "warning-triangle"
   | "arrow-right"
   | "moon"
@@ -142,6 +148,7 @@ const iconMap: Record<UiIconName, ComponentType<SVGProps<SVGSVGElement>>> = {
   "git-branch": GitBranch,
   globe: Globe,
   "hard-drive": HardDrive,
+  home: HomeSimple,
   html: Html5,
   import: Import,
   "journal-page": JournalPage,
@@ -161,6 +168,7 @@ const iconMap: Record<UiIconName, ComponentType<SVGProps<SVGSVGElement>>> = {
   sparks: Sparks,
   sun: SunLight,
   terminal: Terminal,
+  tools: Wrench,
   "warning-triangle": WarningTriangle,
   "arrow-right": NavArrowRight,
   moon: HalfMoon,
@@ -191,13 +199,15 @@ const solidIconMap: Partial<Record<UiIconName, ComponentType<SVGProps<SVGSVGElem
   "folder-plus": FolderPlusSolid,
   globe: GlobeSolid,
   "hard-drive": HardDriveSolid,
+  home: HomeSolid,
   "journal-page": JournalPageSolid,
   key: KeySolid,
   "multi-window": MultiWindowSolid,
   package: PackageSolid,
   play: PlaySolid,
   settings: SettingsSolid,
-  terminal: TerminalSolid
+  terminal: TerminalSolid,
+  tools: ToolsSolid
 };
 
 export default function UiIcon({ name, filled = false, className = "", ...props }: UiIconProps) {

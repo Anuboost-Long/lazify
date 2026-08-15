@@ -15,6 +15,9 @@ export default defineConfig({
   test: {
     environment: "node",
     // tests/ mirrors src/, so tests/main covers src/main.
-    include: ["tests/**/*.test.ts"]
+    include: ["tests/**/*.test.ts"],
+    // Electron ships Node 24, where `node:sqlite` needs no flag. The Node that
+    // runs the tests may be older, and the flag is a no-op once it is not.
+    poolOptions: { forks: { execArgv: ["--experimental-sqlite"] } }
   }
 });

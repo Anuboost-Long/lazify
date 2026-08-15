@@ -39,7 +39,12 @@ export function fieldChromeClassName(
   variant: FieldVariant = "default",
   size: FieldSize = "md"
 ): string {
-  return clsx(wrapperVariantClassName[variant], sizeClassName[size]);
+  // `outline-none` belongs here rather than on each caller: worn by a bare
+  // input, select or textarea, this chrome would otherwise keep the browser's
+  // own focus ring — a blue-white outline in none of the app's palettes, and
+  // one that gets clipped wherever a field sits against a scrolling edge. On a
+  // wrapper element it costs nothing, since a div has no outline to begin with.
+  return clsx("outline-none", wrapperVariantClassName[variant], sizeClassName[size]);
 }
 
 function FieldShell({

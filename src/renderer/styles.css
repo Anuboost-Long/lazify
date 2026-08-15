@@ -14,6 +14,11 @@
   --color-bg: 11 18 32;
   --color-bg-soft: 17 24 39;
 
+  /* The terminal's own surface, and the gutter around it, so a terminal reads
+     as one panel rather than a canvas laid on a differently coloured tray.
+     Kept in step with XTermPanel's theme background. */
+  --color-terminal: 17 24 39;
+
   --color-text: 229 231 235;
   --color-text-muted: 156 163 175;
 
@@ -91,6 +96,12 @@
 :root[data-theme="light"] {
   --color-bg: 243 244 246;
   --color-bg-soft: 255 255 255;
+
+  /* Light, but off the paper-white of --color-bg-soft: a terminal is read for
+     minutes at a time, and white at full brightness is what makes eyes ache.
+     It sits with the page rather than under it, and the gap it keeps is to the
+     white chrome around it — that edge is what makes the panel findable. */
+  --color-terminal: 241 243 247;
 
   --color-text: 17 24 39;
   --color-text-muted: 55 65 81;
