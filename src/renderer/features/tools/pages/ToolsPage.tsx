@@ -1,0 +1,68 @@
+import clsx from "clsx";
+import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
+
+import { translation } from "@renderer/i18n/translation";
+import { CaptionText, CardTitle } from "@renderer/shared/typography";
+import UiIcon from "@renderer/shared/ui/icons/UiIcon";
+import { PageHero } from "@renderer/shared/ui/PageHero";
+import { availableTools } from "../catalog";
+import { toolColorVars } from "../lib/tool-colors";
+
+/**
+ * The app drawer for tools.
+ *
+ * Everything here is a self-contained job that is not part of the day-to-day
+ * flow — the drawer stays short, and a tool arrives as a tile rather than a
+ * permanent entry nobody uses twice. Each tile is washed in the tool's own
+ * colour, so the grid is found by hue rather than read line by line.
+ */
+export function ToolsPage() {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const tools = availableTools(globalThis.lazify?.platform ?? "");
+
+  return (
+    <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto p-6">
+      <PageHero
+        eyebrow={translation.Tools.Eyebrow}
+        title={translation.Tools.Title}
+        description={translation.Tools.Subtitle}
+      />
+
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-3">
+        {tools.map((tool) => (
+          <button
+            key={tool.id}
+            type="button"
+            onClick={() => navigate(tool.path)}
+            style={toolColorVars(tool)}
+            className={clsx(
+              "group flex flex-col items-start gap-3 rounded-2xl border p-4 text-left",
+              "border-[var(--tool-border)] bg-[var(--tool-tile)]",
+              "transition-all duration-200",
+              "hover:-translate-y-0.5 hover:border-[var(--tool)] hover:shadow-lg",
+              "active:scale-[0.99]"
+            )}
+          >
+            <span
+              className={clsx(
+                "flex h-12 w-12 items-center justify-center rounded-2xl",
+                "bg-[var(--tool-icon)] text-[var(--tool)]"
+              )}
+            >
+              <UiIcon name={tool.icon} className="h-6 w-6" />
+            </span>
+
+            <div className="min-w-0">
+              <CardTitle className="!text-text block truncate">{t(tool.label)}</CardTitle>
+              <CaptionText tone="muted" className="mt-1 block leading-5">
+                {t(tool.description)}
+              </CaptionText>
+            </div>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}

@@ -114,6 +114,14 @@ function splashHtml(): string {
 </html>`;
 }
 
+/**
+ * X11 without a compositor cannot do a transparent window, and asking for one
+ * anyway paints the rounded card's corners solid black instead of leaving them
+ * out. A session that is running one is the common case but not a safe
+ * assumption, so Linux gets the card's own navy behind it and squares off.
+ */
+const TRANSPARENT = process.platform !== "linux";
+
 export function showSplash(): BrowserWindow {
   if (splashWindow && !splashWindow.isDestroyed()) return splashWindow;
 
@@ -123,7 +131,7 @@ export function showSplash(): BrowserWindow {
     // A launch card is chrome-less and cannot be interacted with: no frame, no
     // resize, no taskbar entry, and out of the way once the real window lands.
     frame: false,
-    transparent: true,
+    transparent: TRANSPARENT,
     resizable: false,
     movable: false,
     minimizable: false,
@@ -133,7 +141,7 @@ export function showSplash(): BrowserWindow {
     center: true,
     alwaysOnTop: true,
     show: false,
-    backgroundColor: "#00000000",
+    backgroundColor: TRANSPARENT ? "#00000000" : "#0b1220",
     webPreferences: {
       preload: undefined,
       nodeIntegration: false,

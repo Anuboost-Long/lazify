@@ -4,9 +4,12 @@ import type { AgentFileChange, AgentUsageReport } from "@renderer/shared/types/l
 import { AgentActivityPanel } from "./AgentActivityPanel";
 import { AgentChangesPanel } from "./AgentChangesPanel";
 import { AgentDebugPanel } from "./AgentDebugPanel";
+import { AgentEnvPanel } from "./env/AgentEnvPanel";
 import { AgentFilesPanel } from "./files";
+import { AgentGitModal } from "./git";
 import { AgentPreviewPanel } from "./preview";
 import { AgentRailPanelHost } from "./AgentRailPanelHost";
+import { AgentTaskPanel } from "../../tasks/components/AgentTaskPanel";
 import { AgentUsagePanel } from "./usage";
 import type { AgentRailTab } from "./AgentTabBar";
 
@@ -39,6 +42,7 @@ interface AgentRailPanelsProps {
   onToggleAutopilotProject: (next: boolean) => void;
 
   onSendToTerminal: ((text: string) => void) | null;
+
 
   previewOpen: boolean;
   previewUrl: string | null;
@@ -112,6 +116,11 @@ export function AgentRailPanels({
         </AgentRailPanelHost>
       ) : null}
 
+      {/* Source control is a modal in both layouts, never a rail panel. */}
+      {railTab === "git" ? (
+        <AgentGitModal projectPath={projectPath} onClose={onCloseRail} />
+      ) : null}
+
       {railTab === "activity" ? (
         <AgentRailPanelHost asModal={asModal} onClose={onCloseRail}>
           <AgentActivityPanel
@@ -126,6 +135,22 @@ export function AgentRailPanels({
             autopilotProjectEnabled={autopilotProjectEnabled}
             onToggleAutopilot={onToggleAutopilot}
             onToggleAutopilotProject={onToggleAutopilotProject}
+          />
+        </AgentRailPanelHost>
+      ) : null}
+
+      {railTab === "env" ? (
+        <AgentRailPanelHost asModal={asModal} onClose={onCloseRail}>
+          <AgentEnvPanel variant={variant} projectPath={projectPath} onClose={onCloseRail} />
+        </AgentRailPanelHost>
+      ) : null}
+
+      {railTab === "tasks" ? (
+        <AgentRailPanelHost asModal={asModal} onClose={onCloseRail}>
+          <AgentTaskPanel
+            variant={variant}
+            projectPath={projectPath}
+            onClose={onCloseRail}
           />
         </AgentRailPanelHost>
       ) : null}

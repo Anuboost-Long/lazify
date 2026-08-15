@@ -19,7 +19,7 @@ export function MacOnlyNotice() {
       <span
         className={clsx(
           "flex h-14 w-14 items-center justify-center",
-          "border border-border rounded-[20px] bg-soft text-muted"
+          "rounded-2xl border border-border bg-soft text-muted"
         )}
       >
         <UiIcon name="hard-drive" className="h-6 w-6" />

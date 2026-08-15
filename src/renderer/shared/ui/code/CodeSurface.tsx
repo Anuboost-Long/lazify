@@ -4,6 +4,14 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import { useHighlightedLines } from "./CodeText";
 import { CodeFindBar } from "./find/CodeFindBar";
 import { useCodeFind } from "./find/use-code-find";
+import { CodeContextMenu } from "./menu/CodeContextMenu";
+import {
+  readCodeSelection,
+  readTextareaSelection,
+  type CodeSelectionAction,
+  type CodeSelectionContext
+} from "./menu/code-selection";
+import { useCodeSelectionActions } from "./menu/selection-actions";
 import { symbolHitAtPoint, type SymbolPosition } from "./symbol-at-point";
 import { useCodePalette } from "./highlighter/use-highlighter";
 import { languageOf } from "./tokenize";
@@ -32,6 +40,8 @@ interface CodeSurfaceProps {
   onOpenSymbol?: (symbol: string, position?: SymbolPosition) => void;
   /** 1-based line to reveal and mark, e.g. the definition just jumped to. */
   focusLine?: number | null;
+  filePath?: string | null;
+  selectionActions?: CodeSelectionAction[];
 }
 
 const STYLES = {
@@ -100,6 +110,8 @@ export function CodeSurface({
   className,
   onOpenSymbol,
   focusLine,
+  filePath,
+  selectionActions,
 }: Readonly<CodeSurfaceProps>) {
   const style = STYLES[variant];
   const rootRef = useRef<HTMLDivElement | null>(null);
@@ -113,6 +125,8 @@ export function CodeSurface({
     language,
   );
   const palette = useCodePalette();
+  const inheritedActions = useCodeSelectionActions();
+  const actions = selectionActions ?? inheritedActions;
   // `lines` stands in for the painted text: it is rebuilt whenever the content
   // or the highlighting behind it changes.
   const find = useCodeFind({
@@ -234,6 +248,31 @@ export function CodeSurface({
     [lines, focusLine]
   );
 
+  const [menu, setMenu] = useState<{
+    at: { x: number; y: number };
+    selection: CodeSelectionContext;
+  } | null>(null);
+
+  const closeMenu = useCallback(() => setMenu(null), []);
+
+  const handleContextMenu = (
+    event: React.MouseEvent<HTMLPreElement | HTMLTextAreaElement>
+  ) => {
+    if (actions.length === 0) return;
+
+    const selection = editable
+      ? readTextareaSelection(textareaRef.current)
+      : codeRef.current && readCodeSelection(codeRef.current);
+
+    if (!selection) return;
+
+    event.preventDefault();
+    setMenu({
+      at: { x: event.clientX, y: event.clientY },
+      selection: { ...selection, filePath: filePath ?? null, fileName: fileName ?? null }
+    });
+  };
+
   const handleCodeMove = (event: React.MouseEvent<HTMLPreElement>) => {
     pointer.current = { x: event.clientX, y: event.clientY };
     paintLink(event.clientX, event.clientY, holdsModifier(event));
@@ -306,6 +345,7 @@ export function CodeSurface({
               value={content}
               wrap="off"
               onChange={(event) => onContentChange?.(event.target.value)}
+              onContextMenu={handleContextMenu}
               onScroll={(event) => {
                 const { scrollLeft, scrollTop } = event.currentTarget;
                 syncGutter(scrollTop);
@@ -333,6 +373,7 @@ export function CodeSurface({
               setLinkBoxes(null);
             }}
             onClick={handleCodeClick}
+            onContextMenu={handleContextMenu}
             onMouseMove={onOpenSymbol ? handleCodeMove : undefined}
             onMouseLeave={onOpenSymbol ? handleCodeLeave : undefined}
             className={clsx(
@@ -364,6 +405,20 @@ export function CodeSurface({
       </div>
 
       <CodeFindBar find={find} />
+
+      <CodeContextMenu
+        position={menu?.at ?? null}
+        onClose={closeMenu}
+        items={actions.map((action) => ({
+          id: action.id,
+          label: action.label,
+          icon: action.icon,
+          disabled: action.disabled,
+          onSelect: () => {
+            if (menu) action.onSelect(menu.selection);
+          }
+        }))}
+      />
     </div>
   );
 }

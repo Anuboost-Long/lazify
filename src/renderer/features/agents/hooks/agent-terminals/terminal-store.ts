@@ -34,6 +34,8 @@ export const availableAgentsAtom = atom<AgentDescriptor[]>([]);
 
 export const waitingProjectByRunIdAtom = atom<Record<string, string>>({});
 
+export const revealRunIdAtom = atom<string | null>(null);
+
 export function sessionsToTerminals(
   sessions: { runId: string; scriptName: string; projectPath: string }[],
   agents: AgentDescriptor[],

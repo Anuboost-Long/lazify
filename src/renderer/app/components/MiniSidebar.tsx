@@ -72,6 +72,7 @@ export function MiniSidebar({
               >
                 <UiIcon
                   name={page.icon}
+                  filled={active}
                   className={clsx(
                     "h-5 w-5",
                     active ? "text-accent" : "text-muted group-hover:text-accent"

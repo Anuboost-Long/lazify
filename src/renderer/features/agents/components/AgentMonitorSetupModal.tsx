@@ -1,20 +1,15 @@
 import clsx from "clsx";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { translation } from "@renderer/i18n/translation";
 import type { SyncedWorkspaceProject } from "@renderer/shared/types/lazify";
-import {
-  BodyText,
-  CaptionText,
-  MonoText,
-  OverlineText,
-  SectionTitle,
-} from "@renderer/shared/typography";
-import UiIcon, { type UiIconName } from "@renderer/shared/ui/icons/UiIcon";
+import { OverlineText, SectionTitle } from "@renderer/shared/typography";
+import { TextInput } from "@renderer/shared/ui/form/FormInput";
+import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import { BaseModal } from "@renderer/shared/ui/modal/BaseModal";
-
-type SetupStage = "project" | "source" | "script";
+import { SetupStageBody, type SetupStage } from "./monitor/SetupStageBody";
+import { SetupSteps } from "./monitor/SetupSteps";
 
 interface AgentMonitorSetupModalProps {
   open: boolean;
@@ -26,51 +21,14 @@ interface AgentMonitorSetupModalProps {
   onPickAgentRoute: (project: SyncedWorkspaceProject) => void;
 }
 
-interface ChoiceRowProps {
-  icon: UiIconName;
-  title: string;
-  subtitle: string;
+const STAGE_INDEX: Record<SetupStage, number> = { project: 0, source: 1, script: 2 };
 
-  mono?: boolean;
-  onClick: () => void;
-}
+const SEARCH_THRESHOLD = 5;
 
-function ChoiceRow({ icon, title, subtitle, mono = false, onClick }: Readonly<ChoiceRowProps>) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={clsx(
-        "flex items-center gap-3 rounded-2xl border px-4 py-3 text-left",
-        "border-border bg-bg transition-colors duration-150",
-        "hover:border-accent/50 hover:bg-accent/[0.06]"
-      )}
-    >
-      <div
-        className={clsx(
-          "flex h-9 w-9 shrink-0 items-center justify-center",
-          "rounded-xl border border-border bg-soft text-muted"
-        )}
-      >
-        <UiIcon name={icon} className="h-[18px] w-[18px]" />
-      </div>
+function matches(query: string, ...fields: string[]) {
+  const needle = query.trim().toLowerCase();
 
-      <div className="min-w-0 flex-1">
-        <BodyText className="truncate">{title}</BodyText>
-        {mono ? (
-          <MonoText as="span" className="mt-0.5 block truncate text-[10px] text-muted">
-            {subtitle}
-          </MonoText>
-        ) : (
-          <CaptionText tone="muted" className="truncate">
-            {subtitle}
-          </CaptionText>
-        )}
-      </div>
-
-      <UiIcon name="arrow-right" className="h-4 w-4 shrink-0 text-muted" />
-    </button>
-  );
+  return needle.length === 0 || fields.some((field) => field.toLowerCase().includes(needle));
 }
 
 export function AgentMonitorSetupModal({
@@ -83,6 +41,7 @@ export function AgentMonitorSetupModal({
   const { t } = useTranslation();
   const [stage, setStage] = useState<SetupStage>("project");
   const [project, setProject] = useState<SyncedWorkspaceProject | null>(null);
+  const [query, setQuery] = useState("");
 
   const [scripts, setScripts] = useState<Record<string, string> | null>(null);
 
@@ -101,18 +60,19 @@ export function AgentMonitorSetupModal({
     };
   }, [open, stage, project]);
 
+  useEffect(() => setQuery(""), [stage]);
+
   const reset = () => {
     setStage("project");
     setProject(null);
     setScripts(null);
+    setQuery("");
   };
 
   const handleClose = () => {
     reset();
     onClose();
   };
-
-  const handleBack = () => setStage(stage === "script" ? "source" : "project");
 
   const title =
     stage === "project"
@@ -121,130 +81,122 @@ export function AgentMonitorSetupModal({
         ? t(translation.Agents.MonitorChooseSource)
         : t(translation.Agents.MonitorChooseScript);
 
-  const scriptNames = Object.keys(scripts ?? {});
+  const visibleProjects = useMemo(
+    () =>
+      projects.filter((candidate) =>
+        matches(query, candidate.projectName, candidate.projectPath)
+      ),
+    [projects, query]
+  );
+
+  const visibleScripts = useMemo(
+    () =>
+      Object.entries(scripts ?? {}).filter(([name, command]) => matches(query, name, command)),
+    [scripts, query]
+  );
+
+  const searchable =
+    (stage === "project" && projects.length >= SEARCH_THRESHOLD) ||
+    (stage === "script" && Object.keys(scripts ?? {}).length >= SEARCH_THRESHOLD);
 
   return (
     <BaseModal open={open} onClose={handleClose}>
       <div
         className={clsx(
-          "w-[480px] max-w-[calc(100vw-2rem)] overflow-hidden",
-          "rounded-shell border border-border bg-soft shadow-panel"
+          "flex max-h-[min(34rem,85vh)] w-[480px] max-w-[calc(100vw-2rem)] flex-col",
+          "overflow-hidden rounded-shell border border-border bg-soft shadow-panel"
         )}
       >
-        <div className="flex items-center justify-between gap-4 border-b border-border px-6 py-5">
-          <div className="flex min-w-0 items-center gap-3">
-            {stage === "project" ? null : (
-              <button
-                type="button"
-                onClick={handleBack}
-                aria-label={t(translation.GlobalTerm.Back)}
-                className={clsx(
-                  "rounded-xl border border-border bg-bg p-2 transition-colors duration-150",
-                  "text-muted hover:border-accent/30 hover:text-text"
-                )}
-              >
-                <UiIcon name="arrow-left" className="h-4 w-4" />
-              </button>
-            )}
+        <header className="shrink-0 border-b border-border px-6 pb-4 pt-5">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex min-w-0 items-start gap-3">
+              {stage === "project" ? null : (
+                <button
+                  type="button"
+                  onClick={() => setStage(stage === "script" ? "source" : "project")}
+                  aria-label={t(translation.GlobalTerm.Back)}
+                  className={clsx(
+                    "mt-0.5 shrink-0 rounded-xl border border-border bg-bg p-2",
+                    "text-muted transition-colors duration-150 hover:border-accent/30 hover:text-text"
+                  )}
+                >
+                  <UiIcon name="arrow-left" className="h-4 w-4" />
+                </button>
+              )}
 
-            <div className="min-w-0">
-              <OverlineText className="text-muted">
-                {t(translation.Agents.LiveMonitor)}
-              </OverlineText>
-              <SectionTitle className="mt-1 truncate text-2xl">{title}</SectionTitle>
+              <div className="min-w-0">
+                <OverlineText className="text-muted">
+                  {t(translation.Agents.LiveMonitor)}
+                </OverlineText>
+                <SectionTitle className="mt-1 truncate text-2xl">{title}</SectionTitle>
+              </div>
             </div>
+
+            <button
+              type="button"
+              onClick={handleClose}
+              aria-label={t(translation.GlobalTerm.Close)}
+              className={clsx(
+                "shrink-0 rounded-xl border border-border bg-bg p-2",
+                "text-muted transition-colors duration-150 hover:border-accent/30 hover:text-text"
+              )}
+            >
+              <UiIcon name="xmark" className="h-4 w-4" />
+            </button>
           </div>
 
-          <button
-            type="button"
-            onClick={handleClose}
-            aria-label={t(translation.GlobalTerm.Close)}
-            className={clsx(
-              "shrink-0 rounded-xl border border-border bg-bg p-2 transition-colors duration-150",
-              "text-muted hover:border-accent/30 hover:text-text"
-            )}
-          >
-            <UiIcon name="xmark" className="h-4 w-4" />
-          </button>
-        </div>
+          <div className="mt-4">
+            <SetupSteps
+              current={STAGE_INDEX[stage]}
+              steps={[
+                t(translation.Agents.MonitorStepProject),
+                t(translation.Agents.MonitorStepSource),
+                t(translation.Agents.MonitorStepScript),
+              ]}
+            />
+          </div>
 
-        <div className="flex max-h-[60vh] flex-col gap-2 overflow-y-auto px-6 py-5">
-          {stage === "project" ? (
-            <>
-              <CaptionText tone="muted">
-                {t(translation.Agents.MonitorChooseProjectDesc)}
-              </CaptionText>
-
-              {projects.map((candidate) => (
-                <ChoiceRow
-                  key={candidate.projectPath}
-                  icon="folder"
-                  title={candidate.projectName}
-                  subtitle={candidate.projectPath}
-                  mono
-                  onClick={() => {
-                    setProject(candidate);
-                    setStage("source");
-                  }}
-                />
-              ))}
-            </>
-          ) : null}
-
-          {stage === "source" && project ? (
-            <>
-              <CaptionText tone="muted">
-                {t(translation.Agents.MonitorChooseSourceDesc, {
-                  project: project.projectName,
-                })}
-              </CaptionText>
-
-              <ChoiceRow
-                icon="terminal"
-                title={t(translation.Agents.MonitorSourceAgent)}
-                subtitle={t(translation.Agents.MonitorSourceAgentDesc)}
-                onClick={() => {
-                  reset();
-                  onPickAgentRoute(project);
-                }}
-              />
-
-              <ChoiceRow
-                icon="play"
-                title={t(translation.Agents.MonitorSourceScript)}
-                subtitle={t(translation.Agents.MonitorSourceScriptDesc)}
-                onClick={() => setStage("script")}
-              />
-            </>
-          ) : null}
-
-          {stage === "script" && project ? (
-            <>
-              <CaptionText tone="muted">
-                {t(translation.Agents.MonitorChooseScriptDesc)}
-              </CaptionText>
-
-              {scripts === null ? (
-                <CaptionText tone="muted">{t(translation.GlobalTerm.Loading)}</CaptionText>
-              ) : scriptNames.length === 0 ? (
-                <CaptionText tone="muted">{t(translation.Agents.MonitorNoScripts)}</CaptionText>
-              ) : (
-                scriptNames.map((name) => (
-                  <ChoiceRow
-                    key={name}
-                    icon="play"
-                    title={name}
-                    subtitle={scripts[name]}
-                    mono
-                    onClick={() => {
-                      reset();
-                      onPickScript(project, name);
-                    }}
-                  />
-                ))
+          {searchable ? (
+            <TextInput
+              autoFocus
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              icon="search"
+              size="sm"
+              spellCheck={false}
+              placeholder={t(
+                stage === "project"
+                  ? translation.Agents.MonitorSearchProjects
+                  : translation.Agents.MonitorSearchScripts
               )}
-            </>
+              className="mt-4"
+            />
           ) : null}
+        </header>
+
+        <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto px-6 py-5">
+          <SetupStageBody
+            stage={stage}
+            projects={visibleProjects}
+            project={project}
+            scripts={scripts}
+            visibleScripts={visibleScripts}
+            query={query}
+            onPickProject={(candidate) => {
+              setProject(candidate);
+              setStage("source");
+            }}
+            onPickAgentRoute={() => {
+              if (!project) return;
+              onPickAgentRoute(project);
+            }}
+            onPickScriptRoute={() => setStage("script")}
+            onPickScript={(name) => {
+              if (!project) return;
+              reset();
+              onPickScript(project, name);
+            }}
+          />
         </div>
       </div>
     </BaseModal>

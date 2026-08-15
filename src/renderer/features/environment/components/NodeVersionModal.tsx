@@ -2,6 +2,7 @@ import clsx from "clsx";
 import { useCallback, useEffect, useState } from "react";
 import { translation } from "@renderer/i18n/translation";
 import { BodyText, CardTitle, MonoText, OverlineText, PillText, SectionTitle, Typography } from "@renderer/shared/typography";
+import { CodeField } from "@renderer/shared/ui/code/CodeField";
 import { BaseModal } from "@renderer/shared/ui/modal/BaseModal";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import type { NvmNodeVersion } from "@renderer/shared/types/lazify";
@@ -221,9 +222,9 @@ export function NodeVersionModal({ open, onClose, onSelect }: NodeVersionModalPr
               </div>
 
               {installOutput && (
-                <pre className="max-h-36 overflow-y-auto rounded-[16px] border border-border bg-bg px-4 py-3 font-mono text-[10px] leading-5 text-muted/70 whitespace-pre-wrap">
+                <CodeField className="max-h-36 overflow-y-auto rounded-[16px] border border-border bg-bg px-4 py-3 font-mono text-[10px] leading-5 text-muted/70 whitespace-pre-wrap">
                   {installOutput}
-                </pre>
+                </CodeField>
               )}
 
               {installSuccess && (

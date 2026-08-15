@@ -1,10 +1,13 @@
 import { PageActions, PageCrumb } from "@renderer/app/components/PageChrome";
+import { WorkspaceTaskModal } from "@renderer/features/tasks/components/WorkspaceTaskModal";
+import { EnvPane } from "@renderer/features/env";
 import { DependencyPane } from "@renderer/features/workspace/components/DependencyPane";
 import { HealthPane } from "@renderer/features/workspace/components/HealthPane";
 import { NodeVersionPane } from "@renderer/features/workspace/components/NodeVersionPane";
 import { PackageVersionPane } from "@renderer/features/workspace/components/PackageVersionPane";
 import { ProjectAgentLauncher } from "@renderer/features/workspace/components/ProjectAgentLauncher";
 import { ScriptsPane } from "@renderer/features/workspace/components/ScriptsPane";
+import { ProjectCodeActions } from "@renderer/features/workspace/components/ProjectCodeActions";
 import { SyncedProjectViewer } from "@renderer/features/workspace/components/SyncedProjectViewer";
 import { translation } from "@renderer/i18n/translation";
 import type {
@@ -44,6 +47,7 @@ export function SyncedProjectPage({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const [agentPickerOpen, setAgentPickerOpen] = useState(false);
+  const [addingTask, setAddingTask] = useState(false);
 
   const [installing, setInstalling] = useState(false);
   const [installFeedback, setInstallFeedback] = useState<{
@@ -171,11 +175,23 @@ export function SyncedProjectPage({
             <PackageVersionPane projectPath={syncedProject.projectPath} />
           ),
         },
+        {
+          id: "env",
+          label: t(translation.EnvPane.Title),
+          icon: "key",
+          content: <EnvPane projectPath={syncedProject.projectPath} />,
+        },
       ]
     : [];
 
   return (
     <div className="flex h-full min-h-0 flex-col gap-3">
+      <WorkspaceTaskModal
+        open={addingTask}
+        projectPath={decodedPath}
+        onClose={() => setAddingTask(false)}
+      />
+
       {/* The page's identity and actions live in the shell's top bar, so the
           page body starts straight at the content. "Workspace" in the
           breadcrumb is the way back. */}
@@ -188,6 +204,15 @@ export function SyncedProjectPage({
 
       {syncedProject && (
         <PageActions>
+          <button
+            type="button"
+            onClick={() => setAddingTask(true)}
+            className="inline-flex items-center gap-1.5 rounded-[8px] border border-border px-3 py-1 text-xs font-semibold text-text transition-colors hover:border-accent/40 hover:text-accent"
+          >
+            <UiIcon name="check-circle" className="h-3.5 w-3.5" />
+            {t(translation.Tasks.AddTask)}
+          </button>
+
           <button
             type="button"
             onClick={() => void handleInstallDependencies()}
@@ -260,17 +285,19 @@ export function SyncedProjectPage({
       {/* ── Workbench: explorer, editor, and the project tool rail ── */}
       {syncedProject && projectData && (
         <div className="min-h-0 flex-1">
-          <SyncedProjectViewer
-            allowGitStatus
-            busy={busy || loading}
-            editable
-            project={projectData}
-            toolViews={toolViews}
-            onOpenConsole={() =>
-              void globalThis.lazify.openTerminal(syncedProject.projectPath)
-            }
-            onStartAgent={() => setAgentPickerOpen(true)}
-          />
+          <ProjectCodeActions projectPath={syncedProject.projectPath}>
+            <SyncedProjectViewer
+              allowGitStatus
+              busy={busy || loading}
+              editable
+              project={projectData}
+              toolViews={toolViews}
+              onOpenConsole={() =>
+                void globalThis.lazify.openTerminal(syncedProject.projectPath)
+              }
+              onStartAgent={() => setAgentPickerOpen(true)}
+            />
+          </ProjectCodeActions>
         </div>
       )}
 

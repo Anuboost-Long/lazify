@@ -21,8 +21,9 @@ publish:
   # draft. The workflow publishes straight to a real release instead.
   releaseType: release
 
-# Ad-hoc signs the packaged app — see the script and mac.identity below
-afterPack: ./src/scripts/mac-adhoc-sign.mjs
+# Injects the macOS 26 icon asset, then ad-hoc signs — in that order, because
+# touching the bundle after signing invalidates the signature.
+afterPack: ./src/scripts/mac-after-pack.mjs
 
 files:
   - dist/**/*

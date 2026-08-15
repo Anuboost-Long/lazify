@@ -260,6 +260,11 @@ export function useMonitorPanels() {
     [commitLayout],
   );
 
+  const setMonitorMode = useCallback(
+    (monitorMode: boolean) => commitLayout({ ...loadWallLayout(), monitorMode }),
+    [commitLayout],
+  );
+
   useEffect(() => {
     return globalThis.lazify.onScriptStatus((event) => {
       if (event.status !== "done" && event.status !== "error") return;
@@ -294,5 +299,7 @@ export function useMonitorPanels() {
     setTarget,
     columns: layout.columns,
     setColumns,
+    monitorMode: layout.monitorMode,
+    setMonitorMode,
   };
 }

@@ -8,7 +8,7 @@
  * waiting, not the fact that it still is on every redraw.
  */
 
-import { detectTerminalIntent, stripAnsi } from "./terminal-intent";
+import { detectTerminalIntent, showsWork, stripAnsi } from "./terminal-intent";
 
 /** Enough tail to hold a full prompt box, small enough to scan on every chunk. */
 const TAIL_LIMIT = 4000;
@@ -19,8 +19,22 @@ const TAIL_LIMIT = 4000;
  * Agents animate a status line for as long as they are working, so their output
  * never goes quiet mid-task. A gap this long after a working spell — with no
  * prompt on screen — is the agent having handed the work back.
+ *
+ * Long, because a slow tool call stops repainting while it waits: at three
+ * seconds an install or a test run read as a finished turn. This is only the
+ * fallback for agents whose footer says nothing.
  */
-const IDLE_SETTLE_MS = 3000;
+const IDLE_SETTLE_MS = 20_000;
+
+/**
+ * How long a finished-looking screen has to hold, with no sign of work, before
+ * the turn is called.
+ *
+ * The idle footer sits under the status line in every frame, so it is on screen
+ * throughout the turn and a single frame cannot say the turn is over. The status
+ * line stopping is what says it.
+ */
+const COMPLETE_SETTLE_MS = 5000;
 
 interface SessionState {
   tail: string;
@@ -29,6 +43,8 @@ interface SessionState {
   busy: boolean;
   /** Pending "the output has gone quiet" check for the current turn. */
   idleTimer: NodeJS.Timeout | null;
+  /** Pending "the finished screen has held" check for the current turn. */
+  settleTimer: NodeJS.Timeout | null;
 }
 
 export class AttentionDetector {
@@ -42,12 +58,18 @@ export class AttentionDetector {
 
   /** Registers a session to watch. Only agent runs should be tracked. */
   track(runId: string): void {
-    this.sessions.set(runId, { tail: "", waiting: false, busy: false, idleTimer: null });
+    this.sessions.set(runId, {
+      tail: "",
+      waiting: false,
+      busy: false,
+      idleTimer: null,
+      settleTimer: null
+    });
   }
 
   forget(runId: string): void {
     const session = this.sessions.get(runId);
-    if (session?.idleTimer) clearTimeout(session.idleTimer);
+    if (session) this.clearTimers(session);
 
     this.sessions.delete(runId);
   }
@@ -110,21 +132,18 @@ export class AttentionDetector {
       );
     }
 
-    // Turn state is armed from the *incoming* chunk, never the tail. The tail
-    // keeps a working status line long after the work stopped, so arming from
-    // it re-armed the turn on any idle redraw — the agent sat there finished
-    // while a fresh "done" alert fired every few seconds. Re-arming takes the
-    // agent actually printing that it is working again.
-    const incoming = detectTerminalIntent(visible);
+    // Read from the *incoming* chunk, never the tail, which keeps a working
+    // status line long after the work stopped.
+    if (showsWork(visible)) {
+      session.busy = true;
+      // Re-armed below if the window still reads finished, so the countdown
+      // measures time since the last sign of work.
+      this.cancelCompletion(session);
+    }
 
-    if (incoming.intent === "working") session.busy = true;
-
-    // The agent drawing its idle input box is the end of a turn stated outright,
-    // which beats inferring it from silence: it fires the moment the work lands
-    // rather than three seconds later, and it cannot be faked by a slow tool.
-    // Silence stays armed underneath for agents whose footer says nothing.
-    if (session.busy && !prompting && incoming.intent === "complete") {
-      this.reportTurnDone(runId, session);
+    // A finished-looking window starts a countdown, not an alert.
+    if (session.busy && !prompting && screen.intent === "complete") {
+      this.armCompletion(runId, session);
     } else if (session.busy) {
       this.scheduleIdleCheck(runId, session);
     }
@@ -139,6 +158,30 @@ export class AttentionDetector {
     // straight back off. Leaving the prompt in the rolling window keeps it
     // detected; a real answer (clear()) or a later "resumed" line turns it off.
     return prompting;
+  }
+
+  /**
+   * Starts the countdown on a finished-looking screen, if one is not already
+   * running. Only a sign of work resets it, by cancelling it outright.
+   */
+  private armCompletion(runId: string, session: SessionState): void {
+    if (session.settleTimer) return;
+
+    session.settleTimer = setTimeout(() => {
+      session.settleTimer = null;
+
+      if (!session.busy || session.waiting) return;
+
+      this.reportTurnDone(runId, session);
+    }, COMPLETE_SETTLE_MS);
+  }
+
+  /** Drops a pending completion countdown, leaving the idle check alone. */
+  private cancelCompletion(session: SessionState): void {
+    if (!session.settleTimer) return;
+
+    clearTimeout(session.settleTimer);
+    session.settleTimer = null;
   }
 
   /** (Re)starts the quiet-output check that reports the end of a turn. */
@@ -156,12 +199,19 @@ export class AttentionDetector {
     }, IDLE_SETTLE_MS);
   }
 
-  /** Reports the turn once and closes it, whichever signal got there first. */
-  private reportTurnDone(runId: string, session: SessionState): void {
+  /** Stops every pending check for a turn that is over or gone. */
+  private clearTimers(session: SessionState): void {
     if (session.idleTimer) {
       clearTimeout(session.idleTimer);
       session.idleTimer = null;
     }
+
+    this.cancelCompletion(session);
+  }
+
+  /** Reports the turn once and closes it, whichever signal got there first. */
+  private reportTurnDone(runId: string, session: SessionState): void {
+    this.clearTimers(session);
 
     session.busy = false;
     // The turn is over, so the working status line in the window is history.

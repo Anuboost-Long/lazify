@@ -70,7 +70,7 @@ function readStoredTabs(): BrowserTab[] {
 }
 
 export function useBrowserTabs() {
-  const { restoreTabs } = useBrowserSettings();
+  const { restoreTabs, searchEngine } = useBrowserSettings();
 
   const [tabs, setTabs] = useState<BrowserTab[]>(() => {
     // Read once, on the mount that opens the browser: flipping the setting
@@ -115,12 +115,15 @@ export function useBrowserTabs() {
    * `background` is what a cmd/ctrl or middle click asks for: the page is
    * loaded and waiting, but the user keeps reading what they were on.
    */
-  const openTab = useCallback((rawUrl = "", background = false) => {
-    const tab = makeTab(rawUrl ? resolveBrowserInput(rawUrl) : "");
-    setTabs((current) => [...current, tab]);
-    if (!background) setActiveId(tab.id);
-    return tab.id;
-  }, []);
+  const openTab = useCallback(
+    (rawUrl = "", background = false) => {
+      const tab = makeTab(rawUrl ? resolveBrowserInput(rawUrl, searchEngine) : "");
+      setTabs((current) => [...current, tab]);
+      if (!background) setActiveId(tab.id);
+      return tab.id;
+    },
+    [searchEngine]
+  );
 
   const closeTab = useCallback((id: string) => {
     setTabs((current) => {
@@ -157,11 +160,11 @@ export function useBrowserTabs() {
     (rawInput: string) => {
       if (!activeTab) return;
       patchTab(activeTab.id, {
-        url: resolveBrowserInput(rawInput),
+        url: resolveBrowserInput(rawInput, searchEngine),
         navSeq: activeTab.navSeq + 1
       });
     },
-    [activeTab, patchTab]
+    [activeTab, patchTab, searchEngine]
   );
 
   // A popup the guest tried to open arrives here as a tab instead.

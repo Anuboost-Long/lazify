@@ -99,6 +99,9 @@ export function AgentMonitorGrid({
     null,
   );
 
+  const [setupRun, setSetupRun] = useState(0);
+  const restartSetup = useCallback(() => setSetupRun((run) => run + 1), []);
+
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [dropTargetId, setDropTargetId] = useState<string | null>(null);
 
@@ -125,7 +128,10 @@ export function AgentMonitorGrid({
 
   const openSizeChooser = useCallback((runId: string) => setSizingRunId(runId), []);
   const openRenameDialog = useCallback((runId: string) => setRenamingRunId(runId), []);
-  const openSetup = useCallback(() => setChoosing(true), []);
+  const openSetup = useCallback(() => {
+    restartSetup();
+    setChoosing(true);
+  }, [restartSetup]);
 
   const endDrag = useCallback(() => {
     draggingIdRef.current = null;
@@ -255,6 +261,7 @@ export function AgentMonitorGrid({
         columns={columns}
         onColumnsChange={onColumnsChange}
         onCloseLayout={() => setPickingLayout(false)}
+        setupKey={setupRun}
         choosing={choosing}
         onCloseChoosing={() => setChoosing(false)}
         onPickScript={(project, scriptName) => {
@@ -280,8 +287,16 @@ export function AgentMonitorGrid({
             resumeSessionId,
           });
           setAgentProject(null);
+          restartSetup();
         }}
-        onCloseAgentPicker={() => setAgentProject(null)}
+        onCloseAgentPicker={() => {
+          setAgentProject(null);
+          restartSetup();
+        }}
+        onBackFromAgentPicker={() => {
+          setAgentProject(null);
+          setChoosing(true);
+        }}
         onCreateAgent={onCreateAgent}
         onDeleteAgent={onDeleteAgent}
       />

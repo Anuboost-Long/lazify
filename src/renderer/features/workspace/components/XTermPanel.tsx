@@ -5,6 +5,7 @@ import { Terminal, type ILink } from "@xterm/xterm";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import { useResolvedTheme } from "@renderer/shared/hooks/use-theme";
+import { registerTerminalPaste } from "@renderer/shared/lib/terminal-paste";
 
 interface XTermPanelProps {
   runId: string;
@@ -38,7 +39,8 @@ function splitLineSuffix(printed: string): { filePath: string; line: number | nu
 // background: the dark one keeps the pastel ANSI colours, while the light one
 // darkens every hue, since pastels on white are barely legible.
 const DARK_THEME = {
-  // Exactly --color-bg-soft (dark), so the terminal and its panel are seamless.
+  // Exactly --color-terminal (dark). The gutter around the canvas is painted
+  // with the same token, so the terminal and its panel are seamless.
   background: "#111827",
   foreground: "#ffffff",
   black: "#1a1e2e",
@@ -63,8 +65,12 @@ const DARK_THEME = {
 };
 
 const LIGHT_THEME = {
-  // Exactly --color-bg-soft (light).
-  background: "#ffffff",
+  // Exactly --color-terminal (light): a shade under the page rather than the
+  // paper-white of --color-bg-soft, since a terminal is a wall of text someone
+  // reads for minutes at a time. The gutter around the canvas is painted with
+  // the same token, so it reads as a surface set into the window rather than a
+  // grey sheet dropped onto a white one.
+  background: "#f1f3f7",
   foreground: "#111827",
   black: "#111827",
   red: "#b91c1c",
@@ -83,7 +89,7 @@ const LIGHT_THEME = {
   brightCyan: "#0e7490",
   brightWhite: "#111827",
   cursor: "#7e22ce",
-  cursorAccent: "#ffffff",
+  cursorAccent: "#f1f3f7",
   selectionBackground: "#7e22ce29",
 };
 
@@ -176,6 +182,8 @@ export function XTermPanel({
 
     // Forward keyboard/paste to the PTY.
     term.onData((data) => globalThis.lazify.ptyWrite(runId, data));
+
+    const unregisterPaste = registerTerminalPaste(runId, (text) => term.paste(text));
 
     // xterm's own paste handling relies on the browser firing a native
     // "paste" event against its off-screen helper textarea, which is
@@ -313,6 +321,7 @@ export function XTermPanel({
       disposed = true;
       container.removeEventListener("keydown", handlePasteShortcut, true);
       container.removeEventListener("contextmenu", handleContextMenu);
+      unregisterPaste();
       stopData();
       term.dispose();
       termRef.current = null;

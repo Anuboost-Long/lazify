@@ -2,7 +2,7 @@ import type { UiIconName } from "@renderer/shared/ui/icons/UiIcon";
 import { appRoute } from "./app-routes";
 import { translation } from "@renderer/i18n/translation";
 
-export type AppPageId = "workspace" | "agents" | "browser" | "templates" | "settings" | "environment" | "dmgCompiler";
+export type AppPageId = "home" | "workspace" | "agents" | "browser" | "templates" | "settings" | "tools";
 
 export interface AppPageLink {
   id: AppPageId;
@@ -15,6 +15,13 @@ export interface AppPageLink {
 }
 
 export const appSidebarPages: AppPageLink[] = [
+  {
+    id: "home",
+    path: appRoute.home,
+    label: translation.Navigation.Home,
+    description: translation.Navigation.HomeDesc,
+    icon: "home",
+  },
   {
     id: "workspace",
     path: appRoute.workspace,
@@ -51,18 +58,10 @@ export const appSidebarPages: AppPageLink[] = [
     icon: "settings",
   },
   {
-    id: "environment",
-    path: appRoute.environment,
-    label: translation.Navigation.Environment,
-    description: translation.Navigation.EnvironmentDesc,
-    icon: "activity",
-  },
-  {
-    id: "dmgCompiler",
-    path: appRoute.dmgCompiler,
-    label: translation.Navigation.DmgCompiler,
-    description: translation.Navigation.DmgCompilerDesc,
-    icon: "hard-drive",
-    macOnly: true,
+    id: "tools",
+    path: appRoute.tools,
+    label: translation.Navigation.Tools,
+    description: translation.Navigation.ToolsDesc,
+    icon: "tools",
   },
 ];

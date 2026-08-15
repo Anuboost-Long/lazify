@@ -1,2 +1,6 @@
-export { useAgentTerminals, useFocusAgentRun } from "./use-agent-terminals";
+export {
+  useAgentTerminals,
+  useFocusAgentRun,
+  useRevealAgentRun,
+} from "./use-agent-terminals";
 export type { AgentTerminal } from "./terminal-store";

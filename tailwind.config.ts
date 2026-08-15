@@ -8,6 +8,7 @@ export default {
       colors: {
         bg: "rgb(var(--color-bg) / <alpha-value>)",
         soft: "rgb(var(--color-bg-soft) / <alpha-value>)",
+        terminal: "rgb(var(--color-terminal) / <alpha-value>)",
         text: "rgb(var(--color-text) / <alpha-value>)",
         muted: "rgb(var(--color-text-muted) / <alpha-value>)",
         accent: "rgb(var(--color-accent) / <alpha-value>)",

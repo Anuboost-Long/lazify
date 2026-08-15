@@ -64,10 +64,41 @@ describe("updater", () => {
   it("does nothing in development, where there is no app to replace", async () => {
     const updater = await loadUpdater(false);
 
-    expect(await updater.checkForUpdates()).toEqual({ status: "unsupported" });
-    expect(await updater.downloadUpdate()).toEqual({ status: "unsupported" });
+    const unsupported = { status: "unsupported", reason: "development" };
+    expect(await updater.checkForUpdates()).toEqual(unsupported);
+    expect(await updater.downloadUpdate()).toEqual(unsupported);
     expect(mocks.autoUpdater.checkForUpdates).not.toHaveBeenCalled();
     expect(mocks.autoUpdater.downloadUpdate).not.toHaveBeenCalled();
+  });
+
+  /**
+   * A Linux .deb belongs to apt, and electron-updater can only replace an
+   * AppImage. Left to throw, that arrives as a raw error where the true answer
+   * is that this build updates somewhere else.
+   */
+  it("defers to the package manager for a Linux build that is not an AppImage", async () => {
+    const realPlatform = process.platform;
+    Object.defineProperty(process, "platform", { value: "linux", configurable: true });
+    delete process.env.APPIMAGE;
+
+    try {
+      const updater = await loadUpdater(true);
+
+      expect(await updater.checkForUpdates()).toEqual({
+        status: "unsupported",
+        reason: "package-manager"
+      });
+      expect(mocks.autoUpdater.checkForUpdates).not.toHaveBeenCalled();
+
+      // An AppImage on the same platform is the case the updater can handle.
+      process.env.APPIMAGE = "/tmp/Lazify-x64.AppImage";
+      const appImage = await loadUpdater(true);
+      await appImage.checkForUpdates();
+      expect(mocks.autoUpdater.checkForUpdates).toHaveBeenCalled();
+    } finally {
+      delete process.env.APPIMAGE;
+      Object.defineProperty(process, "platform", { value: realPlatform, configurable: true });
+    }
   });
 
   it("reports what the updater finds, all the way to ready-to-install", async () => {

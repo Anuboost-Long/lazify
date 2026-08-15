@@ -1,0 +1,84 @@
+appId: com.lazify.desktop
+productName: Lazify
+
+# Native modules must be unpacked from asar so the loader can open the .node
+# binary as a real file on disk
+asar: true
+asarUnpack:
+  - node_modules/node-pty/**/*
+
+directories:
+  buildResources: build
+  output: release/linux
+
+# The update feed — see the note in electron-builder.mac.yml. Only the AppImage
+# can actually apply an update; electron-updater has no deb installer path, so
+# a .deb user is told about the release and updates through their own tooling.
+publish:
+  provider: github
+  owner: Anuboost-Long
+  repo: lazify-dist
+  releaseType: release
+
+files:
+  - dist/**/*
+  - dist-electron/**/*
+  - node_modules/**/*
+  - package.json
+
+# Templates and the icon are bundled as plain files in the resources folder —
+# see the same block in the mac and win configs for why they cannot be read
+# out of build/.
+extraResources:
+  - from: templates
+    to: templates
+  - from: build/icon.png
+    to: icon.png
+
+linux:
+  # A directory of square PNGs, which is what electron-builder wants here — the
+  # single 512px icon.png the other platforms use produces a build warning and
+  # no hicolor theme entries.
+  icon: build/png
+  category: Development
+  synopsis: GUI-driven desktop developer workflow launcher
+  description: >-
+    Lazify runs the terminal work of a project — scripts, agents, scaffolding
+    and environment setup — from one window.
+  desktop:
+    entry:
+      # Must match the appId, or the desktop notifications Lazify sends arrive
+      # with no icon and no application name attached to them.
+      StartupWMClass: Lazify
+      Keywords: developer;terminal;agent;scaffolding;
+  # Named per arch the way the mac and win builds are, so download URLs stay
+  # stable and an arm64 artifact can never be mistaken for the x64 one.
+  artifactName: ${productName}-${arch}.${ext}
+  target:
+    # AppImage runs anywhere and is the only target the updater can refresh in
+    # place. The deb is here because it is also the fix for the sandbox: dpkg
+    # installs chrome-sandbox setuid root, where an AppImage has to fall back to
+    # the user-namespace sandbox that Ubuntu 24.04's AppArmor policy denies.
+    - target: AppImage
+      arch:
+        - x64
+    - target: deb
+      arch:
+        - x64
+
+appImage:
+  artifactName: ${productName}-${arch}.${ext}
+
+deb:
+  artifactName: ${productName}-${arch}.${ext}
+  # Chromium's own runtime dependencies. Left to electron-builder's defaults a
+  # deb installs cleanly and then fails to start on a minimal desktop.
+  depends:
+    - libgtk-3-0
+    - libnotify4
+    - libnss3
+    - libxss1
+    - libxtst6
+    - xdg-utils
+    - libatspi2.0-0
+    - libsecret-1-0

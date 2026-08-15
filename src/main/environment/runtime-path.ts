@@ -45,6 +45,13 @@ export function normalizeRuntimePath(): void {
     "/usr/local/sbin",
     "/usr/local/share/dotnet",
     path.join(home, ".dotnet", "tools"),
+    // Where a per-user install lands on Linux and increasingly on macOS: pipx,
+    // `pip install --user`, rustup, bun, and Cursor's own installer — which
+    // Lazify itself offers, and would then fail to find.
+    path.join(home, ".local", "bin"),
+    path.join(home, ".cargo", "bin"),
+    path.join(home, ".bun", "bin"),
+    "/snap/bin",
     "/usr/bin",
     "/bin",
     "/usr/sbin",

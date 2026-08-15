@@ -59,7 +59,7 @@ export function WorkbenchToolRail({
               {selected ? (
                 <span aria-hidden className="absolute inset-y-1 -right-2 w-0.5 rounded-full bg-accent" />
               ) : null}
-              <UiIcon name={view.icon} className="h-4 w-4" />
+              <UiIcon name={view.icon} filled={selected} className="h-4 w-4" />
             </button>
           </Tooltip>
         );

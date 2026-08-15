@@ -150,3 +150,32 @@ export async function pushCurrentBranch(projectPath: string): Promise<GitActionR
     return toResult(error);
   }
 }
+
+/**
+ * Pulls the current branch. `--no-edit` keeps a merge commit from opening an
+ * editor, which there is no terminal here to answer. A branch git has no
+ * tracking information for is retried against `origin <branch>` — the same
+ * fallback push makes, and the only way an unpublished branch can pull at all.
+ */
+export async function pullCurrentBranch(projectPath: string): Promise<GitActionResult> {
+  const first = await run(projectPath, ["pull", "--no-edit"]);
+
+  if (first.success) return first;
+
+  if (!/no tracking information|no remote repository specified/i.test(first.message)) {
+    return first;
+  }
+
+  try {
+    const { stdout } = await execFileAsync("git", ["branch", "--show-current"], {
+      cwd: projectPath
+    });
+    const branch = stdout.trim();
+
+    if (!branch) return first;
+
+    return run(projectPath, ["pull", "--no-edit", "origin", branch]);
+  } catch (error) {
+    return toResult(error);
+  }
+}

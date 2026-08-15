@@ -69,7 +69,7 @@ export function ScriptTerminalBodies({
 
             {/* Live terminal — kept mounted while runId is present */}
             {tab.runId && tab.status !== "pending" && (
-              <div className="h-full w-full p-1">
+              <div className="h-full w-full bg-terminal p-1">
                 <XTermPanel
                   key={tab.runId}
                   runId={tab.runId}

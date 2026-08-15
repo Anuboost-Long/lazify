@@ -7,7 +7,15 @@ on:
 
 jobs:
   check:
-    runs-on: macos-14
+    # All three, because most of what breaks per-platform breaks silently — a
+    # shell that is not there, a binary with another name — and only shows up
+    # as a feature that quietly does nothing on the OS nobody develops on.
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-14, windows-latest, ubuntu-22.04]
+
+    runs-on: ${{ matrix.os }}
 
     steps:
       - uses: actions/checkout@v4

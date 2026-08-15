@@ -189,7 +189,7 @@ export const AgentMonitorPanel = memo(function AgentMonitorPanel({
         />
       </div>
 
-      <div className="min-h-0 flex-1 p-1.5">
+      <div className="min-h-0 flex-1 bg-terminal p-1.5">
 
         <XTermPanel runId={panel.runId} isActive />
       </div>

@@ -74,6 +74,9 @@ const CODE_CONTEXT_WEIGHT = 0.3;
 const QUESTION_THRESHOLD = 3;
 const COMPLETE_THRESHOLD = 3;
 
+/** One decisive working signal: the status line's words, or the interrupt hint. */
+const WORKING_THRESHOLD = 3;
+
 /**
  * Evidence that a finished turn ended on a question. Low on purpose: this only
  * colours a completion alert that is being sent anyway, so being wrong costs a
@@ -87,6 +90,12 @@ interface Signal {
   pattern: RegExp;
   /** 3 = decisive alone, 2 = strong, 1 = only corroborating. */
   weight: number;
+  /**
+   * Complete signals only: the agent's own shell drew this, rather than it being
+   * wording from what the agent was showing. A build log says "done" too, so a
+   * screen needs one of these before it can read as finished.
+   */
+  authoritative?: boolean;
   /**
    * Question signals only: whether this one shows the agent is *stuck* rather
    * than merely curious.
@@ -148,11 +157,11 @@ const QUESTION_SIGNALS: Signal[] = [
  * has been printed for a while.
  */
 const COMPLETE_SIGNALS: Signal[] = [
-  { name: "idle-footer-hint", pattern: /(?:shift\+tab to cycle|\? for shortcuts|for shortcuts\b)/i, weight: 3 },
-  { name: "idle-footer-mode", pattern: /\b(?:bypass permissions|accept edits|plan mode|auto-accept edits)\s+(?:on|off)\b/i, weight: 3 },
+  { name: "idle-footer-hint", pattern: /(?:shift\+tab to cycle|\? for shortcuts|for shortcuts\b)/i, weight: 3, authoritative: true },
+  { name: "idle-footer-mode", pattern: /\b(?:bypass permissions|accept edits|plan mode|auto-accept edits)\s+(?:on|off)\b/i, weight: 3, authoritative: true },
   // The turn-timing line an agent prints when it hands the work back:
   // "✳ Cooked for 48s", "✻ Churned for 1m 12s".
-  { name: "turn-duration", pattern: /(?:^|\n)\s*[✳✻✽✢*·]\s*\w+ for \d+(?:m\s*\d+)?s\b/, weight: 2 },
+  { name: "turn-duration", pattern: /(?:^|\n)\s*[✳✻✽✢*·]\s*\w+ for \d+(?:m\s*\d+)?s\b/, weight: 2, authoritative: true },
   { name: "completion-word", pattern: /\b(?:done|completed|finished|all set|ready)\b[.!]?\s*$/im, weight: 2 },
   { name: "clean-result", pattern: /\b(?:tests? passed|build succeeded|no changes|nothing to commit|up to date)\b/i, weight: 2 },
   { name: "checked-off", pattern: /(?:^|\n)\s*[✓✔☑]\s+\S/, weight: 1 },
@@ -266,6 +275,8 @@ interface ClassScore {
   blockingScore: number;
   /** The part of `score` from question words with no affordance behind them. */
   openScore: number;
+  /** The part of `score` the agent's own shell drew, not text it displayed. */
+  authoritativeScore: number;
   /** End of the last match of any signal in this class, or -1 for none. */
   lastIndex: number;
   reasons: string[];
@@ -282,6 +293,7 @@ function scoreSignals(signals: Signal[], text: string, liveFrom: number): ClassS
   let score = 0;
   let blockingScore = 0;
   let openScore = 0;
+  let authoritativeScore = 0;
   let lastIndex = -1;
   const reasons: string[] = [];
 
@@ -320,11 +332,12 @@ function scoreSignals(signals: Signal[], text: string, liveFrom: number): ClassS
     score += earned;
     if (signal.blocking) blockingScore += earned;
     else openScore += earned;
+    if (signal.authoritative) authoritativeScore += earned;
     lastIndex = Math.max(lastIndex, end);
     reasons.push(`${signal.name}${discounted}`);
   }
 
-  return { score, blockingScore, openScore, lastIndex, reasons };
+  return { score, blockingScore, openScore, authoritativeScore, lastIndex, reasons };
 }
 
 /**
@@ -367,13 +380,22 @@ export function detectTerminalIntent(screen: string): TerminalIntentResult {
       return { intent: "working", winner: working };
     }
 
-    if (complete.score >= COMPLETE_THRESHOLD) {
+    // Wording alone — "done", "✓", "tests passed" — is what a command the agent
+    // ran prints on its way past, not the end of the turn.
+    if (complete.score >= COMPLETE_THRESHOLD && complete.authoritativeScore > 0) {
       return { intent: "complete", winner: complete };
     }
 
     return {
       intent: "unknown",
-      winner: { score: 0, blockingScore: 0, openScore: 0, lastIndex: -1, reasons: [] },
+      winner: {
+        score: 0,
+        blockingScore: 0,
+        openScore: 0,
+        authoritativeScore: 0,
+        lastIndex: -1,
+        reasons: [],
+      },
     };
   };
 
@@ -387,4 +409,16 @@ export function detectTerminalIntent(screen: string): TerminalIntentResult {
     // agent is asking itself, and none of them are addressed to the user.
     openQuestion: intent === "complete" && question.openScore >= OPEN_QUESTION_THRESHOLD,
   };
+}
+
+/**
+ * Whether the text shows the agent running, whatever else it says. The status
+ * line and the idle footer share a frame, so the winning intent cannot answer
+ * this on its own.
+ */
+export function showsWork(screen: string): boolean {
+  const text = normalizeScreen(screen);
+  if (!text) return false;
+
+  return scoreSignals(WORKING_SIGNALS, text, liveRegionStart(text)).score >= WORKING_THRESHOLD;
 }

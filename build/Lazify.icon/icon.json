@@ -1,0 +1,11 @@
+{
+  "fill" : { "solid" : "extended-srgb:0.02745,0.09020,0.17647,1.00000" },
+  "groups" : [
+    {
+      "layers" : [
+        { "image-name" : "artwork.png", "name" : "Artwork" }
+      ]
+    }
+  ],
+  "supported-platforms" : { "circles" : [ "watchOS" ], "squares" : [ "macOS" ] }
+}

@@ -1,9 +1,15 @@
 import clsx from "clsx";
+import { useAtom } from "jotai";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { translation } from "@renderer/i18n/translation";
 import type { SyncedWorkspaceProject } from "@renderer/shared/types/lazify";
+import type {
+  CodeSelectionAction,
+  CodeSelectionContext,
+} from "@renderer/shared/ui/code/menu/code-selection";
+import { CodeSelectionActionsProvider } from "@renderer/shared/ui/code/menu/selection-actions";
 import { Toast } from "@renderer/shared/ui/toast/Toast";
 import { AgentFileModal } from "../components/AgentFileModal";
 import { AgentRailPanels } from "../components/AgentRailPanels";
@@ -14,6 +20,7 @@ import { AgentTabBar, type AgentRailTab } from "../components/AgentTabBar";
 import { AgentToolRail } from "../components/AgentToolRail";
 import { AgentMonitorGrid } from "../components/AgentMonitorGrid";
 import { AgentMonitorRail } from "../components/AgentMonitorRail";
+import { SendToAgentDialog } from "../components/send-to-agent";
 import { useAgentActivity } from "../hooks/use-agent-activity";
 import { useAgentBranch } from "../hooks/use-agent-branch";
 import { useAgentChanges } from "../hooks/use-agent-changes";
@@ -21,6 +28,7 @@ import { useAgentUsage } from "../hooks/use-agent-usage";
 import { useAutopilot } from "../hooks/use-autopilot";
 import { usePreviewUrl } from "../hooks/use-preview-url";
 import { useAgentTerminals, useFocusAgentRun } from "../hooks/agent-terminals";
+import { revealRunIdAtom } from "../hooks/agent-terminals/terminal-store";
 import { useMonitorPanels } from "../hooks/use-monitor-panels";
 import { useTerminalLinks } from "../hooks/use-terminal-links";
 import {
@@ -65,9 +73,9 @@ export function AgentsPage({
 
   const [railTab, setRailTab] = useState<AgentRailTab | null>(null);
 
-  const [monitorMode, setMonitorMode] = useState(false);
-
   const monitorPanels = useMonitorPanels();
+
+  const { monitorMode, setMonitorMode } = monitorPanels;
 
   const [previewOpen, setPreviewOpen] = useState(false);
 
@@ -90,6 +98,7 @@ export function AgentsPage({
 
   const { status: gitStatus, refresh: refreshBranch } = useAgentBranch(projectPath);
   const focusAgentRun = useFocusAgentRun();
+  const [revealRunId, setRevealRunId] = useAtom(revealRunIdAtom);
   const terminalLinks = useTerminalLinks(projectPath);
   const {
     availableAgents,
@@ -101,6 +110,7 @@ export function AgentsPage({
     waitingByRunId,
     syncSessions,
     terminals,
+    allTerminals,
     activeTerminal,
     activeTabId,
     runnableScript,
@@ -124,6 +134,32 @@ export function AgentsPage({
     void (monitorMode ? syncMonitor() : syncSessions());
   }, [monitorMode, syncMonitor, syncSessions]);
 
+  const setMonitorTarget = monitorPanels.setTarget;
+  useEffect(() => {
+    if (!revealRunId) return;
+
+    if (monitorMode) {
+      setMonitorTarget(revealRunId);
+      setRevealRunId(null);
+      return;
+    }
+
+    const terminal = allTerminals.find((candidate) => candidate.runId === revealRunId);
+    if (!terminal) return;
+
+    setProjectPath(terminal.projectPath);
+    focusAgentRun(revealRunId);
+    setRevealRunId(null);
+  }, [
+    revealRunId,
+    monitorMode,
+    allTerminals,
+    focusAgentRun,
+    setMonitorTarget,
+    setProjectPath,
+    setRevealRunId,
+  ]);
+
   const isScriptRunning = Boolean(scriptTerminal) && !scriptTerminal?.exited;
 
   const previewActive = previewOpen && activeTabId === PREVIEW_TAB_ID;
@@ -146,6 +182,19 @@ export function AgentsPage({
   const sendToTerminal = activeRunId
     ? (text: string) => globalThis.lazify.ptyWrite(activeRunId, text)
     : null;
+
+  const [sendingSelection, setSendingSelection] = useState<CodeSelectionContext | null>(
+    null,
+  );
+
+  const codeSelectionActions: CodeSelectionAction[] = [
+    {
+      id: "send-to-agent",
+      label: t(translation.Agents.SendSelectionToAgent),
+      icon: "chat-question",
+      onSelect: setSendingSelection,
+    },
+  ];
 
   const pickPathForTerminal = async () => {
     if (!sendToTerminal) return;
@@ -206,6 +255,7 @@ export function AgentsPage({
   };
 
   return (
+    <CodeSelectionActionsProvider actions={codeSelectionActions}>
     <div className="flex h-full min-h-0 flex-col gap-4">
 
       {syncError ? (
@@ -420,6 +470,18 @@ export function AgentsPage({
         onSendToTerminal={sendToTerminal}
         onClose={terminalLinks.closeFile}
       />
+
+      <SendToAgentDialog
+        selection={sendingSelection}
+        projectPath={railProjectPath || projectPath}
+        agents={availableAgents}
+        onStartAgent={openTerminal}
+        onCreateAgent={createAgent}
+        onDeleteAgent={deleteAgent}
+        onSent={setRevealRunId}
+        onClose={() => setSendingSelection(null)}
+      />
     </div>
+    </CodeSelectionActionsProvider>
   );
 }

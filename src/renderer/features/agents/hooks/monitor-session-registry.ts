@@ -16,9 +16,16 @@ export interface MonitorWallLayout {
   columns: MonitorColumns;
 
   activeRunId: string | null;
+
+  monitorMode: boolean;
 }
 
-const EMPTY: MonitorWallLayout = { refs: {}, columns: "auto", activeRunId: null };
+const EMPTY: MonitorWallLayout = {
+  refs: {},
+  columns: "auto",
+  activeRunId: null,
+  monitorMode: false,
+};
 
 export function loadWallLayout(): MonitorWallLayout {
   try {
@@ -30,6 +37,7 @@ export function loadWallLayout(): MonitorWallLayout {
       refs: parsed.refs && typeof parsed.refs === "object" ? parsed.refs : {},
       columns: parsed.columns ?? "auto",
       activeRunId: parsed.activeRunId ?? null,
+      monitorMode: parsed.monitorMode ?? false,
     };
   } catch {
     return EMPTY;
@@ -78,5 +86,6 @@ export function pruneLayout(
       layout.activeRunId && liveRunIds.has(layout.activeRunId)
         ? layout.activeRunId
         : null,
+    monitorMode: layout.monitorMode,
   };
 }

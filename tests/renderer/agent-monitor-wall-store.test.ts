@@ -11,7 +11,7 @@ import {
 } from "../../src/renderer/features/agents/hooks/monitor-session-registry";
 
 function layout(overrides: Partial<MonitorWallLayout> = {}): MonitorWallLayout {
-  return { refs: {}, columns: "auto", activeRunId: null, ...overrides };
+  return { refs: {}, columns: "auto", activeRunId: null, monitorMode: false, ...overrides };
 }
 
 describe("Live monitor wall layout", () => {
@@ -53,6 +53,34 @@ describe("Live monitor wall layout", () => {
     );
 
     expect(loadWallLayout().refs["run-1"].title).toBe("auth refactor");
+  });
+
+  it("remembers which of the two views the page was left on", () => {
+    saveWallLayout(layout({ monitorMode: true }));
+
+    expect(loadWallLayout().monitorMode).toBe(true);
+  });
+
+  it("defaults to the workbench for a record saved before the mode existed", () => {
+    localStorage.setItem(
+      "lazify-monitor-wall",
+      JSON.stringify({ refs: {}, columns: "auto", activeRunId: null }),
+    );
+
+    expect(loadWallLayout().monitorMode).toBe(false);
+  });
+
+  it("keeps the chosen view through a prune", () => {
+    const pruned = pruneLayout(
+      layout({
+        monitorMode: true,
+        refs: { "run-dead": { runId: "run-dead", size: "wide", order: 0 } },
+      }),
+      new Set<string>(),
+    );
+
+    expect(pruned.monitorMode).toBe(true);
+    expect(pruned.refs).toEqual({});
   });
 
   it("keeps a title through a prune", () => {

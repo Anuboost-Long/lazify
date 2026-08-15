@@ -92,7 +92,9 @@ async function searchViaNpmCli(query: string): Promise<NpmPackageSearchResult[]>
     ["search", query, "--json", "--searchlimit=8"],
     {
       timeout: 10000,
-      maxBuffer: 1024 * 1024
+      maxBuffer: 1024 * 1024,
+      // npm is a .cmd shim on Windows and needs a shell to be found at all.
+      shell: process.platform === "win32"
     }
   );
 

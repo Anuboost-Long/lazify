@@ -4,6 +4,7 @@ import path from "node:path";
 
 import { Request } from "@ghostery/adblocker";
 import { ElectronBlocker } from "@ghostery/adblocker-electron";
+import { setShieldPreload } from "./browser-preloads";
 import { BROWSER_PARTITION } from "./preview-guard";
 import { logError } from "../diagnostics/logger";
 
@@ -242,7 +243,7 @@ function attachFiltering(ses: Electron.Session) {
     const engine = await engineForRequest();
     return engine ? engine.onIsMutationObserverEnabled(event) : false;
   });
-  ses.setPreloads([PRELOAD_PATH]);
+  setShieldPreload(PRELOAD_PATH);
 }
 
 function detachFiltering(ses: Electron.Session) {
@@ -251,7 +252,7 @@ function detachFiltering(ses: Electron.Session) {
   ses.webRequest.onBeforeRequest(null);
   ses.webRequest.onHeadersReceived(null);
 
-  ses.setPreloads([]);
+  setShieldPreload(null);
   ipcMain.removeHandler(COSMETIC_CHANNEL);
   ipcMain.removeHandler(MUTATION_CHANNEL);
 }

@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { BranchSwitcher } from "@renderer/features/workspace/components/BranchSwitcher";
 import { GitStatusGroup } from "@renderer/features/workspace/components/git-status/GitStatusGroup";
 import { GitStatusList } from "@renderer/features/workspace/components/git-status/GitStatusList";
@@ -27,6 +27,8 @@ interface GitStatusPaneProps {
   chrome?: "card" | "flush";
   /** False when a sidebar shell owns the header. */
   showHeader?: boolean;
+  /** Extra header controls, e.g. the close button when hosted in a modal. */
+  headerActions?: ReactNode;
 }
 
 function getStatusTone(entry: GitStatusEntry): string {
@@ -51,6 +53,7 @@ export function GitStatusPane({
   onBranchSwitched,
   chrome = "card",
   showHeader = true,
+  headerActions,
 }: GitStatusPaneProps) {
   const { t } = useTranslation();
   const flush = chrome === "flush";
@@ -111,6 +114,7 @@ export function GitStatusPane({
             <UiIcon name={viewMode === "list" ? "folder" : "menu"} className="h-3.5 w-3.5" />
           </button>
         </Tooltip>
+        {headerActions}
       </div>
 
       {/* Body */}

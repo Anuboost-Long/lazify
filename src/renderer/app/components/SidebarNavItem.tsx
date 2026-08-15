@@ -50,6 +50,7 @@ export function SidebarNavItem({
       >
         <UiIcon
           name={icon}
+          filled={isActive}
           className={clsx("h-5 w-5 shrink-0", isActive ? "text-accent" : "text-muted")}
         />
         <div className="min-w-0">

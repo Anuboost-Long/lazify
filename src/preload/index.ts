@@ -7,6 +7,9 @@ import type { NpmPackageSearchResult } from "../main/scaffolding/npm-registry";
 import type {
   AgentFileChange,
   AgentUsageReport,
+  EnvFileSummary,
+  EnvVariablePatch,
+  ProjectEnvFile,
   InstalledPackage,
   NpmAuditResult,
   NpmOutdatedResult,
@@ -34,6 +37,25 @@ import type { HighlightingAssets } from "../main/code-intelligence/highlighting-
 import type { GitCheckoutResult } from "../main/projects/project-git-status";
 import type { GitActionResult } from "../main/projects/git-actions";
 import type { DiagnosticsPaths } from "../main/diagnostics/logger";
+import type { SwipeProgressEvent as BrowserSwipeProgress } from "../main/browser/swipe-navigation";
+import type {
+  Task,
+  TaskAgentRun,
+  TaskAgentRunInput,
+  TaskInput,
+  TaskStatus,
+  TaskStatusEvent,
+  TaskStatusSource
+} from "../main/tasks/types";
+import type {
+  BuildPromptInput,
+  BuiltPrompt,
+  ContextEntry,
+  ContextEntryInput,
+  ContextScope,
+  PromptPreset,
+  PromptPresetInput
+} from "../main/prompts/types";
 import type { VersionMatchReport } from "../brain/package-version-matcher";
 import type {
   AddProjectPackagePayload,
@@ -123,6 +145,29 @@ const lazifyApi = {
     ipcRenderer.invoke("lazify:npm-outdated", projectPath),
   getNpmAudit: (projectPath: string): Promise<NpmAuditResult> =>
     ipcRenderer.invoke("lazify:npm-audit", projectPath),
+  listEnvFiles: (projectPath: string): Promise<EnvFileSummary[]> =>
+    ipcRenderer.invoke("lazify:list-env-files", projectPath),
+  readEnvFile: (projectPath: string, fileName: string): Promise<ProjectEnvFile> =>
+    ipcRenderer.invoke("lazify:read-env-file", projectPath, fileName),
+  updateEnvVariable: (
+    projectPath: string,
+    fileName: string,
+    line: number,
+    expectedKey: string,
+    patch: EnvVariablePatch
+  ): Promise<ProjectEnvFile> =>
+    ipcRenderer.invoke("lazify:update-env-variable", projectPath, fileName, line, expectedKey, patch),
+  deleteEnvVariable: (
+    projectPath: string,
+    fileName: string,
+    line: number,
+    expectedKey: string
+  ): Promise<ProjectEnvFile> =>
+    ipcRenderer.invoke("lazify:delete-env-variable", projectPath, fileName, line, expectedKey),
+  addEnvVariable: (projectPath: string, fileName: string, key: string, value: string): Promise<ProjectEnvFile> =>
+    ipcRenderer.invoke("lazify:add-env-variable", projectPath, fileName, key, value),
+  createEnvFile: (projectPath: string, fileName: string): Promise<ProjectEnvFile> =>
+    ipcRenderer.invoke("lazify:create-env-file", projectPath, fileName),
   listScripts: (projectPath: string): Promise<Record<string, string>> =>
     ipcRenderer.invoke("lazify:list-scripts", projectPath),
   runScript: (projectPath: string, scriptName: string, cols?: number, rows?: number): Promise<{ runId: string; ptyAvailable: boolean }> =>
@@ -230,6 +275,8 @@ const lazifyApi = {
     ipcRenderer.invoke("lazify:commit-changes", projectPath, message),
   pushBranch: (projectPath: string): Promise<GitActionResult> =>
     ipcRenderer.invoke("lazify:push-branch", projectPath),
+  pullBranch: (projectPath: string): Promise<GitActionResult> =>
+    ipcRenderer.invoke("lazify:pull-branch", projectPath),
   /**
    * Where a dropped file actually lives on disk.
    *
@@ -338,6 +385,16 @@ const lazifyApi = {
       fromPath,
       position
     ),
+  onBrowserSwipeProgress: (
+    callback: (event: BrowserSwipeProgress | null) => void
+  ) => {
+    const listener = (
+      _event: Electron.IpcRendererEvent,
+      payload: BrowserSwipeProgress | null
+    ) => callback(payload);
+    ipcRenderer.on("lazify:browser-swipe-progress", listener);
+    return () => ipcRenderer.removeListener("lazify:browser-swipe-progress", listener);
+  },
   onBrowserOpenTab: (callback: (event: { url: string; background: boolean }) => void) => {
     const listener = (
       _event: Electron.IpcRendererEvent,
@@ -358,6 +415,63 @@ const lazifyApi = {
   },
   allowPopupsFrom: (sourceUrl: string): Promise<void> =>
     ipcRenderer.invoke("lazify:allow-popups-from", sourceUrl),
+  listPromptPresets: (): Promise<PromptPreset[]> =>
+    ipcRenderer.invoke("lazify:list-prompt-presets"),
+  createPromptPreset: (input: PromptPresetInput): Promise<PromptPreset> =>
+    ipcRenderer.invoke("lazify:create-prompt-preset", input),
+  updatePromptPreset: (id: string, input: PromptPresetInput): Promise<PromptPreset | null> =>
+    ipcRenderer.invoke("lazify:update-prompt-preset", id, input),
+  deletePromptPreset: (id: string): Promise<boolean> =>
+    ipcRenderer.invoke("lazify:delete-prompt-preset", id),
+  listContextEntries: (projectPath: string): Promise<ContextEntry[]> =>
+    ipcRenderer.invoke("lazify:list-context-entries", projectPath),
+  createContextEntry: (input: ContextEntryInput): Promise<ContextEntry> =>
+    ipcRenderer.invoke("lazify:create-context-entry", input),
+  updateContextEntry: (id: string, input: ContextEntryInput): Promise<boolean> =>
+    ipcRenderer.invoke("lazify:update-context-entry", id, input),
+  setContextEntryActive: (id: string, active: boolean): Promise<boolean> =>
+    ipcRenderer.invoke("lazify:set-context-entry-active", id, active),
+  setContextPackActive: (
+    scope: ContextScope,
+    scopeKey: string,
+    pack: string,
+    active: boolean
+  ): Promise<number> =>
+    ipcRenderer.invoke("lazify:set-context-pack-active", scope, scopeKey, pack, active),
+  deleteContextEntry: (id: string): Promise<boolean> =>
+    ipcRenderer.invoke("lazify:delete-context-entry", id),
+  buildPrompt: (input: BuildPromptInput): Promise<BuiltPrompt> =>
+    ipcRenderer.invoke("lazify:build-prompt", input),
+  suggestPromptPreset: (text: string): Promise<string | null> =>
+    ipcRenderer.invoke("lazify:suggest-prompt-preset", text),
+  listTasks: (projectPath: string): Promise<Task[]> =>
+    ipcRenderer.invoke("lazify:list-tasks", projectPath),
+  listAllTasks: (): Promise<Task[]> => ipcRenderer.invoke("lazify:list-all-tasks"),
+  createTask: (input: TaskInput): Promise<Task> =>
+    ipcRenderer.invoke("lazify:create-task", input),
+  updateTask: (id: string, input: TaskInput): Promise<boolean> =>
+    ipcRenderer.invoke("lazify:update-task", id, input),
+  setTaskStatus: (
+    id: string,
+    status: TaskStatus,
+    source: TaskStatusSource = "manual"
+  ): Promise<boolean> => ipcRenderer.invoke("lazify:set-task-status", id, status, source),
+  listTaskStatusEvents: (taskId: string): Promise<TaskStatusEvent[]> =>
+    ipcRenderer.invoke("lazify:list-task-status-events", taskId),
+  reorderTask: (id: string, sortOrder: number): Promise<boolean> =>
+    ipcRenderer.invoke("lazify:reorder-task", id, sortOrder),
+  deleteTask: (id: string): Promise<boolean> =>
+    ipcRenderer.invoke("lazify:delete-task", id),
+  buildTaskPrompt: (taskId: string): Promise<BuiltPrompt | null> =>
+    ipcRenderer.invoke("lazify:build-task-prompt", taskId),
+  recordTaskRun: (input: TaskAgentRunInput): Promise<TaskAgentRun> =>
+    ipcRenderer.invoke("lazify:record-task-run", input),
+  listTaskRuns: (taskId: string): Promise<TaskAgentRun[]> =>
+    ipcRenderer.invoke("lazify:list-task-runs", taskId),
+  completeTaskRun: (id: string): Promise<boolean> =>
+    ipcRenderer.invoke("lazify:complete-task-run", id),
+  completeAgentTaskRuns: (agentRunId: string): Promise<number> =>
+    ipcRenderer.invoke("lazify:complete-agent-task-runs", agentRunId),
   getAgentUsage: (sinceIso?: string, agentIds?: string[]): Promise<AgentUsageReport> =>
     ipcRenderer.invoke("lazify:agent-usage", sinceIso, agentIds),
   setAgentBudget: (agentId: string, weeklyTokens: number): Promise<Record<string, number>> =>
