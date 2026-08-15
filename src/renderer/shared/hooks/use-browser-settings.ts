@@ -1,6 +1,13 @@
 import { atom, useAtom } from "jotai";
 
+import {
+  DEFAULT_SEARCH_ENGINE_ID,
+  isSearchEngineId,
+  type SearchEngineId
+} from "@renderer/shared/lib/search-engines";
+
 const RESTORE_TABS_KEY = "lazify-browser-restore-tabs";
+const SEARCH_ENGINE_KEY = "lazify-browser-search-engine";
 
 function readBool(key: string, defaultValue: boolean): boolean {
   if (typeof window === "undefined") return defaultValue;
@@ -16,13 +23,27 @@ function readBool(key: string, defaultValue: boolean): boolean {
  */
 const restoreTabsAtom = atom(readBool(RESTORE_TABS_KEY, true));
 
+function readSearchEngine(): SearchEngineId {
+  if (typeof window === "undefined") return DEFAULT_SEARCH_ENGINE_ID;
+  const stored = globalThis.localStorage.getItem(SEARCH_ENGINE_KEY);
+  return isSearchEngineId(stored) ? stored : DEFAULT_SEARCH_ENGINE_ID;
+}
+
+const searchEngineAtom = atom(readSearchEngine());
+
 export function useBrowserSettings() {
   const [restoreTabs, setRestoreTabsAtom] = useAtom(restoreTabsAtom);
+  const [searchEngine, setSearchEngineAtom] = useAtom(searchEngineAtom);
 
   function setRestoreTabs(value: boolean) {
     globalThis.localStorage.setItem(RESTORE_TABS_KEY, String(value));
     setRestoreTabsAtom(value);
   }
 
-  return { restoreTabs, setRestoreTabs };
+  function setSearchEngine(value: SearchEngineId) {
+    globalThis.localStorage.setItem(SEARCH_ENGINE_KEY, value);
+    setSearchEngineAtom(value);
+  }
+
+  return { restoreTabs, setRestoreTabs, searchEngine, setSearchEngine };
 }

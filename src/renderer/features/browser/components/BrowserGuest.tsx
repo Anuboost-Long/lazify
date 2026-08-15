@@ -2,6 +2,8 @@ import clsx from "clsx";
 import { memo, useEffect, useRef, useState } from "react";
 
 import type { BrowserTab } from "../hooks/use-browser-tabs";
+import { usePageLoadError } from "../hooks/use-page-load-error";
+import { BrowserErrorPage } from "./errors";
 
 /** Session for the browser page. Must match BROWSER_PARTITION in main. */
 const BROWSER_PARTITION = "persist:lazify-web";
@@ -41,6 +43,7 @@ export const BrowserGuest = memo(function BrowserGuest({
 }: Readonly<BrowserGuestProps>) {
   const viewRef = useRef<LazifyWebviewElement | null>(null);
   const [ready, setReady] = useState(false);
+  const { error, retry } = usePageLoadError(viewRef, tab);
 
   // Written once. Later addresses go through loadURL, so a re-render never
   // reloads the page underneath the user.
@@ -174,6 +177,17 @@ export const BrowserGuest = memo(function BrowserGuest({
         {...({ allowpopups: "" } as Record<string, string>)}
         className={clsx("absolute inset-0 flex bg-white")}
       />
+
+      {/* Over the guest, so Chromium's own error page never shows through. */}
+      {error ? (
+        <div className="absolute inset-0 z-10 bg-bg">
+          <BrowserErrorPage
+            error={error}
+            onRetry={retry}
+            onOpenInSystemBrowser={() => void globalThis.lazify.openExternalUrl(error.url)}
+          />
+        </div>
+      ) : null}
     </div>
   );
 });

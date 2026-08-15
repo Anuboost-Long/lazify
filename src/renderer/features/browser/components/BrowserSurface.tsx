@@ -14,9 +14,11 @@ import { BrowserGuest, type GuestStatus } from "./BrowserGuest";
 import { BrowserStartPage } from "./BrowserStartPage";
 import { LazyShieldPanel } from "./LazyShieldPanel";
 import { SendToAgentButton } from "./SendToAgentButton";
+import { SwipeNavigationIndicator } from "./SwipeNavigationIndicator";
 import { useBlockedPopups } from "../hooks/use-blocked-popups";
 import { useBrowserTabs, type BrowserTab } from "../hooks/use-browser-tabs";
 import { useLazyShield } from "../hooks/use-lazy-shield";
+import { useSwipeProgress } from "../hooks/use-swipe-progress";
 import { tabLabel } from "../lib/browser-url";
 
 const EMPTY_STATUS: GuestStatus = {
@@ -90,6 +92,7 @@ export function BrowserSurface({ visible }: Readonly<BrowserSurfaceProps>) {
 
   const shield = useLazyShield();
   const popups = useBlockedPopups();
+  const swipe = useSwipeProgress();
   const pagePip = usePictureInPicture("browser");
   const [statuses, setStatuses] = useState<Record<string, GuestStatus>>({});
   /** Explains a picture-in-picture request the page could not answer. */
@@ -406,6 +409,12 @@ export function BrowserSurface({ visible }: Readonly<BrowserSurfaceProps>) {
             <BrowserStartPage onGo={navigateActive} />
           </div>
         ) : null}
+
+        <SwipeNavigationIndicator
+          swipe={swipe}
+          canGoBack={status.canGoBack}
+          canGoForward={status.canGoForward}
+        />
       </div>
     </div>
   );
