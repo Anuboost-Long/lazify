@@ -263,6 +263,15 @@ declare global {
         callback: (event: { url: string; background: boolean }) => void
       ) => () => void;
       /**
+       * How far a two-finger swipe over a guest has got, so the page can draw
+       * it. `null` means the gesture is over — navigated or abandoned.
+       */
+      onBrowserSwipeProgress: (
+        callback: (
+          event: import("../main/browser/swipe-navigation").SwipeProgressEvent | null
+        ) => void
+      ) => () => void;
+      /**
        * A popup or a frame-driven redirect was held back. The browser page
        * offers it rather than opening it, since the user never asked for it.
        */
@@ -271,6 +280,79 @@ declare global {
       ) => () => void;
       /** Remembers that this page's site may open popups from now on. */
       allowPopupsFrom: (sourceUrl: string) => Promise<void>;
+      listPromptPresets: () => Promise<
+        import("../main/prompts/types").PromptPreset[]
+      >;
+      createPromptPreset: (
+        input: import("../main/prompts/types").PromptPresetInput
+      ) => Promise<import("../main/prompts/types").PromptPreset>;
+      updatePromptPreset: (
+        id: string,
+        input: import("../main/prompts/types").PromptPresetInput
+      ) => Promise<import("../main/prompts/types").PromptPreset | null>;
+      deletePromptPreset: (id: string) => Promise<boolean>;
+      /** A project's own context plus every global entry. */
+      listContextEntries: (
+        projectPath: string
+      ) => Promise<import("../main/prompts/types").ContextEntry[]>;
+      createContextEntry: (
+        input: import("../main/prompts/types").ContextEntryInput
+      ) => Promise<import("../main/prompts/types").ContextEntry>;
+      updateContextEntry: (
+        id: string,
+        input: import("../main/prompts/types").ContextEntryInput
+      ) => Promise<boolean>;
+      setContextEntryActive: (id: string, active: boolean) => Promise<boolean>;
+      /** Switches a whole pack on or off; returns how many entries moved. */
+      setContextPackActive: (
+        scope: import("../main/prompts/types").ContextScope,
+        scopeKey: string,
+        pack: string,
+        active: boolean
+      ) => Promise<number>;
+      deleteContextEntry: (id: string) => Promise<boolean>;
+      /** Assembles the agent-ready prompt. No network, no model. */
+      buildPrompt: (
+        input: import("../main/prompts/types").BuildPromptInput
+      ) => Promise<import("../main/prompts/types").BuiltPrompt>;
+      suggestPromptPreset: (text: string) => Promise<string | null>;
+      /** Tasks belong to a project and outlive the app being closed. */
+      listTasks: (projectPath: string) => Promise<import("../main/tasks/types").Task[]>;
+      /** Every project's tasks, for the home dashboard. */
+      listAllTasks: () => Promise<import("../main/tasks/types").Task[]>;
+      createTask: (
+        input: import("../main/tasks/types").TaskInput
+      ) => Promise<import("../main/tasks/types").Task>;
+      updateTask: (
+        id: string,
+        input: import("../main/tasks/types").TaskInput
+      ) => Promise<boolean>;
+      /** `source` records whether the app moved it or a person did. */
+      setTaskStatus: (
+        id: string,
+        status: import("../main/tasks/types").TaskStatus,
+        source?: import("../main/tasks/types").TaskStatusSource
+      ) => Promise<boolean>;
+      /** Every move a task has made, oldest first. */
+      listTaskStatusEvents: (
+        taskId: string
+      ) => Promise<import("../main/tasks/types").TaskStatusEvent[]>;
+      reorderTask: (id: string, sortOrder: number) => Promise<boolean>;
+      deleteTask: (id: string) => Promise<boolean>;
+      /** Builds a stored task straight into an agent prompt. */
+      buildTaskPrompt: (
+        taskId: string
+      ) => Promise<import("../main/prompts/types").BuiltPrompt | null>;
+      /** Keeps the exact prompt an agent was handed, for the task's history. */
+      recordTaskRun: (
+        input: import("../main/tasks/types").TaskAgentRunInput
+      ) => Promise<import("../main/tasks/types").TaskAgentRun>;
+      listTaskRuns: (
+        taskId: string
+      ) => Promise<import("../main/tasks/types").TaskAgentRun[]>;
+      completeTaskRun: (id: string) => Promise<boolean>;
+      /** Closes any run still open for an agent that has just finished. */
+      completeAgentTaskRuns: (agentRunId: string) => Promise<number>;
       openPictureInPicture: (
         url: string,
         source: import("../main/media/picture-in-picture").PictureInPictureSource

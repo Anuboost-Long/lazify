@@ -9,8 +9,10 @@ import { registerGitHandlers } from "./git";
 import { registerMediaHandlers } from "./media";
 import { registerPackageHandlers } from "./packages";
 import { registerProjectHandlers } from "./projects";
+import { registerPromptHandlers } from "./prompts";
 import { registerScriptHandlers } from "./scripts";
 import { registerSystemHandlers } from "./system";
+import { registerTaskHandlers } from "./tasks";
 import { registerTemplateHandlers } from "./templates";
 import { registerUpdaterHandlers } from "./updater";
 import { registerWorkflowHandlers } from "./workflow";
@@ -33,4 +35,6 @@ export function registerDomainHandlers(ctx: IpcContext) {
   registerBrowserHandlers();
   registerMediaHandlers();
   registerPackageHandlers(ctx);
+  registerPromptHandlers();
+  registerTaskHandlers();
 }

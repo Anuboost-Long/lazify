@@ -17,11 +17,14 @@ import { watchAgentActivity } from "./agents/agent-activity-watcher";
 import { closePictureInPicture, onPictureInPictureChanged } from "./media/picture-in-picture";
 import { guardPreviewWebviews } from "./browser/preview-guard";
 import { installBrowserPermissionPolicy } from "./browser/browser-permissions";
+import { attachBrowserPreloads } from "./browser/browser-preloads";
+import { registerSwipeNavigation } from "./browser/swipe-navigation";
 import { closeSplash, showSplash } from "./splash";
 import { initLazyShield, shouldBlockPopup } from "./browser/lazy-shield";
 import { normalizeRuntimePath } from "./environment/runtime-path";
 import { installCrashHandlers, watchWindowCrashes } from "./diagnostics/crash-handlers";
 import { registerDomainHandlers } from "./ipc";
+import { initPromptBuilder } from "./prompts";
 import { initUpdater } from "./updater";
 
 // Windows ties toast notifications to an AppUserModelID. Without one set here,
@@ -36,7 +39,12 @@ let mainWindow: BrowserWindow | null = null;
 let stopAgentActivityWatch: (() => void) | null = null;
 
 const emitToRenderer = (channel: string, payload: unknown) => {
-  mainWindow?.webContents.send(channel, payload);
+  // Destroyed is not the same as gone: the reference outlives the window, and
+  // sending through it throws. A watcher's timer firing into a window that has
+  // just closed — a reload, a quit, a dev restart — was taking the app down.
+  if (!mainWindow || mainWindow.isDestroyed()) return;
+
+  mainWindow.webContents.send(channel, payload);
 };
 
 const commandRunner = new CommandRunner(
@@ -351,10 +359,21 @@ app.whenReady().then(() => {
   // defaults — where a site asking for notifications is simply told yes.
   installBrowserPermissionPolicy();
 
+  // Same timing: a guest only runs the preloads its session had when it was
+  // created, so swipe navigation has to be registered before the first one.
+  attachBrowserPreloads();
+  registerSwipeNavigation((progress) =>
+    emitToRenderer("lazify:browser-swipe-progress", progress)
+  );
+
   // Only now, once the guard above is registered — it has to see every window
   // this app opens, and the splash is a window. Still ahead of the shield's
   // engine load and the scans below, which are the slow part of a cold start.
   showSplash();
+
+  // Opens the database and puts the shipped presets and rules in place, so the
+  // prompt builder has something to build from the first time it is opened.
+  initPromptBuilder();
 
   // Restores the saved shield preference before the browser page loads anything.
   void initLazyShield((blocked) => emitToRenderer("lazify:lazy-shield-blocked", { blocked }));
@@ -381,7 +400,10 @@ app.whenReady().then(() => {
   // A floater outliving the window that opened it would keep the app running
   // with nothing to drive it — and on macOS it would also stop the dock icon
   // from bringing the real window back.
-  mainWindow.on("closed", () => closePictureInPicture());
+  mainWindow.on("closed", () => {
+    mainWindow = null;
+    closePictureInPicture();
+  });
 
   // Wired after the window exists, so the first state change has somewhere to
   // go. Nothing is checked until the user asks from Settings.
