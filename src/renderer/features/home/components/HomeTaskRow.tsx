@@ -47,11 +47,9 @@ export function HomeTaskRow({
   return (
     <div
       className={clsx(
-        "group relative flex items-center gap-3 overflow-hidden rounded-xl border bg-soft",
-        "py-3 pl-4 pr-2 transition-transform duration-150",
-        done
-          ? "border-border/60 opacity-60"
-          : "border-border hover:-translate-y-px hover:border-accent/40 hover:shadow-panel"
+        "group relative flex items-center gap-3 overflow-hidden border-b border-border",
+        "py-3.5 pl-5 pr-3 transition-colors last:border-b-0 hover:bg-text/[0.025]",
+        done ? "text-muted" : "text-text"
       )}
     >
       <span
@@ -61,7 +59,11 @@ export function HomeTaskRow({
 
       <StatusToggle status={task.status} onCycle={onCycleStatus} />
 
-      <button type="button" onClick={onOpen} className="min-w-0 flex-1 text-left">
+      <button
+        type="button"
+        onClick={onOpen}
+        className="min-w-0 flex-1 rounded-md text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
+      >
         <BodyText
           className={clsx("!text-text block truncate font-semibold", done && "line-through")}
         >
@@ -89,15 +91,15 @@ export function HomeTaskRow({
         </div>
       </button>
 
-      <div className="flex shrink-0 items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+      <div className="flex shrink-0 items-center gap-1 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100">
         <Tooltip content={t(translation.Tasks.SendPrompt)} side="left">
           <button
             type="button"
             onClick={onSendPrompt}
             aria-label={t(translation.Tasks.SendPrompt)}
             className={clsx(
-              "flex h-8 w-8 items-center justify-center rounded-lg border border-border",
-              "text-muted transition-colors hover:border-accent/40 hover:bg-accent/10 hover:text-accent"
+              "flex h-8 w-8 items-center justify-center rounded-lg",
+              "text-muted transition-colors hover:bg-accent/10 hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
             )}
           >
             <UiIcon name="sparks" className="h-3.5 w-3.5" />
@@ -110,8 +112,8 @@ export function HomeTaskRow({
             onClick={onOpenAgents}
             aria-label={t(translation.Home.OpenInAgents)}
             className={clsx(
-              "flex h-8 w-8 items-center justify-center rounded-lg border border-border",
-              "text-muted transition-colors hover:border-accent/40 hover:text-accent"
+              "flex h-8 w-8 items-center justify-center rounded-lg",
+              "text-muted transition-colors hover:bg-accent/10 hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
             )}
           >
             <UiIcon name="code" className="h-3.5 w-3.5" />
@@ -124,8 +126,8 @@ export function HomeTaskRow({
             onClick={onDelete}
             aria-label={t(translation.Tasks.DeleteTask)}
             className={clsx(
-              "flex h-8 w-8 items-center justify-center rounded-lg border border-border",
-              "text-muted transition-colors hover:border-error/40 hover:bg-error/10 hover:text-error"
+              "flex h-8 w-8 items-center justify-center rounded-lg",
+              "text-muted transition-colors hover:bg-error/10 hover:text-error focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-error/50"
             )}
           >
             <UiIcon name="trash" className="h-3.5 w-3.5" />

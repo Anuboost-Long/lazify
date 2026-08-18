@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 import type { Task } from "@main/tasks/types";
+import type { SyncedWorkspaceProject } from "@renderer/shared/types/lazify";
 import { usePromptPresets } from "../../prompts";
 import { TaskDetailModal } from "./TaskDetailModal";
 import { useTasks } from "../hooks/use-tasks";
@@ -8,6 +9,7 @@ import { useTasks } from "../hooks/use-tasks";
 interface WorkspaceTaskModalProps {
   open: boolean;
   projectPath: string;
+  projects: SyncedWorkspaceProject[];
   onClose: () => void;
 }
 
@@ -15,6 +17,7 @@ interface WorkspaceTaskModalProps {
 export function WorkspaceTaskModal({
   open,
   projectPath,
+  projects,
   onClose
 }: Readonly<WorkspaceTaskModalProps>) {
   const { presets } = usePromptPresets();
@@ -31,6 +34,7 @@ export function WorkspaceTaskModal({
     <TaskDetailModal
       open={open}
       task={task}
+      projects={projects}
       projectPath={projectPath}
       projectName={projectPath.split("/").filter(Boolean).at(-1) ?? ""}
       presets={presets}

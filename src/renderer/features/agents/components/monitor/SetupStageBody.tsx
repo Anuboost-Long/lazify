@@ -4,6 +4,7 @@ import { translation } from "@renderer/i18n/translation";
 import type { SyncedWorkspaceProject } from "@renderer/shared/types/lazify";
 import { CaptionText } from "@renderer/shared/typography";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
+import { ProjectPickerPanel } from "@renderer/shared/ui/project-picker/ProjectPickerPanel";
 import { SetupChoiceRow } from "./SetupChoiceRow";
 
 export type SetupStage = "project" | "source" | "script";
@@ -49,16 +50,11 @@ export function SetupStageBody({
             {t(translation.Agents.MonitorChooseProjectDesc)}
           </CaptionText>
 
-          {projects.map((candidate) => (
-            <SetupChoiceRow
-              key={candidate.projectPath}
-              initial={candidate.projectName.slice(0, 1)}
-              title={candidate.projectName}
-              subtitle={candidate.projectPath}
-              mono
-              onClick={() => onPickProject(candidate)}
-            />
-          ))}
+          <ProjectPickerPanel
+            projects={projects}
+            selectedPath={project?.projectPath}
+            onSelect={onPickProject}
+          />
         </>
       ) : null}
 

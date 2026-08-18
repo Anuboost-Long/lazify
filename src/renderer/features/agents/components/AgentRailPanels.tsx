@@ -1,6 +1,10 @@
 import type { AgentActivityEntry } from "../hooks/use-agent-activity";
 import type { AgentTerminal } from "../hooks/agent-terminals";
-import type { AgentFileChange, AgentUsageReport } from "@renderer/shared/types/lazify";
+import type {
+  AgentFileChange,
+  AgentUsageReport,
+  SyncedWorkspaceProject
+} from "@renderer/shared/types/lazify";
 import { AgentActivityPanel } from "./AgentActivityPanel";
 import { AgentChangesPanel } from "./AgentChangesPanel";
 import { AgentDebugPanel } from "./AgentDebugPanel";
@@ -20,6 +24,7 @@ interface AgentRailPanelsProps {
   asModal: boolean;
 
   projectPath: string;
+  projects: SyncedWorkspaceProject[];
 
   scriptTerminal: AgentTerminal | null;
   runnableScript: string | null;
@@ -60,6 +65,7 @@ export function AgentRailPanels({
   onCloseRail,
   asModal,
   projectPath,
+  projects,
   scriptTerminal,
   runnableScript,
   onStartScript,
@@ -150,6 +156,7 @@ export function AgentRailPanels({
           <AgentTaskPanel
             variant={variant}
             projectPath={projectPath}
+            projects={projects}
             onClose={onCloseRail}
           />
         </AgentRailPanelHost>

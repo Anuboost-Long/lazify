@@ -20,8 +20,8 @@ import UiIcon, { type UiIconName } from "@renderer/shared/ui/icons/UiIcon";
 /** Priority is the rule down the leading edge: seen before anything is read. */
 export const priorityRule: Record<TaskPriority, string> = {
   high: "bg-error",
-  normal: "bg-accent",
-  low: "bg-border"
+  normal: "bg-warning",
+  low: "bg-success"
 };
 
 interface StatusToggleProps {

@@ -1,4 +1,5 @@
 import { translation } from "@renderer/i18n/translation";
+import duckDuckGoIcon from "@renderer/assets/duckduckgo.png";
 import type { SearchEngine } from "./types";
 
 export const duckduckgo: SearchEngine = {
@@ -6,6 +7,7 @@ export const duckduckgo: SearchEngine = {
   name: "DuckDuckGo",
   descriptionKey: translation.Settings.SearchEngineDuckduckgoDesc,
   mark: "D",
-  markClassName: "bg-[#de5833]/10 text-[#de5833]",
+  iconSrc: duckDuckGoIcon,
+  markClassName: "bg-transparent",
   buildSearchUrl: (query) => `https://duckduckgo.com/?q=${encodeURIComponent(query)}`
 };

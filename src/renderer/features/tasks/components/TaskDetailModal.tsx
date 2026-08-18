@@ -1,12 +1,20 @@
 import clsx from "clsx";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import type { PromptPreset } from "@main/prompts/types";
 import type { Task, TaskInput, TaskStatus } from "@main/tasks/types";
 import { translation } from "@renderer/i18n/translation";
-import { CaptionText, SectionTitle } from "@renderer/shared/typography";
+import {
+  CaptionText,
+  OverlineText,
+  SectionTitle,
+  SmallText
+} from "@renderer/shared/typography";
+import type { SyncedWorkspaceProject } from "@renderer/shared/types/lazify";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import { BaseModal } from "@renderer/shared/ui/modal/BaseModal";
+import { ProjectPickerModal } from "@renderer/shared/ui/project-picker/ProjectPickerModal";
 import { TaskDetailPane } from "./TaskDetailPane";
 
 interface TaskDetailModalProps {
@@ -14,6 +22,7 @@ interface TaskDetailModalProps {
   task: Task | null;
   projectPath: string;
   projectName: string;
+  projects: SyncedWorkspaceProject[];
   presets: PromptPreset[];
   onSaveTask: (input: TaskInput) => void;
   onSetStatus: (status: TaskStatus) => void;
@@ -32,14 +41,48 @@ interface TaskDetailModalProps {
  * and a task is worth seeing as a prompt from the moment it is written.
  */
 export function TaskDetailModal(props: Readonly<TaskDetailModalProps>) {
-  const { open, onClose } = props;
+  const { open, task, projectPath, projects, onClose } = props;
+  const [selectedProjectPath, setSelectedProjectPath] = useState(projectPath);
+  const [pickingProject, setPickingProject] = useState(false);
+
+  useEffect(() => {
+    if (!open) return;
+
+    setSelectedProjectPath(task?.projectPath ?? projectPath);
+    setPickingProject(false);
+  }, [open, projectPath, task?.id, task?.projectPath]);
+
+  const selectedProjectName =
+    projects.find((project) => project.projectPath === selectedProjectPath)?.projectName ??
+    props.projectName;
 
   return (
-    <BaseModal open={open} onClose={onClose}>
-      {open ? <DetailCard {...props} /> : null}
-    </BaseModal>
+    <>
+      <BaseModal open={open} cancellable={!pickingProject} onClose={onClose}>
+        {open ? (
+          <DetailCard
+            {...props}
+            projectPath={selectedProjectPath}
+            projectName={selectedProjectName}
+            onPickProject={() => setPickingProject(true)}
+          />
+        ) : null}
+      </BaseModal>
+
+      <ProjectPickerModal
+        open={open && pickingProject}
+        projects={projects}
+        selectedPath={selectedProjectPath}
+        title={translation.PromptBuilder.ChooseProject}
+        emptyMessage={translation.Tasks.SyncFirst}
+        onSelect={setSelectedProjectPath}
+        onClose={() => setPickingProject(false)}
+      />
+    </>
   );
 }
+
+type DetailCardProps = TaskDetailModalProps & { onPickProject: () => void };
 
 function DetailCard({
   task,
@@ -50,8 +93,9 @@ function DetailCard({
   onSetStatus,
   onDeleteTask,
   onSent,
-  onClose
-}: Readonly<TaskDetailModalProps>) {
+  onClose,
+  onPickProject
+}: Readonly<DetailCardProps>) {
   const { t } = useTranslation();
 
   return (
@@ -66,7 +110,7 @@ function DetailCard({
           <SectionTitle className="truncate">
             {task ? task.name : t(translation.Tasks.AddTask)}
           </SectionTitle>
-          <CaptionText tone="muted">{projectName}</CaptionText>
+          {task ? <CaptionText tone="muted">{projectName}</CaptionText> : null}
         </div>
 
         <button
@@ -80,6 +124,41 @@ function DetailCard({
       </header>
 
       <div className="flex min-h-0 flex-1 flex-col px-6 py-5">
+        {!task ? (
+          <div className="mb-5 flex shrink-0 flex-col gap-2">
+            <OverlineText tone="muted">{t(translation.Tasks.Project)}</OverlineText>
+            <button
+              type="button"
+              onClick={onPickProject}
+              className={clsx(
+                "group flex w-full items-center gap-4 rounded-xl border border-accent/25 bg-accent/[0.04] px-4 py-4 text-left",
+                "transition-colors hover:border-accent/50 hover:bg-accent/[0.07]"
+              )}
+            >
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-accent/15 text-accent">
+                <UiIcon name="folder" filled className="h-5 w-5" />
+              </span>
+              <span className="min-w-0 flex-1">
+                <SmallText className="!text-text block truncate text-sm font-semibold">
+                  {projectName || t(translation.Tasks.NoProject)}
+                </SmallText>
+                {projectPath ? (
+                  <CaptionText tone="muted" className="block truncate font-mono">
+                    {projectPath}
+                  </CaptionText>
+                ) : null}
+              </span>
+              <SmallText className="shrink-0 !text-accent">
+                {t(translation.PromptBuilder.ChooseProject)}
+              </SmallText>
+              <UiIcon
+                name="arrow-right"
+                className="h-4 w-4 shrink-0 rotate-90 text-muted transition-colors group-hover:text-accent"
+              />
+            </button>
+          </div>
+        ) : null}
+
         <TaskDetailPane
           task={task}
           projectPath={projectPath}

@@ -12,7 +12,7 @@ const stackLabelMap: Record<string, string> = {
   pnpm: "pnpm",
   react: "React",
   vite: "Vite",
-  yarn: "Yarn",
+  yarn: "Yarn"
 };
 
 export function formatStackLabel(value: string) {
@@ -25,4 +25,3 @@ export function formatStackLabel(value: string) {
     )
     .join(" ");
 }
-

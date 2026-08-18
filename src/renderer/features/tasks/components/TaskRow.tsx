@@ -42,7 +42,6 @@ export function TaskRow({
       className={clsx(
         "group relative flex items-start gap-2 overflow-hidden rounded-lg border bg-soft",
         "py-2 pl-3 pr-1.5",
-        done && "opacity-60",
         selected ? "border-accent/50 bg-accent/[0.06]" : "border-border hover:border-accent/40"
       )}
     >

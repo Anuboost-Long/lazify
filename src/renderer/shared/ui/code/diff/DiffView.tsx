@@ -23,32 +23,21 @@ export type DiffViewMode = "unified" | "split";
 interface DiffViewProps {
   diff: string;
   mode: DiffViewMode;
-  /** File name of the diff, so the code inside it can be highlighted. */
   fileName?: string | null;
-  /** Off for whole-file diffs, where the single "@@" line says nothing useful. */
   showHunkHeaders?: boolean;
-  /** Folds long runs of untouched lines behind a band, the way an editor does. */
   collapseUnchanged?: boolean;
 }
 
-/**
- * Nothing renders past this many rows. Folding handles the common case, but a
- * file that changed from end to end has no untouched runs to fold.
- */
 const MAX_RENDERED_ROWS = 3000;
 
-/** Neither column of the split view may be dragged below this share. */
 const MIN_SPLIT_RATIO = 0.15;
 const SEAM_KEYBOARD_STEP = 0.05;
 
-// Keep the same type size and 25px line rhythm as CodeSurface's flush variant.
-const LINE_CLASS = "whitespace-pre text-[12px] leading-[25px]";
+const LINE_CLASS = "whitespace-pre-wrap break-words text-[12px] leading-[25px]";
 const NUMBER_CLASS =
   "w-12 shrink-0 select-none border-r border-border bg-bg/60 px-2 text-right text-[11px] leading-[25px] text-muted/80";
 
 function rowTone(type: DiffRow["type"]) {
-  // Alpha kept at/below ~0.2: enough that a changed line is found at a glance,
-  // low enough that a screen full of them is still readable.
   if (type === "add") return { background: "bg-emerald-500/[0.20] dark:bg-emerald-400/[0.16]", text: "text-emerald-900 dark:text-emerald-100" };
   if (type === "remove") return { background: "bg-rose-500/[0.20] dark:bg-rose-400/[0.16]", text: "text-rose-900 dark:text-rose-100" };
   return { background: "", text: "text-text/70" };
@@ -69,7 +58,6 @@ function HunkRow({ text }: Readonly<{ text: string }>) {
   );
 }
 
-/** One gutter number plus its line, used by the split view's two columns. */
 function CodeLine({
   row,
   number,
@@ -79,7 +67,6 @@ function CodeLine({
   row: DiffRow | null;
   number: number | null;
   language: string;
-  /** True once the surface carries a code theme, which owns the text colour. */
   themed: boolean;
 }>) {
   const tone = rowTone(row?.type ?? "context");
@@ -102,7 +89,6 @@ function CodeLine({
   );
 }
 
-/** The band standing in for a run of untouched lines. */
 function FoldBand({ count, onExpand }: Readonly<{ count: number; onExpand: () => void }>) {
   const { t } = useTranslation();
 
@@ -123,10 +109,6 @@ function FoldBand({ count, onExpand }: Readonly<{ count: number; onExpand: () =>
   );
 }
 
-/**
- * Renders a unified git diff either inline or as old/new columns. Lines wrap
- * instead of scrolling sideways so nothing is ever cut off.
- */
 export function DiffView({
   diff,
   mode,
@@ -136,27 +118,20 @@ export function DiffView({
 }: Readonly<DiffViewProps>) {
   const { t } = useTranslation();
   const language = languageOf(fileName);
-  // The rows carry the picked theme's token colours, so the surface under them
-  // has to be that theme's background too — the way CodeSurface does it.
   const palette = useCodePalette();
   const themed = Boolean(palette);
   const rows = useMemo(() => parseDiffRows(diff), [diff]);
   const [expanded, setExpanded] = useState<number[]>([]);
   const [current, setCurrent] = useState(0);
   const changeRefs = useRef<(HTMLDivElement | null)[]>([]);
-  // Share of the width given to the old side in split view, dragged by the
-  // seam between the columns. Neither side may be squeezed out of usefulness.
   const [splitRatio, setSplitRatio] = useState(0.5);
   const [draggingSeam, setDraggingSeam] = useState(false);
   const frameRef = useRef<HTMLDivElement | null>(null);
   const scrollerRef = useRef<HTMLDivElement | null>(null);
 
-  // A token that changes exactly when the rows on screen are rebuilt, which is
-  // what the find ranges are anchored to.
   const painted = useMemo(() => ({}), [diff, mode, expanded, showHunkHeaders]);
   const find = useCodeFind({ root: frameRef, scroller: scrollerRef, revision: painted });
 
-  // Every change gets an index, so the reader can step between them.
   const blockIndexByRow = useMemo(() => {
     const map = new Map<DiffRow, number>();
     let previousChanged = false;
@@ -183,7 +158,6 @@ export function DiffView({
     );
   }, [collapseUnchanged, expanded, rows]);
 
-  // A folded band costs one row; only what is really rendered is capped.
   const { visible, truncated } = useMemo(() => {
     const kept: DiffRegion[] = [];
     let budget = MAX_RENDERED_ROWS;
@@ -207,15 +181,12 @@ export function DiffView({
     return { visible: kept, truncated: false };
   }, [regions]);
 
-  // A new file starts folded again, at its first change.
   useEffect(() => {
     setExpanded([]);
     setCurrent(0);
     changeRefs.current = [];
   }, [diff]);
 
-  // Whole-file diffs open on line 1, which for a one-line edit deep in a long
-  // file is the wrong place to be looking.
   useEffect(() => {
     changeRefs.current[0]?.scrollIntoView({ block: "center" });
   }, [diff, mode]);
@@ -238,7 +209,6 @@ export function DiffView({
     changeRefs.current[next]?.scrollIntoView({ block: "center", behavior: "smooth" });
   };
 
-  /** Hands each change block its ref, so the arrows can reach it. */
   const changeRef = (row: DiffRow | null | undefined) => {
     const index = row ? blockIndexByRow.get(row) : undefined;
 
@@ -262,7 +232,7 @@ export function DiffView({
             ref={changeRef(isChange(row.left) ? row.left : row.right)}
             className="flex items-stretch gap-px"
           >
-            <div className="flex min-w-0" style={{ width: `${splitRatio * 100}%` }}>
+            <div className="flex min-w-0 overflow-hidden" style={{ width: `${splitRatio * 100}%` }}>
               <CodeLine
                 row={row.left}
                 number={row.left?.oldNumber ?? null}
@@ -270,7 +240,7 @@ export function DiffView({
                 themed={themed}
               />
             </div>
-            <div className="flex min-w-0 flex-1 border-l border-border">
+            <div className="flex min-w-0 flex-1 overflow-hidden border-l border-border">
               <CodeLine
                 row={row.right}
                 number={row.right?.newNumber ?? null}
@@ -303,8 +273,6 @@ export function DiffView({
           <MonoText as="span" data-code-ignore="" className={NUMBER_CLASS}>
             {row.newNumber ?? " "}
           </MonoText>
-          {/* Mid-tone marker: it has to stay legible on a light or a dark code
-              theme, either of which can sit under it. */}
           <MonoText
             as="span"
             className={clsx(
@@ -326,9 +294,6 @@ export function DiffView({
     });
   };
 
-  // h-full as well as flex-1: the editor pane hands the diff a plain block of
-  // definite height, where flex-1 alone leaves the box auto-sized and its
-  // overflow-auto child never gets anything to scroll.
   return (
     <div ref={frameRef} className="relative h-full min-h-0 flex-1 overflow-hidden">
       <div
@@ -357,10 +322,6 @@ export function DiffView({
 
       <CodeFindBar find={find} />
 
-      {/* The seam between the two columns, draggable. It sits on the frame
-          rather than inside the scroller, so it stays put as the diff scrolls.
-          Width stays at the border's one pixel — grabbing comfort comes from
-          the transparent overhang, not from a gap. */}
       {mode === "split" ? (
         <div
           role="separator"
@@ -402,7 +363,6 @@ export function DiffView({
         </div>
       ) : null}
 
-      {/* Stepping between changes, the way an editor's diff navigator does. */}
       {totalChanges > 1 ? (
         <div
           className={clsx(

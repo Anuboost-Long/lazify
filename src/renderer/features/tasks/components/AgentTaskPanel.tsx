@@ -6,6 +6,7 @@ import type { Task, TaskStatus } from "@main/tasks/types";
 import { appRoute } from "@renderer/app/app-routes";
 import { translation } from "@renderer/i18n/translation";
 import { CaptionText, OverlineText, SectionTitle } from "@renderer/shared/typography";
+import type { SyncedWorkspaceProject } from "@renderer/shared/types/lazify";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import { useNavigate } from "react-router-dom";
 import { railPanelShell, type RailPanelVariant } from "../../agents/components/rail-panel-shell";
@@ -18,6 +19,7 @@ import { useTasks } from "../hooks/use-tasks";
 
 interface AgentTaskPanelProps {
   projectPath: string;
+  projects: SyncedWorkspaceProject[];
   variant?: RailPanelVariant;
   onClose: () => void;
 }
@@ -45,6 +47,7 @@ const groupLabel: Record<TaskStatus, string> = {
  */
 export function AgentTaskPanel({
   projectPath,
+  projects,
   variant = "rail",
   onClose
 }: Readonly<AgentTaskPanelProps>) {
@@ -148,6 +151,7 @@ export function AgentTaskPanel({
       <TaskDetailModal
         open={editor.open}
         task={editor.task}
+        projects={projects}
         projectPath={projectPath}
         projectName={projectPath.split("/").filter(Boolean).at(-1) ?? ""}
         presets={presets}

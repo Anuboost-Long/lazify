@@ -1,4 +1,3 @@
-import clsx from "clsx";
 import { useAtom } from "jotai";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -13,13 +12,10 @@ import { CodeSelectionActionsProvider } from "@renderer/shared/ui/code/menu/sele
 import { Toast } from "@renderer/shared/ui/toast/Toast";
 import { AgentFileModal } from "../components/AgentFileModal";
 import { AgentRailPanels } from "../components/AgentRailPanels";
-import { AgentTerminalStack } from "../components/AgentTerminalStack";
 import { AgentNoProjectState } from "../components/AgentNoProjectState";
-import { AgentProjectPicker } from "../components/project-picker";
-import { AgentTabBar, type AgentRailTab } from "../components/AgentTabBar";
-import { AgentToolRail } from "../components/AgentToolRail";
-import { AgentMonitorGrid } from "../components/AgentMonitorGrid";
-import { AgentMonitorRail } from "../components/AgentMonitorRail";
+import type { AgentRailTab } from "../components/AgentTabBar";
+import { AgentMonitorWall } from "../components/AgentMonitorWall";
+import { AgentWorkspace } from "../components/AgentWorkspace";
 import { SendToAgentDialog } from "../components/send-to-agent";
 import { useAgentActivity } from "../hooks/use-agent-activity";
 import { useAgentBranch } from "../hooks/use-agent-branch";
@@ -79,9 +75,9 @@ export function AgentsPage({
 
   const [previewOpen, setPreviewOpen] = useState(false);
 
-  const railProjectPath = monitorMode
-    ? (monitorPanels.target?.projectPath ?? "")
-    : projectPath;
+  const monitorProjectPath = monitorPanels.target?.projectPath ?? "";
+  const railProjectPath = monitorMode ? monitorProjectPath : projectPath;
+
   const { sessionChanges, loading, refresh, resetBaseline } = useAgentChanges(
     railProjectPath,
     railTab === "changes",
@@ -164,10 +160,9 @@ export function AgentsPage({
 
   const previewActive = previewOpen && activeTabId === PREVIEW_TAB_ID;
 
-  const detectedPreviewUrl = usePreviewUrl(
-    previewOpen ? scriptTerminal?.runId ?? null : null,
-    isScriptRunning,
-  );
+  const scriptRunId = scriptTerminal?.runId ?? null;
+  const previewRunId = previewOpen ? scriptRunId : null;
+  const detectedPreviewUrl = usePreviewUrl(previewRunId, isScriptRunning);
 
   const {
     report: usageReport,
@@ -176,9 +171,10 @@ export function AgentsPage({
     setBudget,
   } = useAgentUsage(railTab === "usage", openAgentIds);
 
-  const activeRunId = monitorMode
-    ? (monitorPanels.target?.runId ?? null)
-    : (activeTerminal?.runId ?? null);
+  const monitorRunId = monitorPanels.target?.runId ?? null;
+  const terminalRunId = activeTerminal?.runId ?? null;
+  const activeRunId = monitorMode ? monitorRunId : terminalRunId;
+
   const sendToTerminal = activeRunId
     ? (text: string) => globalThis.lazify.ptyWrite(activeRunId, text)
     : null;
@@ -254,50 +250,104 @@ export function AgentsPage({
     }
   };
 
+  const toggleRail = (tab: AgentRailTab) => {
+    setRailTab((current) => (current === tab ? null : tab));
+  };
+
+  const pickPath = sendToTerminal ? () => void pickPathForTerminal() : null;
+
+  const hasProjects = projects.length > 0;
+  const showMonitorWall = hasProjects && monitorMode;
+  const branches = gitStatus?.isGitRepo ? gitStatus.branches : [];
+
+  const railPanels = (
+    <AgentRailPanels
+      railTab={railTab}
+      onCloseRail={() => setRailTab(null)}
+      asModal={monitorMode}
+      projectPath={railProjectPath}
+      projects={projects}
+      scriptTerminal={scriptTerminal}
+      runnableScript={runnableScript}
+      onStartScript={runProject}
+      onRestartScript={() => void restartProject()}
+      onStopScript={() => {
+        void stopProject().then((removed) => {
+          if (removed) setRailTab(null);
+        });
+      }}
+      changes={sessionChanges}
+      changesLoading={loading}
+      onRefreshChanges={refresh}
+      onResetChanges={resetBaseline}
+      activityEntries={activityEntries}
+      onMarkActivityRead={markActivityRead}
+      onClearActivity={clearActivity}
+      onOpenRun={(entry) => {
+        setRailTab(null);
+        if (monitorMode) {
+          monitorPanels.setTarget(entry.runId);
+          return;
+        }
+        setProjectPath(entry.projectPath);
+        focusAgentRun(entry.runId);
+      }}
+      autopilotEnabled={autopilot.enabled}
+      autopilotProjectEnabled={autopilot.projectEnabled}
+      onToggleAutopilot={autopilot.setEnabled}
+      onToggleAutopilotProject={autopilot.setProjectEnabled}
+      onSendToTerminal={sendToTerminal}
+      previewOpen={previewOpen}
+      previewUrl={detectedPreviewUrl}
+      previewRunning={isScriptRunning}
+      previewActive={previewActive}
+      usageReport={usageReport}
+      usageLoading={usageLoading}
+      onRefreshUsage={refreshUsage}
+      onSetBudget={setBudget}
+    />
+  );
+
+
   return (
     <CodeSelectionActionsProvider actions={codeSelectionActions}>
-    <div className="flex h-full min-h-0 flex-col gap-4">
+      <div className="flex h-full min-h-0 flex-col gap-4">
+        {syncError && (
+          <Toast
+            title={t(translation.Workspace.AlreadySynced)}
+            message={syncError}
+            onClose={() => setSyncError(null)}
+          />
+        )}
 
-      {syncError ? (
-        <Toast
-          title={t(translation.Workspace.AlreadySynced)}
-          message={syncError}
-          onClose={() => setSyncError(null)}
-        />
-      ) : null}
+        {attention && (
+          <Toast
+            title={t(translation.Agents.NeedsAttention)}
+            message={t(translation.Agents.NeedsAttentionToast, {
+              agent: attention.agentLabel,
+              project: attention.projectName,
+            })}
+            onClose={() => setAttention(null)}
+          />
+        )}
 
-      {attention ? (
-        <Toast
-          title={t(translation.Agents.NeedsAttention)}
-          message={t(translation.Agents.NeedsAttentionToast, {
-            agent: attention.agentLabel,
-            project: attention.projectName,
-          })}
-          onClose={() => setAttention(null)}
-        />
-      ) : null}
+        {!hasProjects && (
+          <AgentNoProjectState
+            agents={availableAgents}
+            syncing={syncing}
+            onSync={() => void handleSyncProject()}
+          />
+        )}
 
-      {projects.length === 0 ? (
-        <AgentNoProjectState
-          agents={availableAgents}
-          syncing={syncing}
-          onSync={() => void handleSyncProject()}
-        />
-      ) : (
-        <>
-        <div
-          className={clsx(
-            "flex min-h-0 flex-1 flex-col gap-4 lg:flex-row",
-            monitorMode && "hidden",
-          )}
-        >
-          <AgentProjectPicker
+        {hasProjects && (
+          <AgentWorkspace
+            hidden={monitorMode}
             projects={projects}
-            selectedPath={projectPath}
+            projectPath={projectPath}
             runningCounts={runningCountByProject}
             waitingCounts={waitingByProject}
             tabCounts={tabCountByProject}
-            onSelect={setProjectPath}
+            onSelectProject={setProjectPath}
             onCloseProjectTabs={(closedPath) => {
               void closeProjectTerminals(closedPath);
 
@@ -306,182 +356,87 @@ export function AgentsPage({
                 setRailTab((current) => (current === "debug" ? null : current));
               }
             }}
-            onReorder={onReorderProjects}
+            onReorderProjects={onReorderProjects}
             syncing={syncing}
             onSync={() => void handleSyncProject()}
             branch={gitStatus?.branch ?? null}
-            branches={gitStatus?.isGitRepo ? gitStatus.branches : []}
+            branches={branches}
             repoRoot={gitStatus?.repoRoot ?? ""}
             onBranchSwitched={() => {
               refreshBranch();
 
               void refresh();
             }}
+            terminals={terminals}
+            activeTabId={activeTabId}
+            availableAgents={availableAgents}
+            runnableScript={runnableScript}
+            allScripts={allScripts}
+            onSelectScript={setRunnableScript}
+            isScriptRunning={isScriptRunning}
+            waitingTabIds={waitingTabIds}
+            onSelectTab={setActiveTab}
+            onCloseTab={closeTerminal}
+            onReorderTabs={reorderTerminal}
+            onOpenAgent={openTerminal}
+            onRun={runProject}
+            onCreateAgent={createAgent}
+            onDeleteAgent={deleteAgent}
+            previewOpen={previewOpen}
+            previewActive={previewActive}
+            onSelectPreview={openPreview}
+            onClosePreview={closePreview}
+            onResolveFilePath={terminalLinks.resolveFilePath}
+            onOpenFilePath={terminalLinks.openFilePath}
+            railPanels={railPanels}
+            railTab={railTab}
+            onToggleRail={toggleRail}
+            showDebug={Boolean(scriptTerminal)}
+            changeCount={sessionChanges.length}
+            activityUnread={activityUnread}
+            onPickPath={pickPath}
+            onOpenConsole={() => void globalThis.lazify.openTerminal(projectPath)}
+            onOpenMonitor={() => setMonitorMode(true)}
           />
+        )}
 
-          <div
-            className={clsx(
-              "flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden",
-              "rounded-2xl border border-border bg-soft",
-            )}
-          >
-            <AgentTabBar
-              terminals={terminals}
-              activeTabId={activeTabId}
-              availableAgents={availableAgents}
-              runnableScript={runnableScript}
-              allScripts={allScripts}
-              onSelectScript={setRunnableScript}
-              isScriptRunning={isScriptRunning}
-              waitingTabIds={waitingTabIds}
-              previewOpen={previewOpen}
-              previewActive={previewActive}
-              onSelectPreview={openPreview}
-              onClosePreview={closePreview}
-              onSelect={setActiveTab}
-              onClose={closeTerminal}
-              onReorder={reorderTerminal}
-              onOpen={openTerminal}
-              projectPath={projectPath}
-              onRun={runProject}
-              onCreateAgent={createAgent}
-              onDeleteAgent={deleteAgent}
-            />
-
-            <div className="relative flex min-h-0 flex-1">
-              <AgentTerminalStack
-                terminals={terminals}
-                activeTabId={activeTabId}
-                hidden={previewActive}
-                onResolveFilePath={terminalLinks.resolveFilePath}
-                onOpenFilePath={terminalLinks.openFilePath}
-              />
-
-              <AgentRailPanels
-                railTab={railTab}
-                onCloseRail={() => setRailTab(null)}
-                asModal={monitorMode}
-                projectPath={railProjectPath}
-                scriptTerminal={scriptTerminal}
-                runnableScript={runnableScript}
-                onStartScript={runProject}
-                onRestartScript={() => void restartProject()}
-                onStopScript={() => {
-                  void stopProject().then((removed) => {
-                    if (removed) setRailTab(null);
-                  });
-                }}
-                changes={sessionChanges}
-                changesLoading={loading}
-                onRefreshChanges={refresh}
-                onResetChanges={resetBaseline}
-                activityEntries={activityEntries}
-                onMarkActivityRead={markActivityRead}
-                onClearActivity={clearActivity}
-                onOpenRun={(entry) => {
-                  setRailTab(null);
-                  if (monitorMode) {
-                    monitorPanels.setTarget(entry.runId);
-                    return;
-                  }
-                  setProjectPath(entry.projectPath);
-                  focusAgentRun(entry.runId);
-                }}
-                autopilotEnabled={autopilot.enabled}
-                autopilotProjectEnabled={autopilot.projectEnabled}
-                onToggleAutopilot={autopilot.setEnabled}
-                onToggleAutopilotProject={autopilot.setProjectEnabled}
-                onSendToTerminal={sendToTerminal}
-                previewOpen={previewOpen}
-                previewUrl={detectedPreviewUrl}
-                previewRunning={isScriptRunning}
-                previewActive={previewActive}
-                usageReport={usageReport}
-                usageLoading={usageLoading}
-                onRefreshUsage={refreshUsage}
-                onSetBudget={setBudget}
-              />
-
-              <AgentToolRail
-                railTab={railTab}
-                onToggleRail={(tab) => {
-                  setRailTab((current) => (current === tab ? null : tab));
-                }}
-                showDebug={Boolean(scriptTerminal)}
-                isScriptRunning={isScriptRunning}
-                previewActive={previewActive}
-                onSelectPreview={openPreview}
-                changeCount={sessionChanges.length}
-                activityUnread={activityUnread}
-                onPickPath={
-                  sendToTerminal ? () => void pickPathForTerminal() : null
-                }
-                onOpenConsole={() => void globalThis.lazify.openTerminal(projectPath)}
-                onOpenMonitor={() => setMonitorMode(true)}
-              />
-            </div>
-          </div>
-        </div>
-
-        {monitorMode ? (
-          <AgentMonitorGrid
+        {showMonitorWall && (
+          <AgentMonitorWall
             projects={projects}
-            panels={monitorPanels.panels}
-            onStart={monitorPanels.start}
-            onClear={monitorPanels.clear}
-            onSetSize={monitorPanels.setSize}
-            onRename={monitorPanels.rename}
-            onClearAll={monitorPanels.clearAll}
-            onReorder={monitorPanels.reorder}
-            columns={monitorPanels.columns}
-            onColumnsChange={monitorPanels.setColumns}
+            monitor={monitorPanels}
             waitingRunIds={Object.keys(waitingByRunId)}
-            targetRunId={monitorPanels.target?.runId ?? null}
-            onSelectPanel={monitorPanels.setTarget}
-            rail={
-              <AgentMonitorRail
-                railTab={railTab}
-                onToggleRail={(tab) => {
-                  setRailTab((current) => (current === tab ? null : tab));
-                }}
-                targetLabel={monitorPanels.target?.projectName ?? null}
-                changeCount={sessionChanges.length}
-                activityUnread={activityUnread}
-                onPickPath={
-                  sendToTerminal ? () => void pickPathForTerminal() : null
-                }
-                onOpenConsole={() =>
-                  void globalThis.lazify.openTerminal(railProjectPath)
-                }
-              />
-            }
             availableAgents={availableAgents}
             onCreateAgent={createAgent}
             onDeleteAgent={deleteAgent}
-            onExit={() => setMonitorMode(false)}
+            railTab={railTab}
+            onToggleRail={toggleRail}
+            changeCount={sessionChanges.length}
+            activityUnread={activityUnread}
+            onPickPath={pickPath}
+            onOpenConsole={() =>
+              void globalThis.lazify.openTerminal(railProjectPath)
+            }
           />
-        ) : null}
-        </>
-      )}
+        )}
 
-      <AgentFileModal
-        file={terminalLinks.linkedFile?.node ?? null}
-        focusLine={terminalLinks.linkedFile?.line ?? null}
-        onSendToTerminal={sendToTerminal}
-        onClose={terminalLinks.closeFile}
-      />
+        <AgentFileModal
+          file={terminalLinks.linkedFile?.node ?? null}
+          focusLine={terminalLinks.linkedFile?.line ?? null}
+          onSendToTerminal={sendToTerminal}
+          onClose={terminalLinks.closeFile}
+        />
 
-      <SendToAgentDialog
-        selection={sendingSelection}
-        projectPath={railProjectPath || projectPath}
-        agents={availableAgents}
-        onStartAgent={openTerminal}
-        onCreateAgent={createAgent}
-        onDeleteAgent={deleteAgent}
-        onSent={setRevealRunId}
-        onClose={() => setSendingSelection(null)}
-      />
-    </div>
+        <SendToAgentDialog
+          selection={sendingSelection}
+          projectPath={railProjectPath || projectPath}
+          agents={availableAgents}
+          onStartAgent={openTerminal}
+          onCreateAgent={createAgent}
+          onDeleteAgent={deleteAgent}
+          onSent={setRevealRunId}
+          onClose={() => setSendingSelection(null)}
+        />
+      </div>
     </CodeSelectionActionsProvider>
   );
 }

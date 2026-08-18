@@ -4,19 +4,19 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
 import type { Task, TaskStatus } from "@main/tasks/types";
-import { appRoute, getAgentsRoute } from "@renderer/app/app-routes";
-import { PageActions } from "@renderer/app/components/PageChrome";
+import { appRoute, getAgentsRoute, getWorkspaceProjectRoute } from "@renderer/app/app-routes";
 import { translation } from "@renderer/i18n/translation";
 import { CaptionText, SectionTitle } from "@renderer/shared/typography";
 import type { SyncedWorkspaceProject } from "@renderer/shared/types/lazify";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import { PageHero } from "@renderer/shared/ui/PageHero";
+import { ProjectPickerModal } from "@renderer/shared/ui/project-picker/ProjectPickerModal";
 import { SegmentedTabs, type SegmentedTab } from "@renderer/shared/ui/SegmentedTabs";
 import { usePromptPresets } from "../../prompts";
-import { ProjectPickerModal } from "../../prompts/components/ProjectPickerModal";
 import { SendTaskModal } from "../../tasks/components/SendTaskModal";
 import { TaskDetailModal } from "../../tasks/components/TaskDetailModal";
 import { DeleteTaskConfirm } from "../../tasks/components/DeleteTaskConfirm";
+import { formatStackLabel } from "@renderer/shared/lib/stack-label";
 import { HomeTaskRow } from "../components/HomeTaskRow";
 import { TaskStatTiles } from "../components/TaskStatTiles";
 
@@ -104,77 +104,175 @@ export function HomePage({
 
   return (
     <div className="flex flex-col gap-6">
-      <PageActions>
-        <button
-          type="button"
-          onClick={startNewTask}
-          className={clsx(
-            "inline-flex items-center gap-1.5 rounded-[8px] bg-accent px-3 py-1",
-            "text-xs font-semibold text-white transition-colors hover:bg-accentHover"
-          )}
-        >
-          <UiIcon name="plus" className="h-3.5 w-3.5" />
-          {t(translation.Tasks.AddTask)}
-        </button>
-      </PageActions>
-
       <PageHero
         eyebrow={translation.Home.Eyebrow}
         title={translation.Home.Title}
         description={translation.Home.Subtitle}
-      />
+      >
+        <TaskStatTiles tasks={tasks} />
+      </PageHero>
 
-      <TaskStatTiles tasks={tasks} />
-
-      <section className="flex flex-col gap-3 rounded-2xl border border-border bg-soft p-4">
-        <header className="flex items-center justify-between gap-3">
-          <SectionTitle>{t(translation.Home.YourTasks)}</SectionTitle>
-          <SegmentedTabs tabs={FILTERS} active={filter} onSelect={setFilter} />
-        </header>
-
-        <div className="flex flex-col gap-2">
-          {shown.map((task) => (
-            <HomeTaskRow
-              key={task.id}
-              task={task}
-              projectName={projectNames[task.projectPath] ?? task.projectPath.split("/").at(-1) ?? ""}
-              onOpen={() => setEditor({ task, projectPath: task.projectPath })}
-              onCycleStatus={() => void cycle(task)}
-              onSendPrompt={() => setSending(task)}
-              onOpenAgents={() => {
-                onActiveProjectChange(task.projectPath);
-                navigate(getAgentsRoute(task.projectPath));
-              }}
-              onDelete={() => setDeleting(task)}
-            />
-          ))}
-
-          {shown.length === 0 ? (
-            <div className="flex flex-col items-center gap-3 py-12">
-              <span className="flex h-12 w-12 items-center justify-center rounded-2xl border border-border bg-bg text-muted">
-                <UiIcon name="check-circle" className="h-5 w-5" />
+      <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_340px]">
+        <section className="overflow-hidden rounded-[18px] border border-border bg-soft">
+          <header className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-5 py-4">
+            <div className="flex items-center gap-2.5">
+              <SectionTitle className="!text-lg">{t(translation.Home.YourTasks)}</SectionTitle>
+              <span className="rounded-full bg-text/[0.06] px-2 py-0.5 text-[11px] font-semibold tabular-nums text-muted">
+                {shown.length}
               </span>
-              <CaptionText tone="muted">
-                {t(filter === "open" ? translation.Home.AllClear : translation.Tasks.Empty)}
-              </CaptionText>
+            </div>
+            <div className="flex items-center gap-2">
+              <SegmentedTabs tabs={FILTERS} active={filter} onSelect={setFilter} />
               <button
                 type="button"
                 onClick={startNewTask}
                 className={clsx(
-                  "rounded-full border border-accent/40 bg-accent/10 px-4 py-2",
-                  "text-[12px] text-accent hover:bg-accent/15"
+                  "inline-flex h-8 items-center gap-2 rounded-[10px] border border-accent/70 bg-accent px-3.5",
+                  "text-xs font-semibold text-white shadow-panel transition-[background-color,transform,box-shadow]",
+                  "hover:bg-accentHover hover:shadow-glow active:translate-y-px active:shadow-none",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:ring-offset-2 focus-visible:ring-offset-soft"
                 )}
               >
+                <UiIcon name="plus" className="h-4 w-4" strokeWidth={2.2} />
                 {t(translation.Tasks.AddTask)}
               </button>
             </div>
-          ) : null}
-        </div>
-      </section>
+          </header>
+
+          <div className="flex flex-col">
+            {shown.map((task) => (
+              <HomeTaskRow
+                key={task.id}
+                task={task}
+                projectName={projectNames[task.projectPath] ?? task.projectPath.split("/").at(-1) ?? ""}
+                onOpen={() => setEditor({ task, projectPath: task.projectPath })}
+                onCycleStatus={() => void cycle(task)}
+                onSendPrompt={() => setSending(task)}
+                onOpenAgents={() => {
+                  onActiveProjectChange(task.projectPath);
+                  navigate(getAgentsRoute(task.projectPath));
+                }}
+                onDelete={() => setDeleting(task)}
+              />
+            ))}
+
+            {shown.length === 0 ? (
+              <div className="flex flex-col items-center gap-3 py-14">
+                <span className="flex h-11 w-11 items-center justify-center rounded-full border border-border text-muted">
+                  <UiIcon name="check-circle" className="h-5 w-5" />
+                </span>
+                <CaptionText tone="muted">
+                  {t(filter === "open" ? translation.Home.AllClear : translation.Tasks.Empty)}
+                </CaptionText>
+                <button
+                  type="button"
+                  onClick={startNewTask}
+                  className={clsx(
+                    "rounded-[10px] border border-accent/30 bg-accent/10 px-4 py-2",
+                    "text-[12px] font-semibold text-accent hover:bg-accent/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
+                  )}
+                >
+                  {t(translation.Tasks.AddTask)}
+                </button>
+              </div>
+            ) : null}
+          </div>
+        </section>
+
+        <aside className="overflow-hidden rounded-[18px] border border-border bg-soft">
+          <header className="flex items-center justify-between border-b border-border px-5 py-4">
+            <SectionTitle className="!text-lg">{t(translation.Agents.Projects)}</SectionTitle>
+            <span className="rounded-full bg-text/[0.06] px-2 py-0.5 text-[11px] font-semibold tabular-nums text-muted">
+              {projects.length}
+            </span>
+          </header>
+
+          {projects.length > 0 ? (
+            <div className="divide-y divide-border">
+              {projects.slice(0, 5).map((project) => {
+                const projectTasks = tasks.filter((task) => task.projectPath === project.projectPath);
+                const completedTasks = projectTasks.filter((task) => task.status === "done").length;
+                const progress = projectTasks.length === 0
+                  ? 0
+                  : Math.round((completedTasks / projectTasks.length) * 100);
+                const active = project.projectPath === activeProjectPath;
+
+                return (
+                  <button
+                    key={project.id}
+                    type="button"
+                    onClick={() => {
+                      onActiveProjectChange(project.projectPath);
+                      navigate(getWorkspaceProjectRoute(project.projectPath));
+                    }}
+                    className={clsx(
+                      "group flex w-full items-center gap-3 px-5 py-4 text-left transition-colors",
+                      "hover:bg-text/[0.025] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent/50",
+                      active && "bg-accent/[0.06]"
+                    )}
+                  >
+                    <span
+                      className={clsx(
+                        "flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] border",
+                        active
+                          ? "border-accent/30 bg-accent/10 text-accent"
+                          : "border-border bg-bg/50 text-muted group-hover:text-text"
+                      )}
+                    >
+                      <UiIcon name="folder" filled={active} className="h-4 w-4" />
+                    </span>
+
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm font-semibold text-text">
+                        {project.projectName}
+                      </span>
+                      <CaptionText tone="muted" className="mt-1 block truncate">
+                        {formatStackLabel(project.stack)}
+                      </CaptionText>
+                    </span>
+
+                    <span className="w-12 shrink-0 text-right">
+                      <span className="text-xs font-semibold tabular-nums text-text">
+                        {progress}%
+                      </span>
+                      <span className="mt-1.5 block h-1 overflow-hidden rounded-full bg-text/[0.08]">
+                        <span
+                          style={{ width: `${progress}%` }}
+                          className="block h-full rounded-full bg-accent"
+                        />
+                      </span>
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="px-5 py-10 text-center">
+              <UiIcon name="folder-plus" className="mx-auto h-6 w-6 text-muted" />
+              <CaptionText tone="muted" className="mt-3">
+                {t(translation.Workspace.NoSyncedYet)}
+              </CaptionText>
+            </div>
+          )}
+
+          <button
+            type="button"
+            onClick={() => navigate(appRoute.workspace)}
+            className={clsx(
+              "flex w-full items-center justify-between border-t border-border px-5 py-3.5",
+              "text-xs font-semibold text-muted transition-colors hover:bg-text/[0.025] hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent/50"
+            )}
+          >
+            {t(translation.Navigation.Workspace)}
+            <UiIcon name="arrow-right" className="h-3.5 w-3.5" />
+          </button>
+        </aside>
+      </div>
 
       <TaskDetailModal
         open={editor !== null}
         task={opened}
+        projects={projects}
         projectPath={editor?.projectPath ?? ""}
         projectName={
           editor
@@ -233,6 +331,8 @@ export function HomePage({
         open={pickingProject}
         projects={projects}
         selectedPath={activeProjectPath ?? ""}
+        title={translation.PromptBuilder.ChooseProject}
+        emptyMessage={translation.Tasks.SyncFirst}
         onSelect={(projectPath) => {
           onActiveProjectChange(projectPath);
           setEditor({ task: null, projectPath });

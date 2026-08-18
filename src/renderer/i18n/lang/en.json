@@ -1145,6 +1145,7 @@
     "add_task_hint": "It is stored with this project, and its prompt is built from it.",
     "edit_task": "Edit task",
     "task_name": "Task",
+    "project": "Project",
     "priority": "Priority",
     "delete_confirm": "\"{{name}}\" and its prompt history will be deleted. This cannot be undone.",
     "delete_task": "Delete task",
@@ -1164,9 +1165,9 @@
     "available": "Available"
   },
   "home": {
-    "eyebrow": "Your Work",
-    "title": "Home",
-    "subtitle": "What is on your plate, across every project.",
+    "eyebrow": "Command center",
+    "title": "Your work, in focus",
+    "subtitle": "Priorities, progress, and every project in one clear view.",
     "your_tasks": "Your tasks",
     "filter_open": "Open",
     "filter_all": "All",

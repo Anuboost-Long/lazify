@@ -7,7 +7,7 @@ import type {
   StackDetectionResult
 } from "@renderer/shared/types/lazify";
 import { OptimizedImportedProjectTree } from "@renderer/shared/ui/project-tree-optimized/OptimizedImportedProjectTree";
-import { formatStackLabel } from "@renderer/features/workspace/utils/stack-label";
+import { formatStackLabel } from "@renderer/shared/lib/stack-label";
 import { useLazifyStore } from "@renderer/shared/hooks/use-lazify-store";
 import { useTranslation } from "react-i18next";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";

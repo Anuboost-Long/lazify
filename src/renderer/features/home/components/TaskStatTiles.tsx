@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 
 import type { Task } from "@main/tasks/types";
 import { translation } from "@renderer/i18n/translation";
-import { CaptionText, PageTitle } from "@renderer/shared/typography";
+import { CaptionText, SectionTitle } from "@renderer/shared/typography";
 import UiIcon, { type UiIconName } from "@renderer/shared/ui/icons/UiIcon";
 
 interface TaskStatTilesProps {
@@ -15,8 +15,7 @@ interface Tile {
   label: string;
   icon: UiIconName;
   count: number;
-  /** The tile's own hue, dimmed when it has nothing to report. */
-  color: string;
+  tone: string;
 }
 
 /** Overdue means a deadline in the past on something still open. */
@@ -27,6 +26,8 @@ function isOverdue(task: Task): boolean {
 
 export function TaskStatTiles({ tasks }: Readonly<TaskStatTilesProps>) {
   const { t } = useTranslation();
+  const done = tasks.filter((task) => task.status === "done").length;
+  const completion = tasks.length === 0 ? 0 : Math.round((done / tasks.length) * 100);
 
   const tiles: Tile[] = [
     {
@@ -34,63 +35,66 @@ export function TaskStatTiles({ tasks }: Readonly<TaskStatTilesProps>) {
       label: translation.Tasks.StatusDoing,
       icon: "play",
       count: tasks.filter((task) => task.status === "doing").length,
-      color: "#7c5cff"
+      tone: "text-accent"
     },
     {
       id: "todo",
       label: translation.Tasks.StatusTodo,
       icon: "journal-page",
       count: tasks.filter((task) => task.status === "todo").length,
-      color: "#00b8a9"
+      tone: "text-text"
     },
     {
       id: "overdue",
       label: translation.Home.Overdue,
       icon: "warning-triangle",
       count: tasks.filter(isOverdue).length,
-      color: "#ef5f5f"
-    },
-    {
-      id: "done",
-      label: translation.Tasks.StatusDone,
-      icon: "check-circle",
-      count: tasks.filter((task) => task.status === "done").length,
-      color: "#8a94a6"
+      tone: "text-error"
     }
   ];
 
   return (
-    <div className="grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-3">
-      {tiles.map((tile) => {
-        const empty = tile.count === 0;
+    <div className="grid gap-6 border-t border-border pt-6 lg:grid-cols-[auto_1fr] lg:border-l lg:border-t-0 lg:pl-8 lg:pt-0">
+      <div className="flex items-center gap-4">
+        <div
+          role="img"
+          aria-label={`${completion}% ${t(translation.Tasks.StatusDone)}`}
+          style={{
+            background: `conic-gradient(rgb(var(--color-accent)) ${completion}%, rgb(var(--color-text) / 0.08) 0)`
+          }}
+          className="relative flex h-24 w-24 shrink-0 items-center justify-center rounded-full"
+        >
+          <div className="absolute inset-[7px] rounded-full bg-soft" />
+          <div className="relative text-center">
+            <SectionTitle className="!text-2xl">{completion}%</SectionTitle>
+            <CaptionText tone="muted">{t(translation.Tasks.StatusDone)}</CaptionText>
+          </div>
+        </div>
 
-        return (
+        <div className="min-w-0 lg:hidden xl:block">
+          <CaptionText tone="muted">{t(translation.Home.YourTasks)}</CaptionText>
+          <p className="mt-1 text-sm font-semibold text-text">
+            {done} / {tasks.length}
+          </p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-3 divide-x divide-border">
+        {tiles.map((tile) => (
           <div
             key={tile.id}
-            style={{
-              backgroundColor: `${tile.color}${empty ? "0d" : "1a"}`,
-              borderColor: `${tile.color}${empty ? "22" : "40"}`
-            }}
-            className="flex items-center gap-4 rounded-2xl border px-5 py-4"
+            className="flex min-w-0 flex-col justify-center px-4 first:pl-0 last:pr-0"
           >
-            <span
-              style={{ backgroundColor: `${tile.color}26`, color: tile.color }}
-              className={clsx("flex h-11 w-11 items-center justify-center rounded-2xl", empty && "opacity-60")}
-            >
-              <UiIcon name={tile.icon} filled={!empty} className="h-5 w-5" />
-            </span>
-
-            <div className="min-w-0">
-              <PageTitle className={clsx("!text-2xl", empty && "!text-muted")}>
-                {tile.count}
-              </PageTitle>
-              <CaptionText tone="muted" className="block truncate">
-                {t(tile.label)}
-              </CaptionText>
+            <div className={clsx("flex items-center gap-2", tile.tone)}>
+              <UiIcon name={tile.icon} filled={tile.count > 0} className="h-4 w-4 shrink-0" />
+              <span className="text-2xl font-semibold tabular-nums">{tile.count}</span>
             </div>
+            <CaptionText tone="muted" className="mt-1 truncate">
+              {t(tile.label)}
+            </CaptionText>
           </div>
-        );
-      })}
+        ))}
+      </div>
     </div>
   );
 }

@@ -7,6 +7,8 @@ export interface SearchEngine {
   descriptionKey: string;
   /** Letter mark drawn on the picker card. */
   mark: string;
+  /** Brand artwork used instead of the letter mark when available. */
+  iconSrc?: string;
   /** Brand colour behind the mark. */
   markClassName: string;
   buildSearchUrl: (query: string) => string;

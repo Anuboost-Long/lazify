@@ -5,6 +5,7 @@ import { createElement } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { XTermPanel } from "../../src/renderer/features/workspace/components/XTermPanel";
+import { stopTerminalPool } from "../../src/renderer/shared/terminal";
 
 const terminals: Record<string, unknown>[] = [];
 
@@ -66,6 +67,8 @@ beforeEach(() => {
       ptyResize: vi.fn(),
       ptyWrite: vi.fn(),
       onPtyData: vi.fn().mockReturnValue(() => {}),
+      onSessionKilled: vi.fn().mockReturnValue(() => {}),
+      saveClipboardImage: vi.fn().mockResolvedValue(null),
       ptyBacklog: vi.fn().mockResolvedValue({ data: "npm run dev\n", seq: 4 })
     }
   });
@@ -73,6 +76,9 @@ beforeEach(() => {
 
 afterEach(() => {
   cleanup();
+  // Terminals outlive the components that mount them, so the pool has to be
+  // emptied between tests or the next one reuses this one's instance.
+  stopTerminalPool();
   vi.unstubAllGlobals();
 });
 

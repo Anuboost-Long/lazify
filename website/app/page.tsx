@@ -107,9 +107,9 @@ export default function Home() {
 
           <div id="product" className="reveal reveal-5 scroll-mt-28 pt-20 sm:pt-24">
             <ProductWindow />
-            <div className="mt-5 flex flex-col items-center justify-between gap-3 font-mono text-[9px] uppercase tracking-[.16em] text-stone-600 sm:flex-row">
-              <span>The actual Lazify Agents workspace</span>
-              <span>Projects · Agents · Preview · Changes · Usage</span>
+            <div className="mt-5 flex flex-col items-center justify-between gap-3 font-mono text-[9px] uppercase tracking-[.16em] text-stone-400 sm:flex-row">
+              <span>Explore the actual Lazify workspace</span>
+              <span>Swipe · Arrow keys · Scene controls</span>
             </div>
           </div>
         </div>

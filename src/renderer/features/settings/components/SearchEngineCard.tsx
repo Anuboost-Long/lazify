@@ -38,7 +38,11 @@ export function SearchEngineCard({ engine, selected, onSelect }: Readonly<Search
           engine.markClassName
         )}
       >
-        {engine.mark}
+        {engine.iconSrc ? (
+          <img src={engine.iconSrc} alt="" className="h-12 w-12 object-contain" />
+        ) : (
+          engine.mark
+        )}
       </span>
 
       <div>

@@ -1145,6 +1145,7 @@ export const translation = {
     "AddTaskHint": "tasks.add_task_hint",
     "EditTask": "tasks.edit_task",
     "TaskName": "tasks.task_name",
+    "Project": "tasks.project",
     "Priority": "tasks.priority",
     "DeleteConfirm": "tasks.delete_confirm",
     "DeleteTask": "tasks.delete_task",

@@ -7,9 +7,9 @@ import { translation } from "@renderer/i18n/translation";
 import { CaptionText, SmallText } from "@renderer/shared/typography";
 import type { SyncedWorkspaceProject } from "@renderer/shared/types/lazify";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
+import { ProjectPickerModal } from "@renderer/shared/ui/project-picker/ProjectPickerModal";
 import { ContextColumn } from "./ContextColumn";
 import { ContextEntryModal } from "./ContextEntryModal";
-import { ProjectPickerModal } from "./ProjectPickerModal";
 import { useContextEntries } from "../hooks/use-context-entries";
 import { usePromptPresets } from "../hooks/use-prompt-presets";
 
@@ -119,6 +119,8 @@ export function ContextPanel({
         open={pickingProject}
         projects={projects}
         selectedPath={projectPath}
+        title={translation.PromptBuilder.ChooseProject}
+        emptyMessage={translation.Tasks.SyncFirst}
         onSelect={onProjectChange}
         onClose={() => setPickingProject(false)}
       />

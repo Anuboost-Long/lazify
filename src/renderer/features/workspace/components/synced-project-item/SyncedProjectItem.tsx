@@ -8,7 +8,7 @@ import { getTechIconName } from "@renderer/shared/lib/icon-map";
 import DevIcon from "@renderer/shared/ui/icons/DevIcon";
 import { CardShapes } from "@renderer/shared/ui/card/CardShapes";
 import { SheetStack } from "@renderer/shared/ui/card/SheetStack";
-import { formatStackLabel } from "@renderer/features/workspace/utils/stack-label";
+import { formatStackLabel } from "@renderer/shared/lib/stack-label";
 
 interface SyncedProjectItemProps {
   active: boolean;

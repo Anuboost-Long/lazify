@@ -21,7 +21,7 @@ export function TemplatesPage({
   onSelectTemplate,
   onDeleteTemplate,
   onImportProject,
-}: TemplatesPageProps) {
+}: Readonly<TemplatesPageProps>) {
   const { t } = useTranslation();
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -82,12 +82,12 @@ export function TemplatesPage({
           type="button"
           aria-label={t(translation.Templates.ImportProject)}
           onClick={onImportProject}
-          className="group inline-flex items-center gap-3 self-start rounded-[18px] border border-accent/25 bg-accent/[0.07] px-4 py-3 text-left transition-[transform,border-color,background-color] hover:-translate-y-0.5 hover:border-accent hover:bg-accent/10 lg:self-auto"
+          className="group inline-flex w-full max-w-[560px] items-center gap-3 self-start rounded-[18px] border border-accent/25 bg-accent/[0.07] px-4 py-3 text-left transition-[transform,border-color,background-color] hover:-translate-y-0.5 hover:border-accent hover:bg-accent/10 lg:ml-auto lg:self-auto"
         >
           <div className="flex h-10 w-10 items-center justify-center rounded-[13px] bg-accent text-white shadow-sm">
             <UiIcon name="import" className="h-5 w-5" />
           </div>
-          <span>
+          <span className="min-w-0 flex-1">
             <BodyText className="font-semibold">
               {t(translation.Templates.ImportProject)}
             </BodyText>

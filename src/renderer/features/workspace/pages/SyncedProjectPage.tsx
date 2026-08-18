@@ -189,6 +189,7 @@ export function SyncedProjectPage({
       <WorkspaceTaskModal
         open={addingTask}
         projectPath={decodedPath}
+        projects={syncedProjects}
         onClose={() => setAddingTask(false)}
       />
 

@@ -984,6 +984,7 @@
     "add_task_hint": "任务会随此项目一起保存，其提示词也由它生成。",
     "edit_task": "编辑任务",
     "task_name": "任务",
+    "project": "项目",
     "priority": "优先级",
     "delete_confirm": "“{{name}}”及其提示词历史将被删除，且无法恢复。",
     "delete_task": "删除任务",
@@ -1003,9 +1004,9 @@
     "available": "可用"
   },
   "home": {
-    "eyebrow": "你的工作",
-    "title": "首页",
-    "subtitle": "所有项目中待您处理的事项。",
+    "eyebrow": "工作中心",
+    "title": "专注于您的工作",
+    "subtitle": "在一个清晰的视图中掌握优先事项、进度和所有项目。",
     "your_tasks": "您的任务",
     "filter_open": "未完成",
     "filter_all": "全部",

@@ -303,3 +303,5 @@ export function useMonitorPanels() {
     setMonitorMode,
   };
 }
+
+export type MonitorPanels = ReturnType<typeof useMonitorPanels>;
