@@ -12,6 +12,7 @@ import { BrowserRoute } from "./BrowserRoute";
 import { InitProjectProgressRoute } from "./InitProjectProgressRoute";
 import { DmgCompilerRoute } from "./DmgCompilerRoute";
 import { PromptBuilderRoute } from "./PromptBuilderRoute";
+import { ApiStudioRoute } from "./ApiStudioRoute";
 import { ToolsRoute } from "./ToolsRoute";
 import { LegalRoute } from "./LegalRoute";
 import { SettingsRoute } from "./SettingsRoute";
@@ -50,6 +51,7 @@ export function AppRoutes() {
         />
         <Route path={appRoute.tools.slice(1)} element={<ToolsRoute />} />
         <Route path={appRoute.toolsPromptBuilder.slice(1)} element={<PromptBuilderRoute />} />
+        <Route path={appRoute.toolsApiStudio.slice(1)} element={<ApiStudioRoute />} />
         <Route path={appRoute.toolsDmgCompiler.slice(1)} element={<DmgCompilerRoute />} />
         {/* The tool moved under Tools; the old address still works. */}
         <Route

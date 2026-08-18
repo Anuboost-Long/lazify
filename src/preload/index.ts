@@ -372,6 +372,29 @@ const lazifyApi = {
     webContentsId: number
   ): Promise<import("../main/media/media-pip").MediaPipResult> =>
     ipcRenderer.invoke("lazify:toggle-media-picture-in-picture", webContentsId),
+  scanProjectRoutes: (
+    projectPath: string
+  ): Promise<import("../main/api-studio/types").SavedRouteScan> =>
+    ipcRenderer.invoke("lazify:scan-project-routes", projectPath),
+  readProjectRoutes: (
+    projectPath: string
+  ): Promise<import("../main/api-studio/types").SavedRouteScan | null> =>
+    ipcRenderer.invoke("lazify:read-project-routes", projectPath),
+  readRouteDetails: (
+    projectPath: string,
+    folder: string
+  ): Promise<import("../main/api-studio/types").SavedRouteDetail[]> =>
+    ipcRenderer.invoke("lazify:read-route-details", projectPath, folder),
+  readApiEnvironments: (
+    projectPath: string
+  ): Promise<import("../main/api-studio/types").ApiEnvironmentSet> =>
+    ipcRenderer.invoke("lazify:read-api-environments", projectPath),
+  saveApiEnvironments: (
+    projectPath: string,
+    set: import("../main/api-studio/types").ApiEnvironmentSet,
+    secretNames: string[]
+  ): Promise<import("../main/api-studio/types").ApiEnvironmentSet> =>
+    ipcRenderer.invoke("lazify:save-api-environments", projectPath, set, secretNames),
   findSymbolDefinition: (
     projectPath: string,
     symbol: string,

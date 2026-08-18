@@ -382,6 +382,24 @@ declare global {
        * is where the name was clicked, which is how a JSX prop is recognised as
        * one and resolved through its component instead of by spelling.
        */
+      scanProjectRoutes: (
+        projectPath: string
+      ) => Promise<import("../main/api-studio/types").SavedRouteScan>;
+      readProjectRoutes: (
+        projectPath: string
+      ) => Promise<import("../main/api-studio/types").SavedRouteScan | null>;
+      readRouteDetails: (
+        projectPath: string,
+        folder: string
+      ) => Promise<import("../main/api-studio/types").SavedRouteDetail[]>;
+      readApiEnvironments: (
+        projectPath: string
+      ) => Promise<import("../main/api-studio/types").ApiEnvironmentSet>;
+      saveApiEnvironments: (
+        projectPath: string,
+        set: import("../main/api-studio/types").ApiEnvironmentSet,
+        secretNames: string[]
+      ) => Promise<import("../main/api-studio/types").ApiEnvironmentSet>;
       findSymbolDefinition: (
         projectPath: string,
         symbol: string,
