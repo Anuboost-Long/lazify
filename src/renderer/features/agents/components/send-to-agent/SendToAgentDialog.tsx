@@ -16,6 +16,7 @@ import { RunningAgentList } from "./RunningAgentList";
 
 interface SendToAgentDialogProps {
   selection: CodeSelectionContext | null;
+  filePath?: string | null;
   projectPath: string;
   agents: AgentDescriptor[];
   onStartAgent: (agentId: string, resumeSessionId?: string) => Promise<string | null>;
@@ -51,6 +52,7 @@ function pasteWhenReady(runId: string, payload: string) {
 
 export function SendToAgentDialog({
   selection,
+  filePath = null,
   projectPath,
   agents,
   onStartAgent,
@@ -63,7 +65,7 @@ export function SendToAgentDialog({
   const [running, setRunning] = useState<PtySession[] | null>(null);
   const [picking, setPicking] = useState(false);
 
-  const open = selection !== null;
+  const open = selection !== null || filePath !== null;
 
   useEffect(() => {
     if (!open) {
@@ -92,9 +94,8 @@ export function SendToAgentDialog({
 
   const send = useCallback(
     (runId: string, ready: boolean) => {
-      if (!selection) return;
-
-      const payload = buildCodePayload(selection);
+      const payload = selection ? buildCodePayload(selection) : filePath;
+      if (!payload) return;
 
       if (ready) pasteIntoTerminal(runId, payload);
       else pasteWhenReady(runId, payload);
@@ -102,7 +103,7 @@ export function SendToAgentDialog({
       onSent?.(runId);
       onClose();
     },
-    [selection, projectPath, onSent, onClose]
+    [selection, filePath, onSent, onClose]
   );
 
   const handleStart = useCallback(
@@ -148,14 +149,18 @@ export function SendToAgentDialog({
               {t(translation.Agents.SendToAgent)}
             </OverlineText>
             <SectionTitle className="mt-1 truncate text-lg">
-              {formatCodeReference(selection, projectPath) ||
-                t(translation.Agents.SendSelection)}
+              {selection
+                ? formatCodeReference(selection, projectPath) ||
+                  t(translation.Agents.SendSelection)
+                : filePath}
             </SectionTitle>
-            <CaptionText tone="muted" className="mt-1 block">
-              {t(translation.Agents.SendSelectionLines, {
-                count: selection.endLine - selection.startLine + 1
-              })}
-            </CaptionText>
+            {selection ? (
+              <CaptionText tone="muted" className="mt-1 block">
+                {t(translation.Agents.SendSelectionLines, {
+                  count: selection.endLine - selection.startLine + 1
+                })}
+              </CaptionText>
+            ) : null}
           </div>
           <button
             type="button"
@@ -178,7 +183,11 @@ export function SendToAgentDialog({
 
         <div className="border-t border-border bg-bg/40 px-5 py-2.5">
           <CaptionText tone="muted" className="block leading-relaxed">
-            {t(translation.Agents.SendToAgentHint)}
+            {t(
+              selection
+                ? translation.Agents.SendToAgentHint
+                : translation.Agents.SendFilePathHint
+            )}
           </CaptionText>
         </div>
       </div>

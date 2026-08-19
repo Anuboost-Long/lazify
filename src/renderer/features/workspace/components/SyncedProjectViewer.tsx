@@ -9,6 +9,7 @@ interface SyncedProjectViewerProps {
   busy: boolean;
   editable?: boolean;
   project: ImportedProjectIndexResult;
+  reveal?: { filePath: string; line: number | null } | null;
   toolViews?: SidebarView[];
   onOpenConsole?: () => void;
   onStartAgent?: () => void;

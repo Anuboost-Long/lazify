@@ -4,7 +4,7 @@ import { act, cleanup, renderHook } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { useFileQuickOpen } from "../../src/renderer/shared/ui/command-palette/useFileQuickOpen";
-import { useLocalProjectTree } from "../../src/renderer/shared/ui/project-tree/adapters/local-tree/useLocalProjectTree";
+import { useTemplateTree } from "../../src/renderer/features/templates/components/useTemplateTree";
 import type { ProjectTreeNode } from "../../src/renderer/shared/types/lazify";
 
 const tree: ProjectTreeNode[] = [
@@ -39,16 +39,14 @@ const tree: ProjectTreeNode[] = [
 
 afterEach(() => cleanup());
 
-describe("local project tree workbench", () => {
+describe("template tree editor", () => {
   it("opens, switches, reorders, and closes files through shared editor tabs", () => {
     const onTreeChange = vi.fn();
     const { result } = renderHook(() =>
-      useLocalProjectTree({
+      useTemplateTree({
         initialTree: tree,
         onTreeChange,
-        replaceTreeOnInitialChange: true,
-        selectedStructurePaths: [],
-        templateId: "template"
+        replaceTreeOnInitialChange: true
       })
     );
 

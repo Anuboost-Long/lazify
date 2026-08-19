@@ -19,7 +19,7 @@ import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import type { SidebarView } from "@renderer/shared/ui/project-tree/sidebar/types";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 
 interface SyncedProjectPageProps {
   busy: boolean;
@@ -40,6 +40,12 @@ export function SyncedProjectPage({
   const { projectPath: encodedProjectPath } = useParams<{
     projectPath: string;
   }>();
+  const [searchParams] = useSearchParams();
+  const revealFilePath = searchParams.get("file");
+  const revealLine = Number(searchParams.get("line"));
+  const reveal = revealFilePath
+    ? { filePath: revealFilePath, line: Number.isFinite(revealLine) && revealLine > 0 ? revealLine : null }
+    : null;
 
   const [loading, setLoading] = useState(false);
   const [projectData, setProjectData] =
@@ -292,6 +298,7 @@ export function SyncedProjectPage({
               busy={busy || loading}
               editable
               project={projectData}
+              reveal={reveal}
               toolViews={toolViews}
               onOpenConsole={() =>
                 void globalThis.lazify.openTerminal(syncedProject.projectPath)

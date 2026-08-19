@@ -3,17 +3,21 @@ import type {
   AppPageLink,
 } from "@renderer/app/app-sidebar.constant";
 import { Logo } from "@renderer/assets/logo.tsx";
+import type { ToolDefinition } from "@renderer/features/tools/catalog";
 import { translation } from "@renderer/i18n/translation";
 import { BodyText, CardTitle, Typography } from "@renderer/shared/typography";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import { SidebarMiniItem } from "./SidebarMiniItem";
 import { SidebarNavItem } from "./SidebarNavItem";
+import { SidebarPinnedTools } from "./SidebarPinnedTools";
 import { Tooltip } from "@renderer/shared/ui/Tooltip";
 import clsx from "clsx";
 import { useTranslation } from "react-i18next";
 
 interface SidebarProps {
   pages: AppPageLink[];
+  pinnedTools: ToolDefinition[];
+  activePath: string;
   activePage: AppPageId | null;
   collapsed: boolean;
   theme: "light" | "dark";
@@ -29,6 +33,8 @@ const LOGO_BOLT_COLOR = "rgb(var(--color-accent))";
 
 export function Sidebar({
   pages,
+  pinnedTools,
+  activePath,
   activePage,
   collapsed,
   theme,
@@ -37,8 +43,9 @@ export function Sidebar({
   onToggleSidebar,
   onNavigate,
   onToggleTheme,
-}: SidebarProps) {
+}: Readonly<SidebarProps>) {
   const { t } = useTranslation();
+  const pinnedToolActive = pinnedTools.some((tool) => tool.path === activePath);
 
   return (
     <aside
@@ -141,9 +148,10 @@ export function Sidebar({
         </Tooltip>
 
         {/* ── Nav ────────────────────────────────── */}
-        <nav className="flex flex-1 flex-col gap-1">
+        <nav className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto">
           {pages.map((page) => {
-            const isActive = page.id === activePage;
+            const isActive =
+              page.id === activePage && !(page.id === "tools" && pinnedToolActive);
 
             return collapsed ? (
               <SidebarMiniItem
@@ -164,6 +172,13 @@ export function Sidebar({
               />
             );
           })}
+
+          <SidebarPinnedTools
+            tools={pinnedTools}
+            activePath={activePath}
+            collapsed={collapsed}
+            onNavigate={onNavigate}
+          />
         </nav>
 
         {/* ── Theme toggle ───────────────────────── */}

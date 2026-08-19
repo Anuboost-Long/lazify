@@ -31,12 +31,15 @@ import {
   MediaImage,
   MediaVideo,
   MultiWindow,
+  Network,
   NavArrowLeft,
   NavArrowRight,
   OpenNewWindow,
   Page,
   Plus,
   Package,
+  Pin,
+  PinSolid,
   Play,
   PlaySolid,
   RefreshCircle,
@@ -65,8 +68,10 @@ import {
   JournalPageSolid,
   KeySolid,
   MultiWindowSolid,
+  NetworkSolid,
   PackageSolid,
   SettingsSolid,
+  SparksSolid,
   TerminalSolid,
   ToolsSolid
 } from "./solid-icons";
@@ -97,6 +102,7 @@ export type UiIconName =
   | "media-image"
   | "media-video"
   | "multi-window"
+  | "network"
   | "open-new-window"
   | "package"
   | "page"
@@ -121,7 +127,8 @@ export type UiIconName =
   | "collapse"
   | "trash"
   | "stop-circle"
-  | "pause";
+  | "pause"
+  | "pin";
 
 interface UiIconProps extends SVGProps<SVGSVGElement> {
   name: UiIconName;
@@ -156,8 +163,10 @@ const iconMap: Record<UiIconName, ComponentType<SVGProps<SVGSVGElement>>> = {
   "media-image": MediaImage,
   "media-video": MediaVideo,
   "multi-window": MultiWindow,
+  network: Network,
   "open-new-window": OpenNewWindow,
   package: Package,
+  pin: Pin,
   page: Page,
   play: Play,
   "refresh-circle": RefreshCircle,
@@ -203,9 +212,12 @@ const solidIconMap: Partial<Record<UiIconName, ComponentType<SVGProps<SVGSVGElem
   "journal-page": JournalPageSolid,
   key: KeySolid,
   "multi-window": MultiWindowSolid,
+  network: NetworkSolid,
   package: PackageSolid,
+  pin: PinSolid,
   play: PlaySolid,
   settings: SettingsSolid,
+  sparks: SparksSolid,
   terminal: TerminalSolid,
   tools: ToolsSolid
 };

@@ -9,10 +9,11 @@ import { IconButton } from "@renderer/shared/ui/IconButton";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import type { SymbolPosition } from "@renderer/shared/ui/code/symbol-at-point";
 import { TreeContextMenu } from "@renderer/shared/ui/project-tree/TreeContextMenu";
+import { ProjectTreeList } from "@renderer/shared/ui/project-tree/core/ProjectTreeList";
 import { useAgentFiles } from "../../hooks/use-agent-files";
 import { AgentFileModal } from "../AgentFileModal";
 import { railPanelShell, type RailPanelVariant } from "../rail-panel-shell";
-import { findByAbsolutePath, MatchRow, PanelMessage, TreeRow } from "./FileTreeRows";
+import { findByAbsolutePath, MatchRow, PanelMessage } from "./FileTreeRows";
 
 interface AgentFilesPanelProps {
   projectPath: string;
@@ -119,26 +120,41 @@ export function AgentFilesPanel({
         return <PanelMessage>{t(translation.Agents.NoFilesFound)}</PanelMessage>;
       }
 
-      return matches.map((match) => (
-        <MatchRow key={match.node.id} match={match} onOpen={openFile} onOpenMenu={openMenu} />
-      ));
+      return (
+        <div className="h-full overflow-y-auto">
+          {matches.map((match) => (
+            <MatchRow
+              key={match.node.id}
+              match={match}
+              onOpen={openFile}
+              onOpenMenu={openMenu}
+            />
+          ))}
+        </div>
+      );
     }
 
     if (tree.length === 0) {
       return <PanelMessage>{t(translation.Agents.NoFilesFound)}</PanelMessage>;
     }
 
-    return tree.map((node) => (
-      <TreeRow
-        key={node.id}
-        node={node}
-        depth={0}
-        openFolders={openFolders}
-        onToggleFolder={toggleFolder}
-        onOpenFile={setSelected}
-        onOpenMenu={openMenu}
+    return (
+      <ProjectTreeList
+        className="h-full"
+        nodes={tree}
+        expandedIds={openFolders}
+        selectedId={selected?.id}
+        density="compact"
+        followSelection={false}
+        showFileColors={false}
+        getNodeTitle={(node) => node.relativePath}
+        onSelect={(node) => {
+          if (node.type === "file") openFile(node);
+        }}
+        onToggleExpand={(node) => toggleFolder(node.id)}
+        onOpenContextMenu={openMenu}
       />
-    ));
+    );
   };
 
   return (
@@ -198,10 +214,18 @@ export function AgentFilesPanel({
         </div>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-auto p-1.5">{renderBody()}</div>
+      <div className="min-h-0 flex-1 overflow-hidden p-1.5">{renderBody()}</div>
 
       <TreeContextMenu
         position={menu}
+        onSendToAgent={
+          menu?.node.type === "file" && onSendToTerminal
+            ? () => {
+                onSendToTerminal(menu.node.relativePath);
+                setMenu(null);
+              }
+            : undefined
+        }
         onRevealInFinder={() => {
           if (menu) void globalThis.lazify.revealInFileManager(menu.node.absolutePath);
           setMenu(null);
@@ -225,4 +249,3 @@ export function AgentFilesPanel({
     </aside>
   );
 }
-

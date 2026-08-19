@@ -1,4 +1,4 @@
-import type { TreeNode } from "@renderer/shared/ui/project-tree/types";
+import type { ProjectTreeNode as TreeNode } from "@renderer/shared/types/lazify";
 
 export function slug(input: string) {
   return input.toLowerCase().replace(/[^a-z0-9]+/g, "-");

@@ -9,11 +9,13 @@ import {
   useAgentTerminals,
   useRevealAgentRun,
 } from "@renderer/features/agents/hooks/agent-terminals";
+import { useInterfaceSettings } from "@renderer/shared/hooks/use-interface-settings";
 import type {
   CodeSelectionAction,
   CodeSelectionContext,
 } from "@renderer/shared/ui/code/menu/code-selection";
 import { CodeSelectionActionsProvider } from "@renderer/shared/ui/code/menu/selection-actions";
+import { ProjectAgentActionsProvider } from "@renderer/shared/ui/project-tree/ProjectAgentActions";
 
 interface ProjectCodeActionsProps {
   projectPath: string;
@@ -27,6 +29,8 @@ export function ProjectCodeActions({
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [selection, setSelection] = useState<CodeSelectionContext | null>(null);
+  const [filePath, setFilePath] = useState<string | null>(null);
+  const { openAgentAfterSend } = useInterfaceSettings();
   const { availableAgents, openTerminal, createAgent, deleteAgent } =
     useAgentTerminals(projectPath);
   const revealAgentRun = useRevealAgentRun();
@@ -37,7 +41,10 @@ export function ProjectCodeActions({
         id: "send-to-agent",
         label: t(translation.Agents.SendSelectionToAgent),
         icon: "chat-question",
-        onSelect: setSelection,
+        onSelect: (nextSelection) => {
+          setFilePath(null);
+          setSelection(nextSelection);
+        },
       },
     ],
     [t],
@@ -45,10 +52,18 @@ export function ProjectCodeActions({
 
   return (
     <CodeSelectionActionsProvider actions={actions}>
-      {children}
+      <ProjectAgentActionsProvider
+        onSendFileToAgent={(nextFilePath) => {
+          setSelection(null);
+          setFilePath(nextFilePath);
+        }}
+      >
+        {children}
+      </ProjectAgentActionsProvider>
 
       <SendToAgentDialog
         selection={selection}
+        filePath={filePath}
         projectPath={projectPath}
         agents={availableAgents}
         onStartAgent={openTerminal}
@@ -56,9 +71,12 @@ export function ProjectCodeActions({
         onDeleteAgent={deleteAgent}
         onSent={(runId) => {
           revealAgentRun(runId);
-          navigate(getAgentsRoute(projectPath));
+          if (openAgentAfterSend) navigate(getAgentsRoute(projectPath));
         }}
-        onClose={() => setSelection(null)}
+        onClose={() => {
+          setSelection(null);
+          setFilePath(null);
+        }}
       />
     </CodeSelectionActionsProvider>
   );

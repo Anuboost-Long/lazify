@@ -5,35 +5,21 @@ import { Tooltip } from "@renderer/shared/ui/Tooltip";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import type { SidebarView } from "./types";
 
-/**
- * The vertical icon strip on the right edge of the workbench.
- *
- * Clicking an icon opens its panel; clicking the open one closes it, which is
- * what keeps the editor at full height by default. Like the sidebar shell,
- * this knows nothing about the panels themselves — it renders whatever list it
- * is given and reports which one was clicked.
- */
-
-interface WorkbenchToolRailProps {
+interface WorkbenchRightToolBarProps {
   views: SidebarView[];
-  /** Null when every panel is closed. */
   activeId: string | null;
   onChange: (id: string | null) => void;
-  /** Opens the OS terminal at the project's folder. Absent hides the button —
-      it is not a panel, so it takes no part in activeId/onChange. */
   onOpenConsole?: () => void;
-  /** Starts a coding agent on this project. Like the console button, it opens
-      something outside the rail rather than a panel. Absent hides it. */
   onStartAgent?: () => void;
 }
 
-export function WorkbenchToolRail({
+export function WorkbenchRightToolBar({
   views,
   activeId,
   onChange,
   onOpenConsole,
   onStartAgent
-}: Readonly<WorkbenchToolRailProps>) {
+}: Readonly<WorkbenchRightToolBarProps>) {
   const { t } = useTranslation();
 
   return (
@@ -55,7 +41,6 @@ export function WorkbenchToolRail({
                   : "text-muted hover:bg-accent/[0.06] hover:text-text"
               )}
             >
-              {/* Accent rule on the outer edge marks the open panel. */}
               {selected ? (
                 <span aria-hidden className="absolute inset-y-1 -right-2 w-0.5 rounded-full bg-accent" />
               ) : null}

@@ -3,34 +3,21 @@ import { Tooltip } from "@renderer/shared/ui/Tooltip";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import type { SidebarView } from "./types";
 
-/**
- * The workbench sidebar: one frame, several switchable views.
- *
- * This shell is deliberately ignorant of what the views are — it renders a tab
- * strip from whatever it is given and shows the active view's body. The
- * explorer and the source-control views live in their own files and know
- * nothing about each other or about this component.
- *
- * Every view stays mounted and is hidden with CSS rather than unmounted, so
- * switching away and back preserves scroll position in the virtualised tree.
- */
-
-interface WorkbenchSidebarProps {
+interface WorkbenchLeftPanelProps {
   views: SidebarView[];
   activeId: string;
   onChange: (id: string) => void;
 }
 
-export function WorkbenchSidebar({
+export function WorkbenchLeftPanel({
   views,
   activeId,
   onChange
-}: Readonly<WorkbenchSidebarProps>) {
+}: Readonly<WorkbenchLeftPanelProps>) {
   const active = views.find((view) => view.id === activeId) ?? views[0];
 
   return (
     <div className="flex h-full flex-col overflow-hidden bg-bg">
-      {/* Tab strip — replaces the header each view used to draw for itself. */}
       <div className="flex shrink-0 items-center gap-0.5 border-b border-border bg-soft px-2 py-1.5">
         {views.map((view) => {
           const selected = view.id === active?.id;

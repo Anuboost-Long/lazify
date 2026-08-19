@@ -3,11 +3,10 @@ import { PillText } from "@renderer/shared/typography";
 import { useTranslation } from "react-i18next";
 
 interface TreeContextMenuProps {
-  /** Where to open, or null when the menu is closed. */
   position: { x: number; y: number } | null;
-  /** Each entry is drawn only where the tree offers that action. */
   onNewFile?: () => void;
   onNewFolder?: () => void;
+  onSendToAgent?: () => void;
   onRename?: () => void;
   onDelete?: () => void;
   onRevealInFinder?: () => void;
@@ -16,21 +15,19 @@ interface TreeContextMenuProps {
 interface TreeContextMenuItem {
   key: string;
   label: string;
-  /** Shortcut pill, omitted for entries that have no key binding. */
   hint?: string;
   onClick: () => void;
 }
 
 const MENU_WIDTH = 168;
-/** Row height plus the wrapper's padding, used to keep the menu on screen. */
 const ROW_HEIGHT = 40;
 const MENU_PADDING = 16;
 
-/** The right-click menu for every project tree, editable or not. */
 export function TreeContextMenu({
   position,
   onNewFile,
   onNewFolder,
+  onSendToAgent,
   onRename,
   onDelete,
   onRevealInFinder,
@@ -46,6 +43,13 @@ export function TreeContextMenu({
   }
   if (onNewFolder) {
     menuItems.push({ key: "new-folder", label: translation.ProjectTree.NewFolder, hint: "+", onClick: onNewFolder });
+  }
+  if (onSendToAgent) {
+    menuItems.push({
+      key: "send-to-agent",
+      label: translation.Agents.SendToAgent,
+      onClick: onSendToAgent,
+    });
   }
   if (onRename) {
     menuItems.push({ key: "rename", label: translation.ProjectTree.ContextRename, hint: "F2", onClick: onRename });

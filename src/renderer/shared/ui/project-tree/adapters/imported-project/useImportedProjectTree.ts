@@ -4,18 +4,18 @@ import {
   countFiles,
   findNodeById,
   hasIncludedFiles,
-} from "@renderer/shared/ui/project-tree-optimized/tree-utils";
+} from "@renderer/shared/ui/project-tree/indexed-tree-utils";
 import type {
   FileContentState,
-  OptimizedImportedProjectTreeProps,
-  TreeContextMenuState,
-} from "@renderer/shared/ui/project-tree-optimized/types";
+  ProjectTreeContextMenuState,
+} from "@renderer/shared/ui/project-tree/core/types";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   buildPath,
   renameNodeWithPaths,
   updateNodeTree
 } from "@renderer/shared/ui/project-tree/tree-edits";
+import type { ImportedProjectTreePanelProps } from "./types";
 
 export function useImportedProjectTree({
   initialConfirmedStack,
@@ -23,7 +23,7 @@ export function useImportedProjectTree({
   projectPath,
   tree,
 }: Pick<
-  OptimizedImportedProjectTreeProps,
+  ImportedProjectTreePanelProps,
   "initialConfirmedStack" | "onSaveTemplate" | "projectPath" | "tree"
 >) {
   const [editableTree, setEditableTree] =
@@ -39,9 +39,9 @@ export function useImportedProjectTree({
   const [fileCache, setFileCache] = useState<Record<string, FileContentState>>(
     {},
   );
-  const [contextMenu, setContextMenu] = useState<TreeContextMenuState | null>(
-    null,
-  );
+  const [contextMenu, setContextMenu] = useState<
+    ProjectTreeContextMenuState<ImportedProjectIndexNode> | null
+  >(null);
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState("");
   const [saveBusy, setSaveBusy] = useState(false);

@@ -7,17 +7,15 @@ import type {
 } from "@renderer/shared/lib/fuzzy/file-search";
 import { CaptionText, MonoText } from "@renderer/shared/typography";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
-import { getFileVisual } from "@renderer/shared/ui/project-tree-optimized/tree-utils-editable";
+import { getFileVisual } from "@renderer/shared/ui/project-tree/core/project-tree-visuals";
 import { CommandPalette, HighlightedText } from "./CommandPalette";
 import { useFileQuickOpen, type QuickOpenTreeNode } from "./useFileQuickOpen";
 
 interface FileQuickOpenProps {
   tree: readonly QuickOpenTreeNode[];
-  /** Opens the picked file — typically the adapter's select-by-node. */
   onOpenFile: (entry: FileSearchEntry) => void;
 }
 
-/** Splits the path's matched positions into the directory part and the name. */
 function splitMatch(result: FileSearchResult) {
   const { path, name } = result.entry;
   const nameStart = path.length - name.length;
@@ -33,11 +31,6 @@ function splitMatch(result: FileSearchResult) {
   return { dir, name, dirPositions, namePositions };
 }
 
-/**
- * File quick-open: the Cmd/Ctrl+P palette bound to the project tree. Thin glue
- * over the generic CommandPalette — it only turns ranked file results into
- * rows and forwards a pick back to the tree.
- */
 export function FileQuickOpen({ tree, onOpenFile }: Readonly<FileQuickOpenProps>) {
   const { t } = useTranslation();
   const quickOpen = useFileQuickOpen(tree, onOpenFile);

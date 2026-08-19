@@ -13,29 +13,21 @@ import {
   slug,
   updateTree,
 } from "@renderer/shared/ui/project-tree/tree-utils";
-import type {
-  ProjectTreeEditorPanelProps,
-  TreeNode,
-} from "@renderer/shared/ui/project-tree/types";
+import type { ProjectTreeNode } from "@renderer/shared/types/lazify";
 
-export function useLocalProjectTree({
+interface UseTemplateTreeOptions {
+  initialTree?: ProjectTreeNode[] | null;
+  replaceTreeOnInitialChange?: boolean;
+  onTreeChange: (tree: ProjectTreeNode[]) => void;
+}
+
+export function useTemplateTree({
   initialTree,
   onTreeChange,
   replaceTreeOnInitialChange = false,
-  selectedStructurePaths,
-  templateId,
-}: Pick<
-  ProjectTreeEditorPanelProps,
-  | "initialTree"
-  | "onTreeChange"
-  | "replaceTreeOnInitialChange"
-  | "selectedStructurePaths"
-  | "templateId"
->) {
-  // Every tree now comes from disk — a starter clone, a CLI's output, or an
-  // imported template. Nothing is synthesized from constants any more.
+}: UseTemplateTreeOptions) {
   const resolvedInitialTree = useMemo(() => initialTree ?? [], [initialTree]);
-  const [tree, setTree] = useState<TreeNode[]>(resolvedInitialTree);
+  const [tree, setTree] = useState<ProjectTreeNode[]>(resolvedInitialTree);
   const [selectedId, setSelectedId] = useState<string | null>(() =>
     findFirstFileId(resolvedInitialTree)
   );
@@ -56,7 +48,7 @@ export function useLocalProjectTree({
     y: number;
     nodeId: string;
   } | null>(null);
-  const lastPublishedTreeRef = useRef<TreeNode[] | null>(null);
+  const lastPublishedTreeRef = useRef<ProjectTreeNode[] | null>(null);
 
   useEffect(() => {
     const incomingTree = initialTree ?? null;
@@ -98,7 +90,12 @@ export function useLocalProjectTree({
     onTreeChange(tree);
   }, [onTreeChange, tree]);
 
-  const selectedNode = selectedId ? findNode(tree, selectedId) : null;
+  useEffect(() => {
+    const closeContextMenu = () => setContextMenu(null);
+    globalThis.addEventListener("click", closeContextMenu);
+    return () => globalThis.removeEventListener("click", closeContextMenu);
+  }, []);
+
   const activeFileNode = activeFileId ? findNode(tree, activeFileId) : null;
   const activeFilePath = activeFileId ? getNodePath(tree, activeFileId) : null;
   const openFiles = openFileIds.flatMap((id): EditorTab[] => {
@@ -111,10 +108,6 @@ export function useLocalProjectTree({
   });
   const activeTab =
     openFiles.find((tab) => tab.filePath === activeFileId) ?? null;
-  // Locking came from the blueprint's folder list. What may not be removed is
-  // now the starter's `required`, applied as `locked` when the tree is built
-  // and enforced again in the main process.
-  const lockedFolderNames = new Set<string>();
   const selectedContextNode = contextMenu
     ? findNode(tree, contextMenu.nodeId)
     : null;
@@ -158,7 +151,7 @@ export function useLocalProjectTree({
 
     const nextTree = removeFromTree(tree, nodeId);
     const removedIds = new Set<string>();
-    const collectIds = (target: TreeNode) => {
+    const collectIds = (target: ProjectTreeNode) => {
       removedIds.add(target.id);
       target.children.forEach(collectIds);
     };
@@ -338,13 +331,11 @@ export function useLocalProjectTree({
     handleSelectOpenFile,
     handleStartRename,
     handleToggleExpand,
-    lockedFolderNames,
     openFiles,
     renameValue,
     renamingId,
     selectedContextNode,
     selectedId,
-    selectedNode,
     setContextMenu,
     setExpandedIds,
     setRenamingId,

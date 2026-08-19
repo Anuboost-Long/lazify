@@ -5,8 +5,8 @@ import userEvent from "@testing-library/user-event";
 import { createElement } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { OptimizedEditorPane } from "../../src/renderer/shared/ui/project-tree-optimized/OptimizedEditorPane";
-import type { FileContentState } from "../../src/renderer/shared/ui/project-tree-optimized/types";
+import { ProjectTreeEditor } from "../../src/renderer/shared/ui/project-tree/core/ProjectTreeEditor";
+import type { FileContentState } from "../../src/renderer/shared/ui/project-tree/core/types";
 
 vi.mock("react-i18next", async (importOriginal) => ({
   ...(await importOriginal<typeof import("react-i18next")>()),
@@ -20,7 +20,6 @@ vi.mock("react-i18next", async (importOriginal) => ({
 const SVG_SOURCE = '<svg xmlns="http://www.w3.org/2000/svg"><circle r="4" /></svg>';
 
 beforeEach(() => {
-  // jsdom has no blob URL plumbing, and the pane only needs the handle back.
   URL.createObjectURL = vi.fn(() => "blob:preview");
   URL.revokeObjectURL = vi.fn();
 });
@@ -29,8 +28,7 @@ afterEach(() => cleanup());
 
 function renderPane(name: string, state: FileContentState) {
   return render(
-    createElement(OptimizedEditorPane, {
-      chrome: "flush" as const,
+    createElement(ProjectTreeEditor, {
       selectedNode: { name, type: "file" as const, absolutePath: `/demo/${name}` },
       selectedFileState: state
     })
@@ -91,8 +89,6 @@ describe("editor pane previews", () => {
   });
 
   it("reads an image as code when the loader gave it no bytes", () => {
-    // The imported-project pane still loads every file as text; without a
-    // MIME type there is nothing to render, so the placeholder shows as before.
     const { container } = renderPane("hero.png", {
       status: "loaded",
       content: "Preview unavailable for binary file.\n"

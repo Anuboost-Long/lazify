@@ -2,6 +2,7 @@ import { translation } from "@renderer/i18n/translation";
 import { useAccentColor } from "@renderer/shared/hooks/use-accent-color";
 import { useInterfaceSettings } from "@renderer/shared/hooks/use-interface-settings";
 import { useLazifyStore } from "@renderer/shared/hooks/use-lazify-store";
+import { useRouteMemory } from "@renderer/shared/hooks/use-route-memory";
 import {
   useSetResolvedTheme,
   useTheme,
@@ -17,6 +18,8 @@ import { appSidebarPages, type AppPageId } from "./app-sidebar.constant";
 import { AgentDoneToast } from "@renderer/features/agents/components/AgentDoneToast";
 import { useAgentActivityRecorder } from "@renderer/features/agents/hooks/use-agent-activity";
 import { BrowserSurface } from "@renderer/features/browser/components/BrowserSurface";
+import { availableTools } from "@renderer/features/tools/catalog";
+import { usePinnedTools } from "@renderer/features/tools/hooks/use-pinned-tools";
 import { ContentBackdrop } from "./components/ContentBackdrop";
 import { PageChromeContext } from "./components/PageChrome";
 import { Sidebar } from "./components/Sidebar";
@@ -28,7 +31,9 @@ export function AppShell() {
   const { themePreference, setThemePreference } = useTheme();
   const setResolvedTheme = useSetResolvedTheme();
   const { accentColor } = useAccentColor();
-  const { compactSidebar, reduceMotion } = useInterfaceSettings();
+  const { compactSidebar, reduceMotion, rememberRoute } = useInterfaceSettings();
+  const { remember, recall } = useRouteMemory();
+  const { pinnedToolIds } = usePinnedTools();
   const [systemPrefersDark, setSystemPrefersDark] = useState(
     () => globalThis.matchMedia("(prefers-color-scheme: dark)").matches,
   );
@@ -79,6 +84,12 @@ export function AppShell() {
     globalThis.localStorage.setItem("lazify-sidebar-open", String(sidebarOpen));
   }, [sidebarOpen]);
 
+  // A page link leads back to the sub-route last seen there, so returning to
+  // the workbench or a tool does not mean picking the project out again.
+  useEffect(() => {
+    if (rememberRoute) remember(location.pathname);
+  }, [location.pathname, rememberRoute, remember]);
+
   // The pages this OS can offer. Computed here rather than beside the list so
   // it is not a module-load-time read of the preload bridge — a constant that
   // throws on import would take the whole window down with it.
@@ -88,6 +99,9 @@ export function AppShell() {
         (page) => !page.macOnly || globalThis.lazify.platform === "darwin",
       ),
     [],
+  );
+  const pinnedTools = availableTools(globalThis.lazify.platform).filter((tool) =>
+    pinnedToolIds.includes(tool.id)
   );
 
   const activePageId: AppPageId | null =
@@ -140,6 +154,8 @@ export function AppShell() {
       <div className="flex min-h-0 min-w-0 flex-1">
         <Sidebar
           pages={pages}
+          pinnedTools={pinnedTools}
+          activePath={location.pathname}
           activePage={activePageId}
           collapsed={compactSidebar || !sidebarOpen}
           theme={resolvedTheme}
@@ -148,7 +164,7 @@ export function AppShell() {
           onToggleSidebar={() => {
             if (!compactSidebar) setSidebarOpen((c) => !c);
           }}
-          onNavigate={navigate}
+          onNavigate={(path) => navigate(rememberRoute ? recall(path) : path)}
           onToggleTheme={() =>
             setThemePreference(resolvedTheme === "dark" ? "light" : "dark")
           }
@@ -166,6 +182,24 @@ export function AppShell() {
               "border-b border-border bg-bg px-4",
             )}
           >
+            {/* Shown only where there is somewhere to go up to, so the bar
+                stays a breadcrumb rather than growing a permanent control. */}
+            {location.pathname !== activePage.path ? (
+              <Tooltip content={t(translation.GlobalTerm.Back)} side="bottom">
+                <button
+                  type="button"
+                  aria-label={t(translation.GlobalTerm.Back)}
+                  onClick={() => navigate(activePage.path)}
+                  className={clsx(
+                    "-ml-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-md",
+                    "text-muted transition-colors hover:bg-text/[0.04] hover:text-accent",
+                  )}
+                >
+                  <UiIcon name="arrow-left" className="h-3.5 w-3.5" />
+                </button>
+              </Tooltip>
+            ) : null}
+
             <UiIcon
               name={activePage.icon}
               className="h-3.5 w-3.5 shrink-0 text-accent"

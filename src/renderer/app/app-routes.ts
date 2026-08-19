@@ -28,6 +28,14 @@ export function getWorkspaceProjectRoute(projectPath: string) {
   return `/workspace/project/${encodeURIComponent(projectPath)}`;
 }
 
+/** A project opened straight onto one file, revealed in its tree and focused
+ *  on the line that sent the user there. */
+export function getWorkspaceFileRoute(projectPath: string, filePath: string, line?: number | null) {
+  const at = line ? `&line=${line}` : "";
+
+  return `${getWorkspaceProjectRoute(projectPath)}?file=${encodeURIComponent(filePath)}${at}`;
+}
+
 /** The agents page, opened straight onto one project rather than whichever the
  *  shared active project happens to be. */
 export function getAgentsRoute(projectPath: string) {

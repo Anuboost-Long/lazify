@@ -19,8 +19,8 @@ vi.mock("react-i18next", async (importOriginal) => ({
   })
 }));
 
-vi.mock("@renderer/shared/ui/project-tree/ProjectTreeEditorPanel", () => ({
-  ProjectTreeEditorPanel: projectTreeEditor
+vi.mock("@renderer/features/templates/components/TemplateTreeEditor", () => ({
+  TemplateTreeEditor: projectTreeEditor
 }));
 
 afterEach(() => {
@@ -125,7 +125,6 @@ describe("TemplatesPage", () => {
 
     expect(projectTreeEditor.mock.calls.at(-1)?.[0]).toEqual(
       expect.objectContaining({
-        layout: "workbench",
         replaceTreeOnInitialChange: true
       })
     );

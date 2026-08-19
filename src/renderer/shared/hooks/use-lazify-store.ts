@@ -1,3 +1,5 @@
+import type { CommandChoicePrompt } from "@main/command-runner";
+import type { StarterFailureReason } from "@main/scaffolding/starter-provisioner";
 import type {
   EnvironmentSummary,
   ImportedTemplateOption,
@@ -9,8 +11,6 @@ import type {
   ToolScanReport,
   WorkflowStatus,
 } from "@renderer/shared/types/lazify";
-import type { StarterFailureReason } from "@main/scaffolding/starter-provisioner";
-import type { CommandChoicePrompt } from "@main/command-runner";
 import { atom, useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useCallback } from "react";
 
@@ -39,7 +39,9 @@ function readStoredWorkspaceProjects() {
     return [] as SyncedWorkspaceProject[];
   }
 
-  const rawValue = globalThis.localStorage.getItem(WORKSPACE_PROJECTS_STORAGE_KEY);
+  const rawValue = globalThis.localStorage.getItem(
+    WORKSPACE_PROJECTS_STORAGE_KEY,
+  );
 
   if (!rawValue) {
     return [] as SyncedWorkspaceProject[];
@@ -119,8 +121,9 @@ const toolScanLoadingAtom = atom(false);
 export function useLazifyStore() {
   const [projectName, setProjectName] = useAtom(projectNameAtom);
   const [projectDirectory, setProjectDirectory] = useAtom(projectDirectoryAtom);
-  const [activeProjectPath, setActiveProjectPathAtom] =
-    useAtom(activeProjectPathAtom);
+  const [activeProjectPath, setActiveProjectPathAtom] = useAtom(
+    activeProjectPathAtom,
+  );
   const [packageName, setPackageName] = useAtom(packageNameAtom);
   const [initSourceMode, setInitSourceMode] = useAtom(initSourceModeAtom);
   const [selectedTemplateId, setSelectedTemplateId] = useAtom(
@@ -136,11 +139,15 @@ export function useLazifyStore() {
     selectedImportedTemplateAtom,
   );
   const logs = useAtomValue(logsAtom);
-  const [commandChoicePrompt, setCommandChoicePrompt] = useAtom(commandChoicePromptAtom);
+  const [commandChoicePrompt, setCommandChoicePrompt] = useAtom(
+    commandChoicePromptAtom,
+  );
   const busy = useAtomValue(busyAtom);
   const workflowStatus = useAtomValue(workflowStatusAtom);
   const statusMessage = useAtomValue(statusMessageAtom);
-  const [starterFailureReason, setStarterFailureReason] = useAtom(starterFailureReasonAtom);
+  const [starterFailureReason, setStarterFailureReason] = useAtom(
+    starterFailureReasonAtom,
+  );
   const environment = useAtomValue(environmentAtom);
   const templateOptions = useAtomValue(templateOptionsAtom);
   const importedTemplateOptions = useAtomValue(importedTemplateOptionsAtom);
@@ -292,9 +299,11 @@ export function useLazifyStore() {
       if (event.status !== "running") setCommandChoicePrompt(null);
     });
 
-    const stopCommandChoicePrompts = globalThis.lazify.onCommandChoicePrompt((prompt) => {
-      setCommandChoicePrompt(prompt);
-    });
+    const stopCommandChoicePrompts = globalThis.lazify.onCommandChoicePrompt(
+      (prompt) => {
+        setCommandChoicePrompt(prompt);
+      },
+    );
 
     return () => {
       stopLogs();
@@ -303,11 +312,17 @@ export function useLazifyStore() {
     };
   }, [setCommandChoicePrompt, setLogs, setStatusMessage, setWorkflowStatus]);
 
-  const chooseCommandOption = useCallback(async (promptId: string, optionId: string) => {
-    const accepted = await globalThis.lazify.chooseCommandOption(promptId, optionId);
-    if (accepted) setCommandChoicePrompt(null);
-    return accepted;
-  }, [setCommandChoicePrompt]);
+  const chooseCommandOption = useCallback(
+    async (promptId: string, optionId: string) => {
+      const accepted = await globalThis.lazify.chooseCommandOption(
+        promptId,
+        optionId,
+      );
+      if (accepted) setCommandChoicePrompt(null);
+      return accepted;
+    },
+    [setCommandChoicePrompt],
+  );
 
   const createProject = useCallback(async () => {
     if (!projectName.trim() || !projectDirectory.trim()) {
@@ -353,7 +368,6 @@ export function useLazifyStore() {
       setWorkflowStatus(result.success ? "success" : "error");
       setStatusMessage(result.message);
       setStarterFailureReason(result.reason ?? null);
-
     } catch (error) {
       setWorkflowStatus("error");
       setStatusMessage(
