@@ -39,6 +39,37 @@ export const nestJsRules: FrameworkRules = {
 
   types: TYPESCRIPT_TYPES,
 
+  serialization: null,
+
+  globalSecurity: {
+    definitions: [
+      /addApiKey\s*\(\s*\{[^}]*\}\s*,\s*['"`](?<id>[\w-]+)['"`]/g,
+      /addSecurity\s*\(\s*['"`](?<id>[\w-]+)['"`]\s*,\s*\{[^}]*\}/g,
+      /(?<id>[\w-]+)\s*:\s*\{[^}]*type\s*:\s*['"`]apiKey['"`]/g
+    ],
+    definitionLength: 300,
+    fields: {
+      parameterName: [/name\s*:\s*['"`]([^'"`]+)['"`]/],
+      location: [/\bin\s*:\s*['"`](\w+)['"`]/],
+      type: [/type\s*:\s*['"`](\w+)['"`]/],
+      scheme: [/scheme\s*:\s*['"`](\w+)['"`]/]
+    },
+    requirements: [
+      /addGlobalSecurity\s*\(\s*['"`](?<id>[\w-]+)['"`]/g,
+      /useGlobalGuards\s*\([^)]*\)[\s\S]{0,200}?ApiSecurity\s*\(\s*['"`](?<id>[\w-]+)['"`]/g
+    ],
+    guards: [
+      /useGlobalGuards\s*\(\s*new\s+\w*ApiKey\w*/,
+      /provide\s*:\s*APP_GUARD[\s\S]{0,120}?useClass\s*:\s*\w*ApiKey\w*/
+    ],
+    guardNames: [
+      /headers\s*\[\s*['"`]([^'"`]+)['"`]\s*\]/,
+      /header\s*\(\s*['"`]([^'"`]+)['"`]\s*\)/
+    ],
+    guardParameterName: "x-api-key",
+    hints: ["addApiKey", "ApiKey", "apiKey", "APP_GUARD", "securitySchemes"]
+  },
+
   annotations: {
     syntax: "decorator",
     container: {
@@ -58,11 +89,22 @@ export const nestJsRules: FrameworkRules = {
       All: "GET"
     },
     auth: {
-      require: ["UseGuards", "ApiBearerAuth"],
-      anonymous: ["Public", "SkipAuth"],
-      kind: "bearer",
-      parameterName: "Authorization",
-      location: "header"
+      schemes: [
+        {
+          annotations: ["UseGuards", "ApiBearerAuth"],
+          kind: "bearer",
+          parameterName: "Authorization",
+          location: "header"
+        },
+        {
+          annotations: ["ApiKey", "ApiSecurity"],
+          kind: "apiKey",
+          parameterName: "X-API-Key",
+          location: "header",
+          nameFromArgument: true
+        }
+      ],
+      anonymous: ["Public", "SkipAuth"]
     },
     binding: {
       annotations: {
@@ -77,6 +119,7 @@ export const nestJsRules: FrameworkRules = {
         Session: "ignore",
         Ip: "ignore"
       },
+      fileTypes: ["express.multer.file", "multerfile"],
       nameFrom: "annotationArgument",
       ignoredTypes: ["request", "response", "executioncontext"],
       inferBodyFromModel: false

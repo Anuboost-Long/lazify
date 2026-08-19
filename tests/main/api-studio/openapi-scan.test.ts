@@ -60,6 +60,44 @@ components:
         id: { type: string }
 `;
 
+const TYPED_BODY_SPEC = `openapi: 3.0.3
+info:
+  title: Orders API
+  version: "1.0.0"
+paths:
+  /orders:
+    post:
+      summary: Place an order
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Order"
+      responses:
+        "201": { description: Created }
+components:
+  schemas:
+    Order:
+      type: object
+      properties:
+        id: { type: string, format: uuid, readOnly: true }
+        reference: { type: string }
+        quantity: { type: integer }
+        price: { type: number }
+        express: { type: boolean }
+        status: { type: string, enum: [draft, placed] }
+        placedAt: { type: string, format: date-time }
+        tags: { type: array, items: { type: string } }
+        note: { type: string, default: none }
+        customer: { $ref: "#/components/schemas/Customer" }
+    Customer:
+      type: object
+      properties:
+        name: { type: string }
+        vip: { type: boolean }
+`;
+
 async function writeProject(files: Record<string, string>) {
   for (const [relativePath, content] of Object.entries(files)) {
     const absolutePath = path.join(projectPath, relativePath);
@@ -121,8 +159,13 @@ describe("scanProjectRoutes", () => {
       { name: "X-Request-Id", value: "abc-123", required: false, description: null }
     ]);
     expect(getUser.responses).toEqual([
-      { status: "200", description: "The user", mediaTypes: ["application/json"] },
-      { status: "404", description: "Not found", mediaTypes: [] }
+      {
+        status: "200",
+        description: "The user",
+        mediaTypes: ["application/json"],
+        example: '{\n  "id": "string"\n}'
+      },
+      { status: "404", description: "Not found", mediaTypes: [], example: null }
     ]);
     expect(getUser.source).toEqual({
       kind: "openapi",
@@ -141,10 +184,31 @@ describe("scanProjectRoutes", () => {
         {
           mediaType: "application/json",
           schemaType: "object",
-          example: '{\n  "name": "Dara"\n}'
+          example: '{\n  "name": "Dara"\n}',
+          defaultBody: '{\n  "id": "string"\n}'
         }
       ]
     });
+  });
+
+  it("fills the request body from the schema, one default per declared type", async () => {
+    await writeProject({ "openapi.yaml": TYPED_BODY_SPEC });
+
+    const { routes } = await scanProjectRoutes(projectPath);
+    const [variant] = routes[0].requestBody!.variants;
+
+    expect(JSON.parse(variant.defaultBody!)).toEqual({
+      reference: "string",
+      quantity: 0,
+      price: 0,
+      express: true,
+      status: "draft",
+      placedAt: "1970-01-01T00:00:00Z",
+      tags: ["string"],
+      note: "none",
+      customer: { name: "string", vip: true }
+    });
+    expect(variant.defaultBody).toBe(JSON.stringify(JSON.parse(variant.defaultBody!), null, 2));
   });
 
   it("finds a JSON description that is not named after OpenAPI", async () => {

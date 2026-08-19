@@ -101,19 +101,6 @@ export function ApiStudioToolbar({
 
           <button
             type="button"
-            disabled
-            title={t(translation.ApiStudio.ImportPending)}
-            className={clsx(
-              "flex h-10 items-center gap-1.5 rounded-lg border border-border px-3",
-              "text-xs font-medium text-muted disabled:cursor-not-allowed disabled:opacity-45"
-            )}
-          >
-            <UiIcon name="import" className="h-3.5 w-3.5" />
-            {t(translation.ApiStudio.ImportOpenapi)}
-          </button>
-
-          <button
-            type="button"
             disabled={!projectPath || scanning}
             onClick={onScan}
             className={clsx(

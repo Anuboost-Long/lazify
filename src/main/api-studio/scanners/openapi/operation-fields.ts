@@ -5,6 +5,7 @@ import type {
   ApiResponseDefinition,
   ParameterLocation
 } from "../../types";
+import { templateFromSchema } from "../../body-template";
 import { resolveRecord, resolveReference } from "./reference-resolver";
 import { asArray, asFlag, asJsonText, asRecord, asText } from "./values";
 
@@ -98,7 +99,8 @@ export function normalizeRequestBody(
     variants: Object.entries(content).map(([mediaType, mediaTypeObject]) => ({
       mediaType,
       schemaType: schemaTypeOf(document, asRecord(mediaTypeObject)?.schema),
-      example: exampleOf(document, mediaTypeObject)
+      example: exampleOf(document, mediaTypeObject),
+      defaultBody: templateFromSchema(document, asRecord(mediaTypeObject)?.schema)
     }))
   };
 }
@@ -112,10 +114,18 @@ export function normalizeResponses(
   return Object.entries(responses).map(([status, rawResponse]) => {
     const response = resolveRecord(document, rawResponse);
 
+    const content = asRecord(response?.content) ?? {};
+    const mediaTypes = Object.keys(content);
+    const jsonType = mediaTypes.find((mediaType) => mediaType.includes("json")) ?? mediaTypes[0];
+    const mediaTypeObject = jsonType ? asRecord(content[jsonType]) : null;
+
     return {
       status,
       description: response ? asText(response.description) : null,
-      mediaTypes: Object.keys(asRecord(response?.content) ?? {})
+      mediaTypes,
+      example:
+        exampleOf(document, mediaTypeObject) ??
+        templateFromSchema(document, mediaTypeObject?.schema)
     };
   });
 }

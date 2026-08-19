@@ -55,6 +55,53 @@ app.use('/api/invoices', router);
 module.exports = router;
 `;
 
+const NEST_MAIN = `import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+
+  const config = new DocumentBuilder()
+    .setTitle('Demo')
+    .addBearerAuth()
+    .addApiKey({ type: 'apiKey', name: 'X-API-KEY', in: 'header' }, 'api-key')
+    .addGlobalSecurity('api-key')
+    .build();
+
+  SwaggerModule.setup('docs', app, SwaggerModule.createDocument(app, config));
+  await app.listen(3000);
+}
+bootstrap();
+`;
+
+const EXPRESS_SWAGGER = `const swaggerJsdoc = require('swagger-jsdoc');
+
+const definition = {
+  openapi: '3.0.0',
+  components: {
+    securitySchemes: {
+      bearerAuth: { type: 'http', scheme: 'bearer' },
+      ApiKeyAuth: { type: 'apiKey', in: 'header', name: 'X-API-KEY' }
+    }
+  },
+  security: [{ ApiKeyAuth: [] }]
+};
+
+module.exports = swaggerJsdoc({ definition, apis: ['./routes/*.js'] });
+`;
+
+const EXPRESS_KEY_MIDDLEWARE = `function apiKeyGuard(req, res, next) {
+  const provided = req.headers['x-client-key'];
+
+  if (!provided) return res.status(401).json({ error: 'missing key' });
+
+  return next();
+}
+
+app.use(apiKeyGuard);
+
+module.exports = apiKeyGuard;
+`;
+
 async function writeProject(files: Record<string, string>) {
   for (const [relativePath, content] of Object.entries(files)) {
     const absolutePath = path.join(projectPath, relativePath);
@@ -167,5 +214,61 @@ describe("Express, from its rule set alone", () => {
     expect(byId.security[0]).toMatchObject({ kind: "bearer", parameterName: "Authorization" });
     expect(byId.source.confidence).toBe("inferred");
     expect(result.unsupported[0].reason).toMatch(/delete is called with a path/);
+  });
+});
+
+describe("a project's own security declaration, whatever the framework", () => {
+  it("reads NestJS's document builder and requires the key it makes global", async () => {
+    await writeProject({
+      "package.json": packageJson({ "@nestjs/common": "^10.0.0" }),
+      "src/users/users.controller.ts": NEST_CONTROLLER,
+      "src/main.ts": NEST_MAIN
+    });
+
+    const result = await scanProjectRoutes(projectPath);
+    const list = result.routes.find((route) => route.method === "GET" && route.path === "/users")!;
+    const health = result.routes.find((route) => route.path.endsWith("health"))!;
+    const names = deriveEnvironmentVariables(result.routes).map((variable) => variable.name);
+
+    expect(list.security).toContainEqual({
+      kind: "apiKey",
+      schemeName: "api-key",
+      location: "header",
+      parameterName: "X-API-KEY"
+    });
+    expect(health.security).toEqual([]);
+    expect(names).toEqual(expect.arrayContaining(["xApiKey", "bearerToken"]));
+    expect(names).not.toContain("authorization");
+  });
+
+  it("reads an Express swagger definition and applies what its security names", async () => {
+    await writeProject({
+      "package.json": packageJson({ express: "^4.18.0" }),
+      "routes/invoices.js": EXPRESS_ROUTER,
+      "swagger.js": EXPRESS_SWAGGER
+    });
+
+    const result = await scanProjectRoutes(projectPath);
+
+    for (const route of result.routes) {
+      expect(route.security.map((security) => security.parameterName)).toContain("X-API-KEY");
+    }
+  });
+
+  it("falls back to the header an Express guard reads when nothing declares it", async () => {
+    await writeProject({
+      "package.json": packageJson({ express: "^4.18.0" }),
+      "routes/invoices.js": EXPRESS_ROUTER,
+      "middleware/api-key.js": EXPRESS_KEY_MIDDLEWARE
+    });
+
+    const result = await scanProjectRoutes(projectPath);
+
+    expect(result.routes[0].security).toContainEqual({
+      kind: "apiKey",
+      schemeName: "ApiKey",
+      location: "header",
+      parameterName: "x-client-key"
+    });
   });
 });

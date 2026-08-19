@@ -1,6 +1,8 @@
 import { ipcMain, shell } from "electron";
 import fs from "node:fs";
 import { getDiagnosticsPaths } from "../diagnostics/logger";
+import { detectEditors } from "../environment/editor-catalog";
+import { openInEditor, type OpenInEditorRequest } from "../environment/open-in-editor";
 import { openTerminal } from "../environment/open-terminal";
 import { killListeningProcess, listListeningProcesses } from "../environment/port-reaper";
 import type { IpcContext } from "./context";
@@ -23,6 +25,16 @@ export function registerSystemHandlers(ctx: IpcContext) {
 
     shell.showItemInFolder(targetPath);
   });
+
+  // Which editors this machine actually has, so the setting can offer them
+  // rather than ask the user to remember a command.
+  ipcMain.handle("lazify:detect-editors", async () => detectEditors());
+
+  // A source link, opened in whatever the user said their editor is: their own
+  // command when they set one, the OS default when they did not.
+  ipcMain.handle("lazify:open-in-editor", async (_event, request: OpenInEditorRequest) =>
+    openInEditor(request)
+  );
 
   // "Console" from a project's tool rail: the OS terminal, opened rooted at
   // that project's folder.

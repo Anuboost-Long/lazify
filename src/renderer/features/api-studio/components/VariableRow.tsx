@@ -2,15 +2,17 @@ import clsx from "clsx";
 import { useTranslation } from "react-i18next";
 
 import { translation } from "@renderer/i18n/translation";
+import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import type { ApiVariable } from "../types";
 
 interface VariableRowProps {
   variable: ApiVariable;
   value: string;
   onChange: (value: string) => void;
+  onRemove: (() => void) | null;
 }
 
-export function VariableRow({ variable, value, onChange }: Readonly<VariableRowProps>) {
+export function VariableRow({ variable, value, onChange, onRemove }: Readonly<VariableRowProps>) {
   const { t } = useTranslation();
   const missing = !value.trim() && !variable.defaultValue;
 
@@ -28,9 +30,24 @@ export function VariableRow({ variable, value, onChange }: Readonly<VariableRowP
             {t(translation.ApiStudio.SecretValue)}
           </span>
         ) : null}
-        <span className="text-[10px] text-muted">
-          {variable.routeCount} {t(translation.ApiStudio.UsedByRoutes)}
-        </span>
+        {variable.custom ? (
+          <span className="text-[10px] text-muted">{t(translation.ApiStudio.AddedByYou)}</span>
+        ) : (
+          <span className="text-[10px] text-muted">
+            {variable.routeCount} {t(translation.ApiStudio.UsedByRoutes)}
+          </span>
+        )}
+        {onRemove ? (
+          <button
+            type="button"
+            onClick={onRemove}
+            title={t(translation.ApiStudio.RemoveVariable)}
+            aria-label={`${t(translation.ApiStudio.RemoveVariable)} ${variable.name}`}
+            className="ml-auto text-muted transition-colors hover:text-text"
+          >
+            <UiIcon name="xmark" className="h-3 w-3" />
+          </button>
+        ) : null}
       </span>
 
       <input

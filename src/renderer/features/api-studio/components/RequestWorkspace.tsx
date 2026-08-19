@@ -1,109 +1,204 @@
 import clsx from "clsx";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 
+import { getWorkspaceFileRoute } from "@renderer/app/app-routes";
+import { useInterfaceSettings } from "@renderer/shared/hooks/use-interface-settings";
+
+import { BASE_URL_VARIABLE, resolveVariable } from "@main/api-studio/environment";
+import { hostOf } from "@main/api-studio/runner";
 import { translation } from "@renderer/i18n/translation";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
-import { requestUrlFor, resolveVariable, variablesForRoute } from "@main/api-studio/environment";
+import { SplitPane } from "@renderer/shared/ui/split/SplitPane";
+import { useRequestDraft } from "../hooks/use-request-draft";
+import { useScriptSettings } from "../hooks/use-script-settings";
 import type { ApiVariable, SavedRoute } from "../types";
-import { MethodBadge } from "./MethodBadge";
 import { RequestDetails, type RequestTab } from "./RequestDetails";
-import { RouteNeedsRow } from "./RouteNeedsRow";
+import { RequestHeader } from "./RequestHeader";
+import { RequestSummary } from "./RequestSummary";
+import { SelectRouteEmptyState } from "./SelectRouteEmptyState";
+import { ResponseExamples } from "./ResponseExamples";
+import { ResponseHeader } from "./ResponseHeader";
+import { RemoteSendModal } from "./RemoteSendModal";
+import { RequestStorageModal } from "./RequestStorageModal";
+import { ResponsePanel } from "./ResponsePanel";
+import { ScriptResults } from "./ScriptResults";
 
 interface RequestWorkspaceProps {
+  projectPath: string;
   route: SavedRoute | null;
   variables: ApiVariable[];
   values: Record<string, string>;
   onOpenEnvironment: () => void;
+  onValuesChange: (values: Record<string, string>) => void;
 }
 
-function tabsFor(route: SavedRoute): Array<{ id: RequestTab; label: string; count: number | null }> {
+interface WorkspaceTab {
+  id: RequestTab;
+  label: string;
+  count: number | null;
+  marked: boolean;
+}
+
+function tabsFor(route: SavedRoute, scripts: { pre: string; post: string }): WorkspaceTab[] {
   return [
-    { id: "params", label: translation.ApiStudio.Params, count: route.parameters?.length ?? 0 },
-    { id: "headers", label: translation.ApiStudio.Headers, count: route.headers.length },
+    {
+      id: "params",
+      label: translation.ApiStudio.Params,
+      count: route.parameters?.length ?? 0,
+      marked: false
+    },
+    {
+      id: "headers",
+      label: translation.ApiStudio.Headers,
+      count: route.headers.length,
+      marked: false
+    },
     {
       id: "body",
       label: translation.ApiStudio.Body,
-      count: route.requestBody?.variants.length ?? 0
+      count: route.requestBody?.variants.length ?? 0,
+      marked: false
     },
-    { id: "responses", label: translation.ApiStudio.Responses, count: route.responses?.length ?? 0 }
+    {
+      id: "scripts",
+      label: translation.ApiStudio.Scripts,
+      count: null,
+      marked: Boolean(scripts.pre.trim() || scripts.post.trim())
+    },
+    {
+      id: "responses",
+      label: translation.ApiStudio.Responses,
+      count: route.responses?.length ?? 0,
+      marked: false
+    }
   ];
 }
 
-function sourceLabel(route: SavedRoute) {
-  const { filePath, line } = route.source;
-  if (!filePath) return null;
-  return line ? `${filePath}:${line}` : filePath;
+function declaredResponseBody(route: SavedRoute | null): string | null {
+  const declared = (route?.responses ?? []).filter((response) => response.example);
+
+  return (
+    declared.find((response) => response.status.startsWith("2"))?.example ??
+    declared[0]?.example ??
+    null
+  );
 }
 
+const CONVENTIONAL_HEADERS = ["Authorization", "Accept", "Content-Type", "X-Request-Id"];
+
+function requestHeaderNames(route: SavedRoute | null): string[] {
+  return [
+    ...(route?.headers ?? []).map((header) => header.name),
+    ...(route?.security ?? [])
+      .filter((security) => security.location === "header")
+      .map((security) => security.parameterName),
+    ...CONVENTIONAL_HEADERS
+  ];
+}
+
+const RESPONSE_OPEN_KEY = "lazify-api-studio-response-open";
+
 export function RequestWorkspace({
+  projectPath,
   route,
   variables,
   values,
-  onOpenEnvironment
+  onOpenEnvironment,
+  onValuesChange
 }: Readonly<RequestWorkspaceProps>) {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const { fileOpensIn, editorCommand } = useInterfaceSettings();
   const [tab, setTab] = useState<RequestTab>("params");
+  const [exporting, setExporting] = useState(false);
+  const [responseOpen, setResponseOpen] = useState(
+    () => globalThis.localStorage?.getItem(RESPONSE_OPEN_KEY) !== "false"
+  );
+  const scriptSettings = useScriptSettings(projectPath);
+  const request = useRequestDraft(
+    projectPath,
+    route,
+    variables,
+    values,
+    onValuesChange,
+    scriptSettings.globalName
+  );
+  const baseUrl = (resolveVariable(variables, values, BASE_URL_VARIABLE) ?? "").replace(/\/+$/, "");
+  const scriptKnowledge = useMemo(
+    () => ({
+      responseBody: request.outcome?.ok ? request.outcome.response.body : null,
+      declaredBody: declaredResponseBody(route),
+      variableNames: [...variables.map((variable) => variable.name), ...Object.keys(values)],
+      requestHeaderNames: requestHeaderNames(route),
+      responseHeaderNames: request.outcome?.ok
+        ? request.outcome.response.headers.map((header) => header.name)
+        : []
+    }),
+    [request.outcome, route, variables, values]
+  );
 
-  return (
-    <main className="flex h-full min-h-0 min-w-0 flex-1 flex-col">
-      <section className="flex min-h-[280px] flex-1 flex-col">
-        <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-3">
-          <span className="text-xs font-semibold text-text">
-            {t(translation.ApiStudio.Request)}
-          </span>
-          <button
-            type="button"
-            disabled
-            title={t(translation.ApiStudio.SendPending)}
-            className={clsx(
-              "flex h-7 items-center gap-1.5 rounded-lg bg-accent px-3 text-xs font-semibold text-bg",
-              "disabled:cursor-not-allowed disabled:opacity-35"
-            )}
-          >
-            <UiIcon name="play" className="h-3.5 w-3.5" />
-            {t(translation.ApiStudio.Send)}
-          </button>
-        </div>
+  const exportCollection = () => {
+    setExporting(true);
 
-        {route ? (
+    void globalThis.lazify
+      .exportPostmanCollection(projectPath)
+      .catch(() => null)
+      .finally(() => setExporting(false));
+  };
+
+  const showResponse = (open: boolean) => {
+    globalThis.localStorage?.setItem(RESPONSE_OPEN_KEY, String(open));
+    setResponseOpen(open);
+  };
+
+  useEffect(() => {
+    if (request.arrivedAt) showResponse(true);
+  }, [request.arrivedAt]);
+
+  const openSource = (open: SavedRoute) => {
+    const filePath = open.source.filePath;
+    if (!filePath) return;
+
+    if (fileOpensIn === "app") {
+      navigate(getWorkspaceFileRoute(projectPath, filePath, open.source.line));
+      return;
+    }
+
+    void globalThis.lazify.openInEditor({
+      projectPath,
+      filePath: `${projectPath}/${filePath}`,
+      line: open.source.line,
+      command: editorCommand
+    });
+  };
+
+  const requestPane = (
+    <section className="flex h-full min-h-0 flex-col">
+        <RequestHeader
+          storageLocation={request.storage.location}
+          sending={request.sending}
+          sendable={Boolean(route && baseUrl)}
+          hasBaseUrl={Boolean(baseUrl)}
+          onOpenStorage={request.storage.ask}
+          onSend={request.send}
+        />
+
+        {route && request.draft ? (
           <>
-            <div className="flex flex-col gap-1.5 border-b border-border px-4 py-3">
-              <div className="flex min-w-0 items-center gap-2">
-                <MethodBadge method={route.method} />
-                <p className="min-w-0 flex-1 truncate font-mono text-xs text-text">
-                  <span className="text-muted">
-                    {requestUrlFor(route, variables, values).slice(0, -route.path.length)}
-                  </span>
-                  {route.path}
-                </p>
-              </div>
-
-              <RouteNeedsRow
-                names={variablesForRoute(route)}
-                unset={variablesForRoute(route).filter(
-                  (name) => !resolveVariable(variables, values, name)
-                )}
-                onOpenEnvironment={onOpenEnvironment}
-              />
-              <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                {route.summary ? (
-                  <span className="text-[11px] leading-4 text-muted">{route.summary}</span>
-                ) : null}
-                {sourceLabel(route) ? (
-                  <span
-                    title={t(translation.ApiStudio.Source)}
-                    className="flex items-center gap-1 font-mono text-[10px] text-muted"
-                  >
-                    <UiIcon name="page" className="h-3 w-3" />
-                    {sourceLabel(route)}
-                  </span>
-                ) : null}
-              </div>
-            </div>
+            <RequestSummary
+              route={route}
+              url={request.draft.url}
+              baseUrl={baseUrl}
+              variables={variables}
+              values={values}
+              onOpenEnvironment={onOpenEnvironment}
+              onOpenSource={() => openSource(route)}
+            />
 
             <div className="flex border-b border-border px-4">
-              {tabsFor(route).map((requestTab) => (
+              {tabsFor(route, request.scripts).map((requestTab) => (
                 <button
                   key={requestTab.id}
                   type="button"
@@ -122,57 +217,103 @@ export function RequestWorkspace({
                       {requestTab.count}
                     </span>
                   ) : null}
+                  {requestTab.marked ? (
+                    <span className="size-1.5 rounded-full bg-accent" aria-hidden />
+                  ) : null}
                 </button>
               ))}
             </div>
 
             <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
-              <RequestDetails route={route} tab={tab} />
+              <RequestDetails
+                route={route}
+                tab={tab}
+                fields={request.fields}
+                body={request.body}
+                scripts={request.scripts}
+                scriptGlobal={scriptSettings.globalName}
+                known={scriptKnowledge}
+                onScriptGlobalChange={scriptSettings.setGlobalName}
+                onFieldChange={request.setField}
+              />
             </div>
           </>
         ) : (
-          <div className="flex flex-1 items-center justify-center px-6 py-10 text-center">
-            <div className="max-w-sm">
-              <span
-                className={clsx(
-                  "mx-auto flex h-12 w-12 items-center justify-center rounded-2xl",
-                  "bg-accent/[0.08] text-accent"
-                )}
-              >
-                <UiIcon name="globe" className="h-6 w-6" />
-              </span>
-              <p className="mt-4 text-base font-semibold text-text">
-                {t(translation.ApiStudio.SelectRouteTitle)}
-              </p>
-              <p className="mt-1.5 text-sm leading-6 text-muted">
-                {t(translation.ApiStudio.SelectRouteDescription)}
-              </p>
-            </div>
-          </div>
+          <SelectRouteEmptyState />
         )}
       </section>
+  );
 
-      <section className="flex min-h-[170px] flex-[0.55] flex-col border-t border-border">
-        <div className="flex items-center justify-between border-b border-border px-4 py-3">
-          <span className="text-xs font-semibold text-text">
-            {t(translation.ApiStudio.Response)}
-          </span>
-          <button
-            type="button"
-            disabled
-            title={t(translation.ApiStudio.ExportPending)}
-            className="text-xs font-medium text-muted disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            {t(translation.ApiStudio.ExportCollection)}
-          </button>
-        </div>
+  const responsePane = (
+    <section className="flex h-full min-h-0 flex-col">
+      <ResponseHeader
+        open
+        canSave={request.examples.canSave}
+        canExport={Boolean(projectPath)}
+        exporting={exporting}
+        onToggle={() => showResponse(false)}
+        onSave={request.examples.save}
+        onExport={exportCollection}
+      />
+      <ResponseExamples
+        examples={request.examples.saved}
+        viewingId={request.examples.viewingId}
+        onView={request.examples.view}
+        onRemove={request.examples.remove}
+      />
+      <ScriptResults pre={request.scriptRuns.pre} post={request.scriptRuns.post} />
+      <ResponsePanel
+        outcome={request.outcome}
+        restoredAt={request.restoredAt}
+        sending={request.sending}
+      />
+    </section>
+  );
 
-        <div className="flex flex-1 items-center justify-center px-6 py-8 text-center">
-          <p className="max-w-sm text-xs leading-5 text-muted">
-            {t(translation.ApiStudio.ResponseEmpty)}
-          </p>
-        </div>
-      </section>
+  return (
+    <main className="flex h-full min-h-0 min-w-0 flex-1 flex-col">
+      {responseOpen ? (
+        <SplitPane
+          className="min-h-0 flex-1"
+          direction="vertical"
+          storageKey="lazify-api-studio-response-split"
+          defaultSize={340}
+          minSize={160}
+          minOtherSize={120}
+          label={t(translation.ApiStudio.ResizeResponse)}
+          first={requestPane}
+          second={responsePane}
+        />
+      ) : (
+        <>
+          <div className="flex min-h-0 flex-1 flex-col">{requestPane}</div>
+          <ResponseHeader
+            open={false}
+            canSave={request.examples.canSave}
+            canExport={Boolean(projectPath)}
+            exporting={exporting}
+            onToggle={() => showResponse(true)}
+            onSave={request.examples.save}
+            onExport={exportCollection}
+          />
+        </>
+      )}
+      {request.storage.asking ? (
+        <RequestStorageModal
+          open
+          location={request.storage.location}
+          onChoose={request.storage.choose}
+          onClose={request.storage.dismiss}
+        />
+      ) : null}
+
+      <RemoteSendModal
+        open={Boolean(request.remoteUrl)}
+        host={hostOf(request.remoteUrl ?? "") ?? ""}
+        onSendOnce={request.confirmRemote}
+        onAlwaysAllow={request.alwaysAllowRemote}
+        onCancel={request.cancelRemote}
+      />
     </main>
   );
 }

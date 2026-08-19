@@ -94,11 +94,51 @@ export function useCodePalette() {
  * A whole document, tokenised with real grammars. `null` means "not ready" —
  * callers paint with the fallback scanner until the next version bump.
  */
+/**
+ * The last few documents highlighted, so reading one two ways — pretty and raw,
+ * a tab left and come back to — costs the work once rather than every time.
+ * Bounded by the source it holds, because what highlighting produces is several
+ * times the size of what went in.
+ */
+const RECENT_BUDGET = 600_000;
+const recent = new Map<string, { lines: HighlightLine[] | null; size: number }>();
+let recentSize = 0;
+
+function remembered(code: string, languageId: string, themeId: string, version: number) {
+  const key = `${version}\u0000${themeId}\u0000${languageId}\u0000${code}`;
+  const hit = recent.get(key);
+
+  if (hit) {
+    /** Reinserting makes it the newest again, so the oldest is what leaves. */
+    recent.delete(key);
+    recent.set(key, hit);
+
+    return hit.lines;
+  }
+
+  const lines = highlight(code, languageId, themeId);
+
+  recent.set(key, { lines, size: code.length });
+  recentSize += code.length;
+
+  while (recentSize > RECENT_BUDGET && recent.size > 1) {
+    const oldest = recent.keys().next().value!;
+
+    recentSize -= recent.get(oldest)?.size ?? 0;
+    recent.delete(oldest);
+  }
+
+  return lines;
+}
+
 export function useHighlightedDocument(code: string, languageId: string): HighlightLine[] | null {
   const themeId = useCodeThemeId();
   const version = useHighlightVersion();
 
-  return useMemo(() => highlight(code, languageId, themeId), [code, languageId, themeId, version]);
+  return useMemo(
+    () => remembered(code, languageId, themeId, version),
+    [code, languageId, themeId, version]
+  );
 }
 
 /** One line, for rows that arrive without the rest of their file. */

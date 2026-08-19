@@ -2,10 +2,10 @@ import clsx from "clsx";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 
 /**
- * A two-pane horizontal split with a draggable divider, the way an editor
- * sidebar works.
+ * A two-pane split with a draggable divider, the way an editor sidebar works
+ * across and a console does down the page.
  *
- * The first pane carries an explicit width and the second flexes. Size is
+ * The first pane carries an explicit size and the second flexes. Size is
  * persisted per `storageKey` and clamped on every resize, so the second pane
  * can never be squeezed out of existence by a stale stored value.
  */
@@ -13,6 +13,8 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from "react"
 interface SplitPaneProps {
   first: ReactNode;
   second: ReactNode;
+  /** Side by side, or stacked with the divider dragged up and down. */
+  direction?: "horizontal" | "vertical";
   /** Persists the divider position across sessions when set. */
   storageKey?: string;
   /** Width of the sized pane in pixels, before any stored value. */
@@ -46,6 +48,7 @@ function readStoredSize(storageKey: string | undefined, fallback: number): numbe
 export function SplitPane({
   first,
   second,
+  direction = "horizontal",
   storageKey,
   defaultSize = 300,
   minSize = 180,
@@ -56,18 +59,20 @@ export function SplitPane({
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [size, setSize] = useState(() => readStoredSize(storageKey, defaultSize));
   const [dragging, setDragging] = useState(false);
+  const vertical = direction === "vertical";
 
   const clamp = useCallback(
     (value: number) => {
-      const width = containerRef.current?.clientWidth ?? 0;
+      const element = containerRef.current;
+      const extent = (vertical ? element?.clientHeight : element?.clientWidth) ?? 0;
       // Before layout settles there is nothing to clamp against.
-      if (width === 0) return Math.max(minSize, value);
+      if (extent === 0) return Math.max(minSize, value);
 
-      const upper = Math.max(minSize, width - minOtherSize - HANDLE_WIDTH);
+      const upper = Math.max(minSize, extent - minOtherSize - HANDLE_WIDTH);
 
       return Math.min(Math.max(value, minSize), upper);
     },
-    [minSize, minOtherSize]
+    [minSize, minOtherSize, vertical]
   );
 
   const commit = useCallback(
@@ -102,7 +107,7 @@ export function SplitPane({
     const bounds = containerRef.current?.getBoundingClientRect();
     if (!bounds) return;
 
-    commit(event.clientX - bounds.left);
+    commit(vertical ? event.clientY - bounds.top : event.clientX - bounds.left);
   }
 
   function handlePointerUp(event: React.PointerEvent<HTMLDivElement>) {
@@ -113,11 +118,14 @@ export function SplitPane({
   }
 
   function handleKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
-    if (event.key === "ArrowLeft") {
+    const back = vertical ? "ArrowUp" : "ArrowLeft";
+    const forward = vertical ? "ArrowDown" : "ArrowRight";
+
+    if (event.key === back) {
       event.preventDefault();
       commit(size - KEYBOARD_STEP);
     }
-    if (event.key === "ArrowRight") {
+    if (event.key === forward) {
       event.preventDefault();
       commit(size + KEYBOARD_STEP);
     }
@@ -134,7 +142,7 @@ export function SplitPane({
   const handle = (
     <div
       role="separator"
-      aria-orientation="vertical"
+      aria-orientation={vertical ? "horizontal" : "vertical"}
       aria-label={label}
       aria-valuenow={Math.round(size)}
       tabIndex={0}
@@ -144,9 +152,10 @@ export function SplitPane({
       onPointerCancel={handlePointerUp}
       onDoubleClick={() => commit(defaultSize)}
       onKeyDown={handleKeyDown}
-      style={{ width: HANDLE_WIDTH }}
+      style={vertical ? { height: HANDLE_WIDTH } : { width: HANDLE_WIDTH }}
       className={clsx(
-        "relative shrink-0 cursor-col-resize touch-none select-none transition-colors focus:outline-none",
+        "relative shrink-0 touch-none select-none transition-colors focus:outline-none",
+        vertical ? "cursor-row-resize" : "cursor-col-resize",
         dragging ? "bg-accent" : "bg-border hover:bg-accent/50 focus-visible:bg-accent"
       )}
     >
@@ -154,21 +163,33 @@ export function SplitPane({
           reads as a single hairline with no gap around it. */}
       <span
         aria-hidden
-        className="absolute inset-y-0 z-10"
-        style={{ left: -GRAB_OVERHANG, right: -GRAB_OVERHANG }}
+        className={clsx("absolute z-10", vertical ? "inset-x-0" : "inset-y-0")}
+        style={
+          vertical
+            ? { top: -GRAB_OVERHANG, bottom: -GRAB_OVERHANG }
+            : { left: -GRAB_OVERHANG, right: -GRAB_OVERHANG }
+        }
       />
     </div>
   );
 
   return (
-    <div ref={containerRef} className={clsx("flex min-h-0 w-full", className)}>
-      <div className="min-w-0 shrink-0 overflow-hidden" style={{ width: size }}>
+    <div
+      ref={containerRef}
+      className={clsx("flex", vertical ? "h-full min-w-0 flex-col" : "min-h-0 w-full", className)}
+    >
+      <div
+        className={clsx("shrink-0 overflow-hidden", vertical ? "min-h-0" : "min-w-0")}
+        style={vertical ? { height: size } : { width: size }}
+      >
         {first}
       </div>
 
       {handle}
 
-      <div className="min-w-0 flex-1 overflow-hidden">{second}</div>
+      <div className={clsx("flex-1 overflow-hidden", vertical ? "min-h-0" : "min-w-0")}>
+        {second}
+      </div>
     </div>
   );
 }

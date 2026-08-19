@@ -66,6 +66,44 @@ export const aspNetRules: FrameworkRules = {
     decimal: "number"
   },
 
+  serialization: {
+    namingPolicies: [
+      { pattern: /SnakeCaseUpper/, naming: "snakeUpper" },
+      { pattern: /SnakeCase/, naming: "snake" },
+      { pattern: /KebabCase/, naming: "kebab" },
+      { pattern: /CamelCase/, naming: "camel" },
+      { pattern: /PropertyNamingPolicy\s*=\s*null|DefaultNamingStrategy/, naming: "pascal" },
+      { pattern: /AddNewtonsoftJson/, naming: "pascal" }
+    ],
+    defaultNaming: "camel",
+    nameAnnotations: ["JsonPropertyName", "JsonProperty"],
+    stringEnums: [/JsonStringEnumConverter|StringEnumConverter/]
+  },
+
+  globalSecurity: {
+    definitions: [/AddSecurityDefinition\s*\(\s*"(?<id>[^"]+)"/g],
+    definitionLength: 600,
+    fields: {
+      parameterName: [/Name\s*=\s*"([^"]+)"/],
+      location: [/In\s*=\s*ParameterLocation\.(\w+)/],
+      type: [/Type\s*=\s*SecuritySchemeType\.(\w+)/],
+      scheme: [/Scheme\s*=\s*"([^"]+)"/]
+    },
+    requirements: [/Id\s*=\s*"(?<id>[^"]+)"/g],
+    guards: [
+      /Filters\.Add\s*[<(]\s*(?:new\s+)?\w*ApiKey\w*/,
+      /UseMiddleware\s*<\s*\w*ApiKey\w*\s*>/,
+      /ServiceFilter\s*\(\s*typeof\s*\(\s*\w*ApiKey\w*/
+    ],
+    guardNames: [
+      /HeaderName\s*(?:=|=>)\s*"([^"]+)"/,
+      /Headers\s*\[\s*"([^"]+)"\s*\]/,
+      /Headers\.TryGetValue\s*\(\s*"([^"]+)"/
+    ],
+    guardParameterName: "X-API-Key",
+    hints: ["AddSecurityDefinition", "ApiKey", "APIKey", "SecurityRequirement"]
+  },
+
   annotations: {
     syntax: "bracket",
     container: {
@@ -84,11 +122,22 @@ export const aspNetRules: FrameworkRules = {
       HttpOptions: "OPTIONS"
     },
     auth: {
-      require: ["Authorize"],
-      anonymous: ["AllowAnonymous"],
-      kind: "bearer",
-      parameterName: "Authorization",
-      location: "header"
+      schemes: [
+        {
+          annotations: ["Authorize"],
+          kind: "bearer",
+          parameterName: "Authorization",
+          location: "header"
+        },
+        {
+          annotations: ["ApiKey", "RequireApiKey", "ApiKeyAuth", "ApiKeyRequired"],
+          kind: "apiKey",
+          parameterName: "X-API-Key",
+          location: "header",
+          nameFromArgument: true
+        }
+      ],
+      anonymous: ["AllowAnonymous"]
     },
     binding: {
       annotations: {
@@ -96,7 +145,7 @@ export const aspNetRules: FrameworkRules = {
         FromRoute: "path",
         FromHeader: "header",
         FromBody: "body",
-        FromForm: "body",
+        FromForm: "form",
         FromServices: "ignore"
       },
       nameFrom: "identifier",
@@ -105,10 +154,9 @@ export const aspNetRules: FrameworkRules = {
         "httpcontext",
         "httprequest",
         "httpresponse",
-        "claimsprincipal",
-        "iformfile",
-        "iformfilecollection"
+        "claimsprincipal"
       ],
+      fileTypes: ["iformfile", "iformfilecollection"],
       inferBodyFromModel: true
     },
     responses: { annotation: "ProducesResponseType", statusPattern: /Status(\d{3})|^(\d{3})$/ },
@@ -123,8 +171,20 @@ export const aspNetRules: FrameworkRules = {
       MapPatch: "PATCH",
       MapDelete: "DELETE"
     },
+    separator: ".",
     groupCalls: ["MapGroup"],
-    auth: { calls: ["RequireAuthorization"], middleware: [], kind: "bearer" },
+    groups: null,
+    mounts: [],
+    blockGroups: null,
+    methodsArgument: null,
+    resources: [],
+    handlerDeclaration: null,
+    auth: {
+      calls: ["RequireAuthorization"],
+      middleware: [],
+      anonymousCalls: ["AllowAnonymous"],
+      kind: "bearer"
+    },
     summaryCalls: ["WithSummary", "WithName"],
     chainLines: 6
   }

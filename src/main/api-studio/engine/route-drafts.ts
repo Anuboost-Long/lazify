@@ -18,6 +18,8 @@ export interface FrameworkRouteDraft {
   requestBody: ApiBody | null;
   responses: ApiResponseDefinition[];
   security: RouteSecurity[];
+  /** Declared exempt from whatever the project requires of everything else. */
+  anonymous: boolean;
   confidence: RouteConfidence;
 }
 

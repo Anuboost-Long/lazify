@@ -37,6 +37,6 @@ export function registerDomainHandlers(ctx: IpcContext) {
   registerMediaHandlers();
   registerPackageHandlers(ctx);
   registerPromptHandlers();
-  registerApiStudioHandlers();
+  registerApiStudioHandlers(ctx);
   registerTaskHandlers();
 }

@@ -94,6 +94,7 @@ export function normalizeOpenApiDocument(
       routes.push({
         id: buildRouteId(projectPath, method, routePath, document.relativePath),
         projectPath,
+        workspace: "",
         method,
         path: routePath,
         summary: asText(operation.summary),

@@ -29,6 +29,7 @@ export interface ApiBodyVariant {
   mediaType: string;
   schemaType: string | null;
   example: string | null;
+  defaultBody: string | null;
 }
 
 export interface ApiBody {
@@ -41,6 +42,7 @@ export interface ApiResponseDefinition {
   status: string;
   description: string | null;
   mediaTypes: string[];
+  example: string | null;
 }
 
 export type SecuritySchemeKind = "bearer" | "basic" | "apiKey" | "oauth2" | "openIdConnect";
@@ -63,6 +65,8 @@ export interface ApiRouteSource {
 export interface ApiRoute {
   id: string;
   projectPath: string;
+  /** The project inside the repository that declares it. Empty when it is the repository. */
+  workspace: string;
   method: HttpMethod;
   path: string;
   summary: string | null;
@@ -85,6 +89,15 @@ export interface ApiVariable {
   parameterName: string | null;
   defaultValue: string | null;
   routeCount: number;
+  /** Declared by the user because discovery could not see it. */
+  custom: boolean;
+}
+
+export interface CustomVariable {
+  name: string;
+  secret: boolean;
+  location: "header" | "query" | "cookie";
+  parameterName: string;
 }
 
 export interface ApiEnvironment {
@@ -96,6 +109,8 @@ export interface ApiEnvironment {
 export interface ApiEnvironmentSet {
   activeId: string;
   environments: ApiEnvironment[];
+  /** Values the user added on top of what the routes ask for. */
+  variables: CustomVariable[];
 }
 
 export interface ScannerEvidence {
@@ -137,6 +152,8 @@ export interface RouteScanResult {
 export interface SavedRouteSummary {
   id: string;
   folder: string;
+  /** The project inside the repository that declares it, "" when there is one. */
+  workspace: string;
   method: HttpMethod;
   path: string;
   summary: string | null;
@@ -164,6 +181,7 @@ export type SavedRoute = SavedRouteSummary & Partial<SavedRouteDetail>;
 export interface StoredRoute {
   id: string;
   folder: string;
+  workspace?: string;
   method: HttpMethod;
   path: string;
   summary?: string;
@@ -214,7 +232,11 @@ export interface ProjectInventory {
   packageJson: PackageJsonContent | null;
   files: string[];
   filesTruncated: boolean;
+  /** Every file in the repository, even when this inventory is one workspace of it. */
+  repositoryFiles?: string[];
   hasDependency: (name: string) => boolean;
+  /** What one manifest declares, lowercased, for reading a workspace on its own. */
+  manifestOf: (relativePath: string) => string;
   readFile: (relativePath: string) => Promise<string>;
 }
 

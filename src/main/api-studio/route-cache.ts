@@ -21,7 +21,7 @@ const CACHE_DIRECTORY = path.join(".lazify", "api-studio");
 const INDEX_FILE_NAME = "routes.json";
 const DETAIL_DIRECTORY = "routes";
 const SUPERSEDED_FILE = path.join(".lazify", "api-studio-routes.json");
-const SAVED_SCAN_VERSION = 3;
+const SAVED_SCAN_VERSION = 5;
 
 export function routeIndexPath(projectPath: string) {
   return path.join(path.resolve(projectPath), CACHE_DIRECTORY, INDEX_FILE_NAME);
@@ -32,20 +32,24 @@ export function routeDetailPath(projectPath: string, folder: string) {
     path.resolve(projectPath),
     CACHE_DIRECTORY,
     DETAIL_DIRECTORY,
-    `${folder}.json.gz`
+    /** A folder reads as a path and has to write as one name. */
+    `${folder.replace(/[^\w.-]/g, "_")}.json.gz`
   );
 }
 
-export function folderOf(routePath: string) {
+/** A monorepo groups by the service first: two backends may both serve /users. */
+export function folderOf(routePath: string, workspace = "") {
   const [firstSegment] = routePath.split("/").filter(Boolean);
+  const folder = (firstSegment ?? "root").replace(/[^\w.-]/g, "_");
 
-  return (firstSegment ?? "root").replace(/[^\w.-]/g, "_");
+  return workspace ? `${workspace}/${folder}` : folder;
 }
 
 function toSummary(route: ApiRoute, firstSeenAt: string): SavedRouteSummary {
   return {
     id: route.id,
-    folder: folderOf(route.path),
+    folder: folderOf(route.path, route.workspace),
+    workspace: route.workspace,
     method: route.method,
     path: route.path,
     summary: route.summary,

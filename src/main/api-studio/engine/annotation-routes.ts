@@ -29,7 +29,8 @@ const BODY_METHODS = new Set<HttpMethod>(["POST", "PUT", "PATCH"]);
 interface Container {
   name: string;
   template: string | null;
-  authorized: boolean;
+  security: RouteSecurity[];
+  anonymous: boolean;
 }
 
 function templateOf(annotations: Annotation[], names: string[]): string | null {
@@ -43,26 +44,45 @@ function templateOf(annotations: Annotation[], names: string[]): string | null {
   return null;
 }
 
+function hasDeclaredScheme(annotations: Annotation[], rules: AnnotationRules): boolean {
+  return rules.auth.schemes.some((scheme) => hasAnnotation(annotations, scheme.annotations));
+}
+
 function securityOf(
   annotations: Annotation[],
   rules: AnnotationRules,
-  containerAuthorized: boolean
+  fromContainer: RouteSecurity[]
 ): RouteSecurity[] {
   if (hasAnnotation(annotations, rules.auth.anonymous)) return [];
-  if (!hasAnnotation(annotations, rules.auth.require) && !containerAuthorized) return [];
 
-  const declared = rules.auth.require
-    .map((name) => findAnnotation(annotations, name))
-    .find((annotation) => annotation !== null);
+  const declared = rules.auth.schemes.flatMap((scheme) => {
+    const annotation = scheme.annotations
+      .map((name) => findAnnotation(annotations, name))
+      .find((found) => found !== null);
 
-  return [
-    {
-      kind: rules.auth.kind,
-      schemeName: declared?.name ?? rules.auth.require[0],
-      location: rules.auth.location,
-      parameterName: rules.auth.parameterName
-    }
-  ];
+    if (!annotation) return [];
+
+    return [
+      {
+        kind: scheme.kind,
+        schemeName: annotation.name,
+        location: scheme.location,
+        parameterName:
+          (scheme.nameFromArgument ? stringValue(annotation.args[0]) : null) ??
+          scheme.parameterName
+      }
+    ];
+  });
+
+  const merged = [...declared, ...fromContainer];
+
+  return merged.filter(
+    (security, at) =>
+      merged.findIndex(
+        (other) =>
+          other.kind === security.kind && other.parameterName === security.parameterName
+      ) === at
+  );
 }
 
 function responsesOf(annotations: Annotation[], rules: AnnotationRules) {
@@ -74,7 +94,12 @@ function responsesOf(annotations: Annotation[], rules: AnnotationRules) {
       annotation.args
         .map((argument) => argument.match(rules.responses!.statusPattern))
         .filter((match): match is RegExpMatchArray => match !== null)
-        .map((match) => ({ status: match[1] ?? match[2], description: null, mediaTypes: [] }))
+        .map((match) => ({
+          status: match[1] ?? match[2],
+          description: null,
+          mediaTypes: [],
+          example: null
+        }))
     )
     .filter((response) => Boolean(response.status));
 }
@@ -136,7 +161,8 @@ export function readAnnotationRoutes(
         ? {
             name: readClassName(text)!,
             template: templateOf(annotations, rules.container.templateAnnotations),
-            authorized: securityOf(annotations, rules, false).length > 0
+            security: securityOf(annotations, rules, []),
+            anonymous: hasAnnotation(annotations, rules.auth.anonymous)
           }
         : null;
       continue;
@@ -186,7 +212,10 @@ export function readAnnotationRoutes(
         headers: bound.headers,
         requestBody: bound.requestBody,
         responses: responsesOf(annotations, rules),
-        security: securityOf(annotations, rules, container.authorized),
+        security: securityOf(annotations, rules, container.security),
+        anonymous:
+          hasAnnotation(annotations, rules.auth.anonymous) ||
+          (container.anonymous && !hasDeclaredScheme(annotations, rules)),
         confidence: "exact"
       });
     }

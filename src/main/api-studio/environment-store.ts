@@ -2,7 +2,7 @@ import { app } from "electron";
 import fs from "node:fs";
 import path from "node:path";
 
-import type { ApiEnvironment, ApiEnvironmentSet } from "./types";
+import type { ApiEnvironment, ApiEnvironmentSet, CustomVariable } from "./types";
 
 /**
  * Presets are shared, the values inside them are not.
@@ -21,6 +21,7 @@ interface StoredPresets {
   version: number;
   activeId: string;
   environments: ApiEnvironment[];
+  variables?: CustomVariable[];
 }
 
 type StoredSecrets = Record<string, Record<string, Record<string, string>>>;
@@ -82,7 +83,8 @@ export function readEnvironments(projectPath: string): ApiEnvironmentSet {
     activeId: merged.some((environment) => environment.id === presets?.activeId)
       ? presets!.activeId
       : merged[0].id,
-    environments: merged
+    environments: merged,
+    variables: presets?.variables ?? []
   };
 }
 
@@ -96,6 +98,7 @@ export function saveEnvironments(
   const presets: StoredPresets = {
     version: PRESET_VERSION,
     activeId: set.activeId,
+    variables: set.variables,
     environments: set.environments.map((environment) => ({
       id: environment.id,
       name: environment.name,

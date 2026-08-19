@@ -4,8 +4,8 @@ import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import {
+  buildRequest,
   deriveEnvironmentVariables,
-  requestUrlFor,
   scanProjectRoutes,
   variablesForRoute
 } from "../../../src/main/api-studio";
@@ -158,9 +158,10 @@ describe("the environment derived from a collection", () => {
     const variables = deriveEnvironmentVariables(routes);
     const health = routes.find((route) => route.path === "/health")!;
 
-    expect(requestUrlFor(health, variables, {})).toBe("https://api.example.com/v1/health");
-    expect(requestUrlFor(health, variables, { baseUrl: "http://localhost:5000/" })).toBe(
-      "http://localhost:5000/health"
-    );
+    const urlWith = (values: Record<string, string>) =>
+      buildRequest({ route: health, variables, values, fields: {}, body: null }).url;
+
+    expect(urlWith({})).toBe("https://api.example.com/v1/health");
+    expect(urlWith({ baseUrl: "http://localhost:5000/" })).toBe("http://localhost:5000/health");
   });
 });

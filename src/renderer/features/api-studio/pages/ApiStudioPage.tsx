@@ -90,10 +90,12 @@ export function ApiStudioPage({
           }
           second={
             <RequestWorkspace
+              projectPath={projectPath}
               route={openRoute}
               variables={environment.variables}
               values={environment.values}
               onOpenEnvironment={() => setEditingEnvironment(true)}
+              onValuesChange={environment.updateActive}
             />
           }
         />
@@ -115,6 +117,8 @@ export function ApiStudioPage({
         onRemove={environment.removeEnvironment}
         onRename={environment.renameEnvironment}
         onChange={environment.updateActive}
+        onAddVariable={environment.addVariable}
+        onRemoveVariable={environment.removeVariable}
         onClose={() => setEditingEnvironment(false)}
       />
     </div>

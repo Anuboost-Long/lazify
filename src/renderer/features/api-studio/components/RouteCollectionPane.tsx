@@ -89,15 +89,6 @@ export function RouteCollectionPane({
           >
             <UiIcon name="collapse" className="h-4 w-4" />
           </button>
-
-          <button
-            type="button"
-            disabled
-            title={t(translation.ApiStudio.ManualRoutePending)}
-            className="flex h-7 w-7 items-center justify-center text-muted disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            <UiIcon name="plus" className="h-4 w-4" />
-          </button>
         </div>
       </div>
 

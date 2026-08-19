@@ -6,6 +6,7 @@ type SchemeTable = StoredRouteIndex["securitySchemes"];
 const STORED_KEYS = new Set([
   "id",
   "folder",
+  "workspace",
   "method",
   "path",
   "summary",
@@ -25,6 +26,7 @@ const STORED_KEYS = new Set([
 const SUMMARY_KEYS = new Set([
   "id",
   "folder",
+  "workspace",
   "method",
   "path",
   "summary",
@@ -88,6 +90,7 @@ export function toStoredRoute(route: SavedRouteSummary, servers: string[]): Stor
     ...omitEmpty({
       id: route.id,
       folder: route.folder,
+      ...(route.workspace ? { workspace: route.workspace } : {}),
       method: route.method,
       path: route.path,
       summary: route.summary ?? undefined,
@@ -123,6 +126,7 @@ export function fromStoredRoute(
     ...extrasOf(stored as unknown as Record<string, unknown>, STORED_KEYS),
     id: stored.id,
     folder: stored.folder,
+    workspace: stored.workspace ?? "",
     method: stored.method,
     path: stored.path,
     summary: stored.summary ?? null,

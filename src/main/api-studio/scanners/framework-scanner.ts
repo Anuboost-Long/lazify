@@ -4,7 +4,9 @@ import { readCallRoutes } from "../engine/call-routes";
 import type { FrameworkRouteDraft } from "../engine/route-drafts";
 import type { FrameworkRules } from "../rules/types";
 import type {
+  ApiBody,
   ApiRoute,
+  RouteSecurity,
   ProjectInventory,
   RouteScanResult,
   RouteScanWarning,
@@ -12,8 +14,28 @@ import type {
   ScannerEvidence,
   UnsupportedConstruct
 } from "../types";
-import { expandQueryParameters, indexModelProperties } from "./model-index";
+import { flattenFormFields, readSerializationPolicy, templateFromModel } from "../body-template";
+import type { ModelBodyOptions } from "../body-template";
+import { expandQueryParameters, indexModelProperties, type ModelIndex } from "./model-index";
+import { isFormMediaType } from "../runner/encode-body";
+import { readProjectSecurity, mergeSecurity } from "./project-security";
 import { readProjectServers } from "./project-servers";
+
+/** A scoped inventory holds one project's files; they share its directory. */
+function workspaceOf(project: ProjectInventory) {
+  const [first] = project.files;
+  if (!first || project.files.length === 0) return "";
+
+  const directories = first.split("/").slice(0, -1);
+
+  for (let depth = directories.length; depth > 0; depth -= 1) {
+    const candidate = directories.slice(0, depth).join("/");
+
+    if (project.files.every((file) => file.startsWith(`${candidate}/`))) return candidate;
+  }
+
+  return "";
+}
 
 function evidenceFor(project: ProjectInventory, framework: FrameworkRules): ScannerEvidence[] {
   const evidence: ScannerEvidence[] = [];
@@ -53,16 +75,74 @@ function sourceFiles(project: ProjectInventory, framework: FrameworkRules) {
   ];
 }
 
+function asObject(body: string | null) {
+  try {
+    const parsed = body ? JSON.parse(body) : null;
+
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+/** A form binds a model and loose fields at once, and sends them together. */
+function mergedBody(declared: string | null, fromModel: string | null) {
+  const loose = asObject(declared);
+  const model = asObject(fromModel);
+
+  if (!loose || !model) return declared ?? fromModel;
+
+  return JSON.stringify({ ...model, ...loose }, null, 2);
+}
+
+/**
+ * A form binds by property name, and posts a flat set of them: the JSON naming
+ * policy is not its business, and neither is nesting.
+ */
+function bodyFor(
+  variant: ApiBody["variants"][number],
+  models: ModelIndex,
+  options: ModelBodyOptions
+) {
+  const form = isFormMediaType(variant.mediaType);
+  const fromModel = templateFromModel(
+    models,
+    form ? { ...options, naming: "pascal" } : options,
+    variant.schemaType
+  );
+  const merged = mergedBody(variant.defaultBody, fromModel);
+
+  return form ? flattenFormFields(merged) : merged;
+}
+
+function withModelBody(
+  models: ModelIndex,
+  options: ModelBodyOptions,
+  requestBody: ApiBody | null
+): ApiBody | null {
+  if (!requestBody) return null;
+
+  return {
+    ...requestBody,
+    variants: requestBody.variants.map((variant) => ({
+      ...variant,
+      defaultBody: bodyFor(variant, models, options)
+    }))
+  };
+}
+
 function toApiRoute(
   projectPath: string,
   filePath: string,
   servers: string[],
+  projectSecurity: RouteSecurity[],
   adapter: string,
   draft: FrameworkRouteDraft
 ): ApiRoute {
   return {
     id: buildRouteId(projectPath, draft.method, draft.path, filePath),
     projectPath,
+    workspace: "",
     method: draft.method,
     path: draft.path,
     summary: draft.summary,
@@ -81,7 +161,7 @@ function toApiRoute(
     headers: draft.headers,
     requestBody: draft.requestBody,
     responses: draft.responses,
-    security: draft.security
+    security: draft.anonymous ? [] : mergeSecurity(projectSecurity, draft.security)
   };
 }
 
@@ -101,7 +181,7 @@ export function createFrameworkScanner(framework: FrameworkRules): RouteScanner 
       const startedAt = Date.now();
       const candidates = sourceFiles(project, framework);
       const inspected = candidates.slice(0, framework.sources.maxFiles);
-      const servers = await readProjectServers(project);
+      const servers = await readProjectServers(project, workspaceOf(project));
       const routes: ApiRoute[] = [];
       const warnings: RouteScanWarning[] = [];
       const unsupported: UnsupportedConstruct[] = [];
@@ -122,7 +202,13 @@ export function createFrameworkScanner(framework: FrameworkRules): RouteScanner 
         if (content) sources.push({ filePath, lines: content.split(/\r?\n/) });
       }
 
-      const models = indexModelProperties(sources.map((source) => source.lines));
+      const sourceLines = sources.map((source) => source.lines);
+      const models = indexModelProperties(sourceLines, framework);
+      const projectSecurity = readProjectSecurity(sources, framework.globalSecurity);
+      const bodyOptions: ModelBodyOptions = {
+        types: framework.types,
+        ...readSerializationPolicy(sourceLines, framework.serialization)
+      };
 
       for (const { filePath, lines } of sources) {
         if (!lines.some((line) => framework.sources.marker.test(line))) continue;
@@ -132,7 +218,14 @@ export function createFrameworkScanner(framework: FrameworkRules): RouteScanner 
 
         routes.push(
           ...[...fromAnnotations.routes, ...fromCalls.routes].map((draft) =>
-            toApiRoute(project.projectPath, filePath, servers, framework.id, draft)
+            toApiRoute(
+              project.projectPath,
+              filePath,
+              servers,
+              projectSecurity,
+              framework.id,
+              draft
+            )
           )
         );
 
@@ -150,7 +243,8 @@ export function createFrameworkScanner(framework: FrameworkRules): RouteScanner 
         projectPath: project.projectPath,
         routes: routes.map((route) => ({
           ...route,
-          parameters: expandQueryParameters(models, framework, route.parameters)
+          parameters: expandQueryParameters(models, framework, route.parameters),
+          requestBody: withModelBody(models, bodyOptions, route.requestBody)
         })),
         warnings,
         unsupported,

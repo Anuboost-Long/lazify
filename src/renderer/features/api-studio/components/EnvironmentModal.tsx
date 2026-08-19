@@ -5,7 +5,8 @@ import { translation } from "@renderer/i18n/translation";
 import { SectionTitle } from "@renderer/shared/typography";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import { BaseModal } from "@renderer/shared/ui/modal/BaseModal";
-import type { ApiEnvironment, ApiVariable } from "../types";
+import type { ApiEnvironment, ApiVariable, CustomVariable } from "../types";
+import { AddVariableRow } from "./AddVariableRow";
 import { EnvironmentTabs } from "./EnvironmentTabs";
 import { VariableRow } from "./VariableRow";
 
@@ -20,6 +21,12 @@ interface EnvironmentModalProps {
   onRemove: (id: string) => void;
   onRename: (id: string, name: string) => void;
   onChange: (values: Record<string, string>) => void;
+  onAddVariable: (
+    parameterName: string,
+    location: CustomVariable["location"],
+    secret: boolean
+  ) => void;
+  onRemoveVariable: (name: string) => void;
   onClose: () => void;
 }
 
@@ -41,6 +48,8 @@ function EnvironmentCard({
   onRemove,
   onRename,
   onChange,
+  onAddVariable,
+  onRemoveVariable,
   onClose
 }: Readonly<EnvironmentModalProps>) {
   const { t } = useTranslation();
@@ -102,6 +111,7 @@ function EnvironmentCard({
                   variable={variable}
                   value={active.values[variable.name] ?? ""}
                   onChange={(value) => onChange({ ...active.values, [variable.name]: value })}
+                  onRemove={variable.custom ? () => onRemoveVariable(variable.name) : null}
                 />
               </li>
             ))}
@@ -112,6 +122,10 @@ function EnvironmentCard({
           </p>
         )}
       </div>
+
+      <footer className="border-t border-border px-6 py-4">
+        <AddVariableRow onAdd={onAddVariable} />
+      </footer>
     </div>
   );
 }

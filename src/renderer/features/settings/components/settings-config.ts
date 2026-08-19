@@ -2,7 +2,12 @@ import type { SupportedLanguage } from "@renderer/i18n/i18n";
 import { translation } from "@renderer/i18n/translation";
 import type { UiIconName } from "@renderer/shared/ui/icons/UiIcon";
 
-export type SettingsSection = "appearance" | "language" | "browser" | "about";
+export type SettingsSection =
+  | "appearance"
+  | "behavior"
+  | "language"
+  | "browser"
+  | "about";
 
 export const settingsNavItems: {
   id: SettingsSection;
@@ -15,6 +20,12 @@ export const settingsNavItems: {
     label: translation.Settings.Appearance,
     icon: "sun",
     description: translation.Settings.AppearanceDesc
+  },
+  {
+    id: "behavior",
+    label: translation.Settings.Behavior,
+    icon: "settings",
+    description: translation.Settings.BehaviorDesc
   },
   {
     id: "language",

@@ -1,16 +1,10 @@
 // @vitest-environment jsdom
 
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { screen, waitFor, render } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { MemoryRouter, Route, Routes, useParams, useSearchParams } from "react-router-dom";
 import { createElement } from "react";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-
-import { ApiStudioPage } from "../../src/renderer/features/api-studio/pages/ApiStudioPage";
-import type {
-  SavedRoute,
-  SavedRouteScan
-} from "../../src/renderer/features/api-studio/types";
-import type { SyncedWorkspaceProject } from "../../src/renderer/shared/types/lazify";
+import { describe, expect, it, vi } from "vitest";
 
 vi.mock("react-i18next", async (importOriginal) => ({
   ...(await importOriginal<typeof import("react-i18next")>()),
@@ -20,120 +14,9 @@ vi.mock("react-i18next", async (importOriginal) => ({
   })
 }));
 
-const PROJECT = "/workspace/demo";
+import { ApiStudioPage, PROJECT, project, readProjectRoutes, renderPage, route, scanProjectRoutes, scanResult } from "./harness";
 
-const project = {
-  projectPath: PROJECT,
-  projectName: "demo"
-} as SyncedWorkspaceProject;
-
-function route(over: Partial<SavedRoute> = {}): SavedRoute {
-  return {
-    id: "route_1",
-    firstSeenAt: "2026-08-18T09:30:00.000Z",
-    folder: "users",
-    method: "GET",
-    path: "/users/{id}",
-    summary: "Fetch a user",
-    description: null,
-    operationId: "getUser",
-    tags: [],
-    servers: ["http://localhost:3000"],
-    source: {
-      kind: "openapi",
-      filePath: "openapi.yaml",
-      line: 14,
-      adapter: "openapi",
-      confidence: "exact"
-    },
-    parameters: [
-      {
-        name: "id",
-        location: "path",
-        required: true,
-        description: "The user id",
-        schemaType: "string",
-        example: null
-      }
-    ],
-    headers: [],
-    requestBody: null,
-    responses: [{ status: "200", description: "The user", mediaTypes: ["application/json"] }],
-    security: [],
-    ...over
-  };
-}
-
-function scanResult(over: Partial<SavedRouteScan> = {}): SavedRouteScan {
-  return {
-    version: 1,
-    projectPath: PROJECT,
-    createdAt: "2026-08-18T09:30:00.000Z",
-    scannedAt: "2026-08-18T09:30:00.000Z",
-    routes: [route()],
-    warnings: [],
-    unsupported: [],
-    filesInspected: 1,
-    scannersRun: ["openapi"],
-    durationMs: 12,
-    ...over
-  };
-}
-
-class StubResizeObserver {
-  observe() {}
-  disconnect() {}
-}
-
-const scanProjectRoutes = vi.fn();
-const readProjectRoutes = vi.fn();
-const readRouteDetails = vi.fn();
-const readApiEnvironments = vi.fn();
-const saveApiEnvironments = vi.fn();
-
-beforeEach(() => {
-  vi.stubGlobal("ResizeObserver", StubResizeObserver);
-  scanProjectRoutes.mockReset();
-  readProjectRoutes.mockReset();
-  readRouteDetails.mockReset();
-  readRouteDetails.mockResolvedValue([]);
-  readApiEnvironments.mockReset();
-  saveApiEnvironments.mockReset();
-  readProjectRoutes.mockResolvedValue(null);
-  readApiEnvironments.mockResolvedValue({
-    activeId: "local",
-    environments: [
-      { id: "local", name: "Local", values: { baseUrl: "http://localhost:5000" } },
-      { id: "staging", name: "Staging", values: { baseUrl: "https://staging.example.com" } }
-    ]
-  });
-  saveApiEnvironments.mockImplementation((_project: string, set: unknown) => Promise.resolve(set));
-  Object.defineProperty(globalThis, "lazify", {
-    configurable: true,
-    value: {
-      scanProjectRoutes,
-      readProjectRoutes,
-      readRouteDetails,
-      readApiEnvironments,
-      saveApiEnvironments
-    }
-  });
-});
-
-afterEach(() => cleanup());
-
-function renderPage() {
-  return render(
-    createElement(ApiStudioPage, {
-      projects: [project],
-      activeProjectPath: PROJECT,
-      onActiveProjectChange: vi.fn(),
-      onSyncProject: vi.fn().mockResolvedValue(project)
-    })
-  );
-}
-
-describe("API Studio scanning", () => {
+describe("the route collection API Studio builds", () => {
   it("asks main to scan the open project and lists what came back", async () => {
     scanProjectRoutes.mockResolvedValue(scanResult());
     renderPage();
@@ -206,23 +89,48 @@ describe("API Studio scanning", () => {
     expect(screen.queryByText("/users/{id}")).toBeNull();
   });
 
-  it("sends the request to whichever environment is chosen", async () => {
+  it("opens the file a route came from, in the workspace, at its line", async () => {
     readProjectRoutes.mockResolvedValue(scanResult());
-    renderPage();
 
-    await userEvent.click(await screen.findByText("/users/{id}"));
-    expect(await screen.findByText("http://localhost:5000")).toBeTruthy();
+    function WorkspaceProbe() {
+      const { projectPath } = useParams<{ projectPath: string }>();
+      const [params] = useSearchParams();
 
-    await userEvent.selectOptions(screen.getByRole("combobox"), "staging");
+      return createElement(
+        "p",
+        null,
+        `opened ${decodeURIComponent(projectPath ?? "")} at ${params.get("file")}:${params.get("line")}`
+      );
+    }
 
-    expect(await screen.findByText("https://staging.example.com")).toBeTruthy();
-    await waitFor(() =>
-      expect(saveApiEnvironments).toHaveBeenCalledWith(
-        PROJECT,
-        expect.objectContaining({ activeId: "staging" }),
-        expect.any(Array)
+    render(
+      createElement(
+        MemoryRouter,
+        { initialEntries: ["/tools/api-studio"] },
+        createElement(
+          Routes,
+          null,
+          createElement(Route, {
+            path: "/tools/api-studio",
+            element: createElement(ApiStudioPage, {
+              projects: [project],
+              activeProjectPath: PROJECT,
+              onActiveProjectChange: vi.fn(),
+              onSyncProject: vi.fn().mockResolvedValue(project)
+            })
+          }),
+          createElement(Route, {
+            path: "/workspace/project/:projectPath",
+            element: createElement(WorkspaceProbe)
+          })
+        )
       )
     );
+
+    await userEvent.click(await screen.findByText("/users/{id}"));
+    await userEvent.click(screen.getByRole("button", { name: /openapi\.yaml:14/ }));
+
+    expect(await screen.findByText(`opened ${PROJECT} at openapi.yaml:14`)).toBeTruthy();
   });
 
   it("shows scan failures instead of an empty collection", async () => {

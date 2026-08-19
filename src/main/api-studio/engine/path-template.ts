@@ -14,7 +14,10 @@ function readPlaceholder(body: string, syntax: PathSyntax): Placeholder {
   );
   const [declaration, defaultValue] = withoutCatchAll.split("=");
   const separator = syntax.constraintSeparator;
-  const [rawName, ...constraints] = separator ? declaration.split(separator) : [declaration];
+  const parts = separator ? declaration.split(separator) : [declaration];
+  const [rawName, ...constraints] = syntax.constraintFirst
+    ? [parts[parts.length - 1], ...parts.slice(0, -1)]
+    : parts;
   const optional = syntax.optionalMarkers.some((marker) => rawName.endsWith(marker));
 
   return {

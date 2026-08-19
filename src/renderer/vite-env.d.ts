@@ -248,6 +248,12 @@ declare global {
       /** Opens a folder, or reveals a file selected inside its folder, in the OS file manager. */
       revealInFileManager: (targetPath: string) => Promise<void>;
       /** Opens the OS terminal rooted at the given folder. */
+      detectEditors: () => Promise<
+        import("../main/environment/editor-catalog").DetectedEditor[]
+      >;
+      openInEditor: (
+        request: import("../main/environment/open-in-editor").OpenInEditorRequest
+      ) => Promise<import("../main/environment/open-in-editor").OpenInEditorResult>;
       openTerminal: (targetPath: string) => Promise<void>;
       openExternalUrl: (url: string) => Promise<void>;
       listListeningProcesses: () => Promise<import("../main/environment/port-reaper").ListeningProcess[]>;
@@ -400,6 +406,43 @@ declare global {
         set: import("../main/api-studio/types").ApiEnvironmentSet,
         secretNames: string[]
       ) => Promise<import("../main/api-studio/types").ApiEnvironmentSet>;
+      chooseUploadFile: () => Promise<string | null>;
+      exportPostmanCollection: (
+        projectPath: string
+      ) => Promise<import("../main/api-studio/export").CollectionExport | null>;
+      readApiRequests: (
+        projectPath: string
+      ) => Promise<import("../main/api-studio/request-store").RequestStore>;
+      saveApiRequest: (
+        projectPath: string,
+        routeId: string,
+        request: import("../main/api-studio/request-store").SavedRequest
+      ) => Promise<import("../main/api-studio/request-store").RequestStore>;
+      forgetApiRequest: (
+        projectPath: string,
+        routeId: string
+      ) => Promise<import("../main/api-studio/request-store").RequestStore>;
+      readApiResponseBody: (projectPath: string, bodyFile: string) => Promise<string>;
+      setApiRequestStorage: (
+        projectPath: string,
+        location: import("../main/api-studio/request-store").RequestStorage
+      ) => Promise<import("../main/api-studio/request-store").RequestStore>;
+      sendApiRequest: (
+        draft: import("../main/api-studio/runner").ApiRequestDraft
+      ) => Promise<import("../main/api-studio/runner").ApiSendOutcome>;
+      runApiRequest: (
+        input: import("../main/api-studio/scripting/types").ScriptedRunInput
+      ) => Promise<import("../main/api-studio/scripting/types").ApiRunOutcome>;
+      readAllowedHosts: (projectPath: string) => Promise<string[]>;
+      allowApiHost: (projectPath: string, url: string) => Promise<string[]>;
+      forgetApiHost: (projectPath: string, host: string) => Promise<string[]>;
+      readScriptSettings: (
+        projectPath: string
+      ) => Promise<import("../main/api-studio/script-settings").ScriptSettings>;
+      saveScriptSettings: (
+        projectPath: string,
+        settings: import("../main/api-studio/script-settings").ScriptSettings
+      ) => Promise<import("../main/api-studio/script-settings").ScriptSettings>;
       findSymbolDefinition: (
         projectPath: string,
         symbol: string,

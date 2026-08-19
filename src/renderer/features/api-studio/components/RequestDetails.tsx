@@ -1,39 +1,52 @@
 import { useTranslation } from "react-i18next";
 
+import { fieldKey } from "@main/api-studio/runner";
 import { translation } from "@renderer/i18n/translation";
+import type { BodyEditor, ScriptEditor } from "../hooks/use-request-draft";
+import type { SuggestionSource } from "../script-api";
 import type { SavedRoute } from "../types";
 import { DefinitionRows, type DefinitionRow } from "./DefinitionRows";
 import { RequestBodyPanel } from "./RequestBodyPanel";
+import { RequestFieldRows, type RequestField } from "./RequestFieldRows";
+import { ScriptsPanel } from "./ScriptsPanel";
 
-export type RequestTab = "params" | "headers" | "body" | "responses";
+export type RequestTab = "params" | "headers" | "body" | "scripts" | "responses";
 
 interface RequestDetailsProps {
   route: SavedRoute;
   tab: RequestTab;
+  fields: Record<string, string>;
+  body: BodyEditor;
+  scripts: ScriptEditor;
+  scriptGlobal: string;
+  known: SuggestionSource;
+  onScriptGlobalChange: (name: string) => void;
+  onFieldChange: (key: string, value: string) => void;
 }
 
-function parameterRows(route: SavedRoute, requiredLabel: string): DefinitionRow[] {
+function parameterFields(route: SavedRoute, requiredLabel: string): RequestField[] {
   return (route.parameters ?? []).map((parameter) => ({
-    key: `${parameter.location} ${parameter.name}`,
+    key: fieldKey(parameter.location, parameter.name),
     label: parameter.name,
     meta: [
       parameter.location,
       parameter.schemaType,
-      parameter.required ? requiredLabel : null,
-      parameter.example
+      parameter.required ? requiredLabel : null
     ].filter((value): value is string => Boolean(value)),
-    detail: parameter.description
+    detail: parameter.description,
+    placeholder: parameter.example ?? ""
   }));
 }
 
-function headerRows(route: SavedRoute, requiredLabel: string): DefinitionRow[] {
+function headerFields(route: SavedRoute, requiredLabel: string): RequestField[] {
   return route.headers.map((header) => ({
-    key: header.name,
+    key: fieldKey("header", header.name),
     label: header.name,
-    meta: [header.value, header.required ? requiredLabel : null].filter(
-      (value): value is string => Boolean(value)
+    meta: [header.required ? requiredLabel : null].filter((value): value is string =>
+      Boolean(value)
     ),
-    detail: header.description
+    detail: header.description,
+    placeholder: header.value ?? ""
   }));
 }
 
@@ -46,7 +59,17 @@ function responseRows(route: SavedRoute): DefinitionRow[] {
   }));
 }
 
-export function RequestDetails({ route, tab }: Readonly<RequestDetailsProps>) {
+export function RequestDetails({
+  route,
+  tab,
+  fields,
+  body,
+  scripts,
+  scriptGlobal,
+  known,
+  onScriptGlobalChange,
+  onFieldChange
+}: Readonly<RequestDetailsProps>) {
   const { t } = useTranslation();
   const requiredLabel = t(translation.ApiStudio.Required);
 
@@ -56,26 +79,31 @@ export function RequestDetails({ route, tab }: Readonly<RequestDetailsProps>) {
 
   switch (tab) {
     case "params": {
-      const rows = parameterRows(route, requiredLabel);
-      return rows.length > 0 ? (
-        <DefinitionRows rows={rows} />
+      const parameters = parameterFields(route, requiredLabel);
+      return parameters.length > 0 ? (
+        <RequestFieldRows fields={parameters} values={fields} onChange={onFieldChange} />
       ) : (
         emptyNote(t(translation.ApiStudio.NoParams))
       );
     }
     case "headers": {
-      const rows = headerRows(route, requiredLabel);
-      return rows.length > 0 ? (
-        <DefinitionRows rows={rows} />
+      const headers = headerFields(route, requiredLabel);
+      return headers.length > 0 ? (
+        <RequestFieldRows fields={headers} values={fields} onChange={onFieldChange} />
       ) : (
         emptyNote(t(translation.ApiStudio.NoHeaders))
       );
     }
     case "body":
-      return route.requestBody ? (
-        <RequestBodyPanel body={route.requestBody} />
-      ) : (
-        emptyNote(t(translation.ApiStudio.NoBody))
+      return <RequestBodyPanel body={route.requestBody ?? null} editor={body} />;
+    case "scripts":
+      return (
+        <ScriptsPanel
+          scripts={scripts}
+          globalName={scriptGlobal}
+          known={known}
+          onGlobalNameChange={onScriptGlobalChange}
+        />
       );
     case "responses": {
       const rows = responseRows(route);

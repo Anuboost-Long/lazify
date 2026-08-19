@@ -1,6 +1,7 @@
 import { createProjectInventory } from "./project-inventory";
 import { routeIdentityKey } from "./route-identity";
 import { routeScanners } from "./scanners";
+import { findWorkspaces, inventoryOf } from "./workspaces";
 import type {
   ApiRoute,
   ProjectInventory,
@@ -13,7 +14,8 @@ function dedupeRoutes(routes: ApiRoute[]): ApiRoute[] {
   const byIdentity = new Map<string, ApiRoute>();
 
   for (const route of routes) {
-    const key = routeIdentityKey(route.method, route.path);
+    /** Two services may both serve `/health`: the workspace tells them apart. */
+    const key = `${route.workspace}\u0000${routeIdentityKey(route.method, route.path)}`;
     if (!byIdentity.has(key)) byIdentity.set(key, route);
   }
 
@@ -47,10 +49,37 @@ async function runScanners(project: ProjectInventory) {
   return { routes, warnings, unsupported, filesInspected, scannersRun };
 }
 
+/** One repository, one project per workspace, scanned as the projects they are. */
+async function runWorkspaces(project: ProjectInventory) {
+  const collected = {
+    routes: [] as ApiRoute[],
+    warnings: [] as RouteScanWarning[],
+    unsupported: [] as UnsupportedConstruct[],
+    filesInspected: [] as string[],
+    scannersRun: [] as string[]
+  };
+
+  const workspaces = findWorkspaces(project);
+
+  for (const workspace of workspaces) {
+    const scanned = await runScanners(inventoryOf(project, workspace, workspaces));
+
+    collected.routes.push(...scanned.routes.map((route) => ({ ...route, workspace })));
+    collected.warnings.push(...scanned.warnings);
+    collected.unsupported.push(...scanned.unsupported);
+    collected.filesInspected.push(...scanned.filesInspected);
+    collected.scannersRun.push(
+      ...scanned.scannersRun.filter((id) => !collected.scannersRun.includes(id))
+    );
+  }
+
+  return collected;
+}
+
 export async function scanProjectRoutes(projectPath: string): Promise<RouteScanResult> {
   const startedAt = Date.now();
   const project = await createProjectInventory(projectPath);
-  const collected = await runScanners(project);
+  const collected = await runWorkspaces(project);
 
   if (project.filesTruncated) {
     collected.warnings.push({

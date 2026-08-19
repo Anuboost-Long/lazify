@@ -1,8 +1,10 @@
 import { environmentPolicy } from "./rules/environment-policy";
-import type { ApiRoute, ApiVariable, RouteSecurity } from "./types";
+import type { ApiRoute, ApiVariable, CustomVariable, RouteSecurity } from "./types";
 
 /** Everything the environment is derived from — a summary carries all of it. */
-export type RouteEnvironmentSource = Pick<ApiRoute, "servers" | "security" | "headers">;
+export type RouteEnvironmentSource = Pick<ApiRoute, "servers" | "security" | "headers"> & {
+  workspace?: string;
+};
 
 export const BASE_URL_VARIABLE = environmentPolicy.baseUrlVariable;
 
@@ -31,6 +33,15 @@ export function variableNameForHeader(headerName: string): string {
   return camelCase(headerName);
 }
 
+/**
+ * One repository can serve several APIs on several ports, so the base URL is
+ * named after the project that serves it. A repository that is one project
+ * keeps the plain `baseUrl` it always had.
+ */
+export function baseUrlVariableFor(route: Pick<RouteEnvironmentSource, "workspace">): string {
+  return route.workspace ? `${camelCase(route.workspace)}BaseUrl` : BASE_URL_VARIABLE;
+}
+
 function upsert(
   variables: Map<string, ApiVariable>,
   variable: Omit<ApiVariable, "routeCount">
@@ -51,11 +62,12 @@ export function deriveEnvironmentVariables(routes: RouteEnvironmentSource[]): Ap
 
   for (const route of routes) {
     upsert(variables, {
-      name: BASE_URL_VARIABLE,
+      name: baseUrlVariableFor(route),
       secret: false,
       location: "url",
       parameterName: null,
-      defaultValue: route.servers[0] ?? null
+      defaultValue: route.servers[0] ?? null,
+      custom: false
     });
 
     for (const security of route.security) {
@@ -64,7 +76,8 @@ export function deriveEnvironmentVariables(routes: RouteEnvironmentSource[]): Ap
         secret: environmentPolicy.security[security.kind].secret,
         location: security.location,
         parameterName: security.parameterName,
-        defaultValue: null
+        defaultValue: null,
+        custom: false
       });
     }
 
@@ -76,7 +89,8 @@ export function deriveEnvironmentVariables(routes: RouteEnvironmentSource[]): Ap
         secret: environmentPolicy.headers.secret,
         location: "header",
         parameterName: header.name,
-        defaultValue: header.value
+        defaultValue: header.value,
+        custom: false
       });
     }
   }
@@ -86,9 +100,32 @@ export function deriveEnvironmentVariables(routes: RouteEnvironmentSource[]): Ap
   );
 }
 
+/** The user's own variables ride along with every request in the collection. */
+export function withCustomVariables(
+  derived: ApiVariable[],
+  custom: CustomVariable[]
+): ApiVariable[] {
+  const declared = new Set(derived.map((variable) => variable.name));
+
+  return [
+    ...derived,
+    ...custom
+      .filter((variable) => !declared.has(variable.name))
+      .map((variable) => ({ ...variable, defaultValue: null, routeCount: 0, custom: true }))
+  ];
+}
+
+export function customVariableFor(
+  parameterName: string,
+  location: CustomVariable["location"],
+  secret: boolean
+): CustomVariable {
+  return { name: variableNameForHeader(parameterName), parameterName, location, secret };
+}
+
 export function variablesForRoute(route: RouteEnvironmentSource): string[] {
   return [
-    BASE_URL_VARIABLE,
+    baseUrlVariableFor(route),
     ...route.security.map(variableNameForSecurity),
     ...route.headers
       .filter((header) => header.required || !environmentPolicy.headers.onlyRequired)
@@ -105,14 +142,4 @@ export function resolveVariable(
   if (value) return value;
 
   return variables.find((variable) => variable.name === name)?.defaultValue ?? null;
-}
-
-export function requestUrlFor(
-  route: Pick<ApiRoute, "path">,
-  variables: ApiVariable[],
-  values: Record<string, string>
-): string {
-  const baseUrl = resolveVariable(variables, values, BASE_URL_VARIABLE) ?? "";
-
-  return `${baseUrl.replace(/\/+$/, "")}${route.path}`;
 }

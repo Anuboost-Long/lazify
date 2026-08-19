@@ -6,6 +6,7 @@ import {
   stringValue,
   type Annotation
 } from "../reading/annotations";
+import { placeholderFor, readDeclaredType } from "../body-template/placeholders";
 import type { AnnotationRules, FrameworkRules } from "../rules/types";
 import type { ApiBody, ApiHeader, ApiParameter } from "../types";
 
@@ -82,11 +83,57 @@ function boundName(argument: SignatureArgument, annotation: Annotation, rules: A
   return namedStringValue(annotation, "Name") ?? argument.name;
 }
 
+const URLENCODED = "application/x-www-form-urlencoded";
+const MULTIPART = "multipart/form-data";
+
+interface FormField {
+  name: string;
+  type: string;
+  file: boolean;
+}
+
+/**
+ * A form is a set of fields, not one model: an action may bind a DTO, a couple
+ * of loose values and a file, and all of them travel in the same body.
+ */
+function formBody(
+  model: string | null,
+  fields: FormField[],
+  types: Record<string, string>
+): ApiBody {
+  const declared = Object.fromEntries(
+    fields.map((field) => [
+      field.name,
+      field.file ? "" : placeholderFor(readDeclaredType(schemaTypeOf(field.type, types)))
+    ])
+  );
+
+  return {
+    required: true,
+    description: null,
+    variants: [
+      {
+        mediaType: fields.some((field) => field.file) ? MULTIPART : URLENCODED,
+        schemaType: model ? schemaTypeOf(model, types) : null,
+        example: null,
+        defaultBody: fields.length > 0 ? JSON.stringify(declared, null, 2) : null
+      }
+    ]
+  };
+}
+
 function jsonBody(type: string, types: Record<string, string>): ApiBody {
   return {
     required: true,
     description: null,
-    variants: [{ mediaType: "application/json", schemaType: schemaTypeOf(type, types), example: null }]
+    variants: [
+      {
+        mediaType: "application/json",
+        schemaType: schemaTypeOf(type, types),
+        example: null,
+        defaultBody: null
+      }
+    ]
   };
 }
 
@@ -99,6 +146,8 @@ export function bindSignature(
   const rules = framework.annotations;
   const parameters: ApiParameter[] = [];
   const headers: ApiHeader[] = [];
+  const formFields: FormField[] = [];
+  let formModel: string | null = null;
   let requestBody: ApiBody | null = null;
 
   if (!rules) return { parameters, headers, requestBody };
@@ -128,6 +177,24 @@ export function bindSignature(
 
     if (bound?.target === "body") {
       requestBody = jsonBody(argument.type, framework.types);
+      continue;
+    }
+
+    const bare = argument.type.replace(/\?$/, "").replace(/<.*/, "").toLowerCase();
+    /** `List<IFormFile>` is a file field too: the wrapper is not what it holds. */
+    const isFile = argument.type
+      .toLowerCase()
+      .split(/[<>[\],\s]+/)
+      .some((token) => rules.binding.fileTypes.includes(token.replace(/\?$/, "")));
+
+    /** A file is part of the request wherever it appears, annotated or not. */
+    if (bound?.target === "form" || isFile) {
+      const named = bound ? boundName(argument, bound.annotation, rules) : argument.name;
+
+      /** One form binds one model; the rest are fields, and the first one holds. */
+      if (!isFile && !framework.types[bare]) formModel ??= argument.type;
+      else formFields.push({ name: named, type: argument.type, file: isFile });
+
       continue;
     }
 
@@ -164,6 +231,10 @@ export function bindSignature(
     if (rules.binding.inferBodyFromModel && bodyBearing && !requestBody) {
       requestBody = jsonBody(argument.type, framework.types);
     }
+  }
+
+  if (formFields.length > 0 || formModel) {
+    requestBody = formBody(formModel, formFields, framework.types);
   }
 
   return { parameters, headers, requestBody };

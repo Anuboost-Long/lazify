@@ -12,7 +12,6 @@ export function InterfaceSection() {
     compactSidebar, setCompactSidebar,
     reduceMotion,   setReduceMotion,
     showTooltips,   setShowTooltips,
-    openAgentAfterSend, setOpenAgentAfterSend,
   } = useInterfaceSettings();
 
   return (
@@ -32,11 +31,6 @@ export function InterfaceSection() {
         <div className="px-5">
           <SettingRow label={t(translation.Settings.ShowTooltips)} description={t(translation.Settings.ShowTooltipsDesc)}>
             <ToggleSwitch enabled={showTooltips} onChange={setShowTooltips} />
-          </SettingRow>
-        </div>
-        <div className="px-5">
-          <SettingRow label={t(translation.Settings.OpenAgentAfterSend)} description={t(translation.Settings.OpenAgentAfterSendDesc)}>
-            <ToggleSwitch enabled={openAgentAfterSend} onChange={setOpenAgentAfterSend} />
           </SettingRow>
         </div>
       </div>

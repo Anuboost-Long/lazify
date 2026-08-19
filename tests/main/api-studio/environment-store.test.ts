@@ -33,6 +33,29 @@ afterEach(() => {
 });
 
 describe("environment presets", () => {
+  it("keeps the variables a user added beside the presets, in the project", () => {
+    saveEnvironments(
+      projectPath,
+      {
+        activeId: "local",
+        variables: [
+          { name: "xApiKey", parameterName: "X-API-Key", location: "header", secret: true }
+        ],
+        environments: [{ id: "local", name: "Local", values: { xApiKey: "k-1" } }]
+      },
+      ["xApiKey"]
+    );
+
+    const stored = JSON.parse(fs.readFileSync(presetFile(), "utf8"));
+
+    expect(stored.variables).toEqual([
+      { name: "xApiKey", parameterName: "X-API-Key", location: "header", secret: true }
+    ]);
+    expect(stored.environments[0].values).toEqual({});
+    expect(readEnvironments(projectPath).variables).toHaveLength(1);
+    expect(readEnvironments(projectPath).environments[0].values.xApiKey).toBe("k-1");
+  });
+
   it("starts a project with one environment to fill in", () => {
     const set = readEnvironments(projectPath);
 
@@ -45,6 +68,7 @@ describe("environment presets", () => {
       projectPath,
       {
         activeId: "staging",
+        variables: [],
         environments: [
           { id: "local", name: "Local", values: { baseUrl: "http://localhost:5257", bearerToken: "local-token" } },
           { id: "staging", name: "Staging", values: { baseUrl: "https://staging.example.com", bearerToken: "staging-token" } }
@@ -71,6 +95,7 @@ describe("environment presets", () => {
       projectPath,
       {
         activeId: "staging",
+        variables: [],
         environments: [
           { id: "local", name: "Local", values: { baseUrl: "http://localhost:5257" } },
           { id: "staging", name: "Staging", values: { baseUrl: "https://staging.example.com", bearerToken: "staging-token" } }
@@ -94,7 +119,9 @@ describe("environment presets", () => {
 
     saveEnvironments(
       projectPath,
-      { activeId: "local", environments: [{ id: "local", name: "Local", values: { bearerToken: "mine" } }] },
+      {
+        activeId: "local",
+        variables: [], environments: [{ id: "local", name: "Local", values: { bearerToken: "mine" } }] },
       SECRETS
     );
 
@@ -118,13 +145,17 @@ describe("environment presets", () => {
   it("drops a value that was cleared rather than storing an empty one", () => {
     saveEnvironments(
       projectPath,
-      { activeId: "local", environments: [{ id: "local", name: "Local", values: { baseUrl: "http://localhost", bearerToken: "x" } }] },
+      {
+        activeId: "local",
+        variables: [], environments: [{ id: "local", name: "Local", values: { baseUrl: "http://localhost", bearerToken: "x" } }] },
       SECRETS
     );
 
     const set = saveEnvironments(
       projectPath,
-      { activeId: "local", environments: [{ id: "local", name: "Local", values: { baseUrl: "http://localhost", bearerToken: "" } }] },
+      {
+        activeId: "local",
+        variables: [], environments: [{ id: "local", name: "Local", values: { baseUrl: "http://localhost", bearerToken: "" } }] },
       SECRETS
     );
 
