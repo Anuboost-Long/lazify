@@ -266,34 +266,115 @@ describe("building a request from a discovered route", () => {
     });
   });
 
-  it("sends a variable the user added, on every route, where they put it", () => {
+  it("leaves a variable the user declared out of the request until it is used", () => {
     const open = route();
     const variables = withCustomVariables(deriveEnvironmentVariables([open]), [
-      customVariableFor("X-API-Key", "header", true),
-      customVariableFor("tenant", "query", false)
+      customVariableFor("custom-1", "apiKey", true)
     ]);
 
     const draft = buildRequest({
       route: open,
       variables,
-      values: { ...LOCAL, xApiKey: "k-99", tenant: "acme" },
+      values: { ...LOCAL, apiKey: "k-99" },
       fields: {},
       body: null
     });
 
-    expect(draft.headers).toContainEqual({ name: "X-API-Key", value: "k-99" });
+    expect(draft.headers.find((header) => header.value === "k-99")).toBeUndefined();
+    expect(draft.url).toBe("http://localhost:5000/users/{id}");
+  });
+
+  it("puts a declared variable wherever the user wrote it", () => {
+    const open = route();
+    const variables = withCustomVariables(deriveEnvironmentVariables([open]), [
+      customVariableFor("custom-1", "apiKey", true)
+    ]);
+
+    const draft = buildRequest({
+      route: open,
+      variables,
+      values: { ...LOCAL, apiKey: "k-99" },
+      fields: { "path:id": "{{apiKey}}" },
+      body: null
+    });
+
+    expect(draft.url).toBe("http://localhost:5000/users/k-99");
+  });
+
+  it("sends a query parameter the user added themselves", () => {
+    const draft = draftFor(route(), LOCAL, { [fieldKey("query", "tenant")]: "acme" });
+
     expect(draft.url).toBe("http://localhost:5000/users/{id}?tenant=acme");
   });
 
-  it("leaves an added variable out until it has a value", () => {
-    const open = route();
-    const variables = withCustomVariables(deriveEnvironmentVariables([open]), [
-      customVariableFor("X-API-Key", "header", true)
+  it("sends a header the user added themselves, interpolated", () => {
+    const draft = draftFor(
+      route(),
+      { ...LOCAL, tenant: "acme" },
+      { [fieldKey("header", "X-Tenant")]: "{{tenant}}" }
+    );
+
+    expect(draft.headers).toContainEqual({ name: "X-Tenant", value: "acme" });
+  });
+
+  it("does not repeat a declared field as an added one", () => {
+    const open = route({
+      headers: [{ name: "X-Tenant", value: null, required: true, description: null }]
+    });
+
+    const draft = draftFor(open, LOCAL, { [fieldKey("header", "X-Tenant")]: "beta" });
+
+    expect(draft.headers.filter((header) => header.name === "X-Tenant")).toEqual([
+      { name: "X-Tenant", value: "beta" }
     ]);
+  });
 
-    const draft = buildRequest({ route: open, variables, values: LOCAL, fields: {}, body: null });
+  it("sends a list parameter once for each value it was given", () => {
+    const open = route({
+      path: "/packages",
+      parameters: [
+        {
+          name: "filterValues",
+          location: "query",
+          required: false,
+          description: null,
+          schemaType: "List<string>",
+          example: null
+        }
+      ]
+    });
 
-    expect(draft.headers.find((header) => header.name === "X-API-Key")).toBeUndefined();
+    const draft = draftFor(open, LOCAL, {
+      [fieldKey("query", "filterValues")]: "RTGI001",
+      [`${fieldKey("query", "filterValues")}#2`]: "RTGI002"
+    });
+
+    expect(draft.url).toBe(
+      "http://localhost:5000/packages?filterValues=RTGI001&filterValues=RTGI002"
+    );
+  });
+
+  it("repeats a parameter the user added themselves too", () => {
+    const draft = draftFor(route(), LOCAL, {
+      [fieldKey("query", "tag")]: "a",
+      [`${fieldKey("query", "tag")}#2`]: "b",
+      [`${fieldKey("query", "tag")}#3`]: ""
+    });
+
+    expect(draft.url).toBe("http://localhost:5000/users/{id}?tag=a&tag=b");
+  });
+
+  it("keeps repeats in the order they were added past nine", () => {
+    const open = route({ path: "/packages" });
+    const fields: Record<string, string> = { [fieldKey("query", "id")]: "1" };
+
+    for (let index = 2; index <= 11; index += 1) {
+      fields[`${fieldKey("query", "id")}#${index}`] = String(index);
+    }
+
+    expect(draftFor(open, LOCAL, fields).url).toBe(
+      `http://localhost:5000/packages?${Array.from({ length: 11 }, (_, at) => `id=${at + 1}`).join("&")}`
+    );
   });
 
   it("knows which hosts are on this machine", () => {

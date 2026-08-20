@@ -48,6 +48,7 @@ export interface ApiResponseSummary {
   body: string;
   bodyBytes: number;
   truncated: boolean;
+  file?: { path: string; name: string } | null;
 }
 
 export type ApiSendOutcome =

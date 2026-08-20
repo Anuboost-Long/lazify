@@ -3,8 +3,10 @@ import { readAnnotationRoutes } from "../engine/annotation-routes";
 import { readCallRoutes } from "../engine/call-routes";
 import type { FrameworkRouteDraft } from "../engine/route-drafts";
 import type { FrameworkRules } from "../rules/types";
+import { modelFromReturnType } from "../reading/return-types";
 import type {
   ApiBody,
+  ApiResponseDefinition,
   ApiRoute,
   RouteSecurity,
   ProjectInventory,
@@ -131,13 +133,55 @@ function withModelBody(
   };
 }
 
+function returnedBody(
+  draft: FrameworkRouteDraft,
+  models: ModelIndex,
+  options: ModelBodyOptions
+): string | null {
+  const returned = modelFromReturnType(draft.returnType ?? null);
+
+  if (!returned) return null;
+
+  const template = templateFromModel(models, options, returned.model);
+
+  if (!template) return null;
+  if (!returned.collection) return template;
+
+  try {
+    return JSON.stringify([JSON.parse(template)], null, 2);
+  } catch {
+    return template;
+  }
+}
+
+function responsesOf(
+  draft: FrameworkRouteDraft,
+  models: ModelIndex,
+  options: ModelBodyOptions
+): ApiResponseDefinition[] {
+  const body = returnedBody(draft, models, options);
+
+  if (!body) return draft.responses;
+  if (draft.responses.length === 0) {
+    return [{ status: "200", description: null, mediaTypes: ["application/json"], example: body }];
+  }
+
+  return draft.responses.map((response) =>
+    response.status.startsWith("2") && !response.example
+      ? { ...response, mediaTypes: ["application/json"], example: body }
+      : response
+  );
+}
+
 function toApiRoute(
   projectPath: string,
   filePath: string,
   servers: string[],
   projectSecurity: RouteSecurity[],
   adapter: string,
-  draft: FrameworkRouteDraft
+  draft: FrameworkRouteDraft,
+  models: ModelIndex,
+  options: ModelBodyOptions
 ): ApiRoute {
   return {
     id: buildRouteId(projectPath, draft.method, draft.path, filePath),
@@ -160,7 +204,7 @@ function toApiRoute(
     parameters: draft.parameters,
     headers: draft.headers,
     requestBody: draft.requestBody,
-    responses: draft.responses,
+    responses: responsesOf(draft, models, options),
     security: draft.anonymous ? [] : mergeSecurity(projectSecurity, draft.security)
   };
 }
@@ -224,7 +268,9 @@ export function createFrameworkScanner(framework: FrameworkRules): RouteScanner 
               servers,
               projectSecurity,
               framework.id,
-              draft
+              draft,
+              models,
+              bodyOptions
             )
           )
         );

@@ -3,7 +3,8 @@ import { useEffect, useRef, useState } from "react";
 import {
   customVariableFor,
   deriveEnvironmentVariables,
-  withCustomVariables
+  withCustomVariables,
+  withVariableNames
 } from "@main/api-studio/environment";
 import type {
   ApiEnvironment,
@@ -16,7 +17,8 @@ import type {
 const EMPTY_SET: ApiEnvironmentSet = {
   activeId: "local",
   environments: [{ id: "local", name: "Local", values: {} }],
-  variables: []
+  variables: [],
+  names: {}
 };
 
 function uniqueId(existing: ApiEnvironment[]) {
@@ -31,9 +33,9 @@ function uniqueId(existing: ApiEnvironment[]) {
 export function useApiEnvironment(projectPath: string, routes: SavedRouteSummary[]) {
   const [set, setSet] = useState<ApiEnvironmentSet>(EMPTY_SET);
   const openProjectPath = useRef(projectPath);
-  const variables: ApiVariable[] = withCustomVariables(
-    deriveEnvironmentVariables(routes),
-    set.variables
+  const variables: ApiVariable[] = withVariableNames(
+    withCustomVariables(deriveEnvironmentVariables(routes), set.variables),
+    set.names
   );
 
   useEffect(() => {
@@ -55,7 +57,10 @@ export function useApiEnvironment(projectPath: string, routes: SavedRouteSummary
 
     if (!projectPath) return;
 
-    const declared = withCustomVariables(deriveEnvironmentVariables(routes), next.variables);
+    const declared = withVariableNames(
+      withCustomVariables(deriveEnvironmentVariables(routes), next.variables),
+      next.names
+    );
     const known = new Set(declared.map((variable) => variable.name));
     const secretNames = [
       ...declared.filter((variable) => variable.secret).map((variable) => variable.name),
@@ -112,29 +117,113 @@ export function useApiEnvironment(projectPath: string, routes: SavedRouteSummary
     });
   };
 
-  const addVariable = (
-    parameterName: string,
-    location: CustomVariable["location"],
-    secret: boolean
-  ) => {
-    const variable = customVariableFor(parameterName, location, secret);
+  const freeKey = () => {
+    const taken = new Set(variables.map((variable) => variable.key));
 
-    if (variables.some((existing) => existing.name === variable.name)) return;
-
-    save({ ...set, variables: [...set.variables, variable] });
+    for (let index = set.variables.length + 1; ; index += 1) {
+      const key = `custom-${index}`;
+      if (!taken.has(key)) return key;
+    }
   };
 
-  /** A removed value must leave the environments too, secrets first. */
-  const removeVariable = (name: string) =>
+  const freeName = (wanted: string) => {
+    const taken = new Set(variables.map((variable) => variable.name));
+
+    if (!taken.has(wanted)) return wanted;
+
+    for (let index = 2; ; index += 1) {
+      const name = `${wanted}${index}`;
+      if (!taken.has(name)) return name;
+    }
+  };
+
+  const addVariable = (wanted: string) => {
+    const variable = customVariableFor(freeKey(), freeName(wanted));
+
+    save({ ...set, variables: [...set.variables, variable] });
+
+    return variable.key;
+  };
+
+  const duplicateVariable = (key: string) => {
+    const copied = variables.find((variable) => variable.key === key);
+
+    if (!copied) return null;
+
+    const variable = customVariableFor(freeKey(), freeName(copied.name), copied.secret);
+    const value = active.values[copied.name];
+
     save({
       ...set,
-      variables: set.variables.filter((variable) => variable.name !== name),
+      variables: [...set.variables, variable],
+      environments: set.environments.map((environment) =>
+        environment.id === active.id && value !== undefined
+          ? { ...environment, values: { ...environment.values, [variable.name]: value } }
+          : environment
+      )
+    });
+
+    return variable.key;
+  };
+
+  const keepSecret = (key: string, secret: boolean) =>
+    save({
+      ...set,
+      variables: set.variables.map((variable) =>
+        variable.key === key ? { ...variable, secret } : variable
+      )
+    });
+
+  /** A removed value must leave the environments too, secrets first. */
+  const removeVariable = (key: string) => {
+    const gone = variables.find((variable) => variable.key === key);
+    const name = gone?.name ?? key;
+    const { [key]: droppedName, ...names } = set.names;
+
+    save({
+      ...set,
+      names,
+      variables: set.variables.filter((variable) => variable.key !== key),
       environments: set.environments.map((environment) => {
         const { [name]: dropped, ...values } = environment.values;
 
         return { ...environment, values };
       })
     });
+  };
+
+  const renameVariable = (key: string, rename: string) => {
+    const name = rename.trim();
+    const renamed = variables.find((variable) => variable.key === key);
+
+    if (!renamed || !name || name === renamed.name) return;
+    if (variables.some((variable) => variable.key !== key && variable.name === name)) return;
+
+    const names = { ...set.names };
+
+    if (name === key) delete names[key];
+    else names[key] = name;
+
+    const declared = renamed.custom;
+
+    save({
+      ...set,
+      names: declared ? set.names : names,
+      variables: declared
+        ? set.variables.map((variable) =>
+            variable.key === key ? { ...variable, name } : variable
+          )
+        : set.variables,
+      environments: set.environments.map((environment) => {
+        const { [renamed.name]: carried, ...rest } = environment.values;
+
+        return {
+          ...environment,
+          values: carried === undefined ? rest : { ...rest, [name]: carried }
+        };
+      })
+    });
+  };
 
   const missing = variables.filter(
     (variable) => !active.values[variable.name]?.trim() && !variable.defaultValue
@@ -149,7 +238,10 @@ export function useApiEnvironment(projectPath: string, routes: SavedRouteSummary
     selectEnvironment: (id: string) => save({ ...set, activeId: id }),
     updateActive,
     addVariable,
+    duplicateVariable,
+    keepSecret,
     removeVariable,
+    renameVariable,
     addEnvironment,
     renameEnvironment,
     removeEnvironment

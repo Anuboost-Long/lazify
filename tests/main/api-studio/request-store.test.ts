@@ -134,6 +134,7 @@ describe("saved requests", () => {
     saveRequest(projectPath, "route_1", request({ examples: [{
       id: "example-1",
       name: "200 OK",
+      request: null,
       status: 200,
       statusText: "OK",
       durationMs: 12,
@@ -165,6 +166,7 @@ describe("saved requests", () => {
       body: "{}",
       bodyBytes: 2,
       truncated: false,
+      request: null,
       receivedAt: "2026-08-19T09:00:00.000Z"
     }));
 
@@ -239,6 +241,7 @@ describe("saved requests", () => {
     const example = {
       id: "example-1",
       name: "200 OK",
+      request: null,
       status: 200,
       statusText: "OK",
       durationMs: 1,
@@ -329,6 +332,7 @@ describe("saved requests", () => {
           {
             id: "example-1",
             name: "200 OK",
+            request: null,
             status: 200,
             statusText: "OK",
             durationMs: 12,
@@ -424,6 +428,7 @@ describe("saved requests", () => {
     const example = {
       id: "example-1",
       name: "200 OK",
+      request: null,
       status: 200,
       statusText: "OK",
       durationMs: 12,

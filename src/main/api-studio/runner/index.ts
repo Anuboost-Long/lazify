@@ -1,4 +1,12 @@
-export { buildRequest, fieldKey, hostOf, isLocalUrl } from "./build-request";
+export {
+  addedFields,
+  buildRequest,
+  fieldKey,
+  fieldNameOf,
+  hostOf,
+  isLocalUrl,
+  repeatKey
+} from "./build-request";
 export type { RequestDraftInput, RequestRoute } from "./build-request";
 export {
   encodeBody,

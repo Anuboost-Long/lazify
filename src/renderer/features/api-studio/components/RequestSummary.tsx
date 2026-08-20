@@ -15,6 +15,7 @@ interface RequestSummaryProps {
   baseUrl: string;
   variables: ApiVariable[];
   values: Record<string, string>;
+  readOnly?: boolean;
   onOpenEnvironment: () => void;
   onOpenSource: () => void;
 }
@@ -32,6 +33,7 @@ export function RequestSummary({
   baseUrl,
   variables,
   values,
+  readOnly = false,
   onOpenEnvironment,
   onOpenSource
 }: Readonly<RequestSummaryProps>) {
@@ -49,11 +51,13 @@ export function RequestSummary({
         </p>
       </div>
 
-      <RouteNeedsRow
-        names={needed}
-        unset={needed.filter((name) => !resolveVariable(variables, values, name))}
-        onOpenEnvironment={onOpenEnvironment}
-      />
+      {readOnly ? null : (
+        <RouteNeedsRow
+          names={needed}
+          unset={needed.filter((name) => !resolveVariable(variables, values, name))}
+          onOpenEnvironment={onOpenEnvironment}
+        />
+      )}
 
       <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
         {route.summary ? (

@@ -38,8 +38,9 @@ describe("environment presets", () => {
       projectPath,
       {
         activeId: "local",
+        names: {},
         variables: [
-          { name: "xApiKey", parameterName: "X-API-Key", location: "header", secret: true }
+          { key: "xApiKey", name: "xApiKey", secret: true }
         ],
         environments: [{ id: "local", name: "Local", values: { xApiKey: "k-1" } }]
       },
@@ -49,7 +50,7 @@ describe("environment presets", () => {
     const stored = JSON.parse(fs.readFileSync(presetFile(), "utf8"));
 
     expect(stored.variables).toEqual([
-      { name: "xApiKey", parameterName: "X-API-Key", location: "header", secret: true }
+      { key: "xApiKey", name: "xApiKey", secret: true }
     ]);
     expect(stored.environments[0].values).toEqual({});
     expect(readEnvironments(projectPath).variables).toHaveLength(1);
@@ -68,6 +69,7 @@ describe("environment presets", () => {
       projectPath,
       {
         activeId: "staging",
+        names: {},
         variables: [],
         environments: [
           { id: "local", name: "Local", values: { baseUrl: "http://localhost:5257", bearerToken: "local-token" } },
@@ -95,6 +97,7 @@ describe("environment presets", () => {
       projectPath,
       {
         activeId: "staging",
+        names: {},
         variables: [],
         environments: [
           { id: "local", name: "Local", values: { baseUrl: "http://localhost:5257" } },
@@ -121,6 +124,7 @@ describe("environment presets", () => {
       projectPath,
       {
         activeId: "local",
+        names: {},
         variables: [], environments: [{ id: "local", name: "Local", values: { bearerToken: "mine" } }] },
       SECRETS
     );
@@ -147,6 +151,7 @@ describe("environment presets", () => {
       projectPath,
       {
         activeId: "local",
+        names: {},
         variables: [], environments: [{ id: "local", name: "Local", values: { baseUrl: "http://localhost", bearerToken: "x" } }] },
       SECRETS
     );
@@ -155,6 +160,7 @@ describe("environment presets", () => {
       projectPath,
       {
         activeId: "local",
+        names: {},
         variables: [], environments: [{ id: "local", name: "Local", values: { baseUrl: "http://localhost", bearerToken: "" } }] },
       SECRETS
     );

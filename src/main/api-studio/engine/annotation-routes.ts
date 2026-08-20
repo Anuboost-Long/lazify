@@ -212,6 +212,7 @@ export function readAnnotationRoutes(
         headers: bound.headers,
         requestBody: bound.requestBody,
         responses: responsesOf(annotations, rules),
+        returnType: rules.responseFromReturnType ? method.returnType : null,
         security: securityOf(annotations, rules, container.security),
         anonymous:
           hasAnnotation(annotations, rules.auth.anonymous) ||

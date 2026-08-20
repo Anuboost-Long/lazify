@@ -160,6 +160,7 @@ export const aspNetRules: FrameworkRules = {
       inferBodyFromModel: true
     },
     responses: { annotation: "ProducesResponseType", statusPattern: /Status(\d{3})|^(\d{3})$/ },
+    responseFromReturnType: true,
     summary: { linePrefix: "///", tag: "summary" }
   },
 

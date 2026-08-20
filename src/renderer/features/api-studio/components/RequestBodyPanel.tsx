@@ -10,9 +10,14 @@ import { FormBodyRows } from "./FormBodyRows";
 interface RequestBodyPanelProps {
   body: ApiBody | null;
   editor: BodyEditor;
+  readOnly?: boolean;
 }
 
-export function RequestBodyPanel({ body, editor }: Readonly<RequestBodyPanelProps>) {
+export function RequestBodyPanel({
+  body,
+  editor,
+  readOnly = false
+}: Readonly<RequestBodyPanelProps>) {
   const { t } = useTranslation();
   const variant = body?.variants[0] ?? null;
   /** The project declares a shape the scan could not read: say which. */
@@ -24,7 +29,7 @@ export function RequestBodyPanel({ body, editor }: Readonly<RequestBodyPanelProp
   ];
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex min-h-0 flex-1 flex-col gap-3">
       {body?.description ? (
         <p className="text-xs leading-5 text-muted">{body.description}</p>
       ) : null}
@@ -35,6 +40,7 @@ export function RequestBodyPanel({ body, editor }: Readonly<RequestBodyPanelProp
             <button
               key={mode.id}
               type="button"
+              disabled={readOnly}
               onClick={() => editor.setMode(mode.id)}
               className={clsx(
                 "rounded-md px-2 py-1 text-[11px] font-medium transition-colors",
@@ -60,7 +66,7 @@ export function RequestBodyPanel({ body, editor }: Readonly<RequestBodyPanelProp
           ) : null}
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3" hidden={readOnly}>
           <button
             type="button"
             onClick={editor.reset}
@@ -87,17 +93,16 @@ export function RequestBodyPanel({ body, editor }: Readonly<RequestBodyPanelProp
 
       {editor.mode === "json" ? (
         <>
-          {/* A definite height, because the surface lays its code out absolutely. */}
           <div
             className={clsx(
-              "h-[260px] overflow-hidden rounded-lg border bg-bg/45",
+              "min-h-[8rem] flex-1 overflow-hidden rounded-lg border bg-bg/45",
               editor.valid ? "border-border" : "border-warning/45"
             )}
           >
             <CodeSurface
               variant="flush"
               wrap
-              editable
+              editable={!readOnly}
               content={editor.json}
               fileName="body.json"
               label={t(translation.ApiStudio.Body)}
@@ -114,7 +119,9 @@ export function RequestBodyPanel({ body, editor }: Readonly<RequestBodyPanelProp
           )}
         </>
       ) : (
-        <FormBodyRows entries={editor.entries} onChange={editor.setEntries} />
+        <div className="min-h-0 flex-1 overflow-y-auto">
+          <FormBodyRows entries={editor.entries} readOnly={readOnly} onChange={editor.setEntries} />
+        </div>
       )}
     </div>
   );

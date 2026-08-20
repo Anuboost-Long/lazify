@@ -22,6 +22,7 @@ interface StoredPresets {
   activeId: string;
   environments: ApiEnvironment[];
   variables?: CustomVariable[];
+  names?: Record<string, string>;
 }
 
 type StoredSecrets = Record<string, Record<string, Record<string, string>>>;
@@ -84,7 +85,11 @@ export function readEnvironments(projectPath: string): ApiEnvironmentSet {
       ? presets!.activeId
       : merged[0].id,
     environments: merged,
-    variables: presets?.variables ?? []
+    variables: (presets?.variables ?? []).map((variable) => ({
+      ...variable,
+      key: variable.key ?? variable.name
+    })),
+    names: presets?.names ?? {}
   };
 }
 
@@ -99,6 +104,7 @@ export function saveEnvironments(
     version: PRESET_VERSION,
     activeId: set.activeId,
     variables: set.variables,
+    names: set.names,
     environments: set.environments.map((environment) => ({
       id: environment.id,
       name: environment.name,

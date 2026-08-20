@@ -68,6 +68,7 @@ declare global {
       getTemplatePackageManifest: (templateId: string) => Promise<TemplatePackageEntry[]>;
       searchNpmPackages: (query: string) => Promise<NpmPackageSearchResult[]>;
       selectDirectory: () => Promise<string | null>;
+      selectDirectories: () => Promise<string[]>;
       /** Finder picker for files and folders; empty when the user cancels. */
       selectPaths: (defaultPath?: string | null) => Promise<string[]>;
       importProjectFromDirectory: (projectPath: string) => Promise<ImportedProjectScanResult>;
@@ -423,6 +424,21 @@ declare global {
         routeId: string
       ) => Promise<import("../main/api-studio/request-store").RequestStore>;
       readApiResponseBody: (projectPath: string, bodyFile: string) => Promise<string>;
+      readApiCollections: (
+        projectPath: string
+      ) => Promise<import("../main/api-studio/custom-collections").CustomCollection[]>;
+      exportCustomCollection: (
+        projectPath: string,
+        collectionId: string,
+        collectionName: string
+      ) => Promise<import("../main/api-studio/export").CollectionExport | null>;
+      saveResponseFile: (filePath: string, suggestedName: string) => Promise<string | null>;
+      openResponseFile: (filePath: string) => Promise<string | null>;
+      readApiCollectionBody: (projectPath: string, bodyFile: string) => Promise<string>;
+      saveApiCollections: (
+        projectPath: string,
+        collections: import("../main/api-studio/custom-collections").CustomCollection[]
+      ) => Promise<import("../main/api-studio/custom-collections").CustomCollection[]>;
       setApiRequestStorage: (
         projectPath: string,
         location: import("../main/api-studio/request-store").RequestStorage
@@ -458,6 +474,11 @@ declare global {
         rows?: number,
         resumeSessionId?: string
       ) => Promise<{ runId: string }>;
+      readZoom: () => Promise<number>;
+      setZoom: (factor: number) => Promise<number>;
+      stepZoom: (direction: 1 | -1) => Promise<number>;
+      resetZoom: () => Promise<number>;
+      onZoomChanged: (callback: (factor: number) => void) => () => void;
       onLog: (callback: (event: LogEvent) => void) => () => void;
       onCommandChoicePrompt: (callback: (prompt: CommandChoicePrompt) => void) => () => void;
       /** Fires once an agent's transcript goes quiet — i.e. that agent's turn finished. */

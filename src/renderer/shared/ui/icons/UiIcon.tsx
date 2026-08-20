@@ -16,6 +16,8 @@ import {
   EditPencil,
   EmptyPage,
   Expand,
+  Eye,
+  EyeClosed,
   Folder,
   FolderPlus,
   GitBranch,
@@ -30,6 +32,7 @@ import {
   Menu,
   MediaImage,
   MediaVideo,
+  MoreHoriz,
   MultiWindow,
   Network,
   NavArrowLeft,
@@ -89,6 +92,8 @@ export type UiIconName =
   | "edit"
   | "empty-page"
   | "expand"
+  | "eye"
+  | "eye-off"
   | "folder"
   | "folder-plus"
   | "git-branch"
@@ -101,6 +106,7 @@ export type UiIconName =
   | "key"
   | "media-image"
   | "media-video"
+  | "more"
   | "multi-window"
   | "network"
   | "open-new-window"
@@ -150,6 +156,8 @@ const iconMap: Record<UiIconName, ComponentType<SVGProps<SVGSVGElement>>> = {
   edit: EditPencil,
   "empty-page": EmptyPage,
   expand: Expand,
+  eye: Eye,
+  "eye-off": EyeClosed,
   folder: Folder,
   "folder-plus": FolderPlus,
   "git-branch": GitBranch,
@@ -162,6 +170,7 @@ const iconMap: Record<UiIconName, ComponentType<SVGProps<SVGSVGElement>>> = {
   key: Key,
   "media-image": MediaImage,
   "media-video": MediaVideo,
+  more: MoreHoriz,
   "multi-window": MultiWindow,
   network: Network,
   "open-new-window": OpenNewWindow,

@@ -1,16 +1,16 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
+import { BASE_URL_VARIABLE, resolveVariable } from "@main/api-studio/environment";
+import { buildRequest, hostOf, isLocalUrl, repeatKey } from "@main/api-studio/runner/build-request";
 import {
-  buildRequest,
-  hostOf,
   isFormMediaType,
-  isLocalUrl,
   MULTIPART_MEDIA_TYPE,
   URLENCODED_MEDIA_TYPE
-} from "@main/api-studio/runner";
+} from "@main/api-studio/runner/encode-body";
 import { entriesFromJson, formattedJson, isValidJson } from "../body-text";
 import type {
   ApiRequestDraft,
+  ExampleRequest,
   ApiResponseSummary,
   ApiSendOutcome,
   ApiVariable,
@@ -24,7 +24,7 @@ import type {
   SavedRoute,
   ScriptRun
 } from "../types";
-import { useSavedRequests } from "./use-saved-requests";
+import type { SavedRequestStore } from "./use-saved-requests";
 
 const SAVE_DELAY_MS = 500;
 const NO_SCRIPTS: RouteScripts = { pre: "", post: "" };
@@ -54,7 +54,8 @@ export function useRequestDraft(
   variables: ApiVariable[],
   values: Record<string, string>,
   onValuesChange: (values: Record<string, string>) => void,
-  scriptGlobal: string
+  scriptGlobal: string,
+  requests: SavedRequestStore
 ) {
   const [fields, setFields] = useState<Record<string, string>>({});
   const [mode, setMode] = useState<BodyMode>("json");
@@ -71,9 +72,9 @@ export function useRequestDraft(
   const [sending, setSending] = useState(false);
   const [remoteUrl, setRemoteUrl] = useState<string | null>(null);
   const [allowedHosts, setAllowedHosts] = useState<string[]>([]);
-  const [examples, setExamples] = useState<SavedExample[]>([]);
-  const [viewingId, setViewingId] = useState<string | null>(null);
-  const requests = useSavedRequests(projectPath);
+  const [sent, setSent] = useState<ExampleRequest | null>(null);
+  const [savedSnapshot, setSavedSnapshot] = useState<string | null>(null);
+  const pendingSave = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     setAllowedHosts([]);
@@ -127,24 +128,21 @@ export function useRequestDraft(
     if (!keepView) {
       setOutcome(saved?.response ? { ok: true, response: saved.response } : null);
       setRestoredAt(saved?.response?.receivedAt ?? null);
-      setExamples(saved?.examples ?? []);
-      setViewingId(null);
+      setSent(null);
       setRemoteUrl(null);
       setScriptRuns({ pre: null, post: null });
     }
 
-    seeded.current = route
-      ? {
-          routeId: route.id,
-          snapshot: JSON.stringify({
-            mode: seedMode,
-            json: seedJson,
-            entries: seedEntries,
-            fields: seedFields,
-            scripts: seedScripts
-          })
-        }
-      : null;
+    const seedSnapshot = JSON.stringify({
+      mode: seedMode,
+      json: seedJson,
+      entries: seedEntries,
+      fields: seedFields,
+      scripts: seedScripts
+    });
+
+    setSavedSnapshot(seedSnapshot);
+    seeded.current = route ? { routeId: route.id, snapshot: seedSnapshot } : null;
   };
 
   useEffect(() => {
@@ -157,11 +155,12 @@ export function useRequestDraft(
     seed(route ? requests.saved(route.id) : undefined, sameRoute);
   }, [route?.id, variant?.mediaType, declaredBody, requests.loadedAt]);
 
-  const store = (response: SavedResponse | null | undefined, kept = examples) => {
+  const store = (response: SavedResponse | null | undefined, kept?: SavedExample[]) => {
     if (!route) return;
 
     const existing = requests.saved(route.id);
 
+    setSavedSnapshot(snapshot);
     requests.persist(route.id, {
       mode,
       json,
@@ -169,47 +168,48 @@ export function useRequestDraft(
       fields,
       scripts,
       response: response === undefined ? (existing?.response ?? null) : response,
-      examples: kept,
+      examples: kept ?? existing?.examples ?? [],
       savedAt: new Date().toISOString()
     });
   };
 
-  /** Postman calls these examples: one response a route is expected to give. */
   const saveExample = () => {
-    if (!outcome?.ok || viewingId) return;
+    if (!outcome?.ok || !route) return;
 
+    const held = requests.saved(route.id)?.examples ?? [];
     const name = `${outcome.response.status} ${outcome.response.statusText}`.trim();
-    const taken = examples.filter((example) => example.name.startsWith(name)).length;
-    const kept = [
-      ...examples,
+    const taken = held.filter((example) => example.name.startsWith(name)).length;
+
+    store(undefined, [
+      ...held,
       {
         ...outcome.response,
         id: `example-${Date.now()}`,
         name: taken > 0 ? `${name} (${taken + 1})` : name,
+        request: sent ?? (draft ? exampleRequest(draft) : null),
         receivedAt: restoredAt ?? new Date().toISOString()
       }
-    ];
-
-    setExamples(kept);
-    store(undefined, kept);
+    ]);
   };
 
-  const removeExample = (id: string) => {
-    const kept = examples.filter((example) => example.id !== id);
-
-    setExamples(kept);
-    if (viewingId === id) setViewingId(null);
-    store(undefined, kept);
+  const save = () => {
+    pendingSave.current = null;
+    store(undefined);
   };
 
   useEffect(() => {
     if (!route || seeded.current?.routeId !== route.id) return;
     if (snapshot === seeded.current.snapshot && !requests.saved(route.id)) return;
+    if (snapshot === savedSnapshot) return;
 
-    const timer = setTimeout(() => store(undefined), SAVE_DELAY_MS);
+    pendingSave.current = save;
+
+    const timer = setTimeout(save, SAVE_DELAY_MS);
 
     return () => clearTimeout(timer);
   }, [projectPath, route?.id, snapshot]);
+
+  useEffect(() => () => pendingSave.current?.(), [route?.id]);
 
   const body: RequestBodyInput =
     mode === "json"
@@ -217,6 +217,12 @@ export function useRequestDraft(
       : { mode: "form", mediaType: formMediaType, entries };
 
   const draft = route ? buildRequest({ route, variables, values, fields, body }) : null;
+  const baseUrl = (resolveVariable(variables, values, BASE_URL_VARIABLE) ?? "").replace(/\/+$/, "");
+
+  const exampleRequest = (target: ApiRequestDraft): ExampleRequest | null =>
+    route
+      ? { ...target, route, baseUrl, fields, mode, json, entries, scripts }
+      : null;
 
   const run = async (target: ApiRequestDraft) => {
     setSending(true);
@@ -230,6 +236,7 @@ export function useRequestDraft(
       });
 
       setScriptRuns({ pre: result.pre, post: result.post });
+      setSent(exampleRequest(target));
       setOutcome(result.outcome);
       setArrivedAt(Date.now());
       setRestoredAt(null);
@@ -265,9 +272,9 @@ export function useRequestDraft(
     setRemoteUrl(draft.url);
   };
 
-  const viewing = examples.find((example) => example.id === viewingId) ?? null;
-  const shown: (SavedResponse | ApiResponseSummary) | null =
-    viewing ?? (outcome?.ok ? outcome.response : null);
+  const shown: (SavedResponse | ApiResponseSummary) | null = outcome?.ok
+    ? outcome.response
+    : null;
   const bodyFile: string | undefined =
     shown && !shown.body && "bodyFile" in shown && typeof shown.bodyFile === "string"
       ? shown.bodyFile
@@ -278,8 +285,8 @@ export function useRequestDraft(
 
     let cancelled = false;
 
-    void globalThis.lazify
-      .readApiResponseBody(projectPath, bodyFile)
+    void requests
+      .readBody(bodyFile)
       .then((text) => {
         if (!cancelled) setBodies((current) => ({ ...current, [bodyFile]: text }));
       })
@@ -303,15 +310,13 @@ export function useRequestDraft(
     fields,
     draft,
     arrivedAt,
+    unsaved: Boolean(route) && savedSnapshot !== null && snapshot !== savedSnapshot,
+    save,
     outcome: shownOutcome,
-    restoredAt: viewing ? viewing.receivedAt : restoredAt,
+    restoredAt,
     examples: {
-      saved: examples,
-      viewingId,
-      canSave: Boolean(outcome?.ok) && !viewingId,
-      save: saveExample,
-      remove: removeExample,
-      view: setViewingId
+      canSave: Boolean(outcome?.ok),
+      save: saveExample
     },
     sending,
     remoteUrl,
@@ -346,6 +351,44 @@ export function useRequestDraft(
     scriptRuns,
     setField: (key: string, value: string) =>
       setFields((current) => ({ ...current, [key]: value })),
+    addField: (location: "query" | "header") => {
+      const taken = new Set(Object.keys(fields));
+
+      for (let index = 1; ; index += 1) {
+        const key = `${location}:${location === "header" ? "X-Header" : "param"}${index}`;
+
+        if (taken.has(key)) continue;
+
+        setFields((current) => ({ ...current, [key]: "" }));
+
+        return key;
+      }
+    },
+    repeatField: (key: string) => {
+      const next = repeatKey(key, Object.keys(fields));
+
+      setFields((current) => ({ ...current, [next]: "" }));
+
+      return next;
+    },
+    renameField: (key: string, name: string) => {
+      const location = key.slice(0, key.indexOf(":"));
+      const renamed = `${location}:${name.trim()}`;
+
+      if (!name.trim() || renamed === key || fields[renamed] !== undefined) return;
+
+      setFields((current) => {
+        const { [key]: carried, ...rest } = current;
+
+        return { ...rest, [renamed]: carried ?? "" };
+      });
+    },
+    removeField: (key: string) =>
+      setFields((current) => {
+        const { [key]: dropped, ...rest } = current;
+
+        return rest;
+      }),
     send,
     confirmRemote: () => {
       setRemoteUrl(null);

@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { translation } from "@renderer/i18n/translation";
@@ -11,7 +11,11 @@ import { ApiStudioToolbar } from "../components/ApiStudioToolbar";
 import { EnvironmentModal } from "../components/EnvironmentModal";
 import { RequestWorkspace } from "../components/RequestWorkspace";
 import { RouteCollectionPane } from "../components/RouteCollectionPane";
+import { customRequestStore } from "../hooks/custom-request-store";
 import { useApiEnvironment } from "../hooks/use-api-environment";
+import { useCustomCollection } from "../hooks/use-custom-collection";
+import { useRequestTabs, tabKey, type RequestTab } from "../hooks/use-request-tabs";
+import { useSavedRequests } from "../hooks/use-saved-requests";
 import { useRouteDetails } from "../hooks/use-route-details";
 import { useRouteScan } from "../hooks/use-route-scan";
 
@@ -34,14 +38,56 @@ export function ApiStudioPage({
     projects[0]?.projectPath ??
     "";
   const { saved, loading, scanning, error, scan } = useRouteScan(projectPath);
-  const [selectedRouteId, setSelectedRouteId] = useState<string | null>(null);
   const [editingEnvironment, setEditingEnvironment] = useState(false);
   const routes = saved?.routes ?? [];
   const environment = useApiEnvironment(projectPath, routes);
+  const custom = useCustomCollection(projectPath);
+  const tabs = useRequestTabs(projectPath);
+  const projectRequests = useSavedRequests(projectPath);
+  const active = tabs.active;
+  const activeRouteId = active?.kind === "route" ? active.id : null;
+  const showingExample = Boolean(active?.exampleId);
+  const selectedRouteId = showingExample ? null : activeRouteId;
+  const openRequestId =
+    active?.kind === "custom" && !showingExample ? active.id : null;
+  const openRequest =
+    active?.kind === "custom" ? custom.requestById(active.id) : null;
   const openRoute = useRouteDetails(
     projectPath,
-    routes.find((route) => route.id === selectedRouteId) ?? null
+    routes.find((route) => route.id === activeRouteId) ?? null,
+    saved?.scannedAt ?? null
   );
+  const open = openRequest ? { ...openRequest.route, id: openRequest.id } : openRoute;
+  const examplesOf = (tab: RequestTab) =>
+    tab.kind === "custom"
+      ? (custom.requestById(tab.id)?.examples ?? [])
+      : (projectRequests.saved(tab.id)?.examples ?? []);
+  const openExample =
+    active?.exampleId
+      ? (examplesOf(active).find((example) => example.id === active.exampleId) ?? null)
+      : null;
+  const openExampleOf = active?.exampleId ? { ownerId: active.id, id: active.exampleId } : null;
+  const tabViews = tabs.open.map((tab) => {
+    const request = tab.kind === "custom" ? custom.requestById(tab.id) : null;
+    const route = tab.kind === "route" ? routes.find((entry) => entry.id === tab.id) : null;
+    const example = tab.exampleId
+      ? examplesOf(tab).find((entry) => entry.id === tab.exampleId)
+      : null;
+
+    return {
+      key: tabKey(tab),
+      method: request?.route.method ?? route?.method ?? "GET",
+      label: example?.name ?? request?.name ?? route?.path ?? tab.id
+    };
+  });
+
+  useEffect(() => {
+    tabs.keep((tab) => {
+      if (tab.kind === "custom" && !custom.requestById(tab.id)) return false;
+
+      return !tab.exampleId || examplesOf(tab).some((example) => example.id === tab.exampleId);
+    });
+  }, [custom.collections, projectRequests.saved]);
 
   return (
     <div className="flex h-full min-h-0 flex-col gap-4">
@@ -83,15 +129,43 @@ export function ApiStudioPage({
               scanning={scanning || loading}
               scanError={error}
               hasProject={Boolean(projectPath)}
+              projectPath={projectPath}
               selectedRouteId={selectedRouteId}
-              onSelectRoute={setSelectedRouteId}
+              custom={custom}
+              openRequestId={openRequestId}
+              openExample={openExampleOf}
+              onSelectRoute={(routeId) => tabs.show({ kind: "route", id: routeId })}
+              onOpenRequest={(requestId) => tabs.show({ kind: "custom", id: requestId })}
+              onOpenExample={(requestId, exampleId) =>
+                tabs.show({ kind: "custom", id: requestId, exampleId })
+              }
+              routeExamples={(routeId) => projectRequests.saved(routeId)?.examples ?? []}
+              onOpenRouteExample={(routeId, exampleId) =>
+                tabs.show({ kind: "route", id: routeId, exampleId })
+              }
+              onRemoveRouteExample={projectRequests.forgetExample}
               onSyncProject={onSyncProject}
             />
           }
           second={
             <RequestWorkspace
               projectPath={projectPath}
-              route={openRoute}
+              route={open}
+              store={
+                active?.kind === "custom" ? customRequestStore(custom, projectPath) : projectRequests
+              }
+              inCollection={active?.kind === "custom"}
+              readExampleBody={
+                active?.kind === "custom"
+                  ? (bodyFile) => globalThis.lazify.readApiCollectionBody(projectPath, bodyFile)
+                  : projectRequests.readBody
+              }
+              example={openExample}
+              tabs={tabViews}
+              activeTabKey={tabs.activeKey}
+              onActivateTab={tabs.activate}
+              onCloseTab={tabs.close}
+              onCloseAllTabs={tabs.closeAll}
               variables={environment.variables}
               values={environment.values}
               onOpenEnvironment={() => setEditingEnvironment(true)}
@@ -118,6 +192,9 @@ export function ApiStudioPage({
         onRename={environment.renameEnvironment}
         onChange={environment.updateActive}
         onAddVariable={environment.addVariable}
+        onDuplicateVariable={environment.duplicateVariable}
+        onKeepSecret={environment.keepSecret}
+        onRenameVariable={environment.renameVariable}
         onRemoveVariable={environment.removeVariable}
         onClose={() => setEditingEnvironment(false)}
       />

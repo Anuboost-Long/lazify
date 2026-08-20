@@ -3,12 +3,18 @@ import { useTranslation } from "react-i18next";
 
 import { translation } from "@renderer/i18n/translation";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
-import type { SavedRoute } from "../types";
+import type { OpenExample } from "../custom-collection";
+import type { SavedExample, SavedRoute } from "../types";
+import { ExampleRow } from "./ExampleRow";
 import { RouteRow } from "./RouteRow";
 
 interface RouteListProps {
   routes: SavedRoute[];
   selectedRouteId: string | null;
+  openExample: OpenExample | null;
+  examplesOf: (routeId: string) => SavedExample[];
+  onOpenExample: (routeId: string, exampleId: string) => void;
+  onRemoveExample: (routeId: string, exampleId: string) => void;
   newSince: string | null;
   collapsedFolders: ReadonlySet<string>;
   searching: boolean;
@@ -21,7 +27,14 @@ export function folderNameOf(routePath: string) {
   return firstSegment ?? "";
 }
 
-function groupByResource(routes: SavedRoute[]) {
+export function matchesQuery(route: SavedRoute, query: string) {
+  return [route.method, route.path, route.summary, route.operationId, ...route.tags]
+    .join(" ")
+    .toLowerCase()
+    .includes(query);
+}
+
+export function groupByResource(routes: SavedRoute[]) {
   const groups = new Map<string, SavedRoute[]>();
 
   for (const route of routes) {
@@ -38,6 +51,10 @@ function groupByResource(routes: SavedRoute[]) {
 export function RouteList({
   routes,
   selectedRouteId,
+  openExample,
+  examplesOf,
+  onOpenExample,
+  onRemoveExample,
   newSince,
   collapsedFolders,
   searching,
@@ -85,6 +102,20 @@ export function RouteList({
                     foundByLastScan={Boolean(newSince) && route.firstSeenAt === newSince}
                     onSelect={onSelectRoute}
                   />
+
+                  {examplesOf(route.id).length > 0 ? (
+                    <ul className="ml-6 mt-1 flex flex-col gap-0.5 border-l border-border pl-2.5">
+                      {examplesOf(route.id).map((example) => (
+                        <ExampleRow
+                          key={example.id}
+                          example={example}
+                          open={openExample?.ownerId === route.id && openExample.id === example.id}
+                          onOpen={() => onOpenExample(route.id, example.id)}
+                          onRemove={() => onRemoveExample(route.id, example.id)}
+                        />
+                      ))}
+                    </ul>
+                  ) : null}
                 </li>
               ))}
             </ul>

@@ -14,6 +14,7 @@ interface ScriptsPanelProps {
   scripts: ScriptEditor;
   globalName: string;
   known: SuggestionSource;
+  readOnly?: boolean;
   onGlobalNameChange: (name: string) => void;
 }
 
@@ -31,6 +32,7 @@ export function ScriptsPanel({
   scripts,
   globalName,
   known,
+  readOnly = false,
   onGlobalNameChange
 }: Readonly<ScriptsPanelProps>) {
   const { t } = useTranslation();
@@ -60,7 +62,7 @@ export function ScriptsPanel({
 
   return (
     <div className="flex flex-col gap-3">
-      {pasted ? (
+      {pasted && !readOnly ? (
         <PostmanDialectNotice
           globalName={globalName}
           onSwitch={() => onGlobalNameChange(POSTMAN_GLOBAL)}
@@ -96,6 +98,7 @@ export function ScriptsPanel({
         phase={phase}
         globalName={globalName}
         known={known}
+        readOnly={readOnly}
         onChange={(text) => write(phase, text)}
         onOpenReference={() => setReading(true)}
       />

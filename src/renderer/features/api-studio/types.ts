@@ -27,6 +27,7 @@ export type {
 
 export type {
   ProjectRequests,
+  ExampleRequest,
   SavedExample,
   RequestStorage,
   RequestStore,
@@ -51,4 +52,4 @@ export type {
   RequestBodyInput,
   RequestFieldLocation,
   RequestHeader
-} from "@main/api-studio/runner";
+} from "@main/api-studio/runner/types";

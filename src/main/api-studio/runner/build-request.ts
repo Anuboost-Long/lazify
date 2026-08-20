@@ -41,29 +41,48 @@ export function fieldKey(location: RequestFieldLocation, name: string): string {
   return `${location}:${name}`;
 }
 
-function entered(input: RequestDraftInput, location: RequestFieldLocation, name: string): string {
-  const typed = input.fields[fieldKey(location, name)]?.trim();
-
-  return typed ? interpolate(typed, input.variables, input.values) : "";
+/** A field may be given more than once: the repeats carry `#2`, `#3`, … */
+export function fieldNameOf(key: string, location: RequestFieldLocation): string {
+  return key.slice(location.length + 1).replace(/#\d+$/, "");
 }
 
-/** A variable the user added is theirs to send: every request carries it. */
-function customValues(input: RequestDraftInput): AppliedValue[] {
-  return input.variables.flatMap((variable) => {
-    if (!variable.custom || variable.location === "url") return [];
+export function repeatKey(key: string, taken: Iterable<string>): string {
+  const held = new Set(taken);
+  const base = key.replace(/#\d+$/, "");
 
-    const value = resolveVariable(input.variables, input.values, variable.name);
-    if (!value || !variable.parameterName) return [];
+  for (let index = 2; ; index += 1) {
+    const next = `${base}#${index}`;
 
-    return [
-      {
-        location: variable.location,
-        parameterName: variable.parameterName,
-        authScheme: null,
-        value
-      }
-    ];
-  });
+    if (!held.has(next)) return next;
+  }
+}
+
+function keysFor(
+  fields: Record<string, string>,
+  location: RequestFieldLocation,
+  name: string
+): string[] {
+  const base = fieldKey(location, name);
+
+  return Object.keys(fields)
+    .filter((key) => key === base || key.startsWith(`${base}#`))
+    .sort((left, right) => left.localeCompare(right, undefined, { numeric: true }));
+}
+
+function entered(input: RequestDraftInput, location: RequestFieldLocation, name: string): string {
+  return enteredAll(input, location, name)[0] ?? "";
+}
+
+/** Every value given for one field, in the order the rows were added. */
+function enteredAll(
+  input: RequestDraftInput,
+  location: RequestFieldLocation,
+  name: string
+): string[] {
+  return keysFor(input.fields, location, name)
+    .map((key) => input.fields[key]?.trim())
+    .filter((value): value is string => Boolean(value))
+    .map((value) => interpolate(value, input.variables, input.values));
 }
 
 function securityValues(input: RequestDraftInput): AppliedValue[] {
@@ -104,10 +123,36 @@ function withScheme(scheme: string, value: string) {
   return value.toLowerCase().startsWith(`${scheme.toLowerCase()} `) ? value : `${scheme} ${value}`;
 }
 
+/** Rows the user added themselves, keyed the way a declared field is. */
+export function addedFields(
+  input: Pick<RequestDraftInput, "route" | "fields">,
+  location: RequestFieldLocation
+): Array<{ key: string; name: string; value: string }> {
+  const declared = new Set(
+    location === "header"
+      ? input.route.headers.map((header) => header.name)
+      : (input.route.parameters ?? [])
+          .filter((parameter) => parameter.location === location)
+          .map((parameter) => parameter.name)
+  );
+
+  return Object.entries(input.fields)
+    .filter(([key]) => key.startsWith(`${location}:`))
+    .map(([key, value]) => ({ key, name: fieldNameOf(key, location), value }))
+    .filter((field) => field.name.length > 0 && !declared.has(field.name));
+}
+
 function requestHeaders(input: RequestDraftInput, security: AppliedValue[]): RequestHeader[] {
-  const headers: RequestHeader[] = input.route.headers
-    .map((header) => ({ name: header.name, value: headerValue(input, header) }))
-    .filter((header) => header.value.length > 0);
+  const headers: RequestHeader[] = [
+    ...input.route.headers.map((header) => ({
+      name: header.name,
+      value: headerValue(input, header)
+    })),
+    ...addedFields(input, "header").map((field) => ({
+      name: field.name,
+      value: interpolate(field.value, input.variables, input.values)
+    }))
+  ].filter((header) => header.value.length > 0);
 
   for (const item of security) {
     if (item.location !== "header") continue;
@@ -154,8 +199,15 @@ function queryString(input: RequestDraftInput, security: AppliedValue[]): string
   for (const parameter of input.route.parameters ?? []) {
     if (parameter.location !== "query") continue;
 
-    const value = entered(input, "query", parameter.name);
-    if (value) query.set(parameter.name, value);
+    for (const value of enteredAll(input, "query", parameter.name)) {
+      query.append(parameter.name, value);
+    }
+  }
+
+  for (const field of addedFields(input, "query")) {
+    const value = interpolate(field.value.trim(), input.variables, input.values);
+
+    if (value) query.append(field.name, value);
   }
 
   for (const item of security) {
@@ -184,7 +236,7 @@ function contentTypeHeader(headers: RequestHeader[]): RequestHeader | undefined 
 }
 
 export function buildRequest(input: RequestDraftInput): ApiRequestDraft {
-  const security = [...securityValues(input), ...customValues(input)];
+  const security = securityValues(input);
   const headers = requestHeaders(input, security);
   const body = encodedBody(input);
   const baseUrl =

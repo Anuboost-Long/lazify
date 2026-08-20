@@ -916,3 +916,95 @@ describe("ASP.NET minimal API discovery", () => {
     );
   });
 });
+
+const RETURN_TYPES = `using Microsoft.AspNetCore.Mvc;
+
+namespace Demo.Api.Controllers;
+
+public class SysUserDto
+{
+    public int Id { get; set; }
+    public string UserName { get; set; }
+    public bool IsActive { get; set; }
+}
+
+[ApiController]
+[Route("api/[controller]")]
+public class SysUserController : ControllerBase
+{
+    [HttpGet("{id}")]
+    public async Task<ActionResult<SysUserDto>> GetById(int id) => Ok(null);
+
+    [HttpGet]
+    public async Task<IEnumerable<SysUserDto>> List() => null;
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Remove(int id) => NoContent();
+
+    [HttpPost("count")]
+    public Task<int> Count() => Task.FromResult(0);
+}
+`;
+
+describe("what an action says it returns", () => {
+  it("reads the model out of the return type when nothing is declared", async () => {
+    const result = await scanDotnetProject({ "Controllers/SysUserController.cs": RETURN_TYPES });
+    const byId = result.routes.find((route) => route.path === "/api/SysUser/{id}" && route.method === "GET")!;
+
+    expect(byId.responses).toEqual([
+      {
+        status: "200",
+        description: null,
+        mediaTypes: ["application/json"],
+        example: expect.stringContaining('"userName"')
+      }
+    ]);
+  });
+
+  it("returns a list as a list", async () => {
+    const result = await scanDotnetProject({ "Controllers/SysUserController.cs": RETURN_TYPES });
+    const list = result.routes.find((route) => route.path === "/api/SysUser" && route.method === "GET")!;
+
+    expect(JSON.parse(list.responses[0].example!)).toEqual([
+      expect.objectContaining({ userName: expect.anything() })
+    ]);
+  });
+
+  it("says nothing for a return type that carries no shape", async () => {
+    const result = await scanDotnetProject({ "Controllers/SysUserController.cs": RETURN_TYPES });
+    const removed = result.routes.find((route) => route.method === "DELETE")!;
+    const counted = result.routes.find((route) => route.path === "/api/SysUser/count")!;
+
+    expect(removed.responses).toEqual([]);
+    expect(counted.responses).toEqual([]);
+  });
+
+  it("fills in the body of a status the attributes declared without one", async () => {
+    const result = await scanDotnetProject({
+      "Controllers/DeclaredController.cs": `using Microsoft.AspNetCore.Mvc;
+
+namespace Demo.Api.Controllers;
+
+public class OrderDto
+{
+    public int Id { get; set; }
+}
+
+[ApiController]
+[Route("api/[controller]")]
+public class DeclaredController : ControllerBase
+{
+    [HttpGet]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<OrderDto>> Get() => Ok(null);
+}
+`
+    });
+    const route = result.routes[0];
+
+    expect(route.responses.map((response) => response.status)).toEqual(["200", "404"]);
+    expect(route.responses[0].example).toContain('"id"');
+    expect(route.responses[1].example).toBeNull();
+  });
+});

@@ -195,6 +195,7 @@ describe("exporting a collection Postman can read", () => {
           {
             id: "example-1",
             name: "200 OK",
+            request: null,
             status: 200,
             statusText: "OK",
             durationMs: 12,

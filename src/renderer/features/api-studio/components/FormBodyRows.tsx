@@ -7,6 +7,7 @@ import type { FormEntry } from "../types";
 
 interface FormBodyRowsProps {
   entries: FormEntry[];
+  readOnly?: boolean;
   onChange: (entries: FormEntry[]) => void;
 }
 
@@ -17,7 +18,11 @@ const INPUT_CLASS = clsx(
 
 const fileName = (value: string) => value.split(/[\\/]/).pop() ?? value;
 
-export function FormBodyRows({ entries, onChange }: Readonly<FormBodyRowsProps>) {
+export function FormBodyRows({
+  entries,
+  readOnly = false,
+  onChange
+}: Readonly<FormBodyRowsProps>) {
   const { t } = useTranslation();
 
   const replace = (index: number, entry: Partial<FormEntry>) =>
@@ -38,6 +43,7 @@ export function FormBodyRows({ entries, onChange }: Readonly<FormBodyRowsProps>)
         <div key={index} className="flex items-center gap-2">
           <input
             value={entry.name}
+            readOnly={readOnly}
             spellCheck={false}
             autoComplete="off"
             aria-label={t(translation.ApiStudio.FieldName)}
@@ -49,6 +55,7 @@ export function FormBodyRows({ entries, onChange }: Readonly<FormBodyRowsProps>)
           {entry.kind === "file" ? (
             <button
               type="button"
+              disabled={readOnly}
               onClick={() => chooseFile(index)}
               title={entry.value}
               aria-label={t(translation.ApiStudio.FieldValue)}
@@ -65,6 +72,7 @@ export function FormBodyRows({ entries, onChange }: Readonly<FormBodyRowsProps>)
           ) : (
             <input
               value={entry.value}
+              readOnly={readOnly}
               spellCheck={false}
               autoComplete="off"
               aria-label={t(translation.ApiStudio.FieldValue)}
@@ -76,6 +84,7 @@ export function FormBodyRows({ entries, onChange }: Readonly<FormBodyRowsProps>)
 
           <button
             type="button"
+            hidden={readOnly}
             aria-pressed={entry.kind === "file"}
             title={t(translation.ApiStudio.SendAsFile)}
             aria-label={`${t(translation.ApiStudio.SendAsFile)} ${entry.name || index + 1}`}
@@ -96,6 +105,7 @@ export function FormBodyRows({ entries, onChange }: Readonly<FormBodyRowsProps>)
 
           <button
             type="button"
+            hidden={readOnly}
             title={t(translation.ApiStudio.RemoveField)}
             aria-label={t(translation.ApiStudio.RemoveField)}
             onClick={() => onChange(entries.filter((_, at) => at !== index))}
@@ -108,6 +118,7 @@ export function FormBodyRows({ entries, onChange }: Readonly<FormBodyRowsProps>)
 
       <button
         type="button"
+        hidden={readOnly}
         onClick={() => onChange([...entries, { name: "", value: "", kind: "text" }])}
         className={clsx(
           "flex h-8 w-fit items-center gap-1.5 rounded-lg border border-dashed border-border",

@@ -1,9 +1,17 @@
 import { dialog, ipcMain } from "electron";
 import path from "node:path";
 
-import { exportPostmanCollection } from "../api-studio/export";
+import { exportCustomCollection, exportPostmanCollection } from "../api-studio/export";
+import fs from "node:fs/promises";
+import { shell } from "electron";
 import { logWarn } from "../diagnostics/logger";
 import { readEnvironments, saveEnvironments } from "../api-studio/environment-store";
+import {
+  readCollectionBody,
+  readCustomCollections,
+  saveCustomCollections
+} from "../api-studio/custom-collections";
+import type { CustomCollection } from "../api-studio/custom-collections";
 import {
   collectEveryProject,
   collectExpiredResponses,
@@ -90,6 +98,47 @@ export function registerApiStudioHandlers(ctx?: IpcContext) {
     return exportPostmanCollection(projectPath, result.filePath);
   });
 
+  ipcMain.handle(
+    "lazify:export-custom-collection",
+    async (_event, projectPath: string, collectionId: string, collectionName: string) => {
+      const options = {
+        title: "Where should the collection go?",
+        defaultPath: `${collectionName || "collection"}.postman_collection.json`,
+        filters: [{ name: "Postman Collection", extensions: ["json"] }]
+      };
+
+      const result = ctx?.mainWindow
+        ? await dialog.showSaveDialog(ctx.mainWindow, options)
+        : await dialog.showSaveDialog(options);
+
+      if (result.canceled || !result.filePath) return null;
+
+      return exportCustomCollection(projectPath, collectionId, result.filePath);
+    }
+  );
+
+  ipcMain.handle(
+    "lazify:save-response-file",
+    async (_event, filePath: string, suggestedName: string) => {
+      const options = { title: "Where should the file go?", defaultPath: suggestedName };
+      const result = ctx?.mainWindow
+        ? await dialog.showSaveDialog(ctx.mainWindow, options)
+        : await dialog.showSaveDialog(options);
+
+      if (result.canceled || !result.filePath) return null;
+
+      await fs.copyFile(filePath, result.filePath);
+
+      return result.filePath;
+    }
+  );
+
+  ipcMain.handle("lazify:open-response-file", async (_event, filePath: string) => {
+    const failure = await shell.openPath(filePath);
+
+    return failure.length > 0 ? failure : null;
+  });
+
   ipcMain.handle("lazify:send-api-request", async (_event, draft: ApiRequestDraft) =>
     sendApiRequest(draft)
   );
@@ -140,6 +189,22 @@ export function registerApiStudioHandlers(ctx?: IpcContext) {
     "lazify:read-api-response-body",
     async (_event, projectPath: string, bodyFile: string) =>
       readResponseBody(projectPath, bodyFile)
+  );
+
+  ipcMain.handle("lazify:read-api-collections", async (_event, projectPath: string) =>
+    readCustomCollections(projectPath)
+  );
+
+  ipcMain.handle(
+    "lazify:save-api-collections",
+    async (_event, projectPath: string, collections: CustomCollection[]) =>
+      saveCustomCollections(projectPath, collections)
+  );
+
+  ipcMain.handle(
+    "lazify:read-api-collection-body",
+    async (_event, projectPath: string, bodyFile: string) =>
+      readCollectionBody(projectPath, bodyFile)
   );
 
   ipcMain.handle(

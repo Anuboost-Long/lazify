@@ -123,7 +123,13 @@ export const saveApiRequest = vi.fn();
 export const forgetApiRequest = vi.fn();
 export const setApiRequestStorage = vi.fn();
 export const readApiResponseBody = vi.fn();
+export const readApiCollections = vi.fn();
+export const readApiCollectionBody = vi.fn();
+export const saveApiCollections = vi.fn();
 export const exportPostmanCollection = vi.fn();
+export const exportCustomCollection = vi.fn();
+export const saveResponseFile = vi.fn();
+export const openResponseFile = vi.fn();
 export const chooseUploadFile = vi.fn();
 
 beforeEach(() => {
@@ -166,8 +172,22 @@ beforeEach(() => {
   setApiRequestStorage.mockReset();
   readApiResponseBody.mockReset();
   readApiResponseBody.mockResolvedValue("");
+  readApiCollections.mockReset();
+  readApiCollections.mockResolvedValue([]);
+  readApiCollectionBody.mockReset();
+  readApiCollectionBody.mockResolvedValue("");
+  saveApiCollections.mockReset();
+  saveApiCollections.mockImplementation((_project: string, collections: unknown) =>
+    Promise.resolve(collections)
+  );
   exportPostmanCollection.mockReset();
   exportPostmanCollection.mockResolvedValue({ filePath: "/tmp/demo.json", routes: 1 });
+  exportCustomCollection.mockReset();
+  exportCustomCollection.mockResolvedValue({ filePath: "/tmp/kept.json", routes: 1 });
+  saveResponseFile.mockReset();
+  saveResponseFile.mockResolvedValue("/Users/ada/Downloads/policy.pdf");
+  openResponseFile.mockReset();
+  openResponseFile.mockResolvedValue(null);
   chooseUploadFile.mockReset();
   chooseUploadFile.mockResolvedValue("/Users/ada/Pictures/avatar.png");
   setApiRequestStorage.mockResolvedValue({ location: "project", requests: {} });
@@ -188,6 +208,7 @@ beforeEach(() => {
   readApiEnvironments.mockResolvedValue({
     activeId: "local",
     variables: [],
+    names: {},
     environments: [
       { id: "local", name: "Local", values: { baseUrl: "http://localhost:5000" } },
       { id: "staging", name: "Staging", values: { baseUrl: "https://staging.example.com" } }
@@ -214,7 +235,13 @@ beforeEach(() => {
       forgetApiRequest,
       setApiRequestStorage,
       readApiResponseBody,
+      readApiCollections,
+      readApiCollectionBody,
+      saveApiCollections,
       exportPostmanCollection,
+      exportCustomCollection,
+      saveResponseFile,
+      openResponseFile,
       chooseUploadFile
     }
   });

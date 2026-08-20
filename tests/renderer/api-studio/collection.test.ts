@@ -14,9 +14,48 @@ vi.mock("react-i18next", async (importOriginal) => ({
   })
 }));
 
-import { ApiStudioPage, PROJECT, project, readProjectRoutes, renderPage, route, scanProjectRoutes, scanResult } from "./harness";
+import { ApiStudioPage, PROJECT, project, readProjectRoutes, readRouteDetails, renderPage, route, scanProjectRoutes, scanResult } from "./harness";
 
 describe("the route collection API Studio builds", () => {
+  it("reads a route's details again once the project has been rescanned", async () => {
+    readProjectRoutes.mockResolvedValue(scanResult());
+    readRouteDetails.mockResolvedValue([
+      { id: "route_1", description: null, parameters: [], requestBody: null, responses: [] }
+    ]);
+    scanProjectRoutes.mockResolvedValue(
+      scanResult({ scannedAt: "2026-08-20T10:00:00.000Z" })
+    );
+    renderPage();
+
+    await userEvent.click(await screen.findByText("/users/{id}"));
+    await waitFor(() => expect(readRouteDetails).toHaveBeenCalledTimes(1));
+
+    readRouteDetails.mockResolvedValue([
+      {
+        id: "route_1",
+        description: null,
+        parameters: [
+          {
+            name: "tenant",
+            location: "query",
+            required: false,
+            description: null,
+            schemaType: "string",
+            example: null
+          }
+        ],
+        requestBody: null,
+        responses: []
+      }
+    ]);
+
+    await userEvent.click(screen.getByRole("button", { name: /scan_routes/i }));
+
+    await waitFor(() => expect(readRouteDetails).toHaveBeenCalledTimes(2));
+
+    expect(await screen.findByText("tenant")).toBeTruthy();
+  });
+
   it("asks main to scan the open project and lists what came back", async () => {
     scanProjectRoutes.mockResolvedValue(scanResult());
     renderPage();

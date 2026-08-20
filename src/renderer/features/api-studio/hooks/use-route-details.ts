@@ -8,12 +8,16 @@ import type { SavedRoute, SavedRouteSummary } from "../types";
  * A collection lists from the index alone, so parameters, bodies and responses
  * arrive only for the folder a user actually opens, and stay for the session.
  */
-export function useRouteDetails(projectPath: string, route: SavedRouteSummary | null) {
+export function useRouteDetails(
+  projectPath: string,
+  route: SavedRouteSummary | null,
+  scannedAt: string | null
+) {
   const [loadedFolders, setLoadedFolders] = useState<Record<string, SavedRoute[]>>({});
 
   useEffect(() => {
     setLoadedFolders({});
-  }, [projectPath]);
+  }, [projectPath, scannedAt]);
 
   const folder = route?.folder ?? null;
   const loaded = folder ? loadedFolders[folder] : undefined;

@@ -14,6 +14,112 @@ vi.mock("react-i18next", async (importOriginal) => ({
 
 import { PROJECT, SCHEMA_BODY, allowApiHost, postRoute, project, readApiEnvironments, readAllowedHosts, readApiRequests, readProjectRoutes, renderPage, responseBody, route, saveApiEnvironments, saveApiRequest, scanProjectRoutes, scanResult, sendApiRequest, setApiRequestStorage } from "./harness";
 
+describe("the fields a request carries", () => {
+  it("adds a query parameter the scan never saw, names it, and sends it", async () => {
+    readProjectRoutes.mockResolvedValue(scanResult());
+    renderPage();
+
+    await userEvent.click(await screen.findByText("/users/{id}"));
+    await userEvent.click(screen.getByRole("button", { name: /api_studio\.add_field/i }));
+
+    const name = screen.getByLabelText(/api_studio\.field_name/i);
+
+    await userEvent.clear(name);
+    await userEvent.type(name, "tenant{Enter}");
+    await userEvent.type(screen.getByLabelText("tenant"), "acme");
+    await userEvent.type(screen.getByLabelText(/^id/), "42");
+    await userEvent.click(screen.getByRole("button", { name: /api_studio\.send$/i }));
+
+    await waitFor(() =>
+      expect(sendApiRequest).toHaveBeenCalledWith(
+        expect.objectContaining({ url: "http://localhost:5000/users/42?tenant=acme" })
+      )
+    );
+  });
+
+  it("takes an added row back out, and leaves the declared ones alone", async () => {
+    readProjectRoutes.mockResolvedValue(scanResult());
+    renderPage();
+
+    await userEvent.click(await screen.findByText("/users/{id}"));
+    await userEvent.click(screen.getByRole("button", { name: /api_studio\.add_field/i }));
+    await userEvent.type(screen.getByLabelText(/api_studio\.field_name/i), "{Escape}");
+
+    expect(screen.getByRole("button", { name: /api_studio\.row_options param1/i })).toBeTruthy();
+
+    await userEvent.click(screen.getByRole("button", { name: /api_studio\.row_options param1/i }));
+    await userEvent.click(
+      await screen.findByRole("menuitem", { name: /api_studio\.remove_field/i })
+    );
+
+    expect(screen.queryByLabelText("param1")).toBeNull();
+    expect(screen.getByLabelText(/^id/)).toBeTruthy();
+  });
+
+  it("gives a list parameter a row for each value, and sends them all", async () => {
+    readProjectRoutes.mockResolvedValue(
+      scanResult({
+        routes: [
+          route({
+            path: "/packages",
+            parameters: [
+              {
+                name: "filterValues",
+                location: "query",
+                required: false,
+                description: null,
+                schemaType: "List<string>",
+                example: null
+              }
+            ]
+          })
+        ]
+      })
+    );
+    renderPage();
+
+    await userEvent.click(await screen.findByText("/packages"));
+    await userEvent.type(screen.getByLabelText("filterValues"), "RTGI001");
+    await userEvent.click(
+      screen.getByRole("button", { name: /api_studio\.row_options filterValues/i })
+    );
+    await userEvent.click(
+      await screen.findByRole("menuitem", { name: /api_studio\.add_another_value/i })
+    );
+
+    const rows = screen.getAllByLabelText("filterValues");
+
+    expect(rows).toHaveLength(2);
+
+    await userEvent.type(rows[1], "RTGI002");
+    await userEvent.click(screen.getByRole("button", { name: /api_studio\.send$/i }));
+
+    await waitFor(() =>
+      expect(sendApiRequest).toHaveBeenCalledWith(
+        expect.objectContaining({
+          url: "http://localhost:5000/packages?filterValues=RTGI001&filterValues=RTGI002"
+        })
+      )
+    );
+  });
+
+  it("keeps a declared parameter out of the user's hands", async () => {
+    readProjectRoutes.mockResolvedValue(scanResult());
+    renderPage();
+
+    await userEvent.click(await screen.findByText("/users/{id}"));
+
+    await userEvent.click(screen.getByRole("button", { name: /api_studio\.row_options id/i }));
+
+    expect(
+      screen.queryByRole("menuitem", { name: /api_studio\.remove_field/i })
+    ).toBeNull();
+    expect(
+      await screen.findByRole("menuitem", { name: /api_studio\.add_another_value/i })
+    ).toBeTruthy();
+  });
+});
+
 describe("building and sending a request", () => {
   it("sends the request to whichever environment is chosen", async () => {
     readProjectRoutes.mockResolvedValue(scanResult());
@@ -247,43 +353,41 @@ describe("building and sending a request", () => {
     );
   });
 
-  it("lets a user add a value the scan could not see, and sends it", async () => {
+  it("declares a value the scan could not see, for the user to place", async () => {
     readProjectRoutes.mockResolvedValue(scanResult());
     renderPage();
 
     await userEvent.click(await screen.findByText("/users/{id}"));
     await userEvent.click(screen.getByRole("button", { name: /api_studio\.environment$/i }));
-    await userEvent.type(
-      screen.getByLabelText(/api_studio\.variable_parameter/i),
-      "X-Client-Key"
-    );
-    await userEvent.click(screen.getByRole("button", { name: /api_studio\.add_variable/i }));
+    await userEvent.click(screen.getByRole("button", { name: /api_studio\.new_variable$/i }));
+
+    const field = screen.getByLabelText(/api_studio\.variable_name/i);
+
+    await userEvent.clear(field);
+    await userEvent.type(field, "clientKey{Enter}");
 
     await waitFor(() =>
-      expect(saveApiEnvironments).toHaveBeenCalledWith(
+      expect(saveApiEnvironments).toHaveBeenLastCalledWith(
         PROJECT,
         expect.objectContaining({
-          variables: [
-            { name: "xClientKey", parameterName: "X-Client-Key", location: "header", secret: true }
-          ]
+          variables: [expect.objectContaining({ name: "clientKey", secret: false })]
         }),
-        expect.arrayContaining(["xClientKey"])
+        expect.any(Array)
       )
     );
   });
 
-  it("takes a value the user added back out, along with what was typed into it", async () => {
+  it("takes a declared value back out, along with what was typed into it", async () => {
     readProjectRoutes.mockResolvedValue(scanResult());
     readApiEnvironments.mockResolvedValue({
       activeId: "local",
-      variables: [
-        { name: "xClientKey", parameterName: "X-Client-Key", location: "header", secret: true }
-      ],
+      names: {},
+      variables: [{ key: "custom-1", name: "clientKey", secret: true }],
       environments: [
         {
           id: "local",
           name: "Local",
-          values: { baseUrl: "http://localhost:5000", xClientKey: "k-1" }
+          values: { baseUrl: "http://localhost:5000", clientKey: "k-1" }
         }
       ]
     });
@@ -292,7 +396,10 @@ describe("building and sending a request", () => {
     await userEvent.click(await screen.findByText("/users/{id}"));
     await userEvent.click(screen.getByRole("button", { name: /api_studio\.environment$/i }));
     await userEvent.click(
-      await screen.findByRole("button", { name: /api_studio\.remove_variable xClientKey/i })
+      await screen.findByRole("button", { name: /api_studio\.variable_options clientKey/i })
+    );
+    await userEvent.click(
+      await screen.findByRole("menuitem", { name: /api_studio\.remove_variable/i })
     );
 
     await waitFor(() =>
@@ -300,13 +407,14 @@ describe("building and sending a request", () => {
         PROJECT,
         expect.objectContaining({
           variables: [],
-          environments: [expect.objectContaining({ values: { baseUrl: "http://localhost:5000" } })]
+          environments: [
+            expect.objectContaining({ values: { baseUrl: "http://localhost:5000" } })
+          ]
         }),
         expect.any(Array)
       )
     );
   });
-
   it("asks where saved requests belong the first time one is saved", async () => {
     readProjectRoutes.mockResolvedValue(scanResult({ routes: [postRoute()] }));
     readApiRequests.mockResolvedValue({ location: null, requests: {} });

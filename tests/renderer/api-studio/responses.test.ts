@@ -12,7 +12,68 @@ vi.mock("react-i18next", async (importOriginal) => ({
   })
 }));
 
-import { PROJECT, exportPostmanCollection, postRoute, project, readApiRequests, readApiResponseBody, readProjectRoutes, readRouteDetails, renderPage, responseBody, route, saveApiRequest, scanResult, sendApiRequest } from "./harness";
+import { PROJECT, exportPostmanCollection, postRoute, project, readApiRequests, readApiResponseBody, readProjectRoutes, readRouteDetails, renderPage, responseBody, route, saveApiRequest, scanResult, sendApiRequest , saveResponseFile, openResponseFile } from "./harness";
+
+describe("a response that came back as a file", () => {
+  it("offers to keep it rather than showing bytes as text", async () => {
+    sendApiRequest.mockResolvedValue({
+      ok: true,
+      response: {
+        status: 200,
+        statusText: "OK",
+        durationMs: 32,
+        headers: [{ name: "content-type", value: "application/pdf" }],
+        mediaType: "application/pdf",
+        body: "",
+        bodyBytes: 51_200,
+        truncated: false,
+        file: { path: "/tmp/lazify/1-policy.pdf", name: "policy.pdf" }
+      }
+    });
+    readProjectRoutes.mockResolvedValue(scanResult());
+    renderPage();
+
+    await userEvent.click(await screen.findByText("/users/{id}"));
+    await userEvent.click(screen.getByRole("button", { name: /api_studio\.send$/i }));
+
+    expect(await screen.findByText("policy.pdf")).toBeTruthy();
+    expect(screen.getByText(/application\/pdf · 50\.0 KB/)).toBeTruthy();
+    expect(screen.queryByText(/api_studio\.no_response_body/i)).toBeNull();
+
+    await userEvent.click(screen.getByRole("button", { name: /api_studio\.save_file/i }));
+
+    await waitFor(() =>
+      expect(saveResponseFile).toHaveBeenCalledWith("/tmp/lazify/1-policy.pdf", "policy.pdf")
+    );
+    expect(await screen.findByText(/api_studio\.file_saved_to/i)).toBeTruthy();
+  });
+
+  it("says so when the file is no longer where it was kept", async () => {
+    openResponseFile.mockResolvedValue("no such file");
+    sendApiRequest.mockResolvedValue({
+      ok: true,
+      response: {
+        status: 200,
+        statusText: "OK",
+        durationMs: 12,
+        headers: [],
+        mediaType: "application/zip",
+        body: "",
+        bodyBytes: 10,
+        truncated: false,
+        file: { path: "/tmp/lazify/gone.zip", name: "gone.zip" }
+      }
+    });
+    readProjectRoutes.mockResolvedValue(scanResult());
+    renderPage();
+
+    await userEvent.click(await screen.findByText("/users/{id}"));
+    await userEvent.click(screen.getByRole("button", { name: /api_studio\.send$/i }));
+    await userEvent.click(await screen.findByRole("button", { name: /api_studio\.open_file/i }));
+
+    expect(await screen.findByText(/api_studio\.file_gone/i)).toBeTruthy();
+  });
+});
 
 describe("reading a response", () => {
   it("shows the response it kept from the last run", async () => {
@@ -171,10 +232,13 @@ describe("reading a response", () => {
     );
 
     await userEvent.click(
-      screen.getByRole("button", { name: /api_studio\.remove_example 200 OK/i })
+      screen.getByRole("button", { name: /api_studio\.row_options 200 OK/i })
+    );
+    await userEvent.click(
+      await screen.findByRole("menuitem", { name: /api_studio\.remove_example/i })
     );
 
-    expect(screen.queryByRole("button", { name: "200 OK" })).toBeNull();
+    await waitFor(() => expect(screen.queryByRole("button", { name: "200 OK" })).toBeNull());
   });
 
   it("formats a body its media type never claimed was JSON, and hands back the raw one", async () => {

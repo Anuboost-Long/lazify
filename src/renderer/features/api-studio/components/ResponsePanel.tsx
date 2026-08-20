@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 
 import { translation } from "@renderer/i18n/translation";
 import { CodeSurface } from "@renderer/shared/ui/code/CodeSurface";
+import { ResponseFileCard } from "./ResponseFileCard";
 import type { ApiResponseSummary, ApiSendOutcome } from "../types";
 
 interface ResponsePanelProps {
@@ -199,11 +200,19 @@ export function ResponsePanel({ outcome, restoredAt, sending }: Readonly<Respons
       <div
         className={clsx(
           "min-h-0 min-w-0 flex-1",
-          tab === "body" && body ? null : "overflow-y-auto overflow-x-hidden px-4 pb-3"
+          tab === "body" && body && !outcome.response.file
+            ? null
+            : "overflow-y-auto overflow-x-hidden px-4 pb-3"
         )}
       >
         {tab === "body" ? (
-          body ? (
+          outcome.response.file ? (
+            <ResponseFileCard
+              file={outcome.response.file}
+              mediaType={outcome.response.mediaType}
+              size={readableSize(outcome.response.bodyBytes)}
+            />
+          ) : body ? (
             /** The editor's own surface: the code theme a user chose applies here too. */
             <CodeSurface
               variant="flush"

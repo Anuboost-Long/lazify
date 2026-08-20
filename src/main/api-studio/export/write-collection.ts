@@ -1,7 +1,11 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 
-import { deriveEnvironmentVariables, withCustomVariables } from "../environment";
+import {
+  deriveEnvironmentVariables,
+  withCustomVariables,
+  withVariableNames
+} from "../environment";
 import { readEnvironments } from "../environment-store";
 import { readRequests } from "../request-store";
 import { readRouteDetails, readRouteScan } from "../route-cache";
@@ -43,7 +47,10 @@ export async function exportPostmanCollection(
   const collection = buildPostmanCollection(
     path.basename(path.resolve(projectPath)),
     routes,
-    withCustomVariables(deriveEnvironmentVariables(routes), environments.variables),
+    withVariableNames(
+      withCustomVariables(deriveEnvironmentVariables(routes), environments.variables),
+      environments.names
+    ),
     active?.values ?? {},
     readRequests(projectPath).requests
   );

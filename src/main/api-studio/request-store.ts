@@ -11,8 +11,9 @@ import {
   readBody,
   writeBody
 } from "./response-bodies";
-import type { ApiResponseSummary, BodyMode, FormEntry } from "./runner";
+import type { ApiRequestDraft, ApiResponseSummary, BodyMode, FormEntry } from "./runner";
 import { EMPTY_SCRIPTS, type RouteScripts } from "./scripting/types";
+import type { SavedRoute } from "./types";
 
 const APP_STORE_FILE = "api-studio-requests.json";
 const PROJECT_STORE_FILE = path.join(".lazify", "api-studio", "requests.json");
@@ -29,10 +30,27 @@ export interface SavedResponse extends ApiResponseSummary {
   bodyFile?: string;
 }
 
-/** A response a user chose to keep, the way a collection keeps an example. */
+export interface ExampleRequest extends ApiRequestDraft {
+  route: SavedRoute;
+  baseUrl: string;
+  fields: Record<string, string>;
+  mode: BodyMode;
+  json: string;
+  entries: FormEntry[];
+  scripts: RouteScripts;
+}
+
+/** A response a user chose to keep, with the request that produced it. */
 export interface SavedExample extends SavedResponse {
   id: string;
   name: string;
+  request: ExampleRequest | null;
+}
+
+export function normalizedExamples(examples: SavedExample[] | undefined): SavedExample[] {
+  return (examples ?? [])
+    .filter((example) => example?.id)
+    .map((example) => ({ ...example, request: example.request ?? null }));
 }
 
 export interface SavedRequest {
@@ -111,7 +129,7 @@ function normalized(requests: ProjectRequests | undefined): ProjectRequests {
           post: request?.scripts?.post ?? EMPTY_SCRIPTS.post
         },
         response: request?.response ?? null,
-        examples: request?.examples ?? [],
+        examples: normalizedExamples(request?.examples),
         savedAt: request?.savedAt ?? new Date(0).toISOString()
       }
     ])

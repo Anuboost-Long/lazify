@@ -7,18 +7,21 @@ import { getWorkspaceFileRoute } from "@renderer/app/app-routes";
 import { useInterfaceSettings } from "@renderer/shared/hooks/use-interface-settings";
 
 import { BASE_URL_VARIABLE, resolveVariable } from "@main/api-studio/environment";
-import { hostOf } from "@main/api-studio/runner";
+import { hostOf } from "@main/api-studio/runner/build-request";
 import { translation } from "@renderer/i18n/translation";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import { SplitPane } from "@renderer/shared/ui/split/SplitPane";
 import { useRequestDraft } from "../hooks/use-request-draft";
+import type { SavedRequestStore } from "../hooks/use-saved-requests";
 import { useScriptSettings } from "../hooks/use-script-settings";
-import type { ApiVariable, SavedRoute } from "../types";
+import type { ApiVariable, SavedExample, SavedRoute } from "../types";
 import { RequestDetails, type RequestTab } from "./RequestDetails";
 import { RequestHeader } from "./RequestHeader";
+import { ExamplePane } from "./ExamplePane";
 import { RequestSummary } from "./RequestSummary";
+import { RequestTabs } from "./RequestTabs";
+import { RequestTabBar, type RequestTabView } from "./RequestTabBar";
 import { SelectRouteEmptyState } from "./SelectRouteEmptyState";
-import { ResponseExamples } from "./ResponseExamples";
 import { ResponseHeader } from "./ResponseHeader";
 import { RemoteSendModal } from "./RemoteSendModal";
 import { RequestStorageModal } from "./RequestStorageModal";
@@ -28,52 +31,19 @@ import { ScriptResults } from "./ScriptResults";
 interface RequestWorkspaceProps {
   projectPath: string;
   route: SavedRoute | null;
+  store: SavedRequestStore;
+  inCollection: boolean;
+  readExampleBody: (bodyFile: string) => Promise<string>;
+  tabs: RequestTabView[];
+  activeTabKey: string | null;
+  example: SavedExample | null;
+  onActivateTab: (key: string) => void;
+  onCloseTab: (key: string) => void;
+  onCloseAllTabs: () => void;
   variables: ApiVariable[];
   values: Record<string, string>;
   onOpenEnvironment: () => void;
   onValuesChange: (values: Record<string, string>) => void;
-}
-
-interface WorkspaceTab {
-  id: RequestTab;
-  label: string;
-  count: number | null;
-  marked: boolean;
-}
-
-function tabsFor(route: SavedRoute, scripts: { pre: string; post: string }): WorkspaceTab[] {
-  return [
-    {
-      id: "params",
-      label: translation.ApiStudio.Params,
-      count: route.parameters?.length ?? 0,
-      marked: false
-    },
-    {
-      id: "headers",
-      label: translation.ApiStudio.Headers,
-      count: route.headers.length,
-      marked: false
-    },
-    {
-      id: "body",
-      label: translation.ApiStudio.Body,
-      count: route.requestBody?.variants.length ?? 0,
-      marked: false
-    },
-    {
-      id: "scripts",
-      label: translation.ApiStudio.Scripts,
-      count: null,
-      marked: Boolean(scripts.pre.trim() || scripts.post.trim())
-    },
-    {
-      id: "responses",
-      label: translation.ApiStudio.Responses,
-      count: route.responses?.length ?? 0,
-      marked: false
-    }
-  ];
 }
 
 function declaredResponseBody(route: SavedRoute | null): string | null {
@@ -103,6 +73,15 @@ const RESPONSE_OPEN_KEY = "lazify-api-studio-response-open";
 export function RequestWorkspace({
   projectPath,
   route,
+  store,
+  inCollection,
+  readExampleBody,
+  tabs,
+  activeTabKey,
+  example,
+  onActivateTab,
+  onCloseTab,
+  onCloseAllTabs,
   variables,
   values,
   onOpenEnvironment,
@@ -112,7 +91,6 @@ export function RequestWorkspace({
   const navigate = useNavigate();
   const { fileOpensIn, editorCommand } = useInterfaceSettings();
   const [tab, setTab] = useState<RequestTab>("params");
-  const [exporting, setExporting] = useState(false);
   const [responseOpen, setResponseOpen] = useState(
     () => globalThis.localStorage?.getItem(RESPONSE_OPEN_KEY) !== "false"
   );
@@ -123,7 +101,8 @@ export function RequestWorkspace({
     variables,
     values,
     onValuesChange,
-    scriptSettings.globalName
+    scriptSettings.globalName,
+    store
   );
   const baseUrl = (resolveVariable(variables, values, BASE_URL_VARIABLE) ?? "").replace(/\/+$/, "");
   const scriptKnowledge = useMemo(
@@ -138,15 +117,6 @@ export function RequestWorkspace({
     }),
     [request.outcome, route, variables, values]
   );
-
-  const exportCollection = () => {
-    setExporting(true);
-
-    void globalThis.lazify
-      .exportPostmanCollection(projectPath)
-      .catch(() => null)
-      .finally(() => setExporting(false));
-  };
 
   const showResponse = (open: boolean) => {
     globalThis.localStorage?.setItem(RESPONSE_OPEN_KEY, String(open));
@@ -174,11 +144,54 @@ export function RequestWorkspace({
     });
   };
 
+  useEffect(() => {
+    const saveOnKey = (event: KeyboardEvent) => {
+      if (event.key !== "s" || !(event.metaKey || event.ctrlKey)) return;
+
+      event.preventDefault();
+      request.save();
+    };
+
+    globalThis.addEventListener("keydown", saveOnKey);
+
+    return () => globalThis.removeEventListener("keydown", saveOnKey);
+  }, [request.save]);
+
+  const tabBar = (
+    <RequestTabBar
+      tabs={tabs}
+      activeKey={activeTabKey}
+      unsaved={request.unsaved}
+      onActivate={onActivateTab}
+      onClose={onCloseTab}
+      onCloseAll={onCloseAllTabs}
+    />
+  );
+
+  if (example) {
+    return (
+      <div className="flex h-full min-h-0 flex-col">
+        {tabBar}
+        <ExamplePane
+          example={example}
+          scriptGlobal={scriptSettings.globalName}
+          readBody={readExampleBody}
+          onOpenSource={(kept) => openSource(kept.route)}
+        />
+      </div>
+    );
+  }
+
   const requestPane = (
     <section className="flex h-full min-h-0 flex-col">
+        {tabBar}
+
         <RequestHeader
           storageLocation={request.storage.location}
+          inCollection={inCollection}
+          unsaved={request.unsaved}
           sending={request.sending}
+          onSave={request.save}
           sendable={Boolean(route && baseUrl)}
           hasBaseUrl={Boolean(baseUrl)}
           onOpenStorage={request.storage.ask}
@@ -197,34 +210,19 @@ export function RequestWorkspace({
               onOpenSource={() => openSource(route)}
             />
 
-            <div className="flex border-b border-border px-4">
-              {tabsFor(route, request.scripts).map((requestTab) => (
-                <button
-                  key={requestTab.id}
-                  type="button"
-                  onClick={() => setTab(requestTab.id)}
-                  className={clsx(
-                    "flex items-center gap-1.5 border-b-2 px-3 py-2.5 text-xs font-medium",
-                    "transition-colors",
-                    tab === requestTab.id
-                      ? "border-accent text-text"
-                      : "border-transparent text-muted hover:text-text"
-                  )}
-                >
-                  {t(requestTab.label)}
-                  {requestTab.count ? (
-                    <span className="rounded-full bg-text/[0.06] px-1.5 text-[10px] text-muted">
-                      {requestTab.count}
-                    </span>
-                  ) : null}
-                  {requestTab.marked ? (
-                    <span className="size-1.5 rounded-full bg-accent" aria-hidden />
-                  ) : null}
-                </button>
-              ))}
-            </div>
+            <RequestTabs
+              route={route}
+              scripts={request.scripts}
+              active={tab}
+              onSelect={setTab}
+            />
 
-            <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
+            <div
+              className={clsx(
+                "flex min-h-0 flex-1 flex-col px-4 py-3",
+                tab === "body" ? "overflow-hidden" : "overflow-y-auto"
+              )}
+            >
               <RequestDetails
                 route={route}
                 tab={tab}
@@ -233,6 +231,10 @@ export function RequestWorkspace({
                 scripts={request.scripts}
                 scriptGlobal={scriptSettings.globalName}
                 known={scriptKnowledge}
+                onAddField={request.addField}
+                onRepeatField={request.repeatField}
+                onRenameField={request.renameField}
+                onRemoveField={request.removeField}
                 onScriptGlobalChange={scriptSettings.setGlobalName}
                 onFieldChange={request.setField}
               />
@@ -249,17 +251,8 @@ export function RequestWorkspace({
       <ResponseHeader
         open
         canSave={request.examples.canSave}
-        canExport={Boolean(projectPath)}
-        exporting={exporting}
         onToggle={() => showResponse(false)}
         onSave={request.examples.save}
-        onExport={exportCollection}
-      />
-      <ResponseExamples
-        examples={request.examples.saved}
-        viewingId={request.examples.viewingId}
-        onView={request.examples.view}
-        onRemove={request.examples.remove}
       />
       <ScriptResults pre={request.scriptRuns.pre} post={request.scriptRuns.post} />
       <ResponsePanel
@@ -290,15 +283,12 @@ export function RequestWorkspace({
           <ResponseHeader
             open={false}
             canSave={request.examples.canSave}
-            canExport={Boolean(projectPath)}
-            exporting={exporting}
             onToggle={() => showResponse(true)}
             onSave={request.examples.save}
-            onExport={exportCollection}
           />
         </>
       )}
-      {request.storage.asking ? (
+      {request.storage.asking && !inCollection ? (
         <RequestStorageModal
           open
           location={request.storage.location}

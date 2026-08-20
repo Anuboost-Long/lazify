@@ -7,21 +7,15 @@ import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 interface ResponseHeaderProps {
   open: boolean;
   canSave: boolean;
-  canExport: boolean;
-  exporting: boolean;
   onToggle: () => void;
   onSave: () => void;
-  onExport: () => void;
 }
 
 export function ResponseHeader({
   open,
   canSave,
-  canExport,
-  exporting,
   onToggle,
-  onSave,
-  onExport
+  onSave
 }: Readonly<ResponseHeaderProps>) {
   const { t } = useTranslation();
 
@@ -59,21 +53,6 @@ export function ResponseHeader({
         >
           <UiIcon name="pin" className="h-3.5 w-3.5" />
           {t(translation.ApiStudio.SaveResponse)}
-        </button>
-
-        <button
-          type="button"
-          onClick={onExport}
-          disabled={!canExport || exporting}
-          title={t(translation.ApiStudio.ExportCollectionDesc)}
-          className={clsx(
-            "text-xs font-medium text-muted transition-colors hover:text-text",
-            "disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:text-muted"
-          )}
-        >
-          {t(
-            exporting ? translation.ApiStudio.Exporting : translation.ApiStudio.ExportCollection
-          )}
         </button>
       </div>
     </div>

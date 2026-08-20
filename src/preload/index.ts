@@ -113,6 +113,7 @@ const lazifyApi = {
   searchNpmPackages: (query: string): Promise<NpmPackageSearchResult[]> =>
     ipcRenderer.invoke("lazify:search-npm-packages", query),
   selectDirectory: (): Promise<string | null> => ipcRenderer.invoke("lazify:select-directory"),
+  selectDirectories: (): Promise<string[]> => ipcRenderer.invoke("lazify:select-directories"),
   selectPaths: (defaultPath?: string | null): Promise<string[]> =>
     ipcRenderer.invoke("lazify:select-paths", defaultPath),
   importProjectFromDirectory: (projectPath: string): Promise<ImportedProjectScanResult> =>
@@ -425,6 +426,32 @@ const lazifyApi = {
     ipcRenderer.invoke("lazify:forget-api-request", projectPath, routeId),
   readApiResponseBody: (projectPath: string, bodyFile: string): Promise<string> =>
     ipcRenderer.invoke("lazify:read-api-response-body", projectPath, bodyFile),
+  readApiCollections: (
+    projectPath: string
+  ): Promise<import("../main/api-studio/custom-collections").CustomCollection[]> =>
+    ipcRenderer.invoke("lazify:read-api-collections", projectPath),
+  exportCustomCollection: (
+    projectPath: string,
+    collectionId: string,
+    collectionName: string
+  ): Promise<import("../main/api-studio/export").CollectionExport | null> =>
+    ipcRenderer.invoke(
+      "lazify:export-custom-collection",
+      projectPath,
+      collectionId,
+      collectionName
+    ),
+  saveResponseFile: (filePath: string, suggestedName: string): Promise<string | null> =>
+    ipcRenderer.invoke("lazify:save-response-file", filePath, suggestedName),
+  openResponseFile: (filePath: string): Promise<string | null> =>
+    ipcRenderer.invoke("lazify:open-response-file", filePath),
+  readApiCollectionBody: (projectPath: string, bodyFile: string): Promise<string> =>
+    ipcRenderer.invoke("lazify:read-api-collection-body", projectPath, bodyFile),
+  saveApiCollections: (
+    projectPath: string,
+    collections: import("../main/api-studio/custom-collections").CustomCollection[]
+  ): Promise<import("../main/api-studio/custom-collections").CustomCollection[]> =>
+    ipcRenderer.invoke("lazify:save-api-collections", projectPath, collections),
   setApiRequestStorage: (
     projectPath: string,
     location: import("../main/api-studio/request-store").RequestStorage
@@ -598,6 +625,16 @@ const lazifyApi = {
       providedName,
       confirmedStack
     ),
+  readZoom: (): Promise<number> => ipcRenderer.invoke("lazify:read-zoom"),
+  setZoom: (factor: number): Promise<number> => ipcRenderer.invoke("lazify:set-zoom", factor),
+  stepZoom: (direction: 1 | -1): Promise<number> =>
+    ipcRenderer.invoke("lazify:step-zoom", direction),
+  resetZoom: (): Promise<number> => ipcRenderer.invoke("lazify:reset-zoom"),
+  onZoomChanged: (callback: (factor: number) => void) => {
+    const listener = (_event: Electron.IpcRendererEvent, factor: number) => callback(factor);
+    ipcRenderer.on("lazify:zoom-changed", listener);
+    return () => ipcRenderer.removeListener("lazify:zoom-changed", listener);
+  },
   onLog: (callback: (event: LogEvent) => void) => {
     const listener = (_event: Electron.IpcRendererEvent, payload: LogEvent) => callback(payload);
     ipcRenderer.on("lazify:log", listener);

@@ -125,6 +125,7 @@ export const nestJsRules: FrameworkRules = {
       inferBodyFromModel: false
     },
     responses: { annotation: "HttpCode", statusPattern: /(\d{3})/ },
+    responseFromReturnType: true,
     summary: { linePrefix: "*", tag: "summary" }
   },
 

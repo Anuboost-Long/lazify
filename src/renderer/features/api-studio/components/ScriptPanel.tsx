@@ -15,6 +15,7 @@ interface ScriptPanelProps {
   phase: ScriptPhase;
   globalName: string;
   known: SuggestionSource;
+  readOnly?: boolean;
   onChange: (text: string) => void;
   onOpenReference: () => void;
 }
@@ -26,6 +27,7 @@ export function ScriptPanel({
   phase,
   globalName,
   known,
+  readOnly = false,
   onChange,
   onOpenReference
 }: Readonly<ScriptPanelProps>) {
@@ -55,7 +57,7 @@ export function ScriptPanel({
       <div className="flex items-start justify-between gap-4">
         <p className="text-xs leading-5 text-muted">{hint}</p>
 
-        <div className="flex shrink-0 items-center gap-3">
+        <div className="flex shrink-0 items-center gap-3" hidden={readOnly}>
           <button
             type="button"
             onClick={onOpenReference}
@@ -84,7 +86,7 @@ export function ScriptPanel({
         <CodeSurface
           variant="flush"
           wrap
-          editable
+          editable={!readOnly}
           content={value}
           fileName="script.js"
           label={label}

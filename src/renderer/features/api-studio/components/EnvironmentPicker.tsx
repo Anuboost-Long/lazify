@@ -52,6 +52,7 @@ export function EnvironmentPicker({
         type="button"
         onClick={onManage}
         title={t(translation.ApiStudio.Environment)}
+        aria-label={t(translation.ApiStudio.Environment)}
         className={clsx(
           "flex h-full items-center gap-1.5 rounded-r-lg border-l border-border px-2.5",
           "text-muted transition-colors hover:text-accent"
@@ -59,7 +60,10 @@ export function EnvironmentPicker({
       >
         <UiIcon name="settings" className="h-3.5 w-3.5" />
         {missingCount > 0 ? (
-          <span className="rounded-full bg-warning/15 px-1.5 text-[10px] font-semibold text-warning">
+          <span
+            aria-hidden
+            className="rounded-full bg-warning/15 px-1.5 text-[10px] font-semibold text-warning"
+          >
             {missingCount}
           </span>
         ) : null}

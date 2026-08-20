@@ -44,9 +44,9 @@ export function baseUrlVariableFor(route: Pick<RouteEnvironmentSource, "workspac
 
 function upsert(
   variables: Map<string, ApiVariable>,
-  variable: Omit<ApiVariable, "routeCount">
+  variable: Omit<ApiVariable, "routeCount" | "name">
 ): void {
-  const existing = variables.get(variable.name);
+  const existing = variables.get(variable.key);
 
   if (existing) {
     existing.routeCount += 1;
@@ -54,7 +54,7 @@ function upsert(
     return;
   }
 
-  variables.set(variable.name, { ...variable, routeCount: 1 });
+  variables.set(variable.key, { ...variable, name: variable.key, routeCount: 1 });
 }
 
 export function deriveEnvironmentVariables(routes: RouteEnvironmentSource[]): ApiVariable[] {
@@ -62,7 +62,7 @@ export function deriveEnvironmentVariables(routes: RouteEnvironmentSource[]): Ap
 
   for (const route of routes) {
     upsert(variables, {
-      name: baseUrlVariableFor(route),
+      key: baseUrlVariableFor(route),
       secret: false,
       location: "url",
       parameterName: null,
@@ -72,7 +72,7 @@ export function deriveEnvironmentVariables(routes: RouteEnvironmentSource[]): Ap
 
     for (const security of route.security) {
       upsert(variables, {
-        name: variableNameForSecurity(security),
+        key: variableNameForSecurity(security),
         secret: environmentPolicy.security[security.kind].secret,
         location: security.location,
         parameterName: security.parameterName,
@@ -85,7 +85,7 @@ export function deriveEnvironmentVariables(routes: RouteEnvironmentSource[]): Ap
       if (environmentPolicy.headers.onlyRequired && !header.required) continue;
 
       upsert(variables, {
-        name: variableNameForHeader(header.name),
+        key: variableNameForHeader(header.name),
         secret: environmentPolicy.headers.secret,
         location: "header",
         parameterName: header.name,
@@ -105,22 +105,36 @@ export function withCustomVariables(
   derived: ApiVariable[],
   custom: CustomVariable[]
 ): ApiVariable[] {
-  const declared = new Set(derived.map((variable) => variable.name));
+  const declared = new Set(derived.map((variable) => variable.key));
 
   return [
     ...derived,
     ...custom
-      .filter((variable) => !declared.has(variable.name))
-      .map((variable) => ({ ...variable, defaultValue: null, routeCount: 0, custom: true }))
+      .filter((variable) => !declared.has(variable.key))
+      .map((variable) => ({
+        ...variable,
+        location: null,
+        parameterName: null,
+        defaultValue: null,
+        routeCount: 0,
+        custom: true
+      }))
   ];
 }
 
-export function customVariableFor(
-  parameterName: string,
-  location: CustomVariable["location"],
-  secret: boolean
-): CustomVariable {
-  return { name: variableNameForHeader(parameterName), parameterName, location, secret };
+/** The name is the user's to choose; the key it binds to is not. */
+export function withVariableNames(
+  variables: ApiVariable[],
+  names: Record<string, string> | undefined
+): ApiVariable[] {
+  return variables.map((variable) => ({
+    ...variable,
+    name: (names ?? {})[variable.key]?.trim() || variable.name || variable.key
+  }));
+}
+
+export function customVariableFor(key: string, name: string, secret = false): CustomVariable {
+  return { key, name, secret };
 }
 
 export function variablesForRoute(route: RouteEnvironmentSource): string[] {
@@ -133,13 +147,18 @@ export function variablesForRoute(route: RouteEnvironmentSource): string[] {
   ];
 }
 
+/** Callers hold either the key a route binds to or the name a user typed. */
 export function resolveVariable(
   variables: ApiVariable[],
   values: Record<string, string>,
-  name: string
+  nameOrKey: string
 ): string | null {
-  const value = values[name]?.trim();
+  const variable = variables.find(
+    (candidate) => candidate.key === nameOrKey || candidate.name === nameOrKey
+  );
+  const value = (variable ? values[variable.name] : values[nameOrKey])?.trim();
+
   if (value) return value;
 
-  return variables.find((variable) => variable.name === name)?.defaultValue ?? null;
+  return variable?.defaultValue ?? null;
 }

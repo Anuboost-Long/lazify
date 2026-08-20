@@ -94,6 +94,7 @@ export interface AnnotationRules {
   auth: AuthRules;
   binding: BindingRules;
   responses: { annotation: string; statusPattern: RegExp } | null;
+  responseFromReturnType?: boolean;
   /** Doc comments that become a route summary. */
   summary: { linePrefix: string; tag: string } | null;
 }

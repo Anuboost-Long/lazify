@@ -83,9 +83,11 @@ export interface ApiRoute {
 }
 
 export interface ApiVariable {
+  key: string;
   name: string;
   secret: boolean;
-  location: "url" | "header" | "query" | "cookie";
+  /** Where the route it came from binds it. Null when the user declared it. */
+  location: "url" | "header" | "query" | "cookie" | null;
   parameterName: string | null;
   defaultValue: string | null;
   routeCount: number;
@@ -94,10 +96,9 @@ export interface ApiVariable {
 }
 
 export interface CustomVariable {
+  key: string;
   name: string;
   secret: boolean;
-  location: "header" | "query" | "cookie";
-  parameterName: string;
 }
 
 export interface ApiEnvironment {
@@ -111,6 +112,8 @@ export interface ApiEnvironmentSet {
   environments: ApiEnvironment[];
   /** Values the user added on top of what the routes ask for. */
   variables: CustomVariable[];
+  /** What the user calls a variable, against the key it binds to. */
+  names: Record<string, string>;
 }
 
 export interface ScannerEvidence {

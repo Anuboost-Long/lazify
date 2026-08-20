@@ -1,4 +1,5 @@
 import { buildMultipartBody } from "./multipart-body";
+import { fileNameFor, isTextual, writeResponseFile, type ResponseFile } from "./response-file";
 import type { ApiRequestDraft, ApiResponseSummary, ApiSendOutcome, RequestHeader } from "./types";
 
 const TIMEOUT_MS = 30_000;
@@ -9,6 +10,18 @@ interface BoundedBody {
   text: string;
   bytes: number;
   truncated: boolean;
+  file?: ResponseFile | null;
+}
+
+async function readFileBody(response: Response, url: string): Promise<BoundedBody> {
+  const bytes = new Uint8Array(await response.arrayBuffer());
+  const name = fileNameFor(
+    url,
+    response.headers.get("content-type"),
+    response.headers.get("content-disposition")
+  );
+
+  return { text: "", bytes: bytes.byteLength, truncated: false, file: writeResponseFile(name, bytes) };
 }
 
 async function readBoundedBody(response: Response): Promise<BoundedBody> {
@@ -101,7 +114,9 @@ export async function sendApiRequest(draft: ApiRequestDraft): Promise<ApiSendOut
       signal: controller.signal
     });
 
-    const body = await readBoundedBody(response);
+    const body = isTextual(response.headers.get("content-type"))
+      ? await readBoundedBody(response)
+      : await readFileBody(response, draft.url);
     const summary: ApiResponseSummary = {
       status: response.status,
       statusText: response.statusText,
@@ -110,7 +125,8 @@ export async function sendApiRequest(draft: ApiRequestDraft): Promise<ApiSendOut
       mediaType: response.headers.get("content-type"),
       body: body.text,
       bodyBytes: body.bytes,
-      truncated: body.truncated
+      truncated: body.truncated,
+      file: body.file ?? null
     };
 
     return { ok: true, response: summary };

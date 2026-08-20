@@ -186,3 +186,50 @@ describe("a repository that holds more than one project", () => {
     expect(variables).toContain("baseUrl");
   });
 });
+
+const NEST_TYPED = `import { Controller, Get, Param } from '@nestjs/common';
+
+export class InvoiceDto {
+  id: number;
+  reference: string;
+  paid: boolean;
+}
+
+@Controller('invoices')
+export class InvoicesController {
+  @Get(':id')
+  async findOne(@Param('id') id: string): Promise<InvoiceDto> {
+    return null;
+  }
+
+  @Get()
+  async findAll(): Promise<InvoiceDto[]> {
+    return [];
+  }
+
+  @Get('count')
+  async count(): Promise<number> {
+    return 0;
+  }
+}
+`;
+
+describe("what a Nest action says it returns", () => {
+  it("reads the model from the type after the parameters", async () => {
+    await writeProject({
+      "package.json": manifest({ "@nestjs/common": "^11.0.0" }),
+      "src/invoices.controller.ts": NEST_TYPED
+    });
+
+    const result = await scanProjectRoutes(projectPath);
+    const one = result.routes.find((route) => route.path === "/invoices/{id}")!;
+    const all = result.routes.find((route) => route.path === "/invoices")!;
+    const counted = result.routes.find((route) => route.path === "/invoices/count")!;
+
+    expect(one.responses[0]?.example).toContain('"reference"');
+    expect(JSON.parse(all.responses[0].example!)).toEqual([
+      expect.objectContaining({ reference: expect.anything() })
+    ]);
+    expect(counted.responses).toEqual([]);
+  });
+});
