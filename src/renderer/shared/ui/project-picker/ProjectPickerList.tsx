@@ -32,7 +32,7 @@ export function ProjectPickerList({
       ))}
 
       {projects.length === 0 && emptyMessage ? (
-        <CaptionText tone="muted" className="block px-3 py-8 text-center">
+        <CaptionText tone="muted" className="col-span-full block px-3 py-8 text-center">
           {t(emptyMessage)}
         </CaptionText>
       ) : null}

@@ -48,7 +48,7 @@ function PickerCard({
   return (
     <div
       className={clsx(
-        "flex max-h-[80vh] w-[min(560px,92vw)] flex-col overflow-hidden",
+        "flex max-h-[80vh] w-[min(760px,92vw)] flex-col overflow-hidden",
         "rounded-2xl border border-border bg-bg shadow-2xl"
       )}
     >

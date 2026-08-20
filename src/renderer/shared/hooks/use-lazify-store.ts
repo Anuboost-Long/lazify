@@ -499,51 +499,69 @@ export function useLazifyStore() {
 
   const syncWorkspaceProject = useCallback(
     async (projectPath?: string | null) => {
-      const selectedPath =
-        projectPath ?? (await globalThis.lazify.selectDirectory());
+      const pickedPaths = projectPath
+        ? [projectPath]
+        : await globalThis.lazify.selectDirectories();
 
-      if (!selectedPath) {
+      if (pickedPaths.length === 0) {
         return null;
       }
 
       const isNewSync = projectPath == null;
-      if (
-        isNewSync &&
-        syncedWorkspaceProjects.some((p) => p.projectPath === selectedPath)
-      ) {
-        throw new Error("This project is already synced to the workspace.");
+      const pathsToSync = isNewSync
+        ? pickedPaths.filter(
+            (path) =>
+              !syncedWorkspaceProjects.some((p) => p.projectPath === path),
+          )
+        : pickedPaths;
+
+      if (pathsToSync.length === 0) {
+        throw new Error(
+          pickedPaths.length === 1
+            ? "This project is already synced to the workspace."
+            : "Those projects are already synced to the workspace.",
+        );
       }
 
-      const result =
-        await globalThis.lazify.importProjectIndexFromDirectory(selectedPath);
-      const syncedProject: SyncedWorkspaceProject = {
-        id: result.projectPath,
-        projectName: result.projectName,
-        projectPath: result.projectPath,
-        stack: result.stackDetection.stack,
-        framework: result.stackDetection.framework,
-        metaFramework: result.stackDetection.metaFramework,
-        packageManager: result.stackDetection.packageManager,
-        confidence: result.stackDetection.confidence,
-        lastSyncedAt: new Date().toISOString(),
-      };
+      const syncedProjects: SyncedWorkspaceProject[] = [];
 
-      setSyncedWorkspaceProjects((current) => {
-        const nextProjects = [
-          syncedProject,
-          ...current.filter(
-            (item) => item.projectPath !== syncedProject.projectPath,
-          ),
-        ];
-        persistWorkspaceProjects(nextProjects);
-        return nextProjects;
-      });
+      for (const path of pathsToSync) {
+        const result =
+          await globalThis.lazify.importProjectIndexFromDirectory(path);
+        const syncedProject: SyncedWorkspaceProject = {
+          id: result.projectPath,
+          projectName: result.projectName,
+          projectPath: result.projectPath,
+          stack: result.stackDetection.stack,
+          framework: result.stackDetection.framework,
+          metaFramework: result.stackDetection.metaFramework,
+          packageManager: result.stackDetection.packageManager,
+          confidence: result.stackDetection.confidence,
+          lastSyncedAt: new Date().toISOString(),
+        };
+
+        syncedProjects.push(syncedProject);
+
+        setSyncedWorkspaceProjects((current) => {
+          const nextProjects = [
+            syncedProject,
+            ...current.filter(
+              (item) => item.projectPath !== syncedProject.projectPath,
+            ),
+          ];
+          persistWorkspaceProjects(nextProjects);
+          return nextProjects;
+        });
+      }
 
       setWorkflowStatus("success");
       setStatusMessage(
-        `Synced project "${syncedProject.projectName}" into Workspace.`,
+        syncedProjects.length === 1
+          ? `Synced project "${syncedProjects[0].projectName}" into Workspace.`
+          : `Synced ${syncedProjects.length} projects into Workspace.`,
       );
-      return syncedProject;
+
+      return syncedProjects[0];
     },
     [
       setStatusMessage,
