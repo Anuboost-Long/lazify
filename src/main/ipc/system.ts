@@ -5,10 +5,23 @@ import { detectEditors } from "../environment/editor-catalog";
 import { openInEditor, type OpenInEditorRequest } from "../environment/open-in-editor";
 import { openTerminal } from "../environment/open-terminal";
 import { killListeningProcess, listListeningProcesses } from "../environment/port-reaper";
+import { applyZoom, readZoom, resetZoom, stepZoom } from "../window-zoom";
 import type { IpcContext } from "./context";
 
 export function registerSystemHandlers(ctx: IpcContext) {
   ipcMain.handle("lazify:diagnostics-paths", () => getDiagnosticsPaths());
+
+  ipcMain.handle("lazify:read-zoom", () => readZoom());
+
+  ipcMain.handle("lazify:set-zoom", (_event, factor: number) =>
+    applyZoom(ctx.mainWindow, factor)
+  );
+
+  ipcMain.handle("lazify:step-zoom", (_event, direction: 1 | -1) =>
+    stepZoom(ctx.mainWindow, direction)
+  );
+
+  ipcMain.handle("lazify:reset-zoom", () => resetZoom(ctx.mainWindow));
 
   // "Reveal in Finder" from a tree's right-click menu: a folder opens in the OS
   // file manager, a file is revealed selected inside its folder. A path that is

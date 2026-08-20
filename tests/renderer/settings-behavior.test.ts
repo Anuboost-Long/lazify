@@ -26,7 +26,15 @@ beforeEach(() => {
   ]);
   Object.defineProperty(globalThis, "lazify", {
     configurable: true,
-    value: { probeTool: vi.fn().mockResolvedValue(null), detectEditors }
+    value: {
+      probeTool: vi.fn().mockResolvedValue(null),
+      detectEditors,
+      readZoom: vi.fn().mockResolvedValue(1),
+      setZoom: vi.fn().mockResolvedValue(1),
+      stepZoom: vi.fn().mockResolvedValue(1),
+      resetZoom: vi.fn().mockResolvedValue(1),
+      onZoomChanged: vi.fn().mockReturnValue(() => undefined)
+    }
   });
 });
 
