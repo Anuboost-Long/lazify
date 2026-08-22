@@ -218,10 +218,9 @@ export class Autopilot {
     state.answeredAt = [...recent, now];
     state.repeats.set(prompt.fingerprint, [...seen, now]);
 
-    // The key picks the option; the newline submits it for the agents that need
-    // one. Agents that accept on the keypress alone get an Enter into an empty
-    // input box, which does nothing.
-    this.deps.answer(runId, `${verdict.option.key}\r`);
+    const submit = prompt.kind === "yes-no" ? "\r" : "";
+
+    this.deps.answer(runId, `${verdict.option.key}${submit}`);
     this.deps.onAnswered(runId, {
       question: prompt.question,
       optionLabel: verdict.option.label
