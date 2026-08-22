@@ -63,7 +63,7 @@ export function PageHero({
         </div>
 
         {children ? (
-          <div className="min-w-0 flex-1 lg:max-w-3xl items-end flex">
+          <div className="min-w-0 flex-1 lg:max-w-3xl items-end flex justify-end">
             {children}
           </div>
         ) : null}
