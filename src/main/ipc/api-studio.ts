@@ -26,6 +26,7 @@ import { readRouteDetails, readRouteScan, saveRouteScan } from "../api-studio/ro
 import { allowHost, forgetHost, readAllowedHosts } from "../api-studio/allowed-hosts";
 import { readScriptSettings, saveScriptSettings } from "../api-studio/script-settings";
 import type { ScriptSettings } from "../api-studio/script-settings";
+import { pruneCollectionDocs } from "../api-studio/docs";
 import { scanProjectRoutes } from "../api-studio";
 import { runApiRequest, sendApiRequest } from "../api-studio/runner";
 import type { ApiRequestDraft } from "../api-studio/runner";
@@ -197,8 +198,13 @@ export function registerApiStudioHandlers(ctx?: IpcContext) {
 
   ipcMain.handle(
     "lazify:save-api-collections",
-    async (_event, projectPath: string, collections: CustomCollection[]) =>
-      saveCustomCollections(projectPath, collections)
+    async (_event, projectPath: string, collections: CustomCollection[]) => {
+      const kept = saveCustomCollections(projectPath, collections);
+
+      pruneCollectionDocs(projectPath, kept);
+
+      return kept;
+    }
   );
 
   ipcMain.handle(

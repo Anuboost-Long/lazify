@@ -14,9 +14,19 @@ import { AgentPickerModal } from "../agent-picker";
 import { buildCodePayload, formatCodeReference } from "../../utils/code-payload";
 import { RunningAgentList } from "./RunningAgentList";
 
+export interface AgentPayload {
+  /** What the dialog calls the errand, so the user sees what is being sent. */
+  title: string;
+  text: string;
+  /** Press return after pasting, so the agent starts without a second trip. */
+  submit?: boolean;
+}
+
 interface SendToAgentDialogProps {
   selection: CodeSelectionContext | null;
   filePath?: string | null;
+  /** Text prepared elsewhere, for callers with neither a selection nor a file. */
+  payload?: AgentPayload | null;
   projectPath: string;
   agents: AgentDescriptor[];
   onStartAgent: (agentId: string, resumeSessionId?: string) => Promise<string | null>;
@@ -29,7 +39,15 @@ interface SendToAgentDialogProps {
 const READY_GRACE_MS = 700;
 const READY_TIMEOUT_MS = 5000;
 
-function pasteWhenReady(runId: string, payload: string) {
+const SUBMIT_DELAY_MS = 200;
+
+function paste(runId: string, text: string, submit: boolean) {
+  pasteIntoTerminal(runId, text);
+
+  if (submit) setTimeout(() => globalThis.lazify.ptyWrite(runId, "\r"), SUBMIT_DELAY_MS);
+}
+
+function pasteWhenReady(runId: string, payload: string, submit: boolean) {
   let sent = false;
   let grace: ReturnType<typeof setTimeout> | null = null;
 
@@ -39,7 +57,7 @@ function pasteWhenReady(runId: string, payload: string) {
     if (grace) clearTimeout(grace);
     clearTimeout(timeout);
     stop();
-    pasteIntoTerminal(runId, payload);
+    paste(runId, payload, submit);
   };
 
   const stop = globalThis.lazify.onPtyData((event) => {
@@ -53,6 +71,7 @@ function pasteWhenReady(runId: string, payload: string) {
 export function SendToAgentDialog({
   selection,
   filePath = null,
+  payload = null,
   projectPath,
   agents,
   onStartAgent,
@@ -65,7 +84,7 @@ export function SendToAgentDialog({
   const [running, setRunning] = useState<PtySession[] | null>(null);
   const [picking, setPicking] = useState(false);
 
-  const open = selection !== null || filePath !== null;
+  const open = selection !== null || filePath !== null || payload !== null;
 
   useEffect(() => {
     if (!open) {
@@ -94,16 +113,16 @@ export function SendToAgentDialog({
 
   const send = useCallback(
     (runId: string, ready: boolean) => {
-      const payload = selection ? buildCodePayload(selection) : filePath;
-      if (!payload) return;
+      const text = selection ? buildCodePayload(selection) : (payload?.text ?? filePath);
+      if (!text) return;
 
-      if (ready) pasteIntoTerminal(runId, payload);
-      else pasteWhenReady(runId, payload);
+      if (ready) paste(runId, text, payload?.submit ?? false);
+      else pasteWhenReady(runId, text, payload?.submit ?? false);
 
       onSent?.(runId);
       onClose();
     },
-    [selection, filePath, onSent, onClose]
+    [selection, filePath, payload, onSent, onClose]
   );
 
   const handleStart = useCallback(
@@ -152,7 +171,7 @@ export function SendToAgentDialog({
               {selection
                 ? formatCodeReference(selection, projectPath) ||
                   t(translation.Agents.SendSelection)
-                : filePath}
+                : (payload?.title ?? filePath)}
             </SectionTitle>
             {selection ? (
               <CaptionText tone="muted" className="mt-1 block">

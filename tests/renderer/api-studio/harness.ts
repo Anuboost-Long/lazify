@@ -4,6 +4,7 @@ import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, vi } from "vitest";
 
 import { ApiStudioPage } from "../../../src/renderer/features/api-studio/pages/ApiStudioPage";
+import type { DocState } from "../../../src/main/api-studio/docs/types";
 import type { SavedRoute, SavedRouteScan } from "../../../src/renderer/features/api-studio/types";
 import type { SyncedWorkspaceProject } from "../../../src/renderer/shared/types/lazify";
 
@@ -131,6 +132,89 @@ export const exportCustomCollection = vi.fn();
 export const saveResponseFile = vi.fn();
 export const openResponseFile = vi.fn();
 export const chooseUploadFile = vi.fn();
+export const readCollectionDoc = vi.fn();
+export const saveCollectionDoc = vi.fn();
+export const previewCollectionDoc = vi.fn();
+export const openCollectionDoc = vi.fn();
+export const exportCollectionDoc = vi.fn();
+export const collectionDocBrief = vi.fn();
+export const writeCollectionDocBrief = vi.fn();
+export const importCollectionDocDraft = vi.fn();
+export const chooseDocLogo = vi.fn();
+export const collectionDocQuestions = vi.fn();
+export const watchCollectionDocDraft = vi.fn();
+export const unwatchCollectionDocDraft = vi.fn();
+export const ptyWrite = vi.fn();
+export const stopScript = vi.fn();
+export const ptyResize = vi.fn();
+export const saveClipboardImage = vi.fn();
+let draftListener: ((collectionId: string) => void) | null = null;
+let ptyListeners: Array<(event: { runId: string; data: string }) => void> = [];
+
+/** Stands in for the pty printing its first output, which means "ready". */
+export function ptyData(runId: string, data = "ready") {
+  for (const listener of ptyListeners) listener({ runId, data });
+}
+
+/** Stands in for the main process telling the renderer a draft file changed. */
+export function draftChanged(collectionId: string) {
+  draftListener?.(collectionId);
+}
+export const listAgents = vi.fn();
+export const listAgentSessions = vi.fn();
+export const listSessions = vi.fn();
+export const listScripts = vi.fn();
+export const openAgentTerminal = vi.fn();
+export const addCustomAgent = vi.fn();
+export const removeCustomAgent = vi.fn();
+const noopSubscription = () => () => undefined;
+
+export function docState(over: Partial<DocState> = {}): DocState {
+  return {
+    doc: {
+      collectionId: "collection-1",
+      title: "Kept",
+      subtitle: "",
+      version: "",
+      baseUrl: "",
+      presetId: "reference",
+      sections: {},
+      folders: [],
+      routes: [
+        {
+          requestId: "request-1",
+          title: "Fetch a user",
+          folderId: "",
+          folder: "",
+          sections: {},
+          writtenBy: "detected",
+          updatedAt: "2026-08-20T09:00:00.000Z"
+        }
+      ],
+      theme: {
+        accent: "#2f6feb",
+        logo: "",
+        pageSize: "A4",
+        margin: "normal",
+        cover: true,
+        contents: true,
+        curl: true,
+        examples: true,
+        darkCode: false
+      },
+      updatedAt: "2026-08-20T09:00:00.000Z"
+    },
+    gaps: [
+      {
+        requestId: null,
+        sectionId: "overview",
+        where: "Kept",
+        question: "What is this API for, and who calls it?"
+      }
+    ],
+    ...over
+  };
+}
 
 beforeEach(() => {
   globalThis.localStorage.clear();
@@ -190,6 +274,62 @@ beforeEach(() => {
   openResponseFile.mockResolvedValue(null);
   chooseUploadFile.mockReset();
   chooseUploadFile.mockResolvedValue("/Users/ada/Pictures/avatar.png");
+  readCollectionDoc.mockReset();
+  readCollectionDoc.mockResolvedValue(docState());
+  saveCollectionDoc.mockReset();
+  saveCollectionDoc.mockImplementation((_project: string, doc: unknown) =>
+    Promise.resolve({ doc, gaps: [] })
+  );
+  previewCollectionDoc.mockReset();
+  previewCollectionDoc.mockResolvedValue("<!doctype html><html><body>Kept</body></html>");
+  openCollectionDoc.mockReset();
+  openCollectionDoc.mockResolvedValue(null);
+  exportCollectionDoc.mockReset();
+  exportCollectionDoc.mockResolvedValue({ filePath: "/tmp/kept.pdf", format: "pdf", routes: 1 });
+  collectionDocBrief.mockReset();
+  collectionDocBrief.mockResolvedValue({
+    presetId: "reference",
+    instructions: "Read doc-job.json",
+    job: "{}",
+    gaps: []
+  });
+  writeCollectionDocBrief.mockReset();
+  writeCollectionDocBrief.mockResolvedValue({
+    directory: "/workspace/demo/.lazify/api-studio/docs/kept",
+    instructionsPath: "/workspace/demo/.lazify/api-studio/docs/kept/doc-brief.md",
+    jobPath: "/workspace/demo/.lazify/api-studio/docs/kept/doc-job.json",
+    answerPath: "/workspace/demo/.lazify/api-studio/docs/kept/doc-draft.json"
+  });
+  importCollectionDocDraft.mockReset();
+  chooseDocLogo.mockReset();
+  chooseDocLogo.mockResolvedValue("data:image/png;base64,iVBORw0KGgo=");
+  collectionDocQuestions.mockReset();
+  collectionDocQuestions.mockResolvedValue("Answer these questions");
+  watchCollectionDocDraft.mockReset();
+  watchCollectionDocDraft.mockResolvedValue(true);
+  unwatchCollectionDocDraft.mockReset();
+  unwatchCollectionDocDraft.mockResolvedValue(undefined);
+  ptyWrite.mockReset();
+  stopScript.mockReset();
+  stopScript.mockResolvedValue(undefined);
+  ptyResize.mockReset();
+  saveClipboardImage.mockReset();
+  draftListener = null;
+  ptyListeners = [];
+  listAgents.mockReset();
+  listAgents.mockResolvedValue([
+    { id: "claude", label: "Claude", command: "claude", available: true, isCustom: false }
+  ]);
+  listAgentSessions.mockReset();
+  listAgentSessions.mockResolvedValue([]);
+  listSessions.mockReset();
+  listSessions.mockResolvedValue([]);
+  listScripts.mockReset();
+  listScripts.mockResolvedValue([]);
+  openAgentTerminal.mockReset();
+  openAgentTerminal.mockResolvedValue({ runId: "run-1" });
+  addCustomAgent.mockReset();
+  removeCustomAgent.mockReset();
   setApiRequestStorage.mockResolvedValue({ location: "project", requests: {} });
   sendApiRequest.mockResolvedValue({
     ok: true,
@@ -242,7 +382,48 @@ beforeEach(() => {
       exportCustomCollection,
       saveResponseFile,
       openResponseFile,
-      chooseUploadFile
+      chooseUploadFile,
+      readCollectionDoc,
+      saveCollectionDoc,
+      previewCollectionDoc,
+      openCollectionDoc,
+      exportCollectionDoc,
+      collectionDocBrief,
+      writeCollectionDocBrief,
+      importCollectionDocDraft,
+      chooseDocLogo,
+      collectionDocQuestions,
+      watchCollectionDocDraft,
+      unwatchCollectionDocDraft,
+      onCollectionDocDraftChanged: (callback: (collectionId: string) => void) => {
+        draftListener = callback;
+
+        return () => {
+          draftListener = null;
+  ptyListeners = [];
+        };
+      },
+      ptyWrite,
+      ptyResize,
+      saveClipboardImage,
+      listAgents,
+      listAgentSessions,
+      listSessions,
+      listScripts,
+      openAgentTerminal,
+      addCustomAgent,
+      removeCustomAgent,
+      onAgentAttention: noopSubscription,
+      onScriptStatus: noopSubscription,
+      onSessionKilled: noopSubscription,
+      onPtyData: (callback: (event: { runId: string; data: string }) => void) => {
+        ptyListeners = [...ptyListeners, callback];
+
+        return () => {
+          ptyListeners = ptyListeners.filter((held) => held !== callback);
+        };
+      },
+      stopScript: stopScript
     }
   });
 });

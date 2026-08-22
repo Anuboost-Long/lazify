@@ -459,6 +459,45 @@ declare global {
         projectPath: string,
         settings: import("../main/api-studio/script-settings").ScriptSettings
       ) => Promise<import("../main/api-studio/script-settings").ScriptSettings>;
+      readCollectionDoc: (
+        projectPath: string,
+        collectionId: string
+      ) => Promise<import("../main/api-studio/docs").DocState | null>;
+      saveCollectionDoc: (
+        projectPath: string,
+        doc: import("../main/api-studio/docs").CollectionDoc
+      ) => Promise<import("../main/api-studio/docs").DocState | null>;
+      previewCollectionDoc: (projectPath: string, collectionId: string) => Promise<string | null>;
+      openCollectionDoc: (projectPath: string, collectionId: string) => Promise<string | null>;
+      exportCollectionDoc: (
+        projectPath: string,
+        collectionId: string,
+        format: import("../main/api-studio/docs").DocFormat,
+        name: string
+      ) => Promise<import("../main/api-studio/docs").DocExport | null>;
+      chooseDocLogo: () => Promise<string | null>;
+      collectionDocBrief: (
+        projectPath: string,
+        collectionId: string
+      ) => Promise<import("../main/api-studio/docs").DocBrief | null>;
+      collectionDocQuestions: (
+        projectPath: string,
+        collectionId: string,
+        keys: string[]
+      ) => Promise<string | null>;
+      writeCollectionDocBrief: (
+        projectPath: string,
+        collectionId: string
+      ) => Promise<import("../main/api-studio/docs").DocBriefFiles | null>;
+      importCollectionDocDraft: (
+        projectPath: string,
+        collectionId: string,
+        choose: boolean,
+        onlyEmpty?: boolean
+      ) => Promise<import("../main/api-studio/docs").DocImportResult | null>;
+      watchCollectionDocDraft: (projectPath: string, collectionId: string) => Promise<boolean>;
+      unwatchCollectionDocDraft: (collectionId: string) => Promise<void>;
+      onCollectionDocDraftChanged: (callback: (collectionId: string) => void) => () => void;
       findSymbolDefinition: (
         projectPath: string,
         symbol: string,
@@ -472,7 +511,8 @@ declare global {
         projectPath: string,
         cols?: number,
         rows?: number,
-        resumeSessionId?: string
+        resumeSessionId?: string,
+        hidden?: boolean
       ) => Promise<{ runId: string }>;
       readZoom: () => Promise<number>;
       setZoom: (factor: number) => Promise<number>;

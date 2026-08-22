@@ -480,6 +480,69 @@ const lazifyApi = {
     settings: import("../main/api-studio/script-settings").ScriptSettings
   ): Promise<import("../main/api-studio/script-settings").ScriptSettings> =>
     ipcRenderer.invoke("lazify:save-script-settings", projectPath, settings),
+  readCollectionDoc: (
+    projectPath: string,
+    collectionId: string
+  ): Promise<import("../main/api-studio/docs").DocState | null> =>
+    ipcRenderer.invoke("lazify:read-collection-doc", projectPath, collectionId),
+  saveCollectionDoc: (
+    projectPath: string,
+    doc: import("../main/api-studio/docs").CollectionDoc
+  ): Promise<import("../main/api-studio/docs").DocState | null> =>
+    ipcRenderer.invoke("lazify:save-collection-doc", projectPath, doc),
+  previewCollectionDoc: (projectPath: string, collectionId: string): Promise<string | null> =>
+    ipcRenderer.invoke("lazify:preview-collection-doc", projectPath, collectionId),
+  openCollectionDoc: (projectPath: string, collectionId: string): Promise<string | null> =>
+    ipcRenderer.invoke("lazify:open-collection-doc", projectPath, collectionId),
+  exportCollectionDoc: (
+    projectPath: string,
+    collectionId: string,
+    format: import("../main/api-studio/docs").DocFormat,
+    name: string
+  ): Promise<import("../main/api-studio/docs").DocExport | null> =>
+    ipcRenderer.invoke("lazify:export-collection-doc", projectPath, collectionId, format, name),
+  chooseDocLogo: (): Promise<string | null> => ipcRenderer.invoke("lazify:choose-doc-logo"),
+  collectionDocBrief: (
+    projectPath: string,
+    collectionId: string
+  ): Promise<import("../main/api-studio/docs").DocBrief | null> =>
+    ipcRenderer.invoke("lazify:collection-doc-brief", projectPath, collectionId),
+  collectionDocQuestions: (
+    projectPath: string,
+    collectionId: string,
+    keys: string[]
+  ): Promise<string | null> =>
+    ipcRenderer.invoke("lazify:collection-doc-questions", projectPath, collectionId, keys),
+  writeCollectionDocBrief: (
+    projectPath: string,
+    collectionId: string
+  ): Promise<import("../main/api-studio/docs").DocBriefFiles | null> =>
+    ipcRenderer.invoke("lazify:write-collection-doc-brief", projectPath, collectionId),
+  importCollectionDocDraft: (
+    projectPath: string,
+    collectionId: string,
+    choose: boolean,
+    onlyEmpty?: boolean
+  ): Promise<import("../main/api-studio/docs").DocImportResult | null> =>
+    ipcRenderer.invoke(
+      "lazify:import-collection-doc-draft",
+      projectPath,
+      collectionId,
+      choose,
+      onlyEmpty
+    ),
+  watchCollectionDocDraft: (projectPath: string, collectionId: string): Promise<boolean> =>
+    ipcRenderer.invoke("lazify:watch-collection-doc-draft", projectPath, collectionId),
+  unwatchCollectionDocDraft: (collectionId: string): Promise<void> =>
+    ipcRenderer.invoke("lazify:unwatch-collection-doc-draft", collectionId),
+  onCollectionDocDraftChanged: (callback: (collectionId: string) => void) => {
+    const listener = (_event: Electron.IpcRendererEvent, collectionId: string) =>
+      callback(collectionId);
+
+    ipcRenderer.on("lazify:collection-doc-draft-changed", listener);
+
+    return () => ipcRenderer.removeListener("lazify:collection-doc-draft-changed", listener);
+  },
   findSymbolDefinition: (
     projectPath: string,
     symbol: string,
@@ -590,7 +653,9 @@ const lazifyApi = {
     cols?: number,
     rows?: number,
     /** Past session to carry on with, instead of starting a new conversation. */
-    resumeSessionId?: string
+    resumeSessionId?: string,
+    /** Kept out of every session list: one screen owns it and shows it. */
+    hidden?: boolean
   ): Promise<{ runId: string }> =>
     ipcRenderer.invoke(
       "lazify:open-agent-terminal",
@@ -598,7 +663,8 @@ const lazifyApi = {
       projectPath,
       cols,
       rows,
-      resumeSessionId
+      resumeSessionId,
+      hidden
     ),
   listProjectPackages: (projectPath: string): Promise<InstalledPackage[]> =>
     ipcRenderer.invoke("lazify:list-project-packages", projectPath),

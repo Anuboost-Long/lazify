@@ -14,6 +14,7 @@ import type { CustomCollectionApi } from "../hooks/use-custom-collection";
 import { useTreeDrag } from "../hooks/use-tree-drag";
 import type { SavedRoute } from "../types";
 import { CustomCollectionRow } from "./CustomCollectionRow";
+import { DocBuilderModal } from "./doc/DocBuilderModal";
 import { RoutePickerModal } from "./RoutePickerModal";
 
 interface CustomCollectionPaneProps {
@@ -46,6 +47,7 @@ export function CustomCollectionPane({
 }: Readonly<CustomCollectionPaneProps>) {
   const { t } = useTranslation();
   const [picking, setPicking] = useState<CollectionTarget | null>(null);
+  const [documenting, setDocumenting] = useState<string | null>(null);
   const drag = useTreeDrag(custom.moveNode);
 
   const addCollection = () =>
@@ -109,6 +111,7 @@ export function CustomCollectionPane({
                 .exportCustomCollection(projectPath, collection.id, collection.name)
                 .catch(() => null)
             }
+            onDocument={() => setDocumenting(collection.id)}
             onOpenRequest={onOpenRequest}
             openExample={openExample}
             onOpenExample={onOpenExample}
@@ -130,6 +133,13 @@ export function CustomCollectionPane({
         <UiIcon name="plus" className="h-3.5 w-3.5" />
         {t(translation.ApiStudio.NewCollection)}
       </button>
+
+      <DocBuilderModal
+        open={Boolean(documenting)}
+        projectPath={projectPath}
+        collection={custom.collections.find((entry) => entry.id === documenting) ?? null}
+        onClose={() => setDocumenting(null)}
+      />
 
       <RoutePickerModal
         open={Boolean(picking)}

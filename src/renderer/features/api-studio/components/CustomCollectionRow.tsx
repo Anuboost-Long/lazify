@@ -24,6 +24,7 @@ interface CustomCollectionRowProps {
   onRemoveFolder: (folderId: string) => void;
   onPickRequests: (folderId: string | null) => void;
   onExport: () => void;
+  onDocument: () => void;
   onOpenRequest: (requestId: string) => void;
   openExample: OpenExample | null;
   onOpenExample: (requestId: string, exampleId: string) => void;
@@ -45,6 +46,7 @@ export function CustomCollectionRow({
   onRemoveFolder,
   onPickRequests,
   onExport,
+  onDocument,
   onOpenRequest,
   openExample,
   onOpenExample,
@@ -69,6 +71,7 @@ export function CustomCollectionRow({
       onSelect: () => setRenaming(true)
     },
     { key: "export", label: t(translation.ApiStudio.ExportCollection), onSelect: onExport },
+    { key: "document", label: t(translation.ApiStudio.DocBuilder), onSelect: onDocument },
     {
       key: "remove",
       label: t(translation.ApiStudio.RemoveCollection),

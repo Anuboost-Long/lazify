@@ -7,6 +7,7 @@ import { isDotnetScript, listDotnetScripts, resolveDotnetLaunch, waitForDotnetPo
 import { buildProcessTree, getDescendantPids, scanListeningPorts } from "../environment/environment-scanner";
 import { choosePackageManager } from "../environment/scanner";
 import type { IpcContext } from "./context";
+import { forgetHiddenRun, isHiddenRun } from "../agents/hidden-runs";
 
 export function registerScriptHandlers(ctx: IpcContext) {
   ipcMain.handle("lazify:list-scripts", async (_event, projectPath: string): Promise<Record<string, string>> => {
@@ -62,6 +63,7 @@ export function registerScriptHandlers(ctx: IpcContext) {
   ipcMain.handle("lazify:stop-script", async (_event, runId: string): Promise<void> => {
     if (runId.startsWith("pty-")) {
       ctx.ptyRunner.kill(runId);
+      forgetHiddenRun(runId);
       // An explicit kill — from the sessions pane, a closed tab, or Stop — should
       // take the agent-pane tab with it, unlike a process that exits on its own
       // (whose tab is kept so its final output can be read).
@@ -96,7 +98,7 @@ export function registerScriptHandlers(ctx: IpcContext) {
   );
 
   ipcMain.handle("lazify:list-sessions", async () => {
-    const sessions = ctx.ptyRunner.getSessions();
+    const sessions = ctx.ptyRunner.getSessions().filter((s) => !isHiddenRun(s.runId));
     if (sessions.length === 0) return [];
 
     const [ports, tree] = await Promise.all([scanListeningPorts(), buildProcessTree()]);
