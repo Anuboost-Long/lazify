@@ -41,17 +41,17 @@ export function TaskRunHistory({ taskId }: Readonly<TaskRunHistoryProps>) {
 
   if (runs.length === 0) {
     return (
-      <CaptionText tone="muted" className="block px-8 pb-2">
+      <CaptionText tone="muted" className="block">
         {t(translation.Tasks.NoRuns)}
       </CaptionText>
     );
   }
 
   return (
-    <div className="flex flex-col gap-1 px-8 pb-2">
+    <div className="flex flex-col gap-0.5">
       {runs.map((run) => (
         <div key={run.id} className="flex items-center gap-2">
-          <UiIcon name="play" className="h-2.5 w-2.5 shrink-0 text-muted" />
+          <UiIcon name="play" className="h-3 w-3 shrink-0 text-muted" />
 
           <CaptionText tone="muted" className="min-w-0 flex-1 truncate">
             {run.agentLabel ? `${run.agentLabel} · ` : ""}
@@ -62,7 +62,7 @@ export function TaskRunHistory({ taskId }: Readonly<TaskRunHistoryProps>) {
             type="button"
             onClick={() => void copy(run)}
             aria-label={t(translation.Tasks.CopyRunPrompt)}
-            className="shrink-0 rounded p-0.5 text-muted hover:text-accent"
+            className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md text-muted transition-colors hover:bg-text/10 hover:text-accent"
           >
             <UiIcon name={copiedId === run.id ? "check-circle" : "code"} className="h-3 w-3" />
           </button>

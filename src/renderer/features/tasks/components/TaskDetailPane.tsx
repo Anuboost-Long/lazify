@@ -206,7 +206,7 @@ export function TaskDetailPane({
 
       {/* A task that does not exist yet has been handed to nobody. */}
       {task ? (
-        <div className="max-h-28 shrink-0 overflow-y-auto rounded-xl border border-border bg-soft py-2">
+        <div className="max-h-28 shrink-0 overflow-y-auto rounded-xl border border-border bg-soft px-3 py-2">
           <TaskRunHistory key={historyKey} taskId={task.id} />
         </div>
       ) : null}
