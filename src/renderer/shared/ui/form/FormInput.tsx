@@ -3,7 +3,7 @@ import { forwardRef } from "react";
 import UiIcon, { type UiIconName } from "@renderer/shared/ui/icons/UiIcon";
 
 export type FieldVariant = "default" | "inverse";
-export type FieldSize = "md" | "sm";
+export type FieldSize = "sm" | "md" | "lg";
 
 interface SharedFieldProps {
   icon?: UiIconName;
@@ -23,8 +23,15 @@ const iconVariantClassName: Record<FieldVariant, string> = {
 };
 
 const sizeClassName: Record<FieldSize, string> = {
-  md: "min-h-[52px] rounded-[18px] px-4 py-3 text-sm",
-  sm: "min-h-[34px] rounded-md px-2 py-1 text-sm"
+  sm: "min-h-[34px] rounded-lg px-2 py-1 text-sm",
+  md: "min-h-10 rounded-xl px-3 py-2 text-sm",
+  lg: "min-h-[52px] rounded-2xl px-4 py-3 text-sm"
+};
+
+const iconSizeClassName: Record<FieldSize, string> = {
+  sm: "h-3.5 w-3.5",
+  md: "h-4 w-4",
+  lg: "h-5 w-5"
 };
 
 /**
@@ -37,7 +44,7 @@ const sizeClassName: Record<FieldSize, string> = {
  */
 export function fieldChromeClassName(
   variant: FieldVariant = "default",
-  size: FieldSize = "md"
+  size: FieldSize = "lg"
 ): string {
   // `outline-none` belongs here rather than on each caller: worn by a bare
   // input, select or textarea, this chrome would otherwise keep the browser's
@@ -51,7 +58,7 @@ function FieldShell({
   children,
   icon,
   variant = "default",
-  size = "md",
+  size = "lg",
   wrapperClassName
 }: SharedFieldProps & { children: React.ReactNode }) {
   return (
@@ -65,11 +72,7 @@ function FieldShell({
       {icon ? (
         <UiIcon
           name={icon}
-          className={clsx(
-            "h-4 w-4 shrink-0",
-            size === "md" ? "h-5 w-5" : "h-4 w-4",
-            iconVariantClassName[variant]
-          )}
+          className={clsx("shrink-0", iconSizeClassName[size], iconVariantClassName[variant])}
         />
       ) : null}
       {children}
@@ -90,7 +93,7 @@ export const TextInput = forwardRef<HTMLInputElement, TextInputProps>(
       disabled,
       icon,
       inputClassName,
-      size = "md",
+      size = "lg",
       type = "text",
       variant = "default",
       wrapperClassName,
@@ -136,7 +139,7 @@ export const SelectInput = forwardRef<HTMLSelectElement, SelectInputProps>(
       disabled,
       icon,
       selectClassName,
-      size = "md",
+      size = "lg",
       variant = "default",
       wrapperClassName,
       ...props

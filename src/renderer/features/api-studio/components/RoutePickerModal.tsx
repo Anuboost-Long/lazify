@@ -8,6 +8,7 @@ import { BaseModal } from "@renderer/shared/ui/modal/BaseModal";
 import type { SavedRoute } from "../types";
 import { groupByResource, matchesQuery } from "./RouteList";
 import { RoutePickerRow } from "./RoutePickerRow";
+import { SearchInput } from "@renderer/shared/ui/form/SearchInput";
 
 interface RoutePickerModalProps {
   open: boolean;
@@ -75,25 +76,12 @@ function RoutePickerCard({
           </button>
         </div>
 
-        <label className="relative block">
-          <span className="sr-only">{t(translation.ApiStudio.SearchRoutes)}</span>
-          <UiIcon
-            name="search"
-            className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted"
-          />
-          <input
-            type="search"
-            value={query}
-            disabled={routes.length === 0}
-            placeholder={t(translation.ApiStudio.SearchRoutes)}
-            onChange={(event) => setQuery(event.target.value)}
-            className={clsx(
-              "h-9 w-full rounded-lg border border-border bg-bg/45 pl-9 pr-3",
-              "text-xs text-text outline-none placeholder:text-muted/70",
-              "focus:border-accent/50 disabled:cursor-not-allowed disabled:opacity-55"
-            )}
-          />
-        </label>
+        <SearchInput
+          label={t(translation.ApiStudio.SearchRoutes)}
+          value={query}
+          onValueChange={setQuery}
+          disabled={routes.length === 0}
+        />
       </header>
 
       <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
