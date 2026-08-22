@@ -99,7 +99,7 @@ export function writeDocPreviewFile(projectPath: string, collectionId: string): 
 
   const filePath = path.join(os.tmpdir(), `lazify-api-doc-${collectionId}.html`);
 
-  fs.writeFileSync(filePath, html, "utf8");
+  fs.writeFileSync(filePath, html, { encoding: "utf8", mode: 0o600 });
 
   return filePath;
 }

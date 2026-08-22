@@ -1268,6 +1268,8 @@
     "doc_exported": "已保存到 {{path}}",
     "doc_preview_building": "正在生成预览…",
     "doc_preview_failed": "无法生成预览",
+    "doc_export_failed": "无法保存文档",
+    "doc_open_failed": "无法打开文档",
     "doc_refresh_preview": "刷新",
     "rich_bold": "加粗",
     "rich_italic": "斜体",

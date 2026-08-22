@@ -1429,6 +1429,8 @@
     "doc_exported": "Saved to {{path}}",
     "doc_preview_building": "Building the preview…",
     "doc_preview_failed": "The preview could not be built",
+    "doc_export_failed": "The document could not be saved",
+    "doc_open_failed": "The document could not be opened",
     "doc_refresh_preview": "Refresh",
     "rich_bold": "Bold",
     "rich_italic": "Italic",

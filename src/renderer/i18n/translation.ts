@@ -1429,6 +1429,8 @@ export const translation = {
     "DocExported": "api_studio.doc_exported",
     "DocPreviewBuilding": "api_studio.doc_preview_building",
     "DocPreviewFailed": "api_studio.doc_preview_failed",
+    "DocExportFailed": "api_studio.doc_export_failed",
+    "DocOpenFailed": "api_studio.doc_open_failed",
     "DocRefreshPreview": "api_studio.doc_refresh_preview",
     "RichBold": "api_studio.rich_bold",
     "RichItalic": "api_studio.rich_italic",

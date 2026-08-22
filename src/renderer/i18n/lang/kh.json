@@ -1268,6 +1268,8 @@
     "doc_exported": "បានរក្សាទុកទៅ {{path}}",
     "doc_preview_building": "កំពុងបង្កើតការមើលជាមុន…",
     "doc_preview_failed": "មិនអាចបង្កើតការមើលជាមុនបានទេ",
+    "doc_export_failed": "មិនអាចរក្សាទុកឯកសារបានទេ",
+    "doc_open_failed": "មិនអាចបើកឯកសារបានទេ",
     "doc_refresh_preview": "ធ្វើឱ្យស្រស់",
     "rich_bold": "ដិត",
     "rich_italic": "ទ្រេត",

@@ -29,7 +29,7 @@ export function DocPreviewPane({
   const [html, setHtml] = useState<string | null>(null);
   const [building, setBuilding] = useState(true);
   const [failed, setFailed] = useState(false);
-  const [note, setNote] = useState<string | null>(null);
+  const [note, setNote] = useState<{ text: string; failed: boolean } | null>(null);
   const [busy, setBusy] = useState(false);
   const [reloadAt, setReloadAt] = useState(0);
   const frame = useRef<HTMLIFrameElement>(null);
@@ -85,9 +85,11 @@ export function DocPreviewPane({
     void globalThis.lazify
       .exportCollectionDoc(projectPath, collectionId, format, title)
       .then((result) => {
-        if (result) setNote(t(translation.ApiStudio.DocExported, { path: result.filePath }));
+        if (result) {
+          setNote({ text: t(translation.ApiStudio.DocExported, { path: result.filePath }), failed: false });
+        }
       })
-      .catch(() => undefined)
+      .catch(() => setNote({ text: t(translation.ApiStudio.DocExportFailed), failed: true }))
       .finally(() => setBusy(false));
   };
 
@@ -110,7 +112,12 @@ export function DocPreviewPane({
             setBusy(true);
             void globalThis.lazify
               .openCollectionDoc(projectPath, collectionId)
-              .catch(() => undefined)
+              .then((failure) => {
+                if (failure) {
+                  setNote({ text: t(translation.ApiStudio.DocOpenFailed), failed: true });
+                }
+              })
+              .catch(() => setNote({ text: t(translation.ApiStudio.DocOpenFailed), failed: true }))
               .finally(() => setBusy(false));
           }}
           className={ACTION_CLASS}
@@ -143,7 +150,14 @@ export function DocPreviewPane({
       </div>
 
       {note ? (
-        <p className="truncate border-b border-border px-4 py-2 text-[11px] text-accent">{note}</p>
+        <p
+          className={clsx(
+            "truncate border-b border-border px-4 py-2 text-[11px]",
+            note.failed ? "text-error" : "text-accent"
+          )}
+        >
+          {note.text}
+        </p>
       ) : null}
 
       <div className="min-h-0 flex-1 bg-white">
