@@ -21,6 +21,18 @@ const collection = {
   requests: []
 } as CustomCollection;
 
+async function eventually(ready: () => boolean, within = 8000) {
+  const deadline = Date.now() + within;
+
+  while (Date.now() < deadline) {
+    if (ready()) return;
+
+    await new Promise((resolve) => setTimeout(resolve, 25));
+  }
+
+  throw new Error(`the watcher reported nothing within ${within}ms`);
+}
+
 describe("watching for an agent's answers", () => {
   it("reports the draft file being written", async () => {
     saveCustomCollections(projectPath, [collection]);
@@ -37,7 +49,7 @@ describe("watching for an agent's answers", () => {
       JSON.stringify({ collection: { overview: "Written by an agent." } })
     );
 
-    await new Promise((resolve) => setTimeout(resolve, 900));
+    await eventually(() => changes > 0);
 
     expect(changes).toBeGreaterThan(0);
 

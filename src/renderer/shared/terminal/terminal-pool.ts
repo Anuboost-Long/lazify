@@ -29,6 +29,7 @@ interface Entry extends PooledTerminal {
   detachedAt: number;
   openObserver: ResizeObserver | null;
   sizeObserver: ResizeObserver | null;
+  firstFit: number | null;
   disposers: (() => void)[];
 }
 
@@ -180,7 +181,8 @@ function buildTerminal(entry: Entry) {
   entry.sizeObserver = new ResizeObserver(() => fitToOwner(entry));
   entry.sizeObserver.observe(entry.holder);
 
-  requestAnimationFrame(() => {
+  entry.firstFit = requestAnimationFrame(() => {
+    entry.firstFit = null;
     fitToOwner(entry);
     replayBacklog(entry);
   });
@@ -206,15 +208,21 @@ function createEntry(runId: string, shared: boolean): Entry {
     detachedAt: 0,
     openObserver: null,
     sizeObserver: null,
+    firstFit: null,
     disposers: [],
   };
 }
 
 function disposeEntry(entry: Entry) {
+  if (entry.firstFit !== null) cancelAnimationFrame(entry.firstFit);
+
+  entry.firstFit = null;
   entry.openObserver?.disconnect();
   entry.sizeObserver?.disconnect();
   entry.disposers.forEach((dispose) => dispose());
   entry.term?.dispose();
+  entry.term = null;
+  entry.fit = null;
   entry.holder.remove();
 
   const remaining = (entriesByRun.get(entry.runId) ?? []).filter(

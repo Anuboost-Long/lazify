@@ -107,6 +107,19 @@ export class StubResizeObserver {
   disconnect() {}
 }
 
+export function stubDataTransfer() {
+  const carried = new Map<string, string>();
+
+  return {
+    effectAllowed: "none",
+    dropEffect: "none",
+    setData: (format: string, value: string) => {
+      carried.set(format, value);
+    },
+    getData: (format: string) => carried.get(format) ?? ""
+  };
+}
+
 export const scanProjectRoutes = vi.fn();
 export const readProjectRoutes = vi.fn();
 export const readRouteDetails = vi.fn();

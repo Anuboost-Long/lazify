@@ -433,6 +433,8 @@ describe("reading a response", () => {
     await userEvent.click(await screen.findByText("/users"));
     await userEvent.click(await screen.findByRole("button", { name: "200 OK" }));
 
+    await waitFor(() => expect(responseBody()).toContain("access_token"));
+
     /** The seed that follows the details must not undo the body already read. */
     await new Promise((resolve) => setTimeout(resolve, 150));
 

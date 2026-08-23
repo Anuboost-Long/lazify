@@ -12,7 +12,15 @@ vi.mock("react-i18next", async (importOriginal) => ({
   })
 }));
 
-import { postRoute, readApiCollections, readProjectRoutes, renderPage, route, scanResult } from "./harness";
+import {
+  postRoute,
+  readApiCollections,
+  readProjectRoutes,
+  renderPage,
+  route,
+  scanResult,
+  stubDataTransfer
+} from "./harness";
 import { openCustom, pickFirstRoute, pickMenuItem, rowMenu, savedCollections, withCollection } from "./collection-harness";
 
 describe("the shape of the collection tree", () => {
@@ -51,9 +59,11 @@ describe("the shape of the collection tree", () => {
     const first = (await screen.findByText("First")).closest("div")!;
     const second = screen.getByText("Second").closest("div")!;
 
-    fireEvent.dragStart(second);
-    fireEvent.dragOver(first);
-    fireEvent.drop(first);
+    const dataTransfer = stubDataTransfer();
+
+    fireEvent.dragStart(second, { dataTransfer });
+    fireEvent.dragOver(first, { dataTransfer });
+    fireEvent.drop(first, { dataTransfer });
 
     await waitFor(() =>
       expect(savedCollections()[0].requests.map((entry: { name: string }) => entry.name)).toEqual([
