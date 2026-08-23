@@ -69,8 +69,16 @@ describe("saved requests", () => {
     saveRequest(projectPath, "route_1", request());
 
     expect(fs.existsSync(path.join(projectPath, ".lazify"))).toBe(false);
-    expect(fs.statSync(storeFile()).mode & 0o777).toBe(0o600);
   });
+
+  it.skipIf(process.platform === "win32")(
+    "writes the store for its owner alone, where the filesystem carries modes",
+    () => {
+      saveRequest(projectPath, "route_1", request());
+
+      expect(fs.statSync(storeFile()).mode & 0o777).toBe(0o600);
+    }
+  );
 
   it("moves what a user typed into the project when they choose the project", () => {
     saveRequest(projectPath, "route_1", request());

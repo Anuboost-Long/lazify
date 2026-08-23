@@ -7,12 +7,26 @@ import { afterEach, describe, expect, it, vi } from "vitest";
  * that had no command behind it at all.
  */
 const mocks = vi.hoisted(() => ({
-  present: new Set<string>()
+  present: new Set<string>(),
+  attempted: [] as string[]
 }));
 
 vi.mock("node:fs", () => ({
   existsSync: (path: string) => mocks.present.has(path),
   default: { existsSync: (path: string) => mocks.present.has(path) }
+}));
+
+vi.mock("node:child_process", () => ({
+  execFile: (
+    command: string,
+    _args: string[],
+    _options: unknown,
+    done: (error: Error) => void
+  ) => {
+    mocks.attempted.push(command);
+    done(new Error(`${command} is not on this machine`));
+  },
+  spawnSync: () => ({ stdout: "", stderr: "" })
 }));
 
 const realPlatform = process.platform;
@@ -21,6 +35,7 @@ const realPlatform = process.platform;
 async function loadTools(platform: NodeJS.Platform, presentPaths: string[] = []) {
   Object.defineProperty(process, "platform", { value: platform, configurable: true });
   mocks.present = new Set(presentPaths);
+  mocks.attempted.length = 0;
   vi.resetModules();
 
   return import("../../../src/main/environment/tools");
@@ -83,13 +98,14 @@ describe("Windows", () => {
   it("probes the names Windows actually uses for Python", async () => {
     const { findTool } = await loadTools("win32");
 
-    // Nothing is installed in the mock, so the probe fails — what matters is
-    // that it tried `python` after `python3` rather than giving up on the
-    // POSIX spelling.
+    // Nothing answers, so the probe fails — what matters is that it tried
+    // `python` after `python3` rather than giving up on the POSIX spelling.
     await expect(findTool("python3")?.probe()).resolves.toEqual({
       available: false,
       version: null
     });
+
+    expect(mocks.attempted).toEqual(["python3", "python"]);
   });
 
   it("withholds the commands that are POSIX-only rather than offering them", async () => {

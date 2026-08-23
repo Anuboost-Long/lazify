@@ -195,9 +195,10 @@ describe("provisionStarter", () => {
     await git(["tag", "v1.0.0"]);
 
     gitConfig = path.join(workspace, "gitconfig");
+    const originUrl = originPath.split(path.sep).join("/");
     await fs.writeFile(
       gitConfig,
-      `[url "${originPath}"]\n\tinsteadOf = https://github.com/acme/starter.git\n`
+      `[url "${originUrl}"]\n\tinsteadOf = https://github.com/acme/starter.git\n`
     );
     process.env.GIT_CONFIG_GLOBAL = gitConfig;
     process.env.GIT_CONFIG_NOSYSTEM = "1";

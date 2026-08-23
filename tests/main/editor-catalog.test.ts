@@ -49,13 +49,14 @@ describe("finding the editors a machine has", () => {
 
   it("reads a Windows launcher by the suffix that machine uses", () => {
     const directory = "C:/bin";
+    const launcher = path.win32.join(directory, "code.cmd");
     const found = detectEditors({
       platform: "win32",
       pathDirectories: [directory],
-      exists: (candidate) => candidate === path.join(directory, "code.cmd")
+      exists: (candidate) => candidate === launcher
     });
 
-    expect(found[0].command).toBe(`${path.join(directory, "code.cmd")} {folder} -g {file}:{line}`);
+    expect(found[0].command).toBe(`${launcher} {folder} -g {file}:{line}`);
   });
 
   it("lists every editor found, not just the first", () => {

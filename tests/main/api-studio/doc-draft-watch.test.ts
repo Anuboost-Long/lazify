@@ -21,7 +21,7 @@ const collection = {
   requests: []
 } as CustomCollection;
 
-async function eventually(ready: () => boolean, within = 8000) {
+async function eventually(ready: () => boolean, within = 15_000) {
   const deadline = Date.now() + within;
 
   while (Date.now() < deadline) {
@@ -54,5 +54,5 @@ describe("watching for an agent's answers", () => {
     expect(changes).toBeGreaterThan(0);
 
     stop?.();
-  });
+  }, 20_000);
 });

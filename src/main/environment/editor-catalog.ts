@@ -139,12 +139,14 @@ function quoted(program: string) {
 
 /** The launcher this machine actually has, PATH first, shipped location second. */
 function programFor(editor: EditorDefinition, probe: EditorProbe): string | null {
-  const suffixes = probe.platform === "win32" ? [".cmd", ".exe", ""] : [""];
+  const onWindows = probe.platform === "win32";
+  const suffixes = onWindows ? [".cmd", ".exe", ""] : [""];
+  const join = onWindows ? path.win32.join : path.posix.join;
 
   for (const name of editor.programs) {
     for (const directory of probe.pathDirectories) {
       for (const suffix of suffixes) {
-        const candidate = path.join(directory, `${name}${suffix}`);
+        const candidate = join(directory, `${name}${suffix}`);
         if (probe.exists(candidate)) return candidate;
       }
     }

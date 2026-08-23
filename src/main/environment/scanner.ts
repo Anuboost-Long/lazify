@@ -29,6 +29,7 @@ function inspectBinary(name: CommandBinary | "node", args: string[] = ["--versio
 
   const result = spawnSync(name, args, {
     encoding: "utf8",
+    timeout: 5000,
     shell: process.platform === "win32"
   });
 
