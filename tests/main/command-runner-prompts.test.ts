@@ -1,10 +1,33 @@
-import { describe, expect, it } from "vitest";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import { afterAll, describe, expect, it } from "vitest";
 
 import {
   CommandRunner,
   detectCommandChoicePrompt,
   type CommandChoicePrompt
 } from "../../src/main/command-runner";
+
+// Passed as a file rather than `node -e`: on Windows the runner spawns through
+// cmd.exe, and a script this size going through shell quoting is a variable the
+// test does not mean to have.
+const scriptDirectory = fs.mkdtempSync(path.join(os.tmpdir(), "lazify-prompt-"));
+const askScript = path.join(scriptDirectory, "ask.js");
+
+fs.writeFileSync(
+  askScript,
+  [
+    "const readline = require('node:readline');",
+    "const io = readline.createInterface({ input: process.stdin, output: process.stdout });",
+    "io.question('Continue? (Y/n)', (answer) => {",
+    "  io.close();",
+    "  process.exit(answer === 'y' ? 0 : 1);",
+    "});"
+  ].join("\n")
+);
+
+afterAll(() => fs.rmSync(scriptDirectory, { recursive: true, force: true }));
 
 describe("detectCommandChoicePrompt", () => {
   it("detects confirmation prompts", () => {
@@ -48,10 +71,7 @@ describe("detectCommandChoicePrompt", () => {
     const runner = new CommandRunner(() => undefined, resolvePrompt);
     const resultPromise = runner.runCommand({
       command: process.execPath,
-      args: [
-        "-e",
-        "const readline=require('node:readline');const io=readline.createInterface({input:process.stdin,output:process.stdout});io.question('Continue? (Y/n)',answer=>{io.close();process.exit(answer==='y'?0:1)})"
-      ]
+      args: [askScript]
     });
     const prompt = await promptReceived;
 

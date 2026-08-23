@@ -8,32 +8,31 @@ import { Tooltip } from "@renderer/shared/ui/Tooltip";
 import { EditorTabBar } from "@renderer/shared/ui/code/EditorTabBar";
 import { FileQuickOpen } from "@renderer/shared/ui/command-palette/FileQuickOpen";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
-import { ExplorerActions } from "@renderer/shared/ui/project-tree-optimized/ExplorerActions";
-import { OptimizedEditorPane } from "@renderer/shared/ui/project-tree-optimized/OptimizedEditorPane";
-import { findNodeById } from "@renderer/shared/ui/project-tree-optimized/tree-utils";
+import { ProjectTreeActions } from "@renderer/shared/ui/project-tree/core/ProjectTreeActions";
+import { ProjectTreeEditor } from "@renderer/shared/ui/project-tree/core/ProjectTreeEditor";
+import { findNodeById } from "@renderer/shared/ui/project-tree/indexed-tree-utils";
 import { ProjectTreeEditorPanel } from "@renderer/shared/ui/project-tree/core/ProjectTreeEditorPanel";
 import type { SidebarView } from "@renderer/shared/ui/project-tree/sidebar/types";
-import { WorkbenchSidebar } from "@renderer/shared/ui/project-tree/sidebar/WorkbenchSidebar";
+import { WorkbenchLeftPanel } from "@renderer/shared/ui/project-tree/sidebar/WorkbenchLeftPanel";
 import { TreeContextMenu } from "@renderer/shared/ui/project-tree/TreeContextMenu";
+import { useProjectAgentActions } from "@renderer/shared/ui/project-tree/ProjectAgentActions";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { useSyncedProjectTree } from "./useSyncedProjectTree";
+import { useSyncedProjectTree, type RevealTarget } from "./useSyncedProjectTree";
 
 interface SyncedProjectTreePanelProps {
   allowGitStatus?: boolean;
   busy: boolean;
   editable?: boolean;
   project: ImportedProjectIndexResult;
-  /** Project tools shown in the workbench's right-hand rail. */
+  /** A file to open and focus as soon as the tree has it. */
+  reveal?: RevealTarget | null;
   toolViews?: SidebarView[];
-  /** Opens the OS terminal at the project's folder, from the same rail. */
   onOpenConsole?: () => void;
-  /** Starts a coding agent on this project, from the same rail. */
   onStartAgent?: () => void;
   renderGitInfo?: (props: {
     gitStatus: ProjectGitStatusResult | null;
     loading: boolean;
-    /** Rendered unconditionally now, because it is an overlay. */
     open: boolean;
     onClose: () => void;
   }) => ReactNode;
@@ -53,6 +52,7 @@ export function SyncedProjectTreePanel({
   busy,
   editable = false,
   project,
+  reveal = null,
   toolViews,
   onOpenConsole,
   onStartAgent,
@@ -60,23 +60,22 @@ export function SyncedProjectTreePanel({
   renderGitPane,
 }: Readonly<SyncedProjectTreePanelProps>) {
   const { t } = useTranslation();
+  const sendFileToAgent = useProjectAgentActions();
   const adapter = useSyncedProjectTree({
     allowGitStatus,
     editable,
     project,
+    reveal,
   });
+  const contextFile =
+    adapter.contextMenu?.node.type === "file" ? adapter.contextMenu.node : null;
 
   return (
     <>
       <ProjectTreeEditorPanel
-        busy={busy}
         mode={editable ? "editable" : "readonly"}
-        eyebrow={t(translation.ProjectTree.ProjectContents)}
-        title={project.projectName}
-        description={t(translation.ProjectTree.ProjectContentsDesc)}
         projectName={project.projectName}
-        subLabel={project.projectPath}
-        layout="workbench"
+        projectPath={project.projectPath}
         toolViews={toolViews}
         onOpenConsole={onOpenConsole}
         onStartAgent={onStartAgent}
@@ -116,7 +115,7 @@ export function SyncedProjectTreePanel({
         renderSidebar={
           allowGitStatus && renderGitPane
             ? (explorer) => (
-                <WorkbenchSidebar
+                <WorkbenchLeftPanel
                   activeId={adapter.activePanel}
                   onChange={(id) =>
                     adapter.setActivePanel(id as "explorer" | "git")
@@ -127,7 +126,7 @@ export function SyncedProjectTreePanel({
                       label: t(translation.ProjectTree.Explorer),
                       icon: "folder",
                       actions: editable ? (
-                        <ExplorerActions
+                        <ProjectTreeActions
                           compact
                           onCreateEntry={adapter.handleCreateEntry}
                         />
@@ -176,9 +175,7 @@ export function SyncedProjectTreePanel({
             : null
         }
         editor={
-          <OptimizedEditorPane
-            chrome="flush"
-            /* With nothing open the shell keeps its "no file selected" title. */
+          <ProjectTreeEditor
             tabs={
               adapter.openFiles.length > 0 ? (
                 <EditorTabBar
@@ -195,8 +192,6 @@ export function SyncedProjectTreePanel({
             openTabCount={adapter.openFiles.length}
             selectedNode={adapter.activeFileNode}
             selectedFileState={adapter.selectedFileState}
-            /* Go to definition stays inside this workbench: the file it finds
-               opens as another tab here, next to what the user was reading. */
             onOpenSymbol={(symbol, position) => void adapter.handleOpenSymbol(symbol, position)}
             focusLine={adapter.focusLine}
           />
@@ -210,12 +205,15 @@ export function SyncedProjectTreePanel({
               onRename={adapter.handleStartRename}
               onDelete={adapter.handleDeleteNode}
               onRevealInFinder={adapter.handleRevealInFinder}
+              onSendToAgent={
+                contextFile && sendFileToAgent
+                  ? () => sendFileToAgent(contextFile.relativePath)
+                  : undefined
+              }
             />
           ) : null
         }
       />
-
-      {/* Cmd/Ctrl+P quick-open over this project's files. */}
       <FileQuickOpen
         tree={adapter.editableTree}
         onOpenFile={(entry) => {

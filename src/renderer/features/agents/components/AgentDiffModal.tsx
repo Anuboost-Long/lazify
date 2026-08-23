@@ -1,4 +1,3 @@
-import clsx from "clsx";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -6,7 +5,9 @@ import { translation } from "@renderer/i18n/translation";
 import { MonoText, SmallText } from "@renderer/shared/typography";
 import { IconButton } from "@renderer/shared/ui/IconButton";
 import { BaseModal } from "@renderer/shared/ui/modal/BaseModal";
-import { DiffView, type DiffViewMode } from "@renderer/shared/ui/code/diff/DiffView";
+import { DiffEditorPanel } from "@renderer/shared/ui/code/diff/DiffEditorPanel";
+import { DiffModeToggle } from "@renderer/shared/ui/code/diff/DiffModeToggle";
+import type { DiffViewMode } from "@renderer/shared/ui/code/diff/DiffView";
 import { splitPath } from "../utils/paths";
 
 interface AgentDiffModalProps {
@@ -51,10 +52,7 @@ export function AgentDiffModal({
   return (
     <BaseModal open={filePath !== null} onClose={onClose}>
       <div
-        className={clsx(
-          "flex h-[85vh] w-[min(92vw,72rem)] flex-col overflow-hidden",
-          "rounded-2xl border border-border bg-soft shadow-2xl"
-        )}
+        className="flex h-[85vh] w-[min(92vw,72rem)] flex-col overflow-hidden rounded-2xl border border-border bg-soft shadow-2xl"
       >
         <header className="flex items-center gap-2 border-b border-border px-3 py-2">
           <span className="min-w-0">
@@ -80,30 +78,7 @@ export function AgentDiffModal({
           ) : null}
 
           <div className="ml-auto flex items-center gap-2">
-            <div className="flex items-center rounded-md border border-border p-0.5">
-              {(["unified", "split"] as const).map((mode) => (
-                <button
-                  key={mode}
-                  type="button"
-                  onClick={() => setViewMode(mode)}
-                  className={clsx(
-                    "rounded px-2 py-0.5 transition-colors",
-                    viewMode === mode ? "bg-text/10" : "hover:bg-text/[0.06]"
-                  )}
-                >
-                  <SmallText
-                    as="span"
-                    className={viewMode === mode ? "!text-text" : "!text-muted"}
-                  >
-                    {t(
-                      mode === "unified"
-                        ? translation.Agents.DiffUnified
-                        : translation.Agents.DiffSplit
-                    )}
-                  </SmallText>
-                </button>
-              ))}
-            </div>
+            <DiffModeToggle value={viewMode} onChange={setViewMode} />
 
             <IconButton
               icon="xmark"
@@ -115,11 +90,10 @@ export function AgentDiffModal({
         </header>
 
         <div className="min-h-0 flex-1">
-          <DiffView
-            diff={diff}
+          <DiffEditorPanel
+            content={diff}
             mode={viewMode}
             fileName={name}
-            showHunkHeaders={false}
             collapseUnchanged
           />
         </div>

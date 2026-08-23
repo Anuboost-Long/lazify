@@ -5,6 +5,7 @@ import { useInterfaceSettings } from "@renderer/shared/hooks/use-interface-setti
 import { SectionLabel } from "./SectionLabel";
 import { SettingRow } from "./SettingRow";
 import { ToggleSwitch } from "./ToggleSwitch";
+import { ZoomControl } from "./ZoomControl";
 
 export function InterfaceSection() {
   const { t } = useTranslation();
@@ -18,6 +19,11 @@ export function InterfaceSection() {
     <div className="border-t border-border pt-6">
       <SectionLabel>{t(translation.Settings.Interface)}</SectionLabel>
       <div className={clsx("rounded-2xl border border-border bg-soft", "divide-y divide-border")}>
+        <div className="px-5">
+          <SettingRow label={t(translation.Settings.Zoom)} description={t(translation.Settings.ZoomDesc)}>
+            <ZoomControl />
+          </SettingRow>
+        </div>
         <div className="px-5">
           <SettingRow label={t(translation.Settings.CompactSidebar)} description={t(translation.Settings.CompactSidebarDesc)}>
             <ToggleSwitch enabled={compactSidebar} onChange={setCompactSidebar} />

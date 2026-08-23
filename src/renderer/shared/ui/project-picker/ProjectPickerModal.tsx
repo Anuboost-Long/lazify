@@ -5,10 +5,10 @@ import { useTranslation } from "react-i18next";
 import { translation } from "@renderer/i18n/translation";
 import { SectionTitle } from "@renderer/shared/typography";
 import type { SyncedWorkspaceProject } from "@renderer/shared/types/lazify";
-import { TextInput } from "@renderer/shared/ui/form/FormInput";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import { BaseModal } from "@renderer/shared/ui/modal/BaseModal";
 import { ProjectPickerPanel } from "./ProjectPickerPanel";
+import { SearchInput } from "@renderer/shared/ui/form/SearchInput";
 
 interface ProjectPickerModalProps {
   open: boolean;
@@ -48,7 +48,7 @@ function PickerCard({
   return (
     <div
       className={clsx(
-        "flex max-h-[80vh] w-[min(560px,92vw)] flex-col overflow-hidden",
+        "flex max-h-[80vh] w-[min(760px,92vw)] flex-col overflow-hidden",
         "rounded-2xl border border-border bg-bg shadow-2xl"
       )}
     >
@@ -65,15 +65,11 @@ function PickerCard({
           </button>
         </div>
 
-        <TextInput
+        <SearchInput
           autoFocus
-          type="search"
-          size="sm"
-          icon="search"
+          label={t(translation.GlobalTerm.Search)}
           value={query}
-          onChange={(event) => setQuery(event.target.value)}
-          placeholder={t(translation.GlobalTerm.Search)}
-          className="!min-h-10 !rounded-xl"
+          onValueChange={setQuery}
         />
       </header>
 

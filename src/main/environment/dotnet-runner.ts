@@ -90,7 +90,7 @@ export async function resolveDotnetPorts(projectPath: string): Promise<number[]>
   try {
     const raw = await fs.readFile(settingsPath, "utf8");
     // Visual Studio writes these with a UTF-8 BOM, which JSON.parse rejects.
-    const parsed = JSON.parse(raw.replace(/^﻿/, "")) as {
+    const parsed = JSON.parse(raw.replace(/^\uFEFF/, "")) as {
       profiles?: Record<string, { applicationUrl?: string }>;
     };
 

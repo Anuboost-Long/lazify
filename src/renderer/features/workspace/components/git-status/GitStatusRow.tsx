@@ -4,26 +4,18 @@ import { translation } from "@renderer/i18n/translation";
 import { MonoText } from "@renderer/shared/typography";
 import { Tooltip } from "@renderer/shared/ui/Tooltip";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
-import { getFileVisual, ROW_HEIGHT } from "@renderer/shared/ui/project-tree-optimized/tree-utils-editable";
+import { getFileVisual, ROW_HEIGHT } from "@renderer/shared/ui/project-tree/core/project-tree-visuals";
 import type { GitStatusEntry } from "@renderer/shared/types/lazify";
 
 import { isStaged, statusChar, statusToneClass } from "./status-visual";
 import { RowAction } from "./RowAction";
 
-/**
- * One changed file, styled to match an explorer row exactly — same height,
- * same indent step, same icon set — so the two sidebar views read as one
- * component rather than two different lists.
- */
-
 interface GitStatusRowProps {
   entry: GitStatusEntry;
   name: string;
-  /** Shown dimmed after the name in list mode; omitted in tree mode. */
   directory?: string;
   depth: number;
   selected: boolean;
-  /** Which group this row is in — decides whether it stages or unstages. */
   group: "staged" | "unstaged";
   onSelect: (entry: GitStatusEntry) => void;
   onStage: (entry: GitStatusEntry) => void;
@@ -76,7 +68,6 @@ export function GitStatusRow({
         </button>
       </Tooltip>
 
-      {/* Hover actions, in VS Code's order: discard, then stage/unstage. */}
       <div className="flex shrink-0 items-center gap-0.5 opacity-0 transition-opacity group-hover/row:opacity-100 focus-within:opacity-100 [@media(hover:none)]:opacity-100">
         {group === "unstaged" ? (
           <>

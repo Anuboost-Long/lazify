@@ -1,5 +1,3 @@
-const PREVIEW_PARTITION = "persist:lazify-preview";
-
 const LOOPBACK_HOSTS = new Set(["localhost", "127.0.0.1", "0.0.0.0", "::1", "[::1]"]);
 
 export function normalizePreviewUrl(input: string): string | null {

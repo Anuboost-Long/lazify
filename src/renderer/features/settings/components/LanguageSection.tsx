@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import {
+  changeLanguage,
   LANGUAGE_STORAGE_KEY,
   normalizeLanguage,
   type SupportedLanguage
@@ -16,7 +17,7 @@ export function LanguageSection() {
 
   const handleLanguageChange = (language: SupportedLanguage) => {
     globalThis.localStorage.setItem(LANGUAGE_STORAGE_KEY, language);
-    void i18n.changeLanguage(language);
+    void changeLanguage(language);
   };
 
   return (

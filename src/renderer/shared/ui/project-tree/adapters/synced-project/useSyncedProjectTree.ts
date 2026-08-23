@@ -2,14 +2,14 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import {
   collectDescendantFilePaths,
   findNodeById,
-} from "@renderer/shared/ui/project-tree-optimized/tree-utils";
+} from "@renderer/shared/ui/project-tree/indexed-tree-utils";
 import type { EditorTab } from "@renderer/shared/ui/code/EditorTabBar";
 import { needsAssetBytes } from "@renderer/shared/ui/code/preview/file-preview-kind";
 import type { SymbolPosition } from "@renderer/shared/ui/code/symbol-at-point";
 import type {
   FileContentState,
-  TreeContextMenuState,
-} from "@renderer/shared/ui/project-tree-optimized/types";
+  ProjectTreeContextMenuState,
+} from "@renderer/shared/ui/project-tree/core/types";
 import type {
   GitStatusEntry,
   ImportedProjectIndexNode,
@@ -42,6 +42,32 @@ function buildAncestorIds(tree: ImportedProjectIndexNode[], targetId: string, tr
   return [];
 }
 
+export interface RevealTarget {
+  /** Relative to the project, as a scanner or a link states it. */
+  filePath: string;
+  line: number | null;
+}
+
+function findNodeByRelativePath(
+  tree: ImportedProjectIndexNode[],
+  relativePath: string
+): ImportedProjectIndexNode | null {
+  const wanted = relativePath.replace(/\\/g, "/").replace(/^\.?\//, "");
+
+  const visit = (nodes: ImportedProjectIndexNode[]): ImportedProjectIndexNode | null => {
+    for (const node of nodes) {
+      if (node.relativePath.replace(/\\/g, "/") === wanted) return node;
+
+      const nested = visit(node.children);
+      if (nested) return nested;
+    }
+
+    return null;
+  };
+
+  return visit(tree);
+}
+
 function findNodeByAbsolutePath(
   tree: ImportedProjectIndexNode[],
   absolutePath: string
@@ -65,8 +91,6 @@ function findNodeByAbsolutePath(
   return visit(tree);
 }
 
-// Open editor tabs and the active one, kept per project so leaving the
-// workbench and returning restores the same files in the same order.
 const EDITOR_TABS_STORAGE_KEY = "lazify-editor-tabs";
 
 interface StoredEditorTabs {
@@ -102,19 +126,19 @@ function persistEditorTabs(projectPath: string, value: StoredEditorTabs) {
 
     all[projectPath] = value;
     globalThis.localStorage.setItem(EDITOR_TABS_STORAGE_KEY, JSON.stringify(all));
-  } catch {
-    // A write that fails only costs the restore; the session keeps working.
-  }
+  } catch {}
 }
 
 export function useSyncedProjectTree({
   allowGitStatus = false,
   editable = false,
   project,
+  reveal = null,
 }: {
   allowGitStatus?: boolean;
   editable?: boolean;
   project: ImportedProjectIndexResult;
+  reveal?: RevealTarget | null;
 }) {
   const [activePanel, setActivePanel] = useState<"explorer" | "git">("explorer");
   const [showGitInfo, setShowGitInfo] = useState(false);
@@ -122,21 +146,18 @@ export function useSyncedProjectTree({
   const [expandedIds, setExpandedIds] = useState<string[]>(() => []);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [activeFilePath, setActiveFilePath] = useState<string | null>(null);
-  /** Files with an open tab, in tab order. */
   const [openFiles, setOpenFiles] = useState<EditorTab[]>([]);
-  const [includedFilePaths, setIncludedFilePaths] = useState<Set<string>>(() => new Set());
+  const [, setIncludedFilePaths] = useState<Set<string>>(() => new Set());
   const [fileCache, setFileCache] = useState<Record<string, FileContentState>>({});
-  const [contextMenu, setContextMenu] = useState<TreeContextMenuState | null>(null);
+  const [contextMenu, setContextMenu] = useState<
+    ProjectTreeContextMenuState<ImportedProjectIndexNode> | null
+  >(null);
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState("");
   const [gitStatus, setGitStatus] = useState<ProjectGitStatusResult | null>(null);
   const [gitStatusLoading, setGitStatusLoading] = useState(false);
-  /** Bumped to re-run the git status effect after the tree moves. */
   const [gitStatusNonce, setGitStatusNonce] = useState(0);
-  /** The project whose tabs have been restored, gating the persist effect so
-   *  it never writes the previous project's tabs under the new one's key. */
   const [hydratedProjectPath, setHydratedProjectPath] = useState<string | null>(null);
-  /** Where the last go-to-definition landed, so only that file is marked. */
   const [symbolTarget, setSymbolTarget] = useState<{
     filePath: string;
     line: number;
@@ -150,8 +171,6 @@ export function useSyncedProjectTree({
     setExpandedIds([]);
     setSelectedId(null);
 
-    // Restore the tabs this project last had open, dropping any whose file has
-    // since left the tree, and keeping their saved order.
     const stored = readStoredEditorTabs(project.projectPath);
     const restoredTabs = (stored?.openFiles ?? []).filter((tab) =>
       findNodeByAbsolutePath(project.tree, tab.filePath)
@@ -175,7 +194,6 @@ export function useSyncedProjectTree({
     setSymbolTarget(null);
   }, [project]);
 
-  // Once this project's tabs are hydrated, mirror every change back to storage.
   useEffect(() => {
     if (hydratedProjectPath !== project.projectPath) {
       return;
@@ -271,15 +289,11 @@ export function useSyncedProjectTree({
     const filePath = activeTab?.filePath ?? activeFilePath;
     const load: Promise<Omit<FileContentState, "status">> =
       activeTab?.kind === "diff"
-        ? // Full-file context: the changes read in place inside the whole
-          // source rather than as detached hunks.
-          globalThis.lazify
+        ? globalThis.lazify
             .getFileDiff(project.projectPath, activeTab.filePath, true)
             .then((content) => ({ content }))
         : needsAssetBytes(filePath)
-          ? // Images and PDFs have no text to show: their bytes come over
-            // whole so the editor can render the file itself.
-            globalThis.lazify.readProjectAssetFile(filePath).then((asset) => ({
+          ? globalThis.lazify.readProjectAssetFile(filePath).then((asset) => ({
               content: asset.base64,
               mimeType: asset.mimeType,
               byteLength: asset.byteLength
@@ -315,11 +329,6 @@ export function useSyncedProjectTree({
       });
   }, [activeFilePath, activeTab, project.projectPath]);
 
-  /**
-   * Expands every folder above a node so the explorer shows it, the way VS
-   * Code reveals the active file. Only the ancestors open — the panel the user
-   * is looking at is left alone.
-   */
   const expandToNode = (nodeId: string) => {
     const ancestorIds = buildAncestorIds(editableTree, nodeId);
 
@@ -333,9 +342,6 @@ export function useSyncedProjectTree({
     setSelectedId(node.id);
     expandToNode(node.id);
 
-    // Selecting a folder only moves the tree highlight. The editor keeps
-    // whatever file is open — closing it would throw away the user's place
-    // just for expanding a directory.
     if (node.type !== "file") return;
 
     setOpenFiles((current) =>
@@ -354,10 +360,6 @@ export function useSyncedProjectTree({
     setActiveFilePath(node.absolutePath);
   };
 
-  /**
-   * Opens a file's working-tree diff as its own tab, so the change and the
-   * file itself can be open side by side rather than replacing each other.
-   */
   const handleOpenDiff = (entry: GitStatusEntry) => {
     const tabPath = `diff:${entry.absolutePath}`;
     const name = entry.path.slice(entry.path.lastIndexOf("/") + 1);
@@ -390,7 +392,6 @@ export function useSyncedProjectTree({
     }
   };
 
-  /** Closing the active tab falls back to its left neighbour, then its right. */
   const handleCloseOpenFile = (path: string) => {
     setOpenFiles((current) => {
       const index = current.findIndex((tab) => tab.path === path);
@@ -411,10 +412,6 @@ export function useSyncedProjectTree({
     });
   };
 
-  /**
-   * Empties the editor. The tree highlight stays where it is — the selection
-   * is about the explorer, and closing tabs is no reason to lose your place.
-   */
   const handleCloseAllOpenFiles = () => {
     setOpenFiles([]);
     setActiveFilePath(null);
@@ -434,6 +431,18 @@ export function useSyncedProjectTree({
     });
   };
 
+  const revealNode = (node: ImportedProjectIndexNode, line: number | null) => {
+    const ancestorIds = buildAncestorIds(editableTree, node.id);
+
+    setExpandedIds((current) => {
+      const toAdd = ancestorIds.filter((id) => !current.includes(id));
+      return toAdd.length > 0 ? [...current, ...toAdd] : current;
+    });
+    setActivePanel("explorer");
+    handleSelectNode(node);
+    setSymbolTarget(line ? { filePath: node.absolutePath, line } : null);
+  };
+
   const handleOpenGitEntry = (entry: GitStatusEntry) => {
     const node = findNodeByAbsolutePath(editableTree, entry.absolutePath);
 
@@ -451,19 +460,8 @@ export function useSyncedProjectTree({
     handleSelectNode(node);
   };
 
-  /**
-   * Go to definition, the workbench way: the file opens as a tab in this
-   * editor, the explorer expands to it, and the declaration is marked. The
-   * navigation never leaves the page — that is the whole point of doing it
-   * here rather than handing the path to something else.
-   *
-   * A name that resolves to nothing, or to a file outside the indexed tree, is
-   * a no-op: a click on an ordinary word must not disturb what is open.
-   */
   const handleOpenSymbol = async (symbol: string, position?: SymbolPosition) => {
     const hit = await globalThis.lazify
-      // The file in the active tab is what a relative import path is relative
-      // to, and what the clicked position is read in.
       .findSymbolDefinition(
         project.projectPath,
         symbol,
@@ -559,10 +557,6 @@ export function useSyncedProjectTree({
     setContextMenu(null);
   };
 
-  /**
-   * Hands the right-clicked entry to the OS file manager, so the file being
-   * read here can be worked on outside the app without hunting for its path.
-   */
   const handleRevealInFinder = () => {
     const targetNode = contextMenu?.node;
 
@@ -607,6 +601,13 @@ export function useSyncedProjectTree({
     setRenameValue("");
   };
 
+  useEffect(() => {
+    if (!reveal || editableTree.length === 0) return;
+
+    const node = findNodeByRelativePath(editableTree, reveal.filePath);
+    if (node) revealNode(node, reveal.line);
+  }, [reveal?.filePath, reveal?.line, editableTree]);
+
   const handleToggleExpand = (nodeId: string) => {
     setExpandedIds((current) =>
       current.includes(nodeId)
@@ -637,7 +638,6 @@ export function useSyncedProjectTree({
     handleOpenDiff,
     handleOpenGitEntry,
     handleOpenSymbol,
-    /** Line to reveal, but only while its own file is the one on screen. */
     focusLine:
       symbolTarget && activeTab?.kind === "file" && activeTab.filePath === symbolTarget.filePath
         ? symbolTarget.line

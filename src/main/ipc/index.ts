@@ -10,6 +10,8 @@ import { registerMediaHandlers } from "./media";
 import { registerPackageHandlers } from "./packages";
 import { registerProjectHandlers } from "./projects";
 import { registerPromptHandlers } from "./prompts";
+import { registerApiDocHandlers } from "./api-docs";
+import { registerApiStudioHandlers } from "./api-studio";
 import { registerScriptHandlers } from "./scripts";
 import { registerSystemHandlers } from "./system";
 import { registerTaskHandlers } from "./tasks";
@@ -36,5 +38,7 @@ export function registerDomainHandlers(ctx: IpcContext) {
   registerMediaHandlers();
   registerPackageHandlers(ctx);
   registerPromptHandlers();
+  registerApiStudioHandlers(ctx);
+  registerApiDocHandlers(ctx);
   registerTaskHandlers();
 }

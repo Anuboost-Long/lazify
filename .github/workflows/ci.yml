@@ -33,6 +33,8 @@ jobs:
       - name: Typecheck main and preload
         run: npx tsc --noEmit -p tsconfig.node.json
 
+      - run: yarn lint
+
       - run: yarn test
 
       # Catches a renderer that typechecks but will not bundle.

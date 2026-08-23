@@ -1,4 +1,4 @@
-import { app, ipcMain } from "electron";
+import { ipcMain } from "electron";
 import { getLazyShieldState, setLazyShieldEnabled } from "../browser/lazy-shield";
 import { allowPopupsFrom } from "../browser/popup-policy";
 import { openExternalUrl } from "../browser/preview-guard";

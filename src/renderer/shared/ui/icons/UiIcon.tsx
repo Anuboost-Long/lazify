@@ -16,6 +16,8 @@ import {
   EditPencil,
   EmptyPage,
   Expand,
+  Eye,
+  EyeClosed,
   Folder,
   FolderPlus,
   GitBranch,
@@ -30,13 +32,17 @@ import {
   Menu,
   MediaImage,
   MediaVideo,
+  MoreHoriz,
   MultiWindow,
+  Network,
   NavArrowLeft,
   NavArrowRight,
   OpenNewWindow,
   Page,
   Plus,
   Package,
+  Pin,
+  PinSolid,
   Play,
   PlaySolid,
   RefreshCircle,
@@ -65,8 +71,10 @@ import {
   JournalPageSolid,
   KeySolid,
   MultiWindowSolid,
+  NetworkSolid,
   PackageSolid,
   SettingsSolid,
+  SparksSolid,
   TerminalSolid,
   ToolsSolid
 } from "./solid-icons";
@@ -84,6 +92,8 @@ export type UiIconName =
   | "edit"
   | "empty-page"
   | "expand"
+  | "eye"
+  | "eye-off"
   | "folder"
   | "folder-plus"
   | "git-branch"
@@ -96,7 +106,9 @@ export type UiIconName =
   | "key"
   | "media-image"
   | "media-video"
+  | "more"
   | "multi-window"
+  | "network"
   | "open-new-window"
   | "package"
   | "page"
@@ -121,7 +133,8 @@ export type UiIconName =
   | "collapse"
   | "trash"
   | "stop-circle"
-  | "pause";
+  | "pause"
+  | "pin";
 
 interface UiIconProps extends SVGProps<SVGSVGElement> {
   name: UiIconName;
@@ -143,6 +156,8 @@ const iconMap: Record<UiIconName, ComponentType<SVGProps<SVGSVGElement>>> = {
   edit: EditPencil,
   "empty-page": EmptyPage,
   expand: Expand,
+  eye: Eye,
+  "eye-off": EyeClosed,
   folder: Folder,
   "folder-plus": FolderPlus,
   "git-branch": GitBranch,
@@ -155,9 +170,12 @@ const iconMap: Record<UiIconName, ComponentType<SVGProps<SVGSVGElement>>> = {
   key: Key,
   "media-image": MediaImage,
   "media-video": MediaVideo,
+  more: MoreHoriz,
   "multi-window": MultiWindow,
+  network: Network,
   "open-new-window": OpenNewWindow,
   package: Package,
+  pin: Pin,
   page: Page,
   play: Play,
   "refresh-circle": RefreshCircle,
@@ -203,9 +221,12 @@ const solidIconMap: Partial<Record<UiIconName, ComponentType<SVGProps<SVGSVGElem
   "journal-page": JournalPageSolid,
   key: KeySolid,
   "multi-window": MultiWindowSolid,
+  network: NetworkSolid,
   package: PackageSolid,
+  pin: PinSolid,
   play: PlaySolid,
   settings: SettingsSolid,
+  sparks: SparksSolid,
   terminal: TerminalSolid,
   tools: ToolsSolid
 };

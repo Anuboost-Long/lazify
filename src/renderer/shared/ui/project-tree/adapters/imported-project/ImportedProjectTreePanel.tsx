@@ -2,23 +2,22 @@ import { translation } from "@renderer/i18n/translation";
 import { BodyText } from "@renderer/shared/typography";
 import { Tooltip } from "@renderer/shared/ui/Tooltip";
 import { SelectInput, TextInput } from "@renderer/shared/ui/form/FormInput";
-import { ProjectTreeEditorPanel as ProjectTreeEditorPanelShell } from "@renderer/shared/ui/project-tree/core/ProjectTreeEditorPanel";
+import { ProjectTreeEditorPanel } from "@renderer/shared/ui/project-tree/core/ProjectTreeEditorPanel";
 import { TreeContextMenu } from "@renderer/shared/ui/project-tree/TreeContextMenu";
-import { OptimizedEditorPane } from "@renderer/shared/ui/project-tree-optimized/OptimizedEditorPane";
-import { findNodeById } from "@renderer/shared/ui/project-tree-optimized/tree-utils";
-import type { OptimizedImportedProjectTreeProps } from "@renderer/shared/ui/project-tree-optimized/types";
+import { ProjectTreeEditor } from "@renderer/shared/ui/project-tree/core/ProjectTreeEditor";
+import { findNodeById } from "@renderer/shared/ui/project-tree/indexed-tree-utils";
 import { useImportedProjectTree } from "./useImportedProjectTree";
+import type { ImportedProjectTreePanelProps } from "./types";
 import { useTranslation } from "react-i18next";
 
 export function ImportedProjectTreePanel({
-  busy,
   editable = false,
   initialConfirmedStack,
   onSaveTemplate,
   projectName,
   projectPath,
   tree,
-}: OptimizedImportedProjectTreeProps) {
+}: Readonly<ImportedProjectTreePanelProps>) {
   const { t } = useTranslation();
   const adapter = useImportedProjectTree({
     initialConfirmedStack,
@@ -31,16 +30,10 @@ export function ImportedProjectTreePanel({
     : t(translation.ProjectTree.SelectStackWarning);
 
   return (
-    <ProjectTreeEditorPanelShell
-      busy={busy}
+    <ProjectTreeEditorPanel
       mode={editable ? "editable" : "readonly"}
-      eyebrow={t(translation.ProjectTree.ImportedStructure)}
-      title={t(translation.ProjectTree.ExplorerTitle, { project: projectName })}
-      description={t(translation.ProjectTree.ExplorerDesc)}
       projectName={projectName}
-      subLabel={projectPath}
-      infoBanner={t(translation.ProjectTree.ScanLoaded)}
-      gridClassName="xl:grid-cols-[320px_minmax(0,1fr)]"
+      projectPath={projectPath}
       tree={adapter.editableTree}
       expandedIds={adapter.expandedIds}
       selectedId={adapter.selectedId}
@@ -48,8 +41,6 @@ export function ImportedProjectTreePanel({
       renameValue={adapter.renameValue}
       isChecked={adapter.handleIsChecked}
       onToggleChecked={adapter.handleToggleChecked}
-      includedFileCount={adapter.includedFilePaths.size}
-      totalFileCount={adapter.totalFileCount}
       onSelect={(id) => {
         const node = findNodeById(adapter.editableTree, id);
         if (node) adapter.handleSelectNode(node);
@@ -117,7 +108,7 @@ export function ImportedProjectTreePanel({
         </>
       }
       editor={
-        <OptimizedEditorPane
+        <ProjectTreeEditor
           selectedNode={adapter.selectedNode}
           selectedFileState={adapter.selectedFileState}
         />

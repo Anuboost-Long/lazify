@@ -23,6 +23,22 @@ export function registerProjectHandlers(ctx: IpcContext) {
     return result.filePaths[0] ?? null;
   });
 
+  ipcMain.handle("lazify:select-directories", async () => {
+    const options: OpenDialogOptions = {
+      title: "Choose project directories",
+      properties: ["openDirectory", "createDirectory", "multiSelections"]
+    };
+    const result = ctx.mainWindow
+      ? await dialog.showOpenDialog(ctx.mainWindow, options)
+      : await dialog.showOpenDialog(options);
+
+    if (result.canceled) {
+      return [];
+    }
+
+    return result.filePaths;
+  });
+
   // Finder picker for handing a path to an agent: files and folders are both
   // valid targets, and several can be picked in one trip. On Windows and Linux
   // the two file properties cannot be combined, so those pick files only.

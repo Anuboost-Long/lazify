@@ -29,8 +29,8 @@ export default {
         shell: "28px"
       },
       fontFamily: {
-        display: ["Google Sans", "Avenir Next", "Segoe UI", "sans-serif"],
-        body: ["Google Sans", "Avenir Next", "Segoe UI", "sans-serif"],
+        display: ["var(--font-ui)"],
+        body: ["var(--font-ui)"],
         mono: ["SFMono-Regular", "Menlo", "Monaco", "Consolas", "monospace"]
       },
       backgroundImage: {

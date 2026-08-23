@@ -1,4 +1,3 @@
-import clsx from "clsx";
 import { useTranslation } from "react-i18next";
 
 import { translation } from "@renderer/i18n/translation";

@@ -4,17 +4,11 @@ import { useMemo, useState } from "react";
 import { MonoText } from "@renderer/shared/typography";
 import { Tooltip } from "@renderer/shared/ui/Tooltip";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
-import { ROW_HEIGHT } from "@renderer/shared/ui/project-tree-optimized/tree-utils-editable";
+import { ROW_HEIGHT } from "@renderer/shared/ui/project-tree/core/project-tree-visuals";
 import type { GitStatusEntry } from "@renderer/shared/types/lazify";
 
 import { buildGitTree, collectFolderIds, type GitTreeNode } from "./git-tree";
 import { GitStatusRow } from "./GitStatusRow";
-
-/**
- * Folder view: the same rows, nested under the directories they live in.
- * Folders start expanded, because a change set you just asked to see is not
- * something you want to go clicking open.
- */
 
 interface GitStatusTreeProps {
   entries: GitStatusEntry[];
@@ -38,8 +32,6 @@ export function GitStatusTree({
   const tree = useMemo(() => buildGitTree(entries), [entries]);
   const [collapsedIds, setCollapsedIds] = useState<string[]>([]);
 
-  // Tracked as "collapsed" rather than "expanded" so folders appearing in a
-  // later refresh are open by default without extra bookkeeping.
   const collapsed = useMemo(() => new Set(collapsedIds), [collapsedIds]);
 
   const toggle = (id: string) =>

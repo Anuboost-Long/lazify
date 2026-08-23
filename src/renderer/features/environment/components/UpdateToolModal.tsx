@@ -1,7 +1,7 @@
 import clsx from "clsx";
 import { useCallback, useEffect, useState } from "react";
 import { translation } from "@renderer/i18n/translation";
-import { BodyText, MonoText, OverlineText, PillText, SectionTitle } from "@renderer/shared/typography";
+import { BodyText, MonoText, OverlineText, SectionTitle } from "@renderer/shared/typography";
 import { CodeField } from "@renderer/shared/ui/code/CodeField";
 import { BaseModal } from "@renderer/shared/ui/modal/BaseModal";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";

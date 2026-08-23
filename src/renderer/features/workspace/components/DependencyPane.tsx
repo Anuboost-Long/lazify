@@ -115,7 +115,6 @@ interface SearchResultRowProps {
 }
 
 function SearchResultRow({ pkg, isInstalled, isActioning, anyActioning, onInstall }: SearchResultRowProps) {
-  const { t } = useTranslation();
 
   return (
     <div

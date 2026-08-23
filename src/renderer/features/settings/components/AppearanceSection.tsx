@@ -6,7 +6,6 @@ import { themeOptions } from "./settings-config";
 import { AccentColorSection } from "./AccentColorSection";
 import { CodeThemeSection } from "./CodeThemeSection";
 import { InterfaceSection } from "./InterfaceSection";
-import { JsToolsSection } from "./JsToolsSection";
 import { SectionLabel } from "./SectionLabel";
 import { ThemeOptionCard } from "./ThemeOptionCard";
 
@@ -35,7 +34,6 @@ export function AppearanceSection() {
       <AccentColorSection />
       <CodeThemeSection />
       <InterfaceSection />
-      <JsToolsSection />
     </div>
   );
 }

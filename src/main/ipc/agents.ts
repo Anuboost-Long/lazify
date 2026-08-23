@@ -3,12 +3,12 @@ import { setAgentBudget } from "../agents/agent-limits-store";
 import { getAgentDefinition, listAgents, resumeArgs } from "../agents/agent-registry";
 import { listAgentSessions } from "../agents/agent-sessions";
 import { getAgentUsage } from "../agents/agent-usage";
-import { Autopilot } from "../agents/autopilot";
 import { getAutopilotSettings, setAutopilotEnabled, setAutopilotProject } from "../agents/autopilot-store";
 import { saveClipboardImageToTempFile } from "../agents/clipboard-image";
 import { addCustomAgent, removeCustomAgent } from "../agents/custom-agents-store";
 import type { CustomAgentInput } from "../agents/custom-agents-store";
 import type { IpcContext } from "./context";
+import { hideRun } from "../agents/hidden-runs";
 
 export function registerAgentHandlers(ctx: IpcContext) {
   // Pasting into a PTY only ever forwards text, so a clipboard screenshot
@@ -67,7 +67,8 @@ export function registerAgentHandlers(ctx: IpcContext) {
       projectPath: string,
       cols = 120,
       rows = 30,
-      resumeSessionId?: string
+      resumeSessionId?: string,
+      hidden = false
     ): Promise<{ runId: string }> => {
       const definition = getAgentDefinition(agentId);
 
@@ -95,6 +96,10 @@ export function registerAgentHandlers(ctx: IpcContext) {
       // Only agent sessions are watched for prompts — a dev server's output is
       // not a permission request, however much it looks like one.
       ctx.attentionDetector.track(runId);
+
+      // A run owned by one screen: it never joins the session lists the rest of
+      // the app builds its terminals from.
+      if (hidden) hideRun(runId);
 
       return { runId };
     }

@@ -68,6 +68,7 @@ declare global {
       getTemplatePackageManifest: (templateId: string) => Promise<TemplatePackageEntry[]>;
       searchNpmPackages: (query: string) => Promise<NpmPackageSearchResult[]>;
       selectDirectory: () => Promise<string | null>;
+      selectDirectories: () => Promise<string[]>;
       /** Finder picker for files and folders; empty when the user cancels. */
       selectPaths: (defaultPath?: string | null) => Promise<string[]>;
       importProjectFromDirectory: (projectPath: string) => Promise<ImportedProjectScanResult>;
@@ -248,6 +249,12 @@ declare global {
       /** Opens a folder, or reveals a file selected inside its folder, in the OS file manager. */
       revealInFileManager: (targetPath: string) => Promise<void>;
       /** Opens the OS terminal rooted at the given folder. */
+      detectEditors: () => Promise<
+        import("../main/environment/editor-catalog").DetectedEditor[]
+      >;
+      openInEditor: (
+        request: import("../main/environment/open-in-editor").OpenInEditorRequest
+      ) => Promise<import("../main/environment/open-in-editor").OpenInEditorResult>;
       openTerminal: (targetPath: string) => Promise<void>;
       openExternalUrl: (url: string) => Promise<void>;
       listListeningProcesses: () => Promise<import("../main/environment/port-reaper").ListeningProcess[]>;
@@ -382,6 +389,115 @@ declare global {
        * is where the name was clicked, which is how a JSX prop is recognised as
        * one and resolved through its component instead of by spelling.
        */
+      scanProjectRoutes: (
+        projectPath: string
+      ) => Promise<import("../main/api-studio/types").SavedRouteScan>;
+      readProjectRoutes: (
+        projectPath: string
+      ) => Promise<import("../main/api-studio/types").SavedRouteScan | null>;
+      readRouteDetails: (
+        projectPath: string,
+        folder: string
+      ) => Promise<import("../main/api-studio/types").SavedRouteDetail[]>;
+      readApiEnvironments: (
+        projectPath: string
+      ) => Promise<import("../main/api-studio/types").ApiEnvironmentSet>;
+      saveApiEnvironments: (
+        projectPath: string,
+        set: import("../main/api-studio/types").ApiEnvironmentSet,
+        secretNames: string[]
+      ) => Promise<import("../main/api-studio/types").ApiEnvironmentSet>;
+      chooseUploadFile: () => Promise<string | null>;
+      exportPostmanCollection: (
+        projectPath: string
+      ) => Promise<import("../main/api-studio/export").CollectionExport | null>;
+      readApiRequests: (
+        projectPath: string
+      ) => Promise<import("../main/api-studio/request-store").RequestStore>;
+      saveApiRequest: (
+        projectPath: string,
+        routeId: string,
+        request: import("../main/api-studio/request-store").SavedRequest
+      ) => Promise<import("../main/api-studio/request-store").RequestStore>;
+      forgetApiRequest: (
+        projectPath: string,
+        routeId: string
+      ) => Promise<import("../main/api-studio/request-store").RequestStore>;
+      readApiResponseBody: (projectPath: string, bodyFile: string) => Promise<string>;
+      readApiCollections: (
+        projectPath: string
+      ) => Promise<import("../main/api-studio/custom-collections").CustomCollection[]>;
+      exportCustomCollection: (
+        projectPath: string,
+        collectionId: string,
+        collectionName: string
+      ) => Promise<import("../main/api-studio/export").CollectionExport | null>;
+      saveResponseFile: (filePath: string, suggestedName: string) => Promise<string | null>;
+      openResponseFile: (filePath: string) => Promise<string | null>;
+      readApiCollectionBody: (projectPath: string, bodyFile: string) => Promise<string>;
+      saveApiCollections: (
+        projectPath: string,
+        collections: import("../main/api-studio/custom-collections").CustomCollection[]
+      ) => Promise<import("../main/api-studio/custom-collections").CustomCollection[]>;
+      setApiRequestStorage: (
+        projectPath: string,
+        location: import("../main/api-studio/request-store").RequestStorage
+      ) => Promise<import("../main/api-studio/request-store").RequestStore>;
+      sendApiRequest: (
+        draft: import("../main/api-studio/runner").ApiRequestDraft
+      ) => Promise<import("../main/api-studio/runner").ApiSendOutcome>;
+      runApiRequest: (
+        input: import("../main/api-studio/scripting/types").ScriptedRunInput
+      ) => Promise<import("../main/api-studio/scripting/types").ApiRunOutcome>;
+      readAllowedHosts: (projectPath: string) => Promise<string[]>;
+      allowApiHost: (projectPath: string, url: string) => Promise<string[]>;
+      forgetApiHost: (projectPath: string, host: string) => Promise<string[]>;
+      readScriptSettings: (
+        projectPath: string
+      ) => Promise<import("../main/api-studio/script-settings").ScriptSettings>;
+      saveScriptSettings: (
+        projectPath: string,
+        settings: import("../main/api-studio/script-settings").ScriptSettings
+      ) => Promise<import("../main/api-studio/script-settings").ScriptSettings>;
+      readCollectionDoc: (
+        projectPath: string,
+        collectionId: string
+      ) => Promise<import("../main/api-studio/docs").DocState | null>;
+      saveCollectionDoc: (
+        projectPath: string,
+        doc: import("../main/api-studio/docs").CollectionDoc
+      ) => Promise<import("../main/api-studio/docs").DocState | null>;
+      previewCollectionDoc: (projectPath: string, collectionId: string) => Promise<string | null>;
+      openCollectionDoc: (projectPath: string, collectionId: string) => Promise<string | null>;
+      exportCollectionDoc: (
+        projectPath: string,
+        collectionId: string,
+        format: import("../main/api-studio/docs").DocFormat,
+        name: string
+      ) => Promise<import("../main/api-studio/docs").DocExport | null>;
+      chooseDocLogo: () => Promise<string | null>;
+      collectionDocBrief: (
+        projectPath: string,
+        collectionId: string
+      ) => Promise<import("../main/api-studio/docs").DocBrief | null>;
+      collectionDocQuestions: (
+        projectPath: string,
+        collectionId: string,
+        keys: string[]
+      ) => Promise<string | null>;
+      writeCollectionDocBrief: (
+        projectPath: string,
+        collectionId: string
+      ) => Promise<import("../main/api-studio/docs").DocBriefFiles | null>;
+      importCollectionDocDraft: (
+        projectPath: string,
+        collectionId: string,
+        choose: boolean,
+        onlyEmpty?: boolean
+      ) => Promise<import("../main/api-studio/docs").DocImportResult | null>;
+      watchCollectionDocDraft: (projectPath: string, collectionId: string) => Promise<boolean>;
+      unwatchCollectionDocDraft: (collectionId: string) => Promise<void>;
+      onCollectionDocDraftChanged: (callback: (collectionId: string) => void) => () => void;
       findSymbolDefinition: (
         projectPath: string,
         symbol: string,
@@ -395,8 +511,14 @@ declare global {
         projectPath: string,
         cols?: number,
         rows?: number,
-        resumeSessionId?: string
+        resumeSessionId?: string,
+        hidden?: boolean
       ) => Promise<{ runId: string }>;
+      readZoom: () => Promise<number>;
+      setZoom: (factor: number) => Promise<number>;
+      stepZoom: (direction: 1 | -1) => Promise<number>;
+      resetZoom: () => Promise<number>;
+      onZoomChanged: (callback: (factor: number) => void) => () => void;
       onLog: (callback: (event: LogEvent) => void) => () => void;
       onCommandChoicePrompt: (callback: (prompt: CommandChoicePrompt) => void) => () => void;
       /** Fires once an agent's transcript goes quiet — i.e. that agent's turn finished. */

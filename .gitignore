@@ -17,3 +17,6 @@ yarn-error.log*
 pnpm-debug.log*
 
 release/
+
+# Scan cache the app writes into whatever project it opens, including this one.
+.lazify/

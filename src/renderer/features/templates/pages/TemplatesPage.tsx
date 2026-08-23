@@ -5,9 +5,9 @@ import type { ImportedTemplateOption } from "@renderer/shared/types/lazify";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import { ImportedTemplateCard } from "@renderer/shared/ui/ImportedTemplateCard";
 import { PageHero } from "@renderer/shared/ui/PageHero";
-import { TextInput } from "@renderer/shared/ui/form/FormInput";
 import { useTranslation } from "react-i18next";
 import { PageCrumb } from "@renderer/app/components/PageChrome";
+import { SearchInput } from "@renderer/shared/ui/form/SearchInput";
 
 interface TemplatesPageProps {
   importedTemplateOptions: ImportedTemplateOption[];
@@ -141,28 +141,15 @@ export function TemplatesPage({
                 </BodyText>
               </div>
 
-              <div className="relative min-w-0 flex-1">
-                <TextInput
-                  type="search"
-                  value={searchQuery}
-                  onChange={(event) => setSearchQuery(event.target.value)}
-                  icon="search"
-                  placeholder={t(translation.Templates.SearchPlaceholder)}
-                  aria-label={t(translation.Templates.SearchPlaceholder)}
-                  className="!min-h-[48px] !rounded-[16px] bg-bg/80 pr-11"
-                  inputClassName="text-[15px]"
-                />
-                {searchQuery ? (
-                  <button
-                    type="button"
-                    onClick={() => setSearchQuery("")}
-                    aria-label={t(translation.Templates.ClearSearch)}
-                    className="absolute right-3 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-lg text-muted transition-colors hover:bg-text/10 hover:text-text"
-                  >
-                    <UiIcon name="xmark" className="h-4 w-4" />
-                  </button>
-                ) : null}
-              </div>
+              <SearchInput
+                size="lg"
+                className="flex-1"
+                label={t(translation.Templates.SearchPlaceholder)}
+                clearLabel={t(translation.Templates.ClearSearch)}
+                value={searchQuery}
+                onValueChange={setSearchQuery}
+                wrapperClassName="bg-bg/80"
+              />
             </div>
           </section>
 

@@ -24,15 +24,17 @@ function splashHtml(): string {
   const icon = readIconDataUri();
 
   return `<!doctype html>
-<html>
+<html lang="en">
 <head>
 <meta charset="utf-8" />
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root { --font-ui: "Google Sans", "Avenir Next", "Segoe UI", sans-serif; }
+  :root:lang(en) { --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
   html, body {
     width: 100%; height: 100%;
     background: transparent; overflow: hidden;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-family: var(--font-ui);
     -webkit-user-select: none; user-select: none;
   }
   .card {

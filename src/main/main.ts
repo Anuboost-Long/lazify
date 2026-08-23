@@ -1,5 +1,6 @@
 import { app, BrowserWindow, ipcMain, Notification } from "electron";
-import fs from "node:fs";
+import { buildAppMenu } from "./app-menu";
+import { holdZoomSteady, stepZoom } from "./window-zoom";
 import path from "node:path";
 
 import { CommandRunner } from "./command-runner";
@@ -305,7 +306,12 @@ function createMainWindow(): BrowserWindow {
   // backstops: JS that loaded but never got that far, and a load that failed
   // outright — in both cases the splash has nothing left to wait for.
   window.webContents.on("did-finish-load", () => {
+    holdZoomSteady(window);
     setTimeout(() => revealWindow(window), RENDERER_PAINT_GRACE_MS);
+  });
+
+  window.webContents.on("zoom-changed", (_event, direction) => {
+    stepZoom(window, direction === "in" ? 1 : -1);
   });
 
   window.webContents.on("did-fail-load", () => revealWindow(window));
@@ -394,6 +400,7 @@ app.whenReady().then(() => {
   }
 
   registerIpcHandlers();
+  buildAppMenu(() => mainWindow);
   mainWindow = createMainWindow();
   watchWindowCrashes(mainWindow);
 

@@ -6,14 +6,11 @@ import { translation } from "@renderer/i18n/translation";
 import { usePictureInPicture } from "@renderer/shared/hooks/use-picture-in-picture";
 import { toggleMediaPictureInPicture } from "@renderer/shared/lib/media-pip";
 import { MonoText, SmallText } from "@renderer/shared/typography";
-import { Tooltip } from "@renderer/shared/ui/Tooltip";
-import UiIcon, { type UiIconName } from "@renderer/shared/ui/icons/UiIcon";
 import { Control } from "./PreviewControl";
 import { normalizePreviewUrl } from "./preview-url";
 
 const PREVIEW_PARTITION = "persist:lazify-preview";
 
-const LOOPBACK_HOSTS = new Set(["localhost", "127.0.0.1", "0.0.0.0", "::1", "[::1]"]);
 
 interface AgentPreviewPanelProps {
   detectedUrl: string | null;

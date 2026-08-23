@@ -1,25 +1,29 @@
-import { EnvironmentRoute } from "./EnvironmentRoute";
-import { InitProjectFlowRoute } from "./InitProjectFlowRoute";
-import { InitProjectSelectionRoute } from "./InitProjectSelectionRoute";
-import { InitProjectSetupRoute } from "./InitProjectSetupRoute";
-import { ImportTemplateRoute } from "./ImportTemplateRoute";
+import { lazy } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
+
 import { AppShell } from "../AppShell";
 import { appRoute, defaultAppRoute } from "../app-routes";
-import { AgentsRoute } from "./AgentsRoute";
 import { HomeRoute } from "./HomeRoute";
-import { BrowserRoute } from "./BrowserRoute";
-import { InitProjectProgressRoute } from "./InitProjectProgressRoute";
-import { DmgCompilerRoute } from "./DmgCompilerRoute";
-import { PromptBuilderRoute } from "./PromptBuilderRoute";
-import { ToolsRoute } from "./ToolsRoute";
-import { LegalRoute } from "./LegalRoute";
-import { SettingsRoute } from "./SettingsRoute";
-import { SyncedProjectRoute } from "./SyncedProjectRoute";
-import { TemplatesRoute } from "./TemplatesRoute";
-import { TemplatesFlowRoute } from "./TemplatesFlowRoute";
-import { TemplateEditRoute } from "./TemplateEditRoute";
-import { WorkspaceRoute } from "./WorkspaceRoute";
+
+const AgentsRoute = lazy(async () => ({ default: (await import("./AgentsRoute")).AgentsRoute }));
+const ApiStudioRoute = lazy(async () => ({ default: (await import("./ApiStudioRoute")).ApiStudioRoute }));
+const BrowserRoute = lazy(async () => ({ default: (await import("./BrowserRoute")).BrowserRoute }));
+const DmgCompilerRoute = lazy(async () => ({ default: (await import("./DmgCompilerRoute")).DmgCompilerRoute }));
+const EnvironmentRoute = lazy(async () => ({ default: (await import("./EnvironmentRoute")).EnvironmentRoute }));
+const ImportTemplateRoute = lazy(async () => ({ default: (await import("./ImportTemplateRoute")).ImportTemplateRoute }));
+const InitProjectFlowRoute = lazy(async () => ({ default: (await import("./InitProjectFlowRoute")).InitProjectFlowRoute }));
+const InitProjectProgressRoute = lazy(async () => ({ default: (await import("./InitProjectProgressRoute")).InitProjectProgressRoute }));
+const InitProjectSelectionRoute = lazy(async () => ({ default: (await import("./InitProjectSelectionRoute")).InitProjectSelectionRoute }));
+const InitProjectSetupRoute = lazy(async () => ({ default: (await import("./InitProjectSetupRoute")).InitProjectSetupRoute }));
+const LegalRoute = lazy(async () => ({ default: (await import("./LegalRoute")).LegalRoute }));
+const PromptBuilderRoute = lazy(async () => ({ default: (await import("./PromptBuilderRoute")).PromptBuilderRoute }));
+const SettingsRoute = lazy(async () => ({ default: (await import("./SettingsRoute")).SettingsRoute }));
+const SyncedProjectRoute = lazy(async () => ({ default: (await import("./SyncedProjectRoute")).SyncedProjectRoute }));
+const TemplateEditRoute = lazy(async () => ({ default: (await import("./TemplateEditRoute")).TemplateEditRoute }));
+const TemplatesFlowRoute = lazy(async () => ({ default: (await import("./TemplatesFlowRoute")).TemplatesFlowRoute }));
+const TemplatesRoute = lazy(async () => ({ default: (await import("./TemplatesRoute")).TemplatesRoute }));
+const ToolsRoute = lazy(async () => ({ default: (await import("./ToolsRoute")).ToolsRoute }));
+const WorkspaceRoute = lazy(async () => ({ default: (await import("./WorkspaceRoute")).WorkspaceRoute }));
 
 export function AppRoutes() {
   return (
@@ -50,6 +54,7 @@ export function AppRoutes() {
         />
         <Route path={appRoute.tools.slice(1)} element={<ToolsRoute />} />
         <Route path={appRoute.toolsPromptBuilder.slice(1)} element={<PromptBuilderRoute />} />
+        <Route path={appRoute.toolsApiStudio.slice(1)} element={<ApiStudioRoute />} />
         <Route path={appRoute.toolsDmgCompiler.slice(1)} element={<DmgCompilerRoute />} />
         {/* The tool moved under Tools; the old address still works. */}
         <Route

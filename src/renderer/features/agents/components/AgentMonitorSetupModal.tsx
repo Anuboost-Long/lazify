@@ -103,7 +103,7 @@ export function AgentMonitorSetupModal({
     <BaseModal open={open} onClose={handleClose}>
       <div
         className={clsx(
-          "flex max-h-[min(34rem,85vh)] w-[480px] max-w-[calc(100vw-2rem)] flex-col",
+          "flex max-h-[min(44rem,88vh)] w-[760px] max-w-[calc(100vw-2rem)] flex-col",
           "overflow-hidden rounded-shell border border-border bg-soft shadow-panel"
         )}
       >

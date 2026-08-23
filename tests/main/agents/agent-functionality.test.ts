@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { Autopilot } from "../../../src/main/agents/autopilot";
 import { decideAutopilot } from "../../../src/main/agents/autopilot-policy";
 import { AttentionDetector } from "../../../src/main/agents/attention-detector";
 import { parseAgentPrompt } from "../../../src/main/agents/prompt-parser";
@@ -218,5 +219,38 @@ describe("Agent turn-done alerts", () => {
     run.push("✓ Wrote 3 files\nall set", 500);
 
     expect(run.turns).toBe(0);
+  });
+});
+
+describe("Autopilot keystrokes", () => {
+  const RUN = "run-1";
+
+  function drive(screen: string) {
+    const written: string[] = [];
+    const autopilot = new Autopilot({
+      isActive: () => true,
+      getScreen: () => screen,
+      isWaiting: () => true,
+      answer: (_runId, keys) => written.push(keys),
+      onAnswered: () => {},
+      onHeld: () => {}
+    });
+
+    vi.useFakeTimers();
+    autopilot.consider(RUN);
+    vi.advanceTimersByTime(1000);
+    vi.useRealTimers();
+
+    return written;
+  }
+
+  it("picks a drawn menu option without submitting", () => {
+    expect(
+      drive(["Run npm install", "Do you want to proceed?", "1. Yes", "2. No"].join("\n"))
+    ).toEqual(["1"]);
+  });
+
+  it("submits an inline yes/no, which is read as a line", () => {
+    expect(drive("Run npm install\nDo you want to proceed? (y/n) ")).toEqual(["y\r"]);
   });
 });

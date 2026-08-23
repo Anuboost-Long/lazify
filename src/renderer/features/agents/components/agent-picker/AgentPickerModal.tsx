@@ -8,7 +8,6 @@ import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import { BaseModal } from "@renderer/shared/ui/modal/BaseModal";
 import type { AgentDescriptor } from "../../../../../main/agents/agent-registry";
 import type { AgentSessionSummary } from "../../../../../main/agents/agent-sessions";
-import { AgentGlyph } from "../AgentGlyph";
 import { AgentChoiceList } from "./AgentChoiceList";
 import { CustomAgentForm } from "./CustomAgentForm";
 import { ResumeSessionList } from "./ResumeSessionList";

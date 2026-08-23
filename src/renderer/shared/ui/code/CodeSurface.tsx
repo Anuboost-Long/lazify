@@ -1,5 +1,14 @@
 import clsx from "clsx";
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type KeyboardEvent as ReactKeyboardEvent,
+  type MutableRefObject,
+  type ReactNode
+} from "react";
 
 import { useHighlightedLines } from "./CodeText";
 import { CodeFindBar } from "./find/CodeFindBar";
@@ -14,6 +23,7 @@ import {
 import { useCodeSelectionActions } from "./menu/selection-actions";
 import { symbolHitAtPoint, type SymbolPosition } from "./symbol-at-point";
 import { useCodePalette } from "./highlighter/use-highlighter";
+import { PLAIN_LANGUAGE } from "./highlighter/languages";
 import { languageOf } from "./tokenize";
 
 interface CodeSurfaceProps {
@@ -30,6 +40,13 @@ interface CodeSurfaceProps {
    * the lines tighter for reading.
    */
   variant?: "panel" | "flush";
+  /**
+   * Fold long lines instead of scrolling sideways. Numbering goes with it: a
+   * wrapped line covers several rows, which no fixed-height gutter can follow.
+   */
+  wrap?: boolean;
+  /** Names the surface, the way any other input or region is named. */
+  label?: string;
   className?: string;
   /**
    * Clicking an identifier asks to go to where it is declared. Read-only
@@ -42,6 +59,9 @@ interface CodeSurfaceProps {
   focusLine?: number | null;
   filePath?: string | null;
   selectionActions?: CodeSelectionAction[];
+  /** Editable mode only: the caret and selection the caller needs to read. */
+  inputRef?: MutableRefObject<HTMLTextAreaElement | null>;
+  onKeyDown?: (event: ReactKeyboardEvent<HTMLTextAreaElement>) => void;
 }
 
 const STYLES = {
@@ -58,6 +78,9 @@ const STYLES = {
     code: "px-3 py-2 text-[12px] leading-[25px]",
   },
 } as const;
+
+/** Past this, highlighting a document costs more than the colour is worth. */
+const MAX_HIGHLIGHTED = 250_000;
 
 const GUTTER_BASE =
   "shrink-0 overflow-hidden border-r border-border bg-bg/60 text-right font-mono text-muted/80";
@@ -106,12 +129,16 @@ export function CodeSurface({
   fileName,
   onContentChange,
   placeholder,
+  wrap = false,
+  label,
   variant = "panel",
   className,
   onOpenSymbol,
   focusLine,
   filePath,
   selectionActions,
+  inputRef,
+  onKeyDown,
 }: Readonly<CodeSurfaceProps>) {
   const style = STYLES[variant];
   const rootRef = useRef<HTMLDivElement | null>(null);
@@ -119,7 +146,7 @@ export function CodeSurface({
   const codeRef = useRef<HTMLPreElement | null>(null);
   const editableHighlightRef = useRef<HTMLPreElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
-  const language = languageOf(fileName);
+  const language = content.length > MAX_HIGHLIGHTED ? PLAIN_LANGUAGE : languageOf(fileName);
   const lines = useHighlightedLines(
     content,
     language,
@@ -314,15 +341,17 @@ export function CodeSurface({
         className,
       )}
     >
-      <div
-        ref={gutterRef}
-        className={clsx(GUTTER_BASE, style.gutter)}
-        style={themed ? { background: themed.background } : undefined}
-      >
-        {lines.map((_, index) => (
-          <div key={index}>{index + 1}</div>
-        ))}
-      </div>
+      {wrap ? null : (
+        <div
+          ref={gutterRef}
+          className={clsx(GUTTER_BASE, style.gutter)}
+          style={themed ? { background: themed.background } : undefined}
+        >
+          {lines.map((_, index) => (
+            <div key={index}>{index + 1}</div>
+          ))}
+        </div>
+      )}
 
       <div className={CODE_WRAP}>
         {editable ? (
@@ -334,17 +363,23 @@ export function CodeSurface({
               className={clsx(
                 CODE_BASE,
                 style.code,
-                "pointer-events-none overflow-hidden whitespace-pre",
+                "pointer-events-none overflow-hidden",
+                wrap ? "whitespace-pre-wrap break-words" : "whitespace-pre",
               )}
               style={themed}
             >
               {renderedLines}
             </pre>
             <textarea
-              ref={textareaRef}
+              ref={(node) => {
+                textareaRef.current = node;
+                if (inputRef) inputRef.current = node;
+              }}
               value={content}
-              wrap="off"
+              aria-label={label}
+              wrap={wrap ? "soft" : "off"}
               onChange={(event) => onContentChange?.(event.target.value)}
+              onKeyDown={onKeyDown}
               onContextMenu={handleContextMenu}
               onScroll={(event) => {
                 const { scrollLeft, scrollTop } = event.currentTarget;
@@ -358,7 +393,10 @@ export function CodeSurface({
               className={clsx(
                 CODE_BASE,
                 style.code,
-                "resize-none overflow-auto whitespace-pre bg-transparent text-transparent outline-none placeholder:text-muted",
+                "resize-none bg-transparent text-transparent outline-none placeholder:text-muted",
+                wrap
+                  ? "overflow-y-auto overflow-x-hidden whitespace-pre-wrap break-words"
+                  : "overflow-auto whitespace-pre",
               )}
               style={{ caretColor: themed?.color ?? "rgb(var(--color-text))" }}
               placeholder={placeholder}
@@ -367,6 +405,7 @@ export function CodeSurface({
         ) : (
           <pre
             ref={codeRef}
+            aria-label={label}
             onScroll={(event) => {
               syncGutter(event.currentTarget.scrollTop);
               // The word under the pointer has moved out from under it.
@@ -379,7 +418,10 @@ export function CodeSurface({
             className={clsx(
               CODE_BASE,
               style.code,
-              "overflow-auto whitespace-pre bg-transparent",
+              "bg-transparent",
+              wrap
+                ? "overflow-y-auto overflow-x-hidden whitespace-pre-wrap break-words"
+                : "overflow-auto whitespace-pre",
               linkBoxes && "cursor-pointer",
             )}
             style={themed}

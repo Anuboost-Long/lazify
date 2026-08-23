@@ -1,0 +1,251 @@
+import type { PackageJsonContent } from "../../brain/stack-detection/package-json-reader";
+import type { StackDetectionResult } from "../../brain/stack-detection/types";
+
+export type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE" | "OPTIONS" | "HEAD";
+
+export type RouteSourceKind = "openapi" | "scanner" | "manual";
+
+export type RouteConfidence = "exact" | "inferred" | "ambiguous";
+
+export type ParameterLocation = "path" | "query" | "cookie";
+
+export interface ApiParameter {
+  name: string;
+  location: ParameterLocation;
+  required: boolean;
+  description: string | null;
+  schemaType: string | null;
+  example: string | null;
+}
+
+export interface ApiHeader {
+  name: string;
+  value: string | null;
+  required: boolean;
+  description: string | null;
+}
+
+export interface ApiBodyVariant {
+  mediaType: string;
+  schemaType: string | null;
+  example: string | null;
+  defaultBody: string | null;
+}
+
+export interface ApiBody {
+  required: boolean;
+  description: string | null;
+  variants: ApiBodyVariant[];
+}
+
+export interface ApiResponseDefinition {
+  status: string;
+  description: string | null;
+  mediaTypes: string[];
+  example: string | null;
+}
+
+export type SecuritySchemeKind = "bearer" | "basic" | "apiKey" | "oauth2" | "openIdConnect";
+
+export interface RouteSecurity {
+  kind: SecuritySchemeKind;
+  schemeName: string;
+  location: "header" | "query" | "cookie";
+  parameterName: string;
+}
+
+export interface ApiRouteSource {
+  kind: RouteSourceKind;
+  filePath: string | null;
+  line: number | null;
+  adapter: string;
+  confidence: RouteConfidence;
+}
+
+export interface ApiRoute {
+  id: string;
+  projectPath: string;
+  /** The project inside the repository that declares it. Empty when it is the repository. */
+  workspace: string;
+  method: HttpMethod;
+  path: string;
+  summary: string | null;
+  description: string | null;
+  operationId: string | null;
+  tags: string[];
+  servers: string[];
+  source: ApiRouteSource;
+  parameters: ApiParameter[];
+  headers: ApiHeader[];
+  requestBody: ApiBody | null;
+  responses: ApiResponseDefinition[];
+  security: RouteSecurity[];
+}
+
+export interface ApiVariable {
+  key: string;
+  name: string;
+  secret: boolean;
+  /** Where the route it came from binds it. Null when the user declared it. */
+  location: "url" | "header" | "query" | "cookie" | null;
+  parameterName: string | null;
+  defaultValue: string | null;
+  routeCount: number;
+  /** Declared by the user because discovery could not see it. */
+  custom: boolean;
+}
+
+export interface CustomVariable {
+  key: string;
+  name: string;
+  secret: boolean;
+}
+
+export interface ApiEnvironment {
+  id: string;
+  name: string;
+  values: Record<string, string>;
+}
+
+export interface ApiEnvironmentSet {
+  activeId: string;
+  environments: ApiEnvironment[];
+  /** Values the user added on top of what the routes ask for. */
+  variables: CustomVariable[];
+  /** What the user calls a variable, against the key it binds to. */
+  names: Record<string, string>;
+}
+
+export interface ScannerEvidence {
+  kind: "dependency" | "file" | "stack";
+  detail: string;
+}
+
+export interface ScannerSupport {
+  supported: boolean;
+  confidence: number;
+  evidence: ScannerEvidence[];
+}
+
+export interface RouteScanWarning {
+  scanner: string;
+  message: string;
+  filePath: string | null;
+  line: number | null;
+}
+
+export interface UnsupportedConstruct {
+  scanner: string;
+  reason: string;
+  filePath: string | null;
+  line: number | null;
+}
+
+export interface RouteScanResult {
+  projectPath: string;
+  routes: ApiRoute[];
+  warnings: RouteScanWarning[];
+  unsupported: UnsupportedConstruct[];
+  filesInspected: string[];
+  scannersRun: string[];
+  durationMs: number;
+}
+
+/** What the collection lists and searches, and what the environment derives from. */
+export interface SavedRouteSummary {
+  id: string;
+  folder: string;
+  /** The project inside the repository that declares it, "" when there is one. */
+  workspace: string;
+  method: HttpMethod;
+  path: string;
+  summary: string | null;
+  operationId: string | null;
+  tags: string[];
+  servers: string[];
+  headers: ApiHeader[];
+  security: RouteSecurity[];
+  source: ApiRouteSource;
+  firstSeenAt: string;
+}
+
+/** The bulk of a route, kept per folder and read when one is opened. */
+export interface SavedRouteDetail {
+  id: string;
+  description: string | null;
+  parameters: ApiParameter[];
+  requestBody: ApiBody | null;
+  responses: ApiResponseDefinition[];
+}
+
+export type SavedRoute = SavedRouteSummary & Partial<SavedRouteDetail>;
+
+/** One route as it sits in the index: shared values live at the top level. */
+export interface StoredRoute {
+  id: string;
+  folder: string;
+  workspace?: string;
+  method: HttpMethod;
+  path: string;
+  summary?: string;
+  operationId?: string;
+  tags?: string[];
+  file?: string;
+  line?: number;
+  adapter: string;
+  confidence: RouteConfidence;
+  sourceKind: RouteSourceKind;
+  security?: string[];
+  headers?: ApiHeader[];
+  servers?: string[];
+  firstSeenAt: string;
+}
+
+export interface StoredRouteIndex {
+  version: number;
+  projectPath: string;
+  createdAt: string;
+  scannedAt: string;
+  durationMs: number;
+  filesInspected: number;
+  scannersRun: string[];
+  servers: string[];
+  securitySchemes: Record<string, Omit<RouteSecurity, "schemeName">>;
+  routes: StoredRoute[];
+  warnings: RouteScanWarning[];
+  unsupported: UnsupportedConstruct[];
+}
+
+export interface SavedRouteScan {
+  version: number;
+  projectPath: string;
+  createdAt: string;
+  scannedAt: string;
+  durationMs: number;
+  filesInspected: number;
+  scannersRun: string[];
+  routes: SavedRouteSummary[];
+  warnings: RouteScanWarning[];
+  unsupported: UnsupportedConstruct[];
+}
+
+export interface ProjectInventory {
+  projectPath: string;
+  stack: StackDetectionResult;
+  packageJson: PackageJsonContent | null;
+  files: string[];
+  filesTruncated: boolean;
+  /** Every file in the repository, even when this inventory is one workspace of it. */
+  repositoryFiles?: string[];
+  hasDependency: (name: string) => boolean;
+  /** What one manifest declares, lowercased, for reading a workspace on its own. */
+  manifestOf: (relativePath: string) => string;
+  readFile: (relativePath: string) => Promise<string>;
+}
+
+export interface RouteScanner {
+  id: string;
+  label: string;
+  supports: (project: ProjectInventory) => Promise<ScannerSupport> | ScannerSupport;
+  scan: (project: ProjectInventory) => Promise<RouteScanResult>;
+}

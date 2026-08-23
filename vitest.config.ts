@@ -12,6 +12,9 @@ export default defineConfig({
       "@renderer": path.resolve(__dirname, "src/renderer")
     }
   },
+  // The renderer build defines this; settings reads it at module load, so the
+  // tests need it too.
+  define: { __APP_VERSION__: JSON.stringify("test") },
   test: {
     environment: "node",
     // tests/ mirrors src/, so tests/main covers src/main.

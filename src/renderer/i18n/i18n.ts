@@ -1,9 +1,7 @@
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 
-import cn from "./lang/cn.json";
 import en from "./lang/en.json";
-import kh from "./lang/kh.json";
 
 export const LANGUAGE_STORAGE_KEY = "lazify-language";
 
@@ -40,12 +38,26 @@ function syncDocumentLanguage(language: string | undefined | null) {
   document.documentElement.lang = normalizedLanguage;
 }
 
+const lazyBundles: Record<Exclude<SupportedLanguage, "en">, () => Promise<{ default: object }>> = {
+  cn: () => import("./lang/cn.json"),
+  kh: () => import("./lang/kh.json")
+};
+
+export async function loadLanguage(language: SupportedLanguage): Promise<void> {
+  if (language === "en" || i18n.hasResourceBundle(language, "translation")) return;
+
+  const bundle = await lazyBundles[language]();
+
+  i18n.addResourceBundle(language, "translation", bundle.default, true, true);
+}
+
+export async function changeLanguage(language: SupportedLanguage): Promise<void> {
+  await loadLanguage(language);
+  await i18n.changeLanguage(language);
+}
+
 i18n.use(initReactI18next).init({
-  resources: {
-    en: { translation: en },
-    kh: { translation: kh },
-    cn: { translation: cn },
-  },
+  resources: { en: { translation: en } },
   lng: getInitialLanguage(),
   fallbackLng: "en",
   interpolation: {
@@ -55,5 +67,7 @@ i18n.use(initReactI18next).init({
 
 i18n.on("languageChanged", syncDocumentLanguage);
 syncDocumentLanguage(i18n.language);
+
+export const initialLanguageReady = loadLanguage(getInitialLanguage());
 
 export default i18n;

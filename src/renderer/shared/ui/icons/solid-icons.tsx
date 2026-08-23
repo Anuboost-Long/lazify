@@ -6,8 +6,8 @@ import { useId, type ReactNode, type SVGProps } from "react";
  *
  * Iconoir ships a `solid` set, but it covers none of these names (folder,
  * code, globe, package, settings, activity, hard-drive, folder-plus,
- * multi-window, journal-page, terminal), so they are drawn by hand on the same
- * 24x24 grid and keep the line icon's silhouette — the active row swaps
+ * multi-window, journal-page, terminal, network, sparks), so they are drawn by
+ * hand on the same 24x24 grid and keep the line icon's silhouette — the active row swaps
  * weight, not shape.
  *
  * Area icons are real fills with their detail cut out via `evenodd`. `code` and
@@ -177,6 +177,26 @@ export function CodeSolid(props: SVGProps<SVGSVGElement>) {
       <path d="M6.5 8.5 3 12l3.5 3.5" />
       <path d="M17.5 8.5 21 12l-3.5 3.5" />
     </StrokeSvg>
+  );
+}
+
+export function NetworkSolid(props: SVGProps<SVGSVGElement>) {
+  return (
+    <SolidSvg {...props}>
+      <path d="M6.5 6.25a.75.75 0 0 1 .75.75v3.5c0 .69.56 1.25 1.25 1.25h7c.69 0 1.25-.56 1.25-1.25V7a.75.75 0 0 1 1.5 0v3.5a2.75 2.75 0 0 1-2.75 2.75h-2.75V17a.75.75 0 0 1-1.5 0v-3.75H8.5a2.75 2.75 0 0 1-2.75-2.75V7a.75.75 0 0 1 .75-.75Z" />
+      <rect x="3" y="2" width="7" height="5" rx="1" />
+      <rect x="14" y="2" width="7" height="5" rx="1" />
+      <rect x="8.5" y="17" width="7" height="5" rx="1" />
+    </SolidSvg>
+  );
+}
+
+export function SparksSolid(props: SVGProps<SVGSVGElement>) {
+  return (
+    <SolidSvg {...props}>
+      <path d="M15 7.25c.414 0 .75.336.75.75 0 2.277.48 3.775 1.424 4.719.946.946 2.478 1.531 4.826 1.531a.75.75 0 0 1 0 1.5c-2.344 0-3.879.588-4.826 1.535-.948.948-1.424 2.446-1.424 4.715a.75.75 0 0 1-1.5 0c0-2.276-.48-3.774-1.428-4.72-.949-.947-2.488-1.53-4.822-1.53a.75.75 0 0 1 0-1.5c2.334 0 3.873-.58 4.822-1.526.948-.945 1.428-2.443 1.428-4.724 0-.414.336-.75.75-.75Z" />
+      <path d="M6.5 1.25c.414 0 .75.336.75.75 0 1.432.3 2.342.85 2.89.55.55 1.482.86 2.9.86a.75.75 0 0 1 0 1.5c-1.418 0-2.35.312-2.9.862-.55.55-.85 1.46-.85 2.888a.75.75 0 0 1-1.5 0c0-1.433-.3-2.343-.852-2.893-.55-.548-1.48-.857-2.898-.857a.75.75 0 0 1 0-1.5c1.418 0 2.347-.308 2.898-.855.552-.549.852-1.46.852-2.895 0-.414.336-.75.75-.75Z" />
+    </SolidSvg>
   );
 }
 
