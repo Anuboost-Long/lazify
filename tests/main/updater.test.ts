@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { UpdateState } from "../../src/renderer/shared/types/lazify";
 
@@ -49,9 +49,22 @@ function emit(event: string, payload?: unknown) {
   listener(payload);
 }
 
+const hostPlatform = process.platform;
+
+function runningOn(platform: string) {
+  Object.defineProperty(process, "platform", { value: platform, configurable: true });
+}
+
 beforeEach(() => {
   mocks.autoUpdater.autoDownload = true;
   mocks.autoUpdater.autoInstallOnAppQuit = false;
+  runningOn("darwin");
+  delete process.env.APPIMAGE;
+});
+
+afterEach(() => {
+  runningOn(hostPlatform);
+  delete process.env.APPIMAGE;
 });
 
 describe("updater", () => {
@@ -77,28 +90,21 @@ describe("updater", () => {
    * is that this build updates somewhere else.
    */
   it("defers to the package manager for a Linux build that is not an AppImage", async () => {
-    const realPlatform = process.platform;
-    Object.defineProperty(process, "platform", { value: "linux", configurable: true });
-    delete process.env.APPIMAGE;
+    runningOn("linux");
 
-    try {
-      const updater = await loadUpdater(true);
+    const updater = await loadUpdater(true);
 
-      expect(await updater.checkForUpdates()).toEqual({
-        status: "unsupported",
-        reason: "package-manager"
-      });
-      expect(mocks.autoUpdater.checkForUpdates).not.toHaveBeenCalled();
+    expect(await updater.checkForUpdates()).toEqual({
+      status: "unsupported",
+      reason: "package-manager"
+    });
+    expect(mocks.autoUpdater.checkForUpdates).not.toHaveBeenCalled();
 
-      // An AppImage on the same platform is the case the updater can handle.
-      process.env.APPIMAGE = "/tmp/Lazify-x64.AppImage";
-      const appImage = await loadUpdater(true);
-      await appImage.checkForUpdates();
-      expect(mocks.autoUpdater.checkForUpdates).toHaveBeenCalled();
-    } finally {
-      delete process.env.APPIMAGE;
-      Object.defineProperty(process, "platform", { value: realPlatform, configurable: true });
-    }
+    // An AppImage on the same platform is the case the updater can handle.
+    process.env.APPIMAGE = "/tmp/Lazify-x64.AppImage";
+    const appImage = await loadUpdater(true);
+    await appImage.checkForUpdates();
+    expect(mocks.autoUpdater.checkForUpdates).toHaveBeenCalled();
   });
 
   it("reports what the updater finds, all the way to ready-to-install", async () => {
