@@ -140,7 +140,7 @@ describe("collections a user builds", () => {
       JSON.stringify({
         version: 1,
         projects: {
-          [PROJECT]: [
+          [path.resolve(PROJECT)]: [
             { id: "collection-1", requests: [{ ...request(), draft: { json: '{"a":1}' } }] }
           ]
         }

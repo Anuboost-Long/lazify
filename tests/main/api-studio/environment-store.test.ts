@@ -32,6 +32,12 @@ afterEach(() => {
   fs.rmSync(projectPath, { recursive: true, force: true });
 });
 
+function expectOwnerOnlyWhereTheFilesystemCarriesModes(file: string) {
+  if (process.platform === "win32") return;
+
+  expect(fs.statSync(file).mode & 0o777).toBe(0o600);
+}
+
 describe("environment presets", () => {
   it("keeps the variables a user added beside the presets, in the project", () => {
     saveEnvironments(
@@ -89,7 +95,7 @@ describe("environment presets", () => {
     expect(presets.environments[1].values).toEqual({ baseUrl: "https://staging.example.com" });
     expect(JSON.stringify(presets)).not.toContain("staging-token");
     expect(secrets[projectPath].staging).toEqual({ bearerToken: "staging-token" });
-    expect(fs.statSync(secretFile()).mode & 0o777).toBe(0o600);
+    expectOwnerOnlyWhereTheFilesystemCarriesModes(secretFile());
   });
 
   it("hands back each environment with its secrets merged in, and remembers the active one", () => {
