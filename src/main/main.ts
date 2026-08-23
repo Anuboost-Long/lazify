@@ -1,7 +1,6 @@
 import { app, BrowserWindow, ipcMain, Notification } from "electron";
 import { buildAppMenu } from "./app-menu";
 import { holdZoomSteady, stepZoom } from "./window-zoom";
-import fs from "node:fs";
 import path from "node:path";
 
 import { CommandRunner } from "./command-runner";

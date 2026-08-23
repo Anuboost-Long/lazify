@@ -12,7 +12,7 @@ vi.mock("react-i18next", async (importOriginal) => ({
   })
 }));
 
-import { readRouteDetails, readProjectRoutes, renderPage, route, scanResult } from "./harness";
+import { readRouteDetails, readProjectRoutes, renderPage, scanResult } from "./harness";
 import { openCustom, pickFirstRoute, pickMenuItem, rowMenu, rowOptions, savedCollections, withCollection } from "./collection-harness";
 
 describe("a collection of the user's own", () => {

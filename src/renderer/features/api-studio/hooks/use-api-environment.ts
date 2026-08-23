@@ -10,7 +10,6 @@ import type {
   ApiEnvironment,
   ApiEnvironmentSet,
   ApiVariable,
-  CustomVariable,
   SavedRouteSummary
 } from "../types";
 

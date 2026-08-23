@@ -1,5 +1,5 @@
 import { stringValue } from "../reading/annotations";
-import type { CallRules, FrameworkRules, ResourceRules } from "../rules/types";
+import type { CallRules, FrameworkRules } from "../rules/types";
 import type { HttpMethod, RouteSecurity } from "../types";
 import { readBlockScopes, readGroupPrefixes, readMountPrefixes, type BlockScope } from "./call-groups";
 import { bindSignature } from "./parameter-binding";

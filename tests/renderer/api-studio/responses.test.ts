@@ -12,7 +12,7 @@ vi.mock("react-i18next", async (importOriginal) => ({
   })
 }));
 
-import { PROJECT, exportPostmanCollection, postRoute, project, readApiRequests, readApiResponseBody, readProjectRoutes, readRouteDetails, renderPage, responseBody, route, saveApiRequest, scanResult, sendApiRequest , saveResponseFile, openResponseFile } from "./harness";
+import { PROJECT, exportPostmanCollection, postRoute, readApiRequests, readApiResponseBody, readProjectRoutes, readRouteDetails, renderPage, responseBody, saveApiRequest, scanResult, sendApiRequest , saveResponseFile, openResponseFile } from "./harness";
 
 describe("a response that came back as a file", () => {
   it("offers to keep it rather than showing bytes as text", async () => {

@@ -6,8 +6,6 @@ import { translation } from "@renderer/i18n/translation";
 import type { AgentUsageSummary } from "@renderer/shared/types/lazify";
 import { MonoText, SmallText } from "@renderer/shared/typography";
 import { IconButton } from "@renderer/shared/ui/IconButton";
-import UiIcon from "@renderer/shared/ui/icons/UiIcon";
-import { AgentGlyph } from "../AgentGlyph";
 import { barToneClass, formatReset, formatTokens, remainingOf, STALE_READING_MS } from "./usage-format";
 
 export function Stat({ label, value }: Readonly<{ label: string; value: number }>) {

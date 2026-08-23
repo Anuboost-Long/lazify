@@ -6,11 +6,11 @@ import type { ApiParameter } from "../types";
 const CSHARP_MODIFIERS = "(?:required|virtual|override|static|readonly|new|abstract|sealed|const|async)\\s+";
 const PROPERTY_PATTERNS = [
   new RegExp(
-    `\\bpublic\\s+(?:${CSHARP_MODIFIERS})*([\\w<>,.\\[\\]?]+)\\s+(\\w+)\\s*(?:\\{|=>|=[^=]|;)`
+    `\\bpublic\\s+(?:${CSHARP_MODIFIERS})*([\\w<>,.[\\]?]+)\\s+(\\w+)\\s*(?:\\{|=>|=[^=]|;)`
   ),
-  /^\s*(?:readonly\s+)?(\w+)\??\s*:\s*([\w<>\[\]| ]+);/,
+  /^\s*(?:readonly\s+)?(\w+)\??\s*:\s*([\w<>[\]| ]+);/,
   /^\s*(?:public|protected|private)\s+(?:readonly\s+)?\??([\w|\\]+)\s+\$(\w+)\s*[;=]/,
-  /^\s*(\w+)\s*:\s*([\w\[\], |.]+?)\s*(?:=.*)?$/
+  /^\s*(\w+)\s*:\s*([\w[\], |.]+?)\s*(?:=.*)?$/
 ];
 const ENUM_PATTERN = /\benum\s+(\w+)/;
 const ENUM_MEMBER_PATTERN =
@@ -73,7 +73,7 @@ function readPositionalProperties(line: string): Array<Omit<ModelProperty, "json
 
   return parameters
     .split(",")
-    .map((parameter) => parameter.replace(/\[[^\]]*\]/g, "").split("=")[0].trim())
+    .map((parameter) => parameter.replace(/[[^\]]*\]/g, "").split("=")[0].trim())
     .map((parameter) => parameter.split(/\s+/).filter(Boolean))
     .filter((parts) => parts.length >= 2)
     .map((parts) => ({ type: parts[parts.length - 2], name: parts[parts.length - 1] }));

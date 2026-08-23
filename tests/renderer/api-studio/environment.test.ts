@@ -13,7 +13,6 @@ vi.mock("react-i18next", async (importOriginal) => ({
 }));
 
 import {
-  PROJECT,
   readApiEnvironments,
   readProjectRoutes,
   renderPage,

@@ -49,16 +49,6 @@ function toOption(template: ImportedTemplateSnapshot): ImportedTemplateOption {
   };
 }
 
-function countFiles(tree: ProjectTreeNode[]): number {
-  return tree.reduce((total, node) => {
-    if (node.type === "file") {
-      return total + 1;
-    }
-
-    return total + countFiles(node.children);
-  }, 0);
-}
-
 function toUiTree(tree: TemplateTreeNode[]): ProjectTreeNode[] {
   return tree.map((node) => {
     if (node.type === "file") {

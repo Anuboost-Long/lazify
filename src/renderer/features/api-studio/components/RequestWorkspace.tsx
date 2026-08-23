@@ -9,7 +9,6 @@ import { useInterfaceSettings } from "@renderer/shared/hooks/use-interface-setti
 import { BASE_URL_VARIABLE, resolveVariable } from "@main/api-studio/environment";
 import { hostOf } from "@main/api-studio/runner/build-request";
 import { translation } from "@renderer/i18n/translation";
-import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import { SplitPane } from "@renderer/shared/ui/split/SplitPane";
 import { useRequestDraft } from "../hooks/use-request-draft";
 import type { SavedRequestStore } from "../hooks/use-saved-requests";

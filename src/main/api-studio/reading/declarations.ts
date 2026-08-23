@@ -9,7 +9,7 @@ const MAX_DECLARATION_LINES = 12;
 
 const CLASS_PATTERN = /\b(?:class|record|struct)\s+(\w+)/;
 const METHOD_PATTERNS = [
-  /\b(?:public|internal|protected|private)\s+(?:[\w<>,.\[\]?]+\s+)+?(\w+)\s*\(/,
+  /\b(?:public|internal|protected|private)\s+(?:[\w<>,.[\]?]+\s+)+?(\w+)\s*\(/,
   /(?:^|\s)(?:async\s+)?(\w+)\s*\(/
 ];
 

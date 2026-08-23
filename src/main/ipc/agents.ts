@@ -3,7 +3,6 @@ import { setAgentBudget } from "../agents/agent-limits-store";
 import { getAgentDefinition, listAgents, resumeArgs } from "../agents/agent-registry";
 import { listAgentSessions } from "../agents/agent-sessions";
 import { getAgentUsage } from "../agents/agent-usage";
-import { Autopilot } from "../agents/autopilot";
 import { getAutopilotSettings, setAutopilotEnabled, setAutopilotProject } from "../agents/autopilot-store";
 import { saveClipboardImageToTempFile } from "../agents/clipboard-image";
 import { addCustomAgent, removeCustomAgent } from "../agents/custom-agents-store";

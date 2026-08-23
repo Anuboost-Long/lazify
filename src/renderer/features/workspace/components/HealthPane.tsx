@@ -2,7 +2,7 @@ import clsx from "clsx";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { translation } from "@renderer/i18n/translation";
-import { BodyText, CardTitle, MonoText, OverlineText, PillText } from "@renderer/shared/typography";
+import { BodyText, MonoText, OverlineText, PillText } from "@renderer/shared/typography";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import { IconButton } from "@renderer/shared/ui/IconButton";
 import { CopyButton } from "@renderer/shared/ui/CopyButton";

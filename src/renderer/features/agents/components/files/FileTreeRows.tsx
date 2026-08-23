@@ -1,7 +1,6 @@
 import clsx from "clsx";
 import { type ReactNode } from "react";
 
-import { translation } from "@renderer/i18n/translation";
 import type { ImportedProjectIndexNode } from "@renderer/shared/types/lazify";
 import { SmallText } from "@renderer/shared/typography";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";

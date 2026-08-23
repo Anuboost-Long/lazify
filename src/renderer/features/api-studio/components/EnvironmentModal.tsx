@@ -6,7 +6,7 @@ import { translation } from "@renderer/i18n/translation";
 import { SectionTitle } from "@renderer/shared/typography";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import { BaseModal } from "@renderer/shared/ui/modal/BaseModal";
-import type { ApiEnvironment, ApiVariable, CustomVariable } from "../types";
+import type { ApiEnvironment, ApiVariable } from "../types";
 import { EnvironmentTabs } from "./EnvironmentTabs";
 import { VariableRow } from "./VariableRow";
 

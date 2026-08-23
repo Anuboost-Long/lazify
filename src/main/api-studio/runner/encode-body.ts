@@ -19,10 +19,6 @@ export function isFormMediaType(mediaType: string | null | undefined): boolean {
   );
 }
 
-function quoted(name: string) {
-  return name.replace(/[\r\n]/g, " ").replace(/"/g, '\\"');
-}
-
 function urlencoded(entries: FormEntry[]): EncodedBody {
   const form = new URLSearchParams();
 

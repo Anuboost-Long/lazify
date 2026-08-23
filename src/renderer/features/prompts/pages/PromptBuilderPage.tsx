@@ -1,6 +1,4 @@
-import clsx from "clsx";
 import { useState } from "react";
-import { useTranslation } from "react-i18next";
 
 import { translation } from "@renderer/i18n/translation";
 import { SegmentedTabs, type SegmentedTab } from "@renderer/shared/ui/SegmentedTabs";
@@ -35,7 +33,6 @@ export function PromptBuilderPage({
   activeProjectPath,
   onActiveProjectChange
 }: Readonly<PromptBuilderPageProps>) {
-  const { t } = useTranslation();
   const [tab, setTab] = useState<PageTab>("presets");
 
   const projectPath = activeProjectPath ?? projects[0]?.projectPath ?? "";

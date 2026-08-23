@@ -4,7 +4,6 @@ import { useTranslation } from "react-i18next";
 import { translation } from "@renderer/i18n/translation";
 import { BodyText, CaptionText } from "@renderer/shared/typography";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
-import { BaseModal } from "@renderer/shared/ui/modal/BaseModal";
 import { AgentGlyph } from "../AgentGlyph";
 import type { AgentSessionSummary } from "../../../../../main/agents/agent-sessions";
 

@@ -10,7 +10,7 @@ import { Tooltip } from "@renderer/shared/ui/Tooltip";
 import { ConfirmModal } from "@renderer/shared/ui/modal/ConfirmModal";
 import { GitStatusTree } from "@renderer/features/workspace/components/git-status/GitStatusTree";
 import { translation } from "@renderer/i18n/translation";
-import { BodyText, CardTitle, MonoText, OverlineText, PillText } from "@renderer/shared/typography";
+import { BodyText, CardTitle, OverlineText, PillText } from "@renderer/shared/typography";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import type { GitStatusEntry, ProjectGitStatusResult } from "@renderer/shared/types/lazify";
 import { useTranslation } from "react-i18next";
@@ -31,18 +31,6 @@ interface GitStatusPaneProps {
   headerActions?: ReactNode;
 }
 
-function getStatusTone(entry: GitStatusEntry): string {
-  const codes = `${entry.stagedStatus}${entry.unstagedStatus}`;
-
-  if (codes.includes("D")) return "border-error/20 bg-error/10 text-error";
-  if (codes.includes("A")) return "border-accent/20 bg-accent/10 text-accent";
-  if (codes.includes("R")) return "border-warning/20 bg-warning/10 text-warning";
-  if (codes.includes("?")) return "border-border bg-soft text-muted";
-
-  // Modified
-  return "border-warning/25 bg-warning/10 text-warning";
-}
-
 export function GitStatusPane({
   busy,
   gitStatus,
@@ -52,7 +40,6 @@ export function GitStatusPane({
   projectPath,
   onBranchSwitched,
   chrome = "card",
-  showHeader = true,
   headerActions,
 }: GitStatusPaneProps) {
   const { t } = useTranslation();

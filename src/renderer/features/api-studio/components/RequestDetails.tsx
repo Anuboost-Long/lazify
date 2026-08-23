@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 
-import { addedFields, fieldKey, fieldNameOf } from "@main/api-studio/runner/build-request";
+import { addedFields, fieldKey } from "@main/api-studio/runner/build-request";
 import { translation } from "@renderer/i18n/translation";
 import type { BodyEditor, ScriptEditor } from "../hooks/use-request-draft";
 import type { SuggestionSource } from "../script-api";

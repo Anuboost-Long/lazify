@@ -147,7 +147,7 @@ export function useSyncedProjectTree({
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [activeFilePath, setActiveFilePath] = useState<string | null>(null);
   const [openFiles, setOpenFiles] = useState<EditorTab[]>([]);
-  const [includedFilePaths, setIncludedFilePaths] = useState<Set<string>>(() => new Set());
+  const [, setIncludedFilePaths] = useState<Set<string>>(() => new Set());
   const [fileCache, setFileCache] = useState<Record<string, FileContentState>>({});
   const [contextMenu, setContextMenu] = useState<
     ProjectTreeContextMenuState<ImportedProjectIndexNode> | null

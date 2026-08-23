@@ -12,7 +12,7 @@ vi.mock("react-i18next", async (importOriginal) => ({
   })
 }));
 
-import { PROJECT, SCHEMA_BODY, allowApiHost, postRoute, project, readApiEnvironments, readAllowedHosts, readApiRequests, readProjectRoutes, renderPage, responseBody, route, saveApiEnvironments, saveApiRequest, scanProjectRoutes, scanResult, sendApiRequest, setApiRequestStorage } from "./harness";
+import { PROJECT, SCHEMA_BODY, allowApiHost, postRoute, readApiEnvironments, readAllowedHosts, readApiRequests, readProjectRoutes, renderPage, responseBody, route, saveApiEnvironments, saveApiRequest, scanProjectRoutes, scanResult, sendApiRequest, setApiRequestStorage } from "./harness";
 
 describe("the fields a request carries", () => {
   it("adds a query parameter the scan never saw, names it, and sends it", async () => {

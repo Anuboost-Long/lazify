@@ -5,8 +5,6 @@ import { translation } from "@renderer/i18n/translation";
 import { BodyText, CaptionText, OverlineText } from "@renderer/shared/typography";
 import { TextInput } from "@renderer/shared/ui/form/FormInput";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
-import { BaseModal } from "@renderer/shared/ui/modal/BaseModal";
-import { AgentGlyph } from "../AgentGlyph";
 export interface CustomAgentFormProps {
   label: string;
   command: string;

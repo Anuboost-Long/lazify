@@ -6,18 +6,13 @@ import { translation } from "@renderer/i18n/translation";
 import type { SyncedWorkspaceProject } from "@renderer/shared/types/lazify";
 import { CardTitle, CaptionText } from "@renderer/shared/typography";
 import { IconButton } from "@renderer/shared/ui/IconButton";
-import { ConfirmModal } from "@renderer/shared/ui/modal/ConfirmModal";
 import type { AgentDescriptor } from "../../../../main/agents/agent-registry";
 import type {
   MonitorColumns,
   MonitorPanel,
   MonitorPanelSize,
 } from "../hooks/use-monitor-panels";
-import { AgentMonitorLayoutModal } from "./AgentMonitorLayoutModal";
 import { AgentMonitorPanel } from "./AgentMonitorPanel";
-import { AgentMonitorRenameModal } from "./AgentMonitorRenameModal";
-import { AgentMonitorSetupModal } from "./AgentMonitorSetupModal";
-import { AgentMonitorSizeModal } from "./AgentMonitorSizeModal";
 import { AgentMonitorSlot } from "./AgentMonitorSlot";
 import { MonitorModals } from "./monitor/MonitorModals";
 

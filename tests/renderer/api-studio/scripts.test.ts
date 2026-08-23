@@ -12,7 +12,7 @@ vi.mock("react-i18next", async (importOriginal) => ({
   })
 }));
 
-import { PROJECT, postRoute, project, readApiRequests, readProjectRoutes, readScriptSettings, renderPage, route, runApiRequest, saveApiEnvironments, saveApiRequest, saveScriptSettings, scanResult, sendApiRequest } from "./harness";
+import { PROJECT, postRoute, readApiRequests, readProjectRoutes, readScriptSettings, renderPage, runApiRequest, saveApiEnvironments, saveApiRequest, saveScriptSettings, scanResult, sendApiRequest } from "./harness";
 
 describe("scripts that run with a request", () => {
   it("saves the pre-request script a user writes", async () => {

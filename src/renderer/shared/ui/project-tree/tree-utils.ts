@@ -4,21 +4,6 @@ export function slug(input: string) {
   return input.toLowerCase().replace(/[^a-z0-9]+/g, "-");
 }
 
-function toComponentName(name: string) {
-  const baseName = name.replace(/\.[^.]+$/, "");
-  const cleaned = baseName.replace(/[^a-zA-Z0-9]+/g, " ").trim();
-
-  if (!cleaned) {
-    return "Component";
-  }
-
-  return cleaned
-    .split(/\s+/)
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join("");
-}
-
-
 export function createNode(
   name: string,
   type: "file" | "folder",

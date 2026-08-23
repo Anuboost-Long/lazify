@@ -1,6 +1,5 @@
 import clsx from "clsx";
 
-import { translation } from "@renderer/i18n/translation";
 import { Tooltip } from "@renderer/shared/ui/Tooltip";
 import UiIcon, { type UiIconName } from "@renderer/shared/ui/icons/UiIcon";
 
