@@ -10,7 +10,7 @@ import {
 import { Tooltip } from "@renderer/shared/ui/Tooltip";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import clsx from "clsx";
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { appRoute } from "./app-routes";
@@ -24,6 +24,10 @@ import { ContentBackdrop } from "./components/ContentBackdrop";
 import { PageChromeContext } from "./components/PageChrome";
 import { Sidebar } from "./components/Sidebar";
 import { FailureToastHost } from "@renderer/shared/ui/toast/FailureToastHost";
+
+function RouteFallback() {
+  return <div className="h-full w-full" aria-busy="true" />;
+}
 
 export function AppShell() {
   const location = useLocation();
@@ -256,7 +260,9 @@ export function AppShell() {
                     : "max-w-[1560px] px-6 py-6 lg:px-8",
                 )}
               >
-                <Outlet />
+                <Suspense fallback={<RouteFallback />}>
+                  <Outlet />
+                </Suspense>
               </div>
             </div>
           </PageChromeContext.Provider>
