@@ -33,6 +33,8 @@
     "command": "命令",
     "clear": "清除",
     "clear_search": "清除搜索",
+    "not_saved": "未保存",
+    "not_saved_desc": "更改无法写入项目文件夹。请检查该文件夹是否仍然可用且可写。",
     "today": "今天",
     "open": "打开",
     "uninstall": "卸载",

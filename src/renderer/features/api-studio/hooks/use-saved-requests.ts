@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 
 import type { ProjectRequests, RequestStorage, SavedRequest } from "../types";
+import { translation } from "@renderer/i18n/translation";
+import { reportFailure } from "@renderer/shared/ui/toast/failure-toast";
 
 export interface SavedRequestStore {
   loadedAt: number;
@@ -68,7 +70,9 @@ export function useSavedRequests(projectPath: string): SavedRequestStore {
         setAsking(true);
       }
 
-      void globalThis.lazify.saveApiRequest(projectPath, routeId, request).catch(() => undefined);
+      void globalThis.lazify.saveApiRequest(projectPath, routeId, request).catch(() =>
+        reportFailure(translation.GlobalTerm.NotSaved, translation.GlobalTerm.NotSavedDesc)
+      );
     },
     forgetExample: (routeId: string, exampleId: string) => {
       const held = stored.current[routeId];
@@ -84,7 +88,9 @@ export function useSavedRequests(projectPath: string): SavedRequestStore {
       setChangedAt(Date.now());
 
       if (projectPath) {
-        void globalThis.lazify.saveApiRequest(projectPath, routeId, request).catch(() => undefined);
+        void globalThis.lazify.saveApiRequest(projectPath, routeId, request).catch(() =>
+        reportFailure(translation.GlobalTerm.NotSaved, translation.GlobalTerm.NotSavedDesc)
+      );
       }
     },
     forget: (routeId: string) => {
@@ -93,7 +99,9 @@ export function useSavedRequests(projectPath: string): SavedRequestStore {
       stored.current = rest;
 
       if (projectPath && dropped) {
-        void globalThis.lazify.forgetApiRequest(projectPath, routeId).catch(() => undefined);
+        void globalThis.lazify.forgetApiRequest(projectPath, routeId).catch(() =>
+        reportFailure(translation.GlobalTerm.NotSaved, translation.GlobalTerm.NotSavedDesc)
+      );
       }
     },
     choose: (next: RequestStorage) => {

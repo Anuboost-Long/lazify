@@ -38,6 +38,8 @@ export const translation = {
     "Command": "global_term.command",
     "Clear": "global_term.clear",
     "ClearSearch": "global_term.clear_search",
+    "NotSaved": "global_term.not_saved",
+    "NotSavedDesc": "global_term.not_saved_desc",
     "Today": "global_term.today"
   },
   "Navigation": {

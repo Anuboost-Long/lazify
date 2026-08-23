@@ -14,6 +14,8 @@ import {
   type CustomRequestDraft
 } from "../custom-collection";
 import type { SavedExample, SavedRoute } from "../types";
+import { translation } from "@renderer/i18n/translation";
+import { reportFailure } from "@renderer/shared/ui/toast/failure-toast";
 
 async function detailsFor(projectPath: string, routes: SavedRoute[]): Promise<SavedRoute[]> {
   if (!projectPath) return routes;
@@ -93,7 +95,9 @@ export function useCustomCollection(projectPath: string) {
     setCollections(next);
 
     if (projectPath) {
-      void globalThis.lazify.saveApiCollections(projectPath, next).catch(() => undefined);
+      void globalThis.lazify.saveApiCollections(projectPath, next).catch(() =>
+        reportFailure(translation.GlobalTerm.NotSaved, translation.GlobalTerm.NotSavedDesc)
+      );
     }
   };
 

@@ -23,6 +23,7 @@ import { usePinnedTools } from "@renderer/features/tools/hooks/use-pinned-tools"
 import { ContentBackdrop } from "./components/ContentBackdrop";
 import { PageChromeContext } from "./components/PageChrome";
 import { Sidebar } from "./components/Sidebar";
+import { FailureToastHost } from "@renderer/shared/ui/toast/FailureToastHost";
 
 export function AppShell() {
   const location = useLocation();
@@ -148,6 +149,8 @@ export function AppShell() {
 
   return (
     <main className="flex h-screen bg-bg text-text">
+      <FailureToastHost />
+
       {/* min-w-0 is load-bearing: without it this flex item cannot shrink below
           its content's min-content width, so any page holding one long
           unbreakable string pushes the whole window wider than the screen. */}

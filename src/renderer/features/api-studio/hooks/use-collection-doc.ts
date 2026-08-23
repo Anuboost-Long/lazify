@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 
 import type { CollectionDoc, DocGap, DocState } from "@main/api-studio/docs/types";
+import { translation } from "@renderer/i18n/translation";
+import { reportFailure } from "@renderer/shared/ui/toast/failure-toast";
 
 const SAVE_DELAY_MS = 700;
 
@@ -24,7 +26,9 @@ export function useCollectionDoc(projectPath: string, collectionId: string | nul
         if (next) setState(next);
         setSavedAt(Date.now());
       })
-      .catch(() => undefined)
+      .catch(() =>
+        reportFailure(translation.GlobalTerm.NotSaved, translation.GlobalTerm.NotSavedDesc)
+      )
       .finally(() => setSaving(false));
   };
 

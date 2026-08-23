@@ -38,6 +38,8 @@
     "command": "Command",
     "clear": "Clear",
     "clear_search": "Clear search",
+    "not_saved": "Not saved",
+    "not_saved_desc": "The change could not be written to the project folder. Check it is still available and writable.",
     "today": "Today"
   },
   "navigation": {
