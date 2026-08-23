@@ -33,7 +33,12 @@
     "command": "命令",
     "clear": "清除",
     "clear_search": "清除搜索",
-    "today": "今天"
+    "today": "今天",
+    "open": "打开",
+    "uninstall": "卸载",
+    "not_available": "不适用",
+    "dismiss": "忽略",
+    "close_modal": "关闭弹窗"
   },
   "navigation": {
     "workspace": "工作区",
@@ -213,7 +218,26 @@
     "monitor_step_project": "项目",
     "monitor_step_source": "来源",
     "monitor_step_script": "脚本",
-    "monitor_project_count": "{{count}} 个项目"
+    "monitor_project_count": "{{count}} 个项目",
+    "debug": "调试",
+    "debug_process": "进程",
+    "debug_listening": "监听于",
+    "debug_no_run": "启动项目后可在此控制。",
+    "debug_exited": "已退出",
+    "debug_start": "启动",
+    "debug_script": "脚本",
+    "debug_status": "状态",
+    "needs_attention": "需要你",
+    "needs_attention_toast": "{{agent}} 正在 {{project}} 中等待你的回复。",
+    "resume_session": "恢复会话",
+    "resume_session_desc": "继续此项目中的过往对话。",
+    "resume_session_empty": "此项目没有过往会话。",
+    "resume_session_untitled": "未命名会话",
+    "activity": "动态",
+    "activity_empty": "暂无提醒。助手提问或完成时会在此显示。",
+    "activity_clear": "清除动态",
+    "task_done": "任务完成",
+    "task_done_toast": "{{agent}} 已在 {{project}} 中完成你的任务。点击打开标签页。"
   },
   "sidebar": {
     "app_name": "Lazify",
@@ -332,7 +356,20 @@
     "search_engine": "搜索引擎",
     "search_engine_desc": "当您输入的内容不是网址时，地址栏搜索将发送到这里。",
     "search_engine_duckduckgo_desc": "隐私搜索。不追踪，也不将搜索记录与您关联。",
-    "search_engine_google_desc": "最大的索引，结果会根据您的 Google 会话进行调整。"
+    "search_engine_google_desc": "最大的索引，结果会根据您的 Google 会话进行调整。",
+    "english": "英语",
+    "khmer": "高棉语",
+    "chinese": "中文",
+    "united_states": "美国",
+    "cambodia": "柬埔寨",
+    "china": "中国",
+    "color": "颜色",
+    "emerald": "翡翠绿",
+    "sky": "天蓝",
+    "violet": "紫罗兰",
+    "rose": "玫瑰红",
+    "amber": "琥珀",
+    "node_runtime": "Node 运行时"
   },
   "workspace": {
     "eyebrow": "桌面工作流编排器",
@@ -352,7 +389,8 @@
     "full_information": "完整信息",
     "resync": "重新同步",
     "empty_long_desc": "尚未将任何项目同步到此桌面应用。从初始化流程添加新项目或同步现有文件夹使其显示在此处。",
-    "last_synced": "最后同步"
+    "last_synced": "最后同步",
+    "sync_error": "无法同步所选项目。"
   },
   "synced_project": {
     "eyebrow": "工作区阅读器",
@@ -363,7 +401,9 @@
     "install_dependencies": "安装依赖",
     "installing": "正在安装依赖...",
     "install_success": "依赖安装成功。",
-    "install_error": "依赖安装失败。"
+    "install_error": "依赖安装失败。",
+    "title": "已同步项目",
+    "load_error": "无法加载所选的已同步项目。"
   },
   "environment": {
     "eyebrow": "本地计算机",
@@ -379,7 +419,8 @@
     "not_installed": "未安装",
     "installed": "已安装",
     "missing": "缺失",
-    "check": "检查"
+    "check": "检查",
+    "category_agents": "编码助手"
   },
   "install_tool_modal": {
     "title": "安装工具",
@@ -478,7 +519,10 @@
     "editor_title": "编辑已保存的导入模板",
     "editor_desc": "在将此导入重用为下一个项目的起点之前，调整已保存的文件树。",
     "saved_success": "已保存对「{{name}}」的更改。",
-    "removed_success": "已从已保存的导入模板中删除「{{name}}」。"
+    "removed_success": "已从已保存的导入模板中删除「{{name}}」。",
+    "remove_confirm": "移除已导入的模板“{{name}}”？",
+    "update_error": "无法更新已导入的模板。",
+    "remove_error": "无法移除已导入的模板。"
   },
   "console": {
     "flow_eyebrow": "初始化项目 · 构建",
@@ -513,7 +557,8 @@
     "no_templates_saved": "尚未保存任何导入模板。请打开模板并先导入一个项目。",
     "description_stack": "从技术栈开始，或切换到已保存的导入模板。",
     "description_imported": "选择已保存的导入模板之一，或切换回基于技术栈的设置。",
-    "choose_source": "选择来源"
+    "choose_source": "选择来源",
+    "selected_stack": "所选技术栈"
   },
   "workflow_form": {
     "title": "项目设置",
@@ -527,7 +572,8 @@
     "imported_step_desc": "此步骤捕获导入模板脚手架的项目名称和目标目录。",
     "setup_ready": "设置阶段就绪",
     "setup_ready_desc": "继续下一个工作流步骤。",
-    "enter_both": "请输入项目名称和工作区目录才能继续。"
+    "enter_both": "请输入项目名称和工作区目录才能继续。",
+    "stack": "技术栈"
   },
   "import_project": {
     "eyebrow": "导入工作流",
@@ -546,7 +592,16 @@
     "confidence": "置信度 {{value}}",
     "framework": "框架",
     "meta_framework": "元框架",
-    "package_manager": "包管理器"
+    "package_manager": "包管理器",
+    "saved_templates_count": "已在磁盘上保存 {{count}} 个导入的模板。",
+    "saved_templates_count_one": "已在磁盘上保存 {{count}} 个导入的模板。",
+    "saved_templates_count_other": "已在磁盘上保存 {{count}} 个导入的模板。",
+    "save_success": "已将模板“{{name}}”保存为 JSON，包含 {{count}} 个文件。",
+    "save_success_one": "已将模板“{{name}}”保存为 JSON，包含 {{count}} 个文件。",
+    "save_success_other": "已将模板“{{name}}”保存为 JSON，包含 {{count}} 个文件。",
+    "import_error": "无法导入所选项目。",
+    "rescan_error": "无法重新扫描所选项目。",
+    "save_error": "无法保存已导入的模板。"
   },
   "package_search": {
     "npm_packages": "npm 包",
@@ -563,7 +618,11 @@
     "no_results": "没有与此查询匹配的包。",
     "no_description": "未提供描述。",
     "npm_error": "目前无法搜索 npm。",
-    "template_error": "无法加载模板包。"
+    "template_error": "无法加载模板包。",
+    "template_version": "模板版本：{{version}}",
+    "no_template_entries": "未找到此技术栈的模板包清单条目。",
+    "no_description_returned": "npm 搜索未返回描述。",
+    "selected_for_install": "已选择在后续工作流步骤中安装。"
   },
   "git_status": {
     "title": "提交状态",
@@ -602,7 +661,13 @@
     "changes": "更改",
     "view_as_list": "以列表查看",
     "view_as_tree": "以文件树查看",
-    "unstaged": "未暂存"
+    "unstaged": "未暂存",
+    "git_repo": "Git 仓库",
+    "branches": "分支",
+    "current_branch": "当前分支",
+    "working_tree": "工作区",
+    "branch_count_one": "{{count}} 个分支",
+    "branch_count_many": "{{count}} 个分支"
   },
   "package_doctor": {
     "title": "包诊断器",
@@ -652,7 +717,40 @@
     "preview_code": "代码",
     "preview_fit": "适应",
     "preview_actual": "实际大小",
-    "preview_render_error": "无法渲染此文件"
+    "preview_render_error": "无法渲染此文件",
+    "project_contents": "项目内容",
+    "project_contents_desc": "在已同步项目浏览器中点击文件，即可在编辑器面板中查看其内容。",
+    "project_view": "项目视图",
+    "project_view_title": "查看并调整项目树",
+    "project_view_desc": "此视图复用了设置阶段的浏览器和编辑器体验，但不含模块开关。可将其作为专注的项目树工作区，用于后续功能。",
+    "explorer": "浏览器",
+    "files_kept": "已保留 {{included}}/{{total}} 个文件",
+    "items_count": "{{count}} 项",
+    "no_file_selected": "未选择文件",
+    "select_file_from_explorer": "从浏览器中选择一个文件",
+    "modules": "模块",
+    "editable": "可编辑",
+    "folder": "文件夹",
+    "read_only": "只读",
+    "editable_workspace_view": "可编辑工作区视图",
+    "read_only_workspace_view": "只读工作区视图",
+    "git_info": "Git 信息",
+    "structure_modules": "结构模块",
+    "structure_modules_title": "为项目脚手架选择可选文件夹",
+    "structure_modules_desc": "在此切换 Lazify 模块。脚手架必需的文件夹保持锁定，但你仍可从浏览器在其中添加更多文件。",
+    "close_module_selector": "关闭模块选择器",
+    "required_folder_notice": "所选脚手架需要此文件夹，无法移除。",
+    "locked": "已锁定",
+    "on": "开",
+    "off": "关",
+    "file_content_placeholder": "在此编写文件的初始内容…",
+    "select_file_to_edit": "选择一个文件以编辑其内容",
+    "select_file_to_edit_desc": "浏览器保持在左侧。选择任意可编辑文件，此面板即变为大型内容编辑器，类似 VS Code 的主区域。",
+    "loading_file_preview": "正在加载文件预览",
+    "loading_file_preview_desc": "仅获取所选文件的内容。",
+    "load_file_preview_error": "无法加载文件预览",
+    "select_file_to_preview": "选择一个文件以预览其内容",
+    "select_file_to_preview_desc": "文件夹在浏览器中列出，但文件内容仅按需加载。"
   },
   "status_strip": {
     "runtime_health": "运行时状态"
@@ -739,7 +837,11 @@
   },
   "template_card": {
     "delete": "删除模板",
-    "selected": "已选择"
+    "selected": "已选择",
+    "source": "来源",
+    "files_count": "{{count}} 个文件",
+    "files_count_one": "{{count}} 个文件",
+    "files_count_other": "{{count}} 个文件"
   },
   "command_palette": {
     "search_files_placeholder": "按名称搜索文件…",
@@ -1312,5 +1414,64 @@
   "date_picker": {
     "select_date": "选择日期",
     "no_date": "未设置日期"
+  },
+  "uninstall_tool_modal": {
+    "title": "卸载工具",
+    "will_run": "Lazify 将运行以下命令从本机移除 {{name}}：",
+    "keeps_sessions": "过往会话和设置会保留在磁盘上——仅移除 CLI。通过其他方式安装的 CLI（厂商脚本、Homebrew）无法用 npm 移除，仍会显示为已安装。",
+    "removing": "正在移除 {{name}}…",
+    "remove_success": "{{name}} 已移除",
+    "remove_failed": "卸载失败",
+    "success_desc": "在你重新安装之前，它将显示为缺失。"
+  },
+  "scripts_pane": {
+    "title": "脚本",
+    "loading": "正在读取脚本…",
+    "load_error": "无法读取脚本。",
+    "empty": "package.json 中未定义脚本。",
+    "run": "运行",
+    "stop": "停止",
+    "restart": "重启",
+    "running": "运行中",
+    "done": "完成",
+    "failed": "失败",
+    "session_ended": "此运行已结束。运行脚本以开始新会话。",
+    "output": "输出",
+    "clear_output": "清除",
+    "scripts_count": "{{count}} 个脚本",
+    "scripts_count_one": "{{count}} 个脚本",
+    "scripts_count_other": "{{count}} 个脚本",
+    "running_count": "{{count}} 个运行中",
+    "running_count_one": "{{count}} 个运行中",
+    "running_count_other": "{{count}} 个运行中"
+  },
+  "dependency_pane": {
+    "title": "依赖",
+    "tab_all": "全部",
+    "tab_deps": "依赖",
+    "tab_dev": "开发",
+    "add_package": "添加包",
+    "search_installed": "筛选已安装的包…",
+    "empty": "此项目未安装任何包。",
+    "loading": "正在读取 package.json…",
+    "load_error": "无法读取已安装的包。",
+    "dep_badge": "依赖",
+    "dev_badge": "开发",
+    "remove_confirm": "移除 {{name}}？",
+    "removing": "正在移除…",
+    "remove_error": "移除 {{name}} 失败。",
+    "add_panel_title": "添加包",
+    "add_panel_search": "搜索 npm 包…",
+    "add_panel_min_chars": "至少输入 2 个字符以搜索。",
+    "add_panel_searching": "正在搜索…",
+    "add_panel_no_results": "没有包匹配此查询。",
+    "install_as_dep": "+ 依赖",
+    "install_as_dev": "+ 开发",
+    "installing": "正在安装…",
+    "install_error": "安装 {{name}} 失败。",
+    "install_success": "已成功安装 {{name}}。",
+    "packages_count": "{{count}} 个包",
+    "packages_count_one": "{{count}} 个包",
+    "packages_count_other": "{{count}} 个包"
   }
 }
