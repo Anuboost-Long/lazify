@@ -8,6 +8,7 @@ import { AttentionDetector } from "./agents/attention-detector";
 import { Autopilot, type AutopilotAnswered } from "./agents/autopilot";
 import type { AutopilotHold } from "./agents/autopilot-policy";
 import { isAutopilotActive } from "./agents/autopilot-store";
+import { clearAgentSessionDirs } from "./agents/session-lint";
 import { buildAppMenu } from "./app-menu";
 import { installBrowserPermissionPolicy } from "./browser/browser-permissions";
 import { attachBrowserPreloads } from "./browser/browser-preloads";
@@ -21,7 +22,7 @@ import { normalizeRuntimePath } from "./environment/runtime-path";
 import { formatChangedFiles, getFormatterSettings } from "./formatting";
 import { APP_ICON_PATH } from "./icon-path";
 import { registerDomainHandlers } from "./ipc";
-import { disposeLanguageServers } from "./linting";
+import { disposeLanguageServers, disposeLintBridge } from "./linting";
 import { closePictureInPicture, onPictureInPictureChanged } from "./media/picture-in-picture";
 import { initPromptBuilder } from "./prompts";
 import { PtyRunner } from "./pty-runner";
@@ -281,6 +282,7 @@ app.whenReady().then(() => {
 	installCrashHandlers();
 	normalizeRuntimePath();
 	cleanupShadowRepos();
+	clearAgentSessionDirs();
 	guardPreviewWebviews(
 		(url, background) => emitToRenderer("lazify:browser-open-tab", { url, background }),
 		shouldBlockPopup,
@@ -333,6 +335,8 @@ app.whenReady().then(() => {
 app.on("will-quit", () => {
 	cleanupShadowRepos();
 	disposeLanguageServers();
+	disposeLintBridge();
+	clearAgentSessionDirs();
 	stopAgentActivityWatch?.();
 	stopAgentActivityWatch = null;
 });
