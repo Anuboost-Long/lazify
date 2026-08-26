@@ -301,6 +301,97 @@ export function overflowScreens(runId: string) {
 	return term.buffer.active.baseY / term.rows;
 }
 
+/** Diffs, tables, trees, stack traces — text laid out in columns rather than sentences. */
+const STRUCTURED_LINE = /[│┃┆┊├└┌┐┘─━╭╮╰╯]|\t| \| |^[+-]\s|^\s{4,}\S/;
+
+/** Below this a line would still read fine in a narrow panel. */
+const WIDE_LINE_RATIO = 0.6;
+
+/** Fewer written lines than this is a simple task, whatever they contain. */
+const MIN_LINES_TO_JUDGE = 6;
+
+/**
+ * How much the panel's visible output actually needs room, from 0 to 1.
+ *
+ * Not how much has been printed — that is `overflowScreens`, and the two often
+ * disagree. An installer prints thousands of short lines and needs no room at
+ * all; a diff prints forty and is unreadable in a narrow column. What costs
+ * width is text laid out in columns: long lines that would wrap, and lines
+ * carrying structure. So only what is on screen is measured, because that is
+ * what someone is being asked to read.
+ */
+export function readingDemand(runId: string) {
+	const entry = (entriesByRun.get(runId) ?? []).find((candidate) => candidate.term);
+	const term = entry?.term;
+	if (!term || term.rows === 0 || term.cols === 0) return 0;
+
+	const buffer = term.buffer.active;
+	let written = 0;
+	let wide = 0;
+	let structured = 0;
+
+	for (let row = buffer.viewportY; row < buffer.viewportY + term.rows; row += 1) {
+		const text = buffer.getLine(row)?.translateToString(true) ?? "";
+
+		if (!text.trim()) continue;
+
+		written += 1;
+		if (text.length >= term.cols * WIDE_LINE_RATIO) wide += 1;
+		if (STRUCTURED_LINE.test(text)) structured += 1;
+	}
+
+	if (written < MIN_LINES_TO_JUDGE) return 0;
+
+	// Either reason alone earns the space; a panel with both is not twice as bad.
+	return Math.max(wide / written, structured / written);
+}
+
+/** A line where something was invoked: a shell prompt, or an agent's tool call. */
+const COMMAND_LINE = /^[\s⏺●○◆▪•*-]*(?:[$%>#❯➜]\s+|(?:Bash|Shell|Run|Exec|Command)\s*\(\s*)(.+)/;
+
+/** Plumbing: worth doing, never worth reading. */
+const ROUTINE_COMMAND =
+	/^(?:sudo\s+)?(git|npm|yarn|pnpm|bun|npx|ls|ll|cd|pwd|cat|echo|mkdir|rmdir|rm|cp|mv|touch|which|whoami|export|source|clear|open|code)\b/;
+
+/** One command says nothing about a session; a handful is a pattern. */
+const MIN_COMMANDS_TO_JUDGE = 2;
+
+/**
+ * How much of what ran here is plumbing, from 0 to 1.
+ *
+ * A panel pushing a branch or installing packages is doing something real, but
+ * nobody needs to watch it — and it should not sit above an agent working
+ * through a problem just because it printed more. So the commands on screen are
+ * weighed against each other: a session that is `git status`, `git add`, `git
+ * commit`, `git push` scores 1, while one running a test suite scores 0.
+ *
+ * Deliberately blind to output. Whether the result deserves attention is what
+ * `readingDemand` answers, and a routine command that fails loudly is still
+ * worth reading — so this never demotes a panel on its own.
+ */
+export function routineWork(runId: string) {
+	const entry = (entriesByRun.get(runId) ?? []).find((candidate) => candidate.term);
+	const term = entry?.term;
+	if (!term || term.rows === 0) return 0;
+
+	const buffer = term.buffer.active;
+	let commands = 0;
+	let routine = 0;
+
+	for (let row = buffer.viewportY; row < buffer.viewportY + term.rows; row += 1) {
+		const invoked = COMMAND_LINE.exec(buffer.getLine(row)?.translateToString(true) ?? "")?.[1];
+
+		if (!invoked) continue;
+
+		commands += 1;
+		if (ROUTINE_COMMAND.test(invoked.trim())) routine += 1;
+	}
+
+	if (commands < MIN_COMMANDS_TO_JUDGE) return 0;
+
+	return routine / commands;
+}
+
 export function setTerminalTheme(resolvedTheme: string) {
 	currentTheme = resolvedTheme;
 

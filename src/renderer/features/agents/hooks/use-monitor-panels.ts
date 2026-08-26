@@ -1,7 +1,11 @@
 import { atom, useAtom } from "jotai";
 import { useCallback, useEffect, useRef } from "react";
 
-import { overflowScreens } from "@renderer/shared/terminal/terminal-pool";
+import {
+	overflowScreens,
+	readingDemand,
+	routineWork,
+} from "@renderer/shared/terminal/terminal-pool";
 
 import type { AgentDescriptor } from "../../../../main/agents/agent-registry";
 import {
@@ -251,11 +255,18 @@ export function useMonitorPanels() {
 	);
 
 	const tidyUp = useCallback(
-		(waitingRunIds: string[]) => {
+		(waitingRunIds: string[], columns: number) => {
 			const current = panelsRef.current;
 			if (current.length === 0) return;
 
-			const plan = planTidyUp({ panels: current, waitingRunIds, overflowScreens });
+			const plan = planTidyUp({
+				panels: current,
+				waitingRunIds,
+				overflowScreens,
+				readingDemand,
+				routineWork,
+				columns,
+			});
 
 			const byRunId = new Map(current.map((panel) => [panel.runId, panel]));
 			const next = plan.order.flatMap((runId) => {

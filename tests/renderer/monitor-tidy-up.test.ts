@@ -3,12 +3,13 @@ import { describe, expect, it } from "vitest";
 import { planTidyUp } from "../../src/renderer/features/agents/hooks/tidy-monitor-wall";
 import type { MonitorPanel } from "../../src/renderer/features/agents/hooks/use-monitor-panels";
 
-function panel(overrides: Partial<MonitorPanel> & { runId: string }): MonitorPanel {
+function panel(runId: string, overrides: Partial<MonitorPanel> = {}): MonitorPanel {
 	return {
-		id: overrides.runId,
-		projectPath: `/work/${overrides.runId}`,
-		projectName: overrides.runId,
-		kind: "script",
+		id: runId,
+		runId,
+		projectPath: `/work/${runId}`,
+		projectName: runId,
+		kind: "agent",
 		sourceId: "dev",
 		label: "dev",
 		displayName: "dev",
@@ -18,105 +19,63 @@ function panel(overrides: Partial<MonitorPanel> & { runId: string }): MonitorPan
 	};
 }
 
-const quiet = () => 0;
+const scores =
+	(byRunId: Record<string, number> = {}) =>
+	(runId: string) =>
+		byRunId[runId] ?? 0;
+
+function plan(panels: MonitorPanel[], over: Partial<Parameters<typeof planTidyUp>[0]> = {}) {
+	return planTidyUp({
+		panels,
+		waitingRunIds: [],
+		overflowScreens: scores(),
+		readingDemand: scores(),
+		routineWork: scores(),
+		columns: 3,
+		...over,
+	});
+}
 
 describe("Tidy up the live monitor wall", () => {
-	it("puts agents ahead of plain commands", () => {
-		const plan = planTidyUp({
-			panels: [
-				panel({ runId: "script-1" }),
-				panel({ runId: "agent-1", kind: "agent" }),
-				panel({ runId: "script-2" }),
-				panel({ runId: "agent-2", kind: "agent" }),
-			],
-			waitingRunIds: [],
-			overflowScreens: quiet,
-		});
-
-		expect(plan.order).toEqual(["agent-1", "agent-2", "script-1", "script-2"]);
-	});
-
-	it("lifts a panel waiting on the user above everything still working", () => {
-		const plan = planTidyUp({
-			panels: [
-				panel({ runId: "agent-1", kind: "agent" }),
-				panel({ runId: "script-1" }),
-				panel({ runId: "agent-2", kind: "agent" }),
-			],
+	it("puts whatever is waiting on the user first", () => {
+		const order = plan([panel("agent-1"), panel("script-1", { kind: "script" })], {
 			waitingRunIds: ["script-1"],
-			overflowScreens: quiet,
-		});
+		}).order;
 
-		expect(plan.order[0]).toBe("script-1");
+		expect(order).toEqual(["script-1", "agent-1"]);
 	});
 
-	it("sinks panels whose run has already exited", () => {
-		const plan = planTidyUp({
-			panels: [
-				panel({ runId: "agent-done", kind: "agent", exited: true }),
-				panel({ runId: "script-1" }),
-			],
-			waitingRunIds: [],
-			overflowScreens: quiet,
-		});
+	it("sizes by how deep the output is, not how much of it there is", () => {
+		const noisy = plan([panel("install")], { overflowScreens: scores({ install: 40 }) });
+		const dense = plan([panel("diff")], { readingDemand: scores({ diff: 0.9 }) });
 
-		expect(plan.order).toEqual(["script-1", "agent-done"]);
-		expect(plan.sizes["agent-done"]).toBe("default");
+		expect(noisy.sizes["install"]).toBe("default");
+		expect(dense.sizes["diff"]).toBe("large");
 	});
 
-	it("breaks a tie by how much output has scrolled out of sight", () => {
-		const overflow: Record<string, number> = { "agent-1": 0.2, "agent-2": 4 };
+	it("sinks an agent running errands below one doing real work", () => {
+		const order = plan([panel("pushing"), panel("building")], {
+			overflowScreens: scores({ pushing: 6 }),
+			routineWork: scores({ pushing: 1 }),
+		}).order;
 
-		const plan = planTidyUp({
-			panels: [panel({ runId: "agent-1", kind: "agent" }), panel({ runId: "agent-2", kind: "agent" })],
-			waitingRunIds: [],
-			overflowScreens: (runId) => overflow[runId] ?? 0,
-		});
-
-		expect(plan.order).toEqual(["agent-2", "agent-1"]);
+		expect(order).toEqual(["building", "pushing"]);
 	});
 
-	it("grows the top panel, and grows it further when it has a lot to read", () => {
-		const busy = planTidyUp({
-			panels: [panel({ runId: "agent-1", kind: "agent" }), panel({ runId: "script-1" })],
-			waitingRunIds: [],
-			overflowScreens: (runId) => (runId === "agent-1" ? 3 : 0),
-		});
+	it("fills the gap beside a tall panel instead of leaving a hole", () => {
+		const sizes = plan([panel("agent-1"), panel("agent-2"), panel("agent-3")], {
+			readingDemand: () => 0.9,
+		}).sizes;
 
-		expect(busy.sizes["agent-1"]).toBe("large");
-		expect(busy.sizes["script-1"]).toBe("default");
-
-		const calm = planTidyUp({
-			panels: [panel({ runId: "agent-1", kind: "agent" }), panel({ runId: "script-1" })],
-			waitingRunIds: [],
-			overflowScreens: quiet,
-		});
-
-		expect(calm.sizes["agent-1"]).toBe("wide");
+		expect(sizes).toEqual({ "agent-1": "large", "agent-2": "default", "agent-3": "default" });
 	});
 
-	it("widens other dense panels, but never more than three in all", () => {
-		const plan = planTidyUp({
-			panels: [
-				panel({ runId: "agent-1", kind: "agent" }),
-				panel({ runId: "agent-2", kind: "agent" }),
-				panel({ runId: "agent-3", kind: "agent" }),
-				panel({ runId: "agent-4", kind: "agent" }),
-			],
-			waitingRunIds: [],
-			overflowScreens: () => 5,
-		});
+	it("spans nothing at all in a single column", () => {
+		const sizes = plan([panel("agent-1"), panel("agent-2")], {
+			readingDemand: () => 0.9,
+			columns: 1,
+		}).sizes;
 
-		const enlarged = Object.values(plan.sizes).filter((size) => size !== "default");
-
-		expect(enlarged).toHaveLength(3);
-		expect(plan.sizes["agent-1"]).toBe("large");
-	});
-
-	it("leaves an empty wall alone", () => {
-		expect(planTidyUp({ panels: [], waitingRunIds: [], overflowScreens: quiet })).toEqual({
-			order: [],
-			sizes: {},
-		});
+		expect(Object.values(sizes)).toEqual(["default", "default"]);
 	});
 });

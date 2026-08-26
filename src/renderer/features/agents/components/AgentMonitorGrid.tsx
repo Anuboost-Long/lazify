@@ -42,7 +42,7 @@ interface AgentMonitorGridProps {
 
 	onReorder: (fromRunId: string, toRunId: string) => void;
 
-	onTidyUp: () => void;
+	onTidyUp: (columns: number) => void;
 
 	columns: MonitorColumns;
 	onColumnsChange: (columns: MonitorColumns) => void;
@@ -103,6 +103,19 @@ export function AgentMonitorGrid({
 
 	const draggingIdRef = useRef<string | null>(null);
 	draggingIdRef.current = draggingId;
+
+	const gridRef = useRef<HTMLDivElement | null>(null);
+
+	// Read off the rendered grid rather than worked out from the layout setting:
+	// every choice here is a breakpoint, so the answer belongs to the window the
+	// wall happens to be in.
+	const tidyUp = useCallback(() => {
+		const template = gridRef.current
+			? globalThis.getComputedStyle(gridRef.current).gridTemplateColumns
+			: "";
+
+		onTidyUp(template ? template.split(" ").filter(Boolean).length : 1);
+	}, [onTidyUp]);
 
 	const beginDrag = useCallback((runId: string) => {
 		draggingIdRef.current = runId;
@@ -165,7 +178,7 @@ export function AgentMonitorGrid({
 							icon="sparks"
 							title={t(translation.Agents.MonitorTidy)}
 							aria-label={t(translation.Agents.MonitorTidy)}
-							onClick={onTidyUp}
+							onClick={tidyUp}
 						/>
 					) : null}
 
@@ -197,7 +210,7 @@ export function AgentMonitorGrid({
 
 			<div className="flex min-h-0 flex-1">
 				<div className="min-h-0 flex-1 overflow-y-auto p-4">
-					<div className={clsx("grid gap-3 auto-rows-[22rem]", COLUMN_CLASS[columns])}>
+					<div ref={gridRef} className={clsx("grid gap-3 auto-rows-[22rem]", COLUMN_CLASS[columns])}>
 						{panels.map((panel) => (
 							<AgentMonitorPanel
 								key={panel.id}

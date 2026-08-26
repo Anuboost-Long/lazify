@@ -48,7 +48,7 @@ export function AgentMonitorWall({
 			onRename={monitor.rename}
 			onClearAll={monitor.clearAll}
 			onReorder={monitor.reorder}
-			onTidyUp={() => monitor.tidyUp(waitingRunIds)}
+			onTidyUp={(columns) => monitor.tidyUp(waitingRunIds, columns)}
 			columns={monitor.columns}
 			onColumnsChange={monitor.setColumns}
 			waitingRunIds={waitingRunIds}
