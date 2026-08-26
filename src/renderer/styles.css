@@ -3,53 +3,57 @@
 @tailwind utilities;
 
 @keyframes toast-drain {
-  from { transform: scaleX(1); }
-  to   { transform: scaleX(0); }
+	from {
+		transform: scaleX(1);
+	}
+	to {
+		transform: scaleX(0);
+	}
 }
 
 /* ─────────────────────────────────────────────
    BASE (dark theme + emerald accent)
    ───────────────────────────────────────────── */
 :root {
-  --font-ui: "Google Sans", "Avenir Next", "Segoe UI", sans-serif;
+	--font-ui: "Google Sans", "Avenir Next", "Segoe UI", sans-serif;
 
-  --color-bg: 11 18 32;
-  --color-bg-soft: 17 24 39;
+	--color-bg: 11 18 32;
+	--color-bg-soft: 17 24 39;
 
-  /* The terminal's own surface, and the gutter around it, so a terminal reads
+	/* The terminal's own surface, and the gutter around it, so a terminal reads
      as one panel rather than a canvas laid on a differently coloured tray.
      Kept in step with XTermPanel's theme background. */
-  --color-terminal: 17 24 39;
+	--color-terminal: 17 24 39;
 
-  --color-text: 229 231 235;
-  --color-text-muted: 156 163 175;
+	--color-text: 229 231 235;
+	--color-text-muted: 156 163 175;
 
-  --color-accent: 16 185 129;
-  --color-accent-hover: 5 150 105;
-  --color-accent-soft: rgba(16, 185, 129, 0.1);
+	--color-accent: 16 185 129;
+	--color-accent-hover: 5 150 105;
+	--color-accent-soft: rgba(16, 185, 129, 0.1);
 
-  --color-border: rgba(255, 255, 255, 0.08);
+	--color-border: rgba(255, 255, 255, 0.08);
 
-  --color-success: 34 197 94;
-  --color-warning: 245 158 11;
-  --color-error: 244 63 94;
+	--color-success: 34 197 94;
+	--color-warning: 245 158 11;
+	--color-error: 244 63 94;
 
-  /* Syntax colours, following VS Code's Dark+ palette. */
-  --code-plain: #d4d4d4;
-  --code-comment: #6a9955;
-  --code-string: #ce9178;
-  --code-number: #b5cea8;
-  --code-keyword: #c586c0;
-  --code-type: #4ec9b0;
-  --code-function: #dcdcaa;
-  --code-property: #9cdcfe;
-  --code-punctuation: #d4d4d4;
-  --code-tag: #569cd6;
-  --code-attribute: #9cdcfe;
+	/* Syntax colours, following VS Code's Dark+ palette. */
+	--code-plain: #d4d4d4;
+	--code-comment: #6a9955;
+	--code-string: #ce9178;
+	--code-number: #b5cea8;
+	--code-keyword: #c586c0;
+	--code-type: #4ec9b0;
+	--code-function: #dcdcaa;
+	--code-property: #9cdcfe;
+	--code-punctuation: #d4d4d4;
+	--code-tag: #569cd6;
+	--code-attribute: #9cdcfe;
 }
 
 :root:lang(en) {
-  --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+	--font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
 /* ─────────────────────────────────────────────
@@ -58,39 +62,39 @@
    below, so must come BEFORE light theme block)
    ───────────────────────────────────────────── */
 :root[data-accent="sky"] {
-  --color-accent: 14 165 233;
-  --color-accent-hover: 2 132 199;
-  --color-accent-soft: rgba(14, 165, 233, 0.1);
+	--color-accent: 14 165 233;
+	--color-accent-hover: 2 132 199;
+	--color-accent-soft: rgba(14, 165, 233, 0.1);
 }
 :root[data-accent="violet"] {
-  --color-accent: 139 92 246;
-  --color-accent-hover: 124 58 237;
-  --color-accent-soft: rgba(139, 92, 246, 0.1);
+	--color-accent: 139 92 246;
+	--color-accent-hover: 124 58 237;
+	--color-accent-soft: rgba(139, 92, 246, 0.1);
 }
 :root[data-accent="rose"] {
-  --color-accent: 244 63 94;
-  --color-accent-hover: 225 29 72;
-  --color-accent-soft: rgba(244, 63, 94, 0.1);
+	--color-accent: 244 63 94;
+	--color-accent-hover: 225 29 72;
+	--color-accent-soft: rgba(244, 63, 94, 0.1);
 }
 :root[data-accent="amber"] {
-  --color-accent: 245 158 11;
-  --color-accent-hover: 217 119 6;
-  --color-accent-soft: rgba(245, 158, 11, 0.1);
+	--color-accent: 245 158 11;
+	--color-accent-hover: 217 119 6;
+	--color-accent-soft: rgba(245, 158, 11, 0.1);
 }
 :root[data-accent="cyan"] {
-  --color-accent: 6 182 212;
-  --color-accent-hover: 8 145 178;
-  --color-accent-soft: rgba(6, 182, 212, 0.1);
+	--color-accent: 6 182 212;
+	--color-accent-hover: 8 145 178;
+	--color-accent-soft: rgba(6, 182, 212, 0.1);
 }
 :root[data-accent="pink"] {
-  --color-accent: 236 72 153;
-  --color-accent-hover: 219 39 119;
-  --color-accent-soft: rgba(236, 72, 153, 0.1);
+	--color-accent: 236 72 153;
+	--color-accent-hover: 219 39 119;
+	--color-accent-soft: rgba(236, 72, 153, 0.1);
 }
 :root[data-accent="indigo"] {
-  --color-accent: 99 102 241;
-  --color-accent-hover: 79 70 229;
-  --color-accent-soft: rgba(99, 102, 241, 0.1);
+	--color-accent: 99 102 241;
+	--color-accent-hover: 79 70 229;
+	--color-accent-soft: rgba(99, 102, 241, 0.1);
 }
 
 /* ─────────────────────────────────────────────
@@ -100,40 +104,40 @@
    for non-accent + light combos)
    ───────────────────────────────────────────── */
 :root[data-theme="light"] {
-  --color-bg: 243 244 246;
-  --color-bg-soft: 255 255 255;
+	--color-bg: 243 244 246;
+	--color-bg-soft: 255 255 255;
 
-  /* Light, but off the paper-white of --color-bg-soft: a terminal is read for
+	/* Light, but off the paper-white of --color-bg-soft: a terminal is read for
      minutes at a time, and white at full brightness is what makes eyes ache.
      It sits with the page rather than under it, and the gap it keeps is to the
      white chrome around it — that edge is what makes the panel findable. */
-  --color-terminal: 241 243 247;
+	--color-terminal: 241 243 247;
 
-  --color-text: 17 24 39;
-  --color-text-muted: 55 65 81;
+	--color-text: 17 24 39;
+	--color-text-muted: 55 65 81;
 
-  --color-accent: 4 120 87;
-  --color-accent-hover: 6 95 70;
-  --color-accent-soft: rgba(4, 120, 87, 0.08);
+	--color-accent: 4 120 87;
+	--color-accent-hover: 6 95 70;
+	--color-accent-soft: rgba(4, 120, 87, 0.08);
 
-  --color-border: rgba(0, 0, 0, 0.14);
+	--color-border: rgba(0, 0, 0, 0.14);
 
-  --color-success: 22 163 74;
-  --color-warning: 215 119 6;
-  --color-error: 225 29 72;
+	--color-success: 22 163 74;
+	--color-warning: 215 119 6;
+	--color-error: 225 29 72;
 
-  /* Syntax colours, following VS Code's Light+ palette. */
-  --code-plain: #1f2328;
-  --code-comment: #008000;
-  --code-string: #a31515;
-  --code-number: #098658;
-  --code-keyword: #af00db;
-  --code-type: #267f99;
-  --code-function: #795e26;
-  --code-property: #001080;
-  --code-punctuation: #1f2328;
-  --code-tag: #800000;
-  --code-attribute: #e50000;
+	/* Syntax colours, following VS Code's Light+ palette. */
+	--code-plain: #1f2328;
+	--code-comment: #008000;
+	--code-string: #a31515;
+	--code-number: #098658;
+	--code-keyword: #af00db;
+	--code-type: #267f99;
+	--code-function: #795e26;
+	--code-property: #001080;
+	--code-punctuation: #1f2328;
+	--code-tag: #800000;
+	--code-attribute: #e50000;
 }
 
 /* ─────────────────────────────────────────────
@@ -142,39 +146,39 @@
    attribute rules above)
    ───────────────────────────────────────────── */
 :root[data-accent="sky"][data-theme="light"] {
-  --color-accent: 2 132 199;
-  --color-accent-hover: 3 105 161;
-  --color-accent-soft: rgba(2, 132, 199, 0.08);
+	--color-accent: 2 132 199;
+	--color-accent-hover: 3 105 161;
+	--color-accent-soft: rgba(2, 132, 199, 0.08);
 }
 :root[data-accent="violet"][data-theme="light"] {
-  --color-accent: 109 40 217;
-  --color-accent-hover: 91 33 182;
-  --color-accent-soft: rgba(109, 40, 217, 0.08);
+	--color-accent: 109 40 217;
+	--color-accent-hover: 91 33 182;
+	--color-accent-soft: rgba(109, 40, 217, 0.08);
 }
 :root[data-accent="rose"][data-theme="light"] {
-  --color-accent: 190 18 60;
-  --color-accent-hover: 159 18 57;
-  --color-accent-soft: rgba(190, 18, 60, 0.08);
+	--color-accent: 190 18 60;
+	--color-accent-hover: 159 18 57;
+	--color-accent-soft: rgba(190, 18, 60, 0.08);
 }
 :root[data-accent="amber"][data-theme="light"] {
-  --color-accent: 180 83 9;
-  --color-accent-hover: 146 64 14;
-  --color-accent-soft: rgba(180, 83, 9, 0.08);
+	--color-accent: 180 83 9;
+	--color-accent-hover: 146 64 14;
+	--color-accent-soft: rgba(180, 83, 9, 0.08);
 }
 :root[data-accent="cyan"][data-theme="light"] {
-  --color-accent: 14 116 144;
-  --color-accent-hover: 21 94 117;
-  --color-accent-soft: rgba(14, 116, 144, 0.08);
+	--color-accent: 14 116 144;
+	--color-accent-hover: 21 94 117;
+	--color-accent-soft: rgba(14, 116, 144, 0.08);
 }
 :root[data-accent="pink"][data-theme="light"] {
-  --color-accent: 190 24 93;
-  --color-accent-hover: 157 23 77;
-  --color-accent-soft: rgba(190, 24, 93, 0.08);
+	--color-accent: 190 24 93;
+	--color-accent-hover: 157 23 77;
+	--color-accent-soft: rgba(190, 24, 93, 0.08);
 }
 :root[data-accent="indigo"][data-theme="light"] {
-  --color-accent: 67 56 202;
-  --color-accent-hover: 55 48 163;
-  --color-accent-soft: rgba(67, 56, 202, 0.08);
+	--color-accent: 67 56 202;
+	--color-accent-hover: 55 48 163;
+	--color-accent-soft: rgba(67, 56, 202, 0.08);
 }
 
 /* ─────────────────────────────────────────────
@@ -183,62 +187,68 @@
 html,
 body,
 #root {
-  min-height: 100%;
+	min-height: 100%;
 }
 
 body {
-  margin: 0;
-  font-family: var(--font-ui);
-  background: rgb(var(--color-bg));
-  color: rgb(var(--color-text));
+	margin: 0;
+	font-family: var(--font-ui);
+	background: rgb(var(--color-bg));
+	color: rgb(var(--color-text));
 }
 
 * {
-  box-sizing: border-box;
+	box-sizing: border-box;
 }
 
 *::selection {
-  background: rgb(var(--color-accent) / 0.28);
+	background: rgb(var(--color-accent) / 0.28);
 }
 
 i[class^="devicon-"],
 i[class*=" devicon-"] {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  line-height: 1;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	line-height: 1;
 }
 
 ::-webkit-scrollbar {
-  width: 0;
-  height: 0;
-  display: none;
+	width: 0;
+	height: 0;
+	display: none;
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(6, 17, 12, 0.45);
+	background: rgba(6, 17, 12, 0.45);
 }
 
 :root[data-theme="light"] ::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.06);
+	background: rgba(0, 0, 0, 0.06);
 }
 
 ::-webkit-scrollbar-thumb {
-  border: 3px solid transparent;
-  border-radius: 999px;
-  background: rgb(var(--color-accent) / 0.35);
-  background-clip: content-box;
+	border: 3px solid transparent;
+	border-radius: 999px;
+	background: rgb(var(--color-accent) / 0.35);
+	background-clip: content-box;
 }
 
 * {
-  scrollbar-width: none;
-  -ms-overflow-style: none;
+	scrollbar-width: none;
+	-ms-overflow-style: none;
+}
+
+.scroll-visible {
+	scrollbar-width: thin;
+	scrollbar-color: rgb(var(--color-accent) / 0.35) transparent;
+	overscroll-behavior: contain;
 }
 
 input[type="search"]::-webkit-search-cancel-button {
-  -webkit-appearance: none;
-  appearance: none;
-  display: none;
+	-webkit-appearance: none;
+	appearance: none;
+	display: none;
 }
 
 /* ─────────────────────────────────────────────
@@ -249,41 +259,47 @@ input[type="search"]::-webkit-search-cancel-button {
 
 /* Override Tailwind's hardcoded emerald shadow-glow */
 .shadow-glow {
-  box-shadow:
-    0 0 0 1px rgb(var(--color-accent) / 0.24),
-    0 4px 12px rgb(var(--color-accent) / 0.14);
+	box-shadow:
+		0 0 0 1px rgb(var(--color-accent) / 0.24),
+		0 4px 12px rgb(var(--color-accent) / 0.14);
 }
 
 /* Override Tailwind's hardcoded emerald bg-grid */
 .bg-grid {
-  background-image:
-    linear-gradient(to right, rgb(var(--color-accent) / 0.08) 1px, transparent 1px),
-    linear-gradient(to bottom, rgb(var(--color-accent) / 0.08) 1px, transparent 1px);
+	background-image:
+		linear-gradient(to right, rgb(var(--color-accent) / 0.08) 1px, transparent 1px),
+		linear-gradient(to bottom, rgb(var(--color-accent) / 0.08) 1px, transparent 1px);
 }
 
 /* Card gradient backgrounds used in active/selected states */
 .bg-accent-gradient-135 {
-  background: linear-gradient(135deg, rgb(var(--color-accent) / 0.1), rgba(255, 255, 255, 0.02));
+	background: linear-gradient(135deg, rgb(var(--color-accent) / 0.1), rgba(255, 255, 255, 0.02));
 }
 .bg-accent-gradient-180 {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgb(var(--color-accent) / 0.04));
+	background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgb(var(--color-accent) / 0.04));
 }
 .bg-accent-gradient-140 {
-  background: linear-gradient(140deg, rgb(var(--color-accent) / 0.07) 0%, transparent 55%);
+	background: linear-gradient(140deg, rgb(var(--color-accent) / 0.07) 0%, transparent 55%);
 }
 
 /* Icon glow used inside group elements */
 .shadow-accent-icon {
-  box-shadow: 0 0 10px rgb(var(--color-accent) / 0.22);
+	box-shadow: 0 0 10px rgb(var(--color-accent) / 0.22);
 }
 .group:hover .shadow-accent-icon {
-  box-shadow: 0 0 14px rgb(var(--color-accent) / 0.34);
+	box-shadow: 0 0 14px rgb(var(--color-accent) / 0.34);
 }
 
 /* Named accent card shadows (replace arbitrary Tailwind shadow values) */
-.shadow-accent-sm  { box-shadow: 0 2px 8px rgb(var(--color-accent) / 0.12); }
-.shadow-accent-md  { box-shadow: 0 3px 10px rgb(var(--color-accent) / 0.08); }
-.shadow-accent-lg  { box-shadow: 0 3px 10px rgb(var(--color-accent) / 0.16); }
+.shadow-accent-sm {
+	box-shadow: 0 2px 8px rgb(var(--color-accent) / 0.12);
+}
+.shadow-accent-md {
+	box-shadow: 0 3px 10px rgb(var(--color-accent) / 0.08);
+}
+.shadow-accent-lg {
+	box-shadow: 0 3px 10px rgb(var(--color-accent) / 0.16);
+}
 
 /* ─────────────────────────────────────────────
    CODE FIND MATCHES
@@ -291,12 +307,23 @@ input[type="search"]::-webkit-search-cancel-button {
    so the highlighter's own spans are untouched.
    ───────────────────────────────────────────── */
 ::highlight(code-find) {
-  background-color: rgb(var(--color-warning) / 0.35);
+	background-color: rgb(var(--color-warning) / 0.35);
 }
 
 ::highlight(code-find-active) {
-  background-color: rgb(var(--color-warning) / 0.75);
-  color: rgb(11 18 32);
+	background-color: rgb(var(--color-warning) / 0.75);
+	color: rgb(11 18 32);
+}
+
+/* ─────────────────────────────────────────────
+   CODE QUALITY FINDINGS
+   The underline an editor puts under a smell:
+   the code keeps its own colours, and only the
+   decoration says something is here.
+   ───────────────────────────────────────────── */
+::highlight(code-diagnostic) {
+	text-decoration: underline wavy rgb(var(--color-warning) / 0.9);
+	text-underline-offset: 3px;
 }
 
 /* ─────────────────────────────────────────────
@@ -305,10 +332,10 @@ input[type="search"]::-webkit-search-cancel-button {
 :root[data-reduce-motion="true"] *,
 :root[data-reduce-motion="true"] *::before,
 :root[data-reduce-motion="true"] *::after {
-  animation-duration: 0.01ms !important;
-  animation-iteration-count: 1 !important;
-  transition-duration: 0.01ms !important;
-  scroll-behavior: auto !important;
+	animation-duration: 0.01ms !important;
+	animation-iteration-count: 1 !important;
+	transition-duration: 0.01ms !important;
+	scroll-behavior: auto !important;
 }
 
 /* ─────────────────────────────────────────────
@@ -317,65 +344,65 @@ input[type="search"]::-webkit-search-cancel-button {
    so the tags a browser writes need house styling.
    ───────────────────────────────────────────── */
 .doc-rich-text p {
-  margin: 0 0 0.5em;
+	margin: 0 0 0.5em;
 }
 
 .doc-rich-text p:last-child {
-  margin-bottom: 0;
+	margin-bottom: 0;
 }
 
 .doc-rich-text ul,
 .doc-rich-text ol {
-  margin: 0 0 0.5em;
-  padding-left: 1.15rem;
+	margin: 0 0 0.5em;
+	padding-left: 1.15rem;
 }
 
 .doc-rich-text ul {
-  list-style: disc;
+	list-style: disc;
 }
 
 .doc-rich-text ol {
-  list-style: decimal;
+	list-style: decimal;
 }
 
 .doc-rich-text h4 {
-  margin: 0.6em 0 0.3em;
-  font-size: 0.8125rem;
-  font-weight: 600;
+	margin: 0.6em 0 0.3em;
+	font-size: 0.8125rem;
+	font-weight: 600;
 }
 
 .doc-rich-text a {
-  color: rgb(var(--color-accent));
-  text-decoration: underline;
+	color: rgb(var(--color-accent));
+	text-decoration: underline;
 }
 
 .doc-rich-text code {
-  border-radius: 0.25rem;
-  background: rgb(var(--color-text) / 0.07);
-  padding: 0 0.25rem;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+	border-radius: 0.25rem;
+	background: rgb(var(--color-text) / 0.07);
+	padding: 0 0.25rem;
+	font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 
 .doc-rich-text pre code {
-  border: 0;
-  background: none;
-  padding: 0;
-  font-size: inherit;
+	border: 0;
+	background: none;
+	padding: 0;
+	font-size: inherit;
 }
 
 .doc-rich-text pre {
-  margin: 0 0 0.5em;
-  border-radius: 0.375rem;
-  background: rgb(var(--color-text) / 0.05);
-  padding: 0.5rem 0.625rem;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 0.6875rem;
-  white-space: pre-wrap;
+	margin: 0 0 0.5em;
+	border-radius: 0.375rem;
+	background: rgb(var(--color-text) / 0.05);
+	padding: 0.5rem 0.625rem;
+	font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+	font-size: 0.6875rem;
+	white-space: pre-wrap;
 }
 
 .doc-rich-text blockquote {
-  margin: 0 0 0.5em;
-  border-left: 2px solid var(--color-border);
-  padding-left: 0.625rem;
-  color: rgb(var(--color-text-muted));
+	margin: 0 0 0.5em;
+	border-left: 2px solid var(--color-border);
+	padding-left: 0.625rem;
+	color: rgb(var(--color-text-muted));
 }

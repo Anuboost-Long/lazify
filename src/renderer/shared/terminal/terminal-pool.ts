@@ -2,6 +2,7 @@ import { FitAddon } from "@xterm/addon-fit";
 import { Terminal } from "@xterm/xterm";
 
 import { registerTerminalPaste } from "@renderer/shared/lib/terminal-paste";
+
 import { attachClipboardPaste } from "./clipboard-paste";
 import { registerFileLinks, type FileLinkHandlers } from "./file-link-provider";
 import { terminalTheme } from "./terminal-theme";
@@ -14,23 +15,23 @@ import { terminalTheme } from "./terminal-theme";
 const MAX_DETACHED = 8;
 
 export interface PooledTerminal {
-  runId: string;
-  shared: boolean;
-  links: FileLinkHandlers;
+	runId: string;
+	shared: boolean;
+	links: FileLinkHandlers;
 }
 
 interface Entry extends PooledTerminal {
-  term: Terminal | null;
-  fit: FitAddon | null;
-  holder: HTMLDivElement;
-  mounts: HTMLElement[];
-  replayed: boolean;
-  pending: { data: string; seq?: number }[];
-  detachedAt: number;
-  openObserver: ResizeObserver | null;
-  sizeObserver: ResizeObserver | null;
-  firstFit: number | null;
-  disposers: (() => void)[];
+	term: Terminal | null;
+	fit: FitAddon | null;
+	holder: HTMLDivElement;
+	mounts: HTMLElement[];
+	replayed: boolean;
+	pending: { data: string; seq?: number }[];
+	detachedAt: number;
+	openObserver: ResizeObserver | null;
+	sizeObserver: ResizeObserver | null;
+	firstFit: number | null;
+	disposers: (() => void)[];
 }
 
 const entriesByRun = new Map<string, Entry[]>();
@@ -40,46 +41,46 @@ let stopSessionKilled: (() => void) | null = null;
 let currentTheme = "dark";
 
 function allEntries() {
-  return [...entriesByRun.values()].flat();
+	return [...entriesByRun.values()].flat();
 }
 
 function ensureListeners() {
-  if (stopPtyData) return;
+	if (stopPtyData) return;
 
-  stopPtyData = globalThis.lazify.onPtyData((event) => {
-    const entries = entriesByRun.get(event.runId);
-    if (!entries) return;
+	stopPtyData = globalThis.lazify.onPtyData((event) => {
+		const entries = entriesByRun.get(event.runId);
+		if (!entries) return;
 
-    entries.forEach((entry) => {
-      if (entry.term && entry.replayed) {
-        entry.term.write(event.data);
-        return;
-      }
+		entries.forEach((entry) => {
+			if (entry.term && entry.replayed) {
+				entry.term.write(event.data);
+				return;
+			}
 
-      entry.pending.push({ data: event.data, seq: event.seq });
-    });
-  });
+			entry.pending.push({ data: event.data, seq: event.seq });
+		});
+	});
 
-  stopSessionKilled = globalThis.lazify.onSessionKilled((event) => {
-    disposeRun(event.runId);
-  });
+	stopSessionKilled = globalThis.lazify.onSessionKilled((event) => {
+		disposeRun(event.runId);
+	});
 }
 
 function owner(entry: Entry) {
-  return entry.mounts.at(-1) ?? null;
+	return entry.mounts.at(-1) ?? null;
 }
 
 function fitToOwner(entry: Entry) {
-  const { term, fit } = entry;
-  if (!term || !fit) return;
-  if (entry.holder.offsetWidth === 0 || entry.holder.offsetHeight === 0) return;
+	const { term, fit } = entry;
+	if (!term || !fit) return;
+	if (entry.holder.offsetWidth === 0 || entry.holder.offsetHeight === 0) return;
 
-  try {
-    fit.fit();
-    globalThis.lazify.ptyResize(entry.runId, term.cols, term.rows);
-  } catch {
-    // the holder may have been detached between observation and callback
-  }
+	try {
+		fit.fit();
+		globalThis.lazify.ptyResize(entry.runId, term.cols, term.rows);
+	} catch {
+		// the holder may have been detached between observation and callback
+	}
 }
 
 /**
@@ -93,25 +94,25 @@ function fitToOwner(entry: Entry) {
  * every line.
  */
 function replayBacklog(entry: Entry) {
-  const term = entry.term;
-  if (!term) return;
+	const term = entry.term;
+	if (!term) return;
 
-  void globalThis.lazify
-    .ptyBacklog(entry.runId)
-    .then(({ data, seq }) => {
-      if (data) term.write(data);
+	void globalThis.lazify
+		.ptyBacklog(entry.runId)
+		.then(({ data, seq }) => {
+			if (data) term.write(data);
 
-      entry.pending
-        .filter((chunk) => chunk.seq === undefined || chunk.seq > seq)
-        .forEach((chunk) => term.write(chunk.data));
-    })
-    .catch(() => {
-      entry.pending.forEach((chunk) => term.write(chunk.data));
-    })
-    .finally(() => {
-      entry.pending = [];
-      entry.replayed = true;
-    });
+			entry.pending
+				.filter((chunk) => chunk.seq === undefined || chunk.seq > seq)
+				.forEach((chunk) => term.write(chunk.data));
+		})
+		.catch(() => {
+			entry.pending.forEach((chunk) => term.write(chunk.data));
+		})
+		.finally(() => {
+			entry.pending = [];
+			entry.replayed = true;
+		});
 }
 
 /**
@@ -122,194 +123,198 @@ function replayBacklog(entry: Entry) {
  * real box to measure against.
  */
 function buildWhenMeasurable(entry: Entry) {
-  if (entry.term || !owner(entry)) return;
+	if (entry.term || !owner(entry)) return;
 
-  if (entry.holder.offsetWidth > 0 && entry.holder.offsetHeight > 0) {
-    buildTerminal(entry);
-    return;
-  }
+	if (entry.holder.offsetWidth > 0 && entry.holder.offsetHeight > 0) {
+		buildTerminal(entry);
+		return;
+	}
 
-  if (entry.openObserver) return;
+	if (entry.openObserver) return;
 
-  entry.openObserver = new ResizeObserver(() => {
-    if (entry.holder.offsetWidth === 0 || entry.holder.offsetHeight === 0) return;
+	entry.openObserver = new ResizeObserver(() => {
+		if (entry.holder.offsetWidth === 0 || entry.holder.offsetHeight === 0) return;
 
-    entry.openObserver?.disconnect();
-    entry.openObserver = null;
-    buildTerminal(entry);
-  });
+		entry.openObserver?.disconnect();
+		entry.openObserver = null;
+		buildTerminal(entry);
+	});
 
-  entry.openObserver.observe(entry.holder);
+	entry.openObserver.observe(entry.holder);
 }
 
 function buildTerminal(entry: Entry) {
-  if (entry.term) return;
+	if (entry.term) return;
 
-  const term = new Terminal({
-    cursorBlink: true,
-    fontFamily: '"JetBrains Mono", "Fira Code", Menlo, Consolas, monospace',
-    fontSize: 12.5,
-    // Block-drawing output (Expo QR codes, progress bars, box UIs) relies on
-    // glyphs touching edge to edge, so rows and columns get no extra gap.
-    lineHeight: 1,
-    letterSpacing: 0,
-    theme: terminalTheme(currentTheme),
-    scrollback: 10_000,
-    allowTransparency: false,
-    convertEol: false,
-  });
+	const term = new Terminal({
+		cursorBlink: true,
+		fontFamily: '"JetBrains Mono", "Fira Code", Menlo, Consolas, monospace',
+		fontSize: 12.5,
+		// Block-drawing output (Expo QR codes, progress bars, box UIs) relies on
+		// glyphs touching edge to edge, so rows and columns get no extra gap.
+		lineHeight: 1,
+		letterSpacing: 0,
+		theme: terminalTheme(currentTheme),
+		scrollback: 10_000,
+		allowTransparency: false,
+		convertEol: false,
+	});
 
-  const fit = new FitAddon();
-  term.loadAddon(fit);
-  term.open(entry.holder);
+	const fit = new FitAddon();
+	term.loadAddon(fit);
+	term.open(entry.holder);
 
-  entry.term = term;
-  entry.fit = fit;
+	entry.term = term;
+	entry.fit = fit;
 
-  term.onData((data) => globalThis.lazify.ptyWrite(entry.runId, data));
-  entry.disposers.push(registerFileLinks(term, entry.links));
-  entry.disposers.push(attachClipboardPaste(entry.holder, term));
+	term.onData((data) => globalThis.lazify.ptyWrite(entry.runId, data));
+	entry.disposers.push(registerFileLinks(term, entry.links));
+	entry.disposers.push(attachClipboardPaste(entry.holder, term));
 
-  // The app-level paste bridge addresses one run, so only the shared terminal
-  // claims it — a private instance would silently take over the delivery.
-  if (entry.shared) {
-    entry.disposers.push(
-      registerTerminalPaste(entry.runId, (text) => term.paste(text)),
-    );
-  }
+	// The app-level paste bridge addresses one run, so only the shared terminal
+	// claims it — a private instance would silently take over the delivery.
+	if (entry.shared) {
+		entry.disposers.push(registerTerminalPaste(entry.runId, (text) => term.paste(text)));
+	}
 
-  entry.sizeObserver = new ResizeObserver(() => fitToOwner(entry));
-  entry.sizeObserver.observe(entry.holder);
+	entry.sizeObserver = new ResizeObserver(() => fitToOwner(entry));
+	entry.sizeObserver.observe(entry.holder);
 
-  entry.firstFit = requestAnimationFrame(() => {
-    entry.firstFit = null;
-    fitToOwner(entry);
-    replayBacklog(entry);
-  });
+	entry.firstFit = requestAnimationFrame(() => {
+		entry.firstFit = null;
+		fitToOwner(entry);
+		replayBacklog(entry);
+	});
 }
 
 function createEntry(runId: string, shared: boolean): Entry {
-  ensureListeners();
+	ensureListeners();
 
-  const holder = document.createElement("div");
-  holder.className = "h-full w-full";
-  holder.style.minHeight = "0";
+	const holder = document.createElement("div");
+	holder.className = "h-full w-full";
+	holder.style.minHeight = "0";
 
-  return {
-    runId,
-    shared,
-    links: {},
-    term: null,
-    fit: null,
-    holder,
-    mounts: [],
-    replayed: false,
-    pending: [],
-    detachedAt: 0,
-    openObserver: null,
-    sizeObserver: null,
-    firstFit: null,
-    disposers: [],
-  };
+	return {
+		runId,
+		shared,
+		links: {},
+		term: null,
+		fit: null,
+		holder,
+		mounts: [],
+		replayed: false,
+		pending: [],
+		detachedAt: 0,
+		openObserver: null,
+		sizeObserver: null,
+		firstFit: null,
+		disposers: [],
+	};
 }
 
 function disposeEntry(entry: Entry) {
-  if (entry.firstFit !== null) cancelAnimationFrame(entry.firstFit);
+	if (entry.firstFit !== null) cancelAnimationFrame(entry.firstFit);
 
-  entry.firstFit = null;
-  entry.openObserver?.disconnect();
-  entry.sizeObserver?.disconnect();
-  entry.disposers.forEach((dispose) => dispose());
-  entry.term?.dispose();
-  entry.term = null;
-  entry.fit = null;
-  entry.holder.remove();
+	entry.firstFit = null;
+	entry.openObserver?.disconnect();
+	entry.sizeObserver?.disconnect();
+	entry.disposers.forEach((dispose) => dispose());
+	entry.term?.dispose();
+	entry.term = null;
+	entry.fit = null;
+	entry.holder.remove();
 
-  const remaining = (entriesByRun.get(entry.runId) ?? []).filter(
-    (candidate) => candidate !== entry,
-  );
+	const remaining = (entriesByRun.get(entry.runId) ?? []).filter((candidate) => candidate !== entry);
 
-  if (remaining.length === 0) entriesByRun.delete(entry.runId);
-  else entriesByRun.set(entry.runId, remaining);
+	if (remaining.length === 0) entriesByRun.delete(entry.runId);
+	else entriesByRun.set(entry.runId, remaining);
 }
 
 function evictDetached() {
-  const detached = allEntries()
-    .filter((entry) => entry.mounts.length === 0)
-    .sort((left, right) => left.detachedAt - right.detachedAt);
+	const detached = allEntries()
+		.filter((entry) => entry.mounts.length === 0)
+		.sort((left, right) => left.detachedAt - right.detachedAt);
 
-  detached.slice(0, Math.max(0, detached.length - MAX_DETACHED)).forEach(disposeEntry);
+	detached.slice(0, Math.max(0, detached.length - MAX_DETACHED)).forEach(disposeEntry);
 }
 
 export function disposeRun(runId: string) {
-  (entriesByRun.get(runId) ?? []).slice().forEach(disposeEntry);
+	(entriesByRun.get(runId) ?? []).slice().forEach(disposeEntry);
 }
 
 export function acquire(runId: string, shared = true): PooledTerminal {
-  const existing = entriesByRun.get(runId) ?? [];
+	const existing = entriesByRun.get(runId) ?? [];
 
-  if (shared) {
-    const reusable = existing.find((entry) => entry.shared);
-    if (reusable) return reusable;
-  }
+	if (shared) {
+		const reusable = existing.find((entry) => entry.shared);
+		if (reusable) return reusable;
+	}
 
-  const entry = createEntry(runId, shared);
-  entriesByRun.set(runId, [...existing, entry]);
+	const entry = createEntry(runId, shared);
+	entriesByRun.set(runId, [...existing, entry]);
 
-  return entry;
+	return entry;
 }
 
 export function attach(pooled: PooledTerminal, container: HTMLElement) {
-  const entry = pooled as Entry;
+	const entry = pooled as Entry;
 
-  if (!entry.mounts.includes(container)) entry.mounts.push(container);
+	if (!entry.mounts.includes(container)) entry.mounts.push(container);
 
-  const target = owner(entry);
-  if (target && entry.holder.parentElement !== target) target.appendChild(entry.holder);
+	const target = owner(entry);
+	if (target && entry.holder.parentElement !== target) target.appendChild(entry.holder);
 
-  buildWhenMeasurable(entry);
-  fitToOwner(entry);
+	buildWhenMeasurable(entry);
+	fitToOwner(entry);
 }
 
 export function detach(pooled: PooledTerminal, container: HTMLElement) {
-  const entry = pooled as Entry;
+	const entry = pooled as Entry;
 
-  entry.mounts = entry.mounts.filter((mount) => mount !== container);
+	entry.mounts = entry.mounts.filter((mount) => mount !== container);
 
-  const target = owner(entry);
+	const target = owner(entry);
 
-  // Handed back rather than dropped: the workspace tab stays mounted behind the
-  // monitor wall, so when the wall lets go the tab is still there to show it.
-  if (target) {
-    target.appendChild(entry.holder);
-    buildWhenMeasurable(entry);
-    fitToOwner(entry);
-    return;
-  }
+	// Handed back rather than dropped: the workspace tab stays mounted behind the
+	// monitor wall, so when the wall lets go the tab is still there to show it.
+	if (target) {
+		target.appendChild(entry.holder);
+		buildWhenMeasurable(entry);
+		fitToOwner(entry);
+		return;
+	}
 
-  entry.holder.remove();
-  entry.detachedAt = Date.now();
-  evictDetached();
+	entry.holder.remove();
+	entry.detachedAt = Date.now();
+	evictDetached();
 }
 
 export function focusTerminal(pooled: PooledTerminal) {
-  (pooled as Entry).term?.focus();
+	(pooled as Entry).term?.focus();
+}
+
+export function overflowScreens(runId: string) {
+	const entry = (entriesByRun.get(runId) ?? []).find((candidate) => candidate.term);
+	const term = entry?.term;
+	if (!term || term.rows === 0) return 0;
+
+	return term.buffer.active.baseY / term.rows;
 }
 
 export function setTerminalTheme(resolvedTheme: string) {
-  currentTheme = resolvedTheme;
+	currentTheme = resolvedTheme;
 
-  allEntries().forEach((entry) => {
-    if (!entry.term) return;
+	allEntries().forEach((entry) => {
+		if (!entry.term) return;
 
-    entry.term.options.theme = terminalTheme(resolvedTheme);
-  });
+		entry.term.options.theme = terminalTheme(resolvedTheme);
+	});
 }
 
 export function stopTerminalPool() {
-  allEntries().forEach(disposeEntry);
-  stopPtyData?.();
-  stopSessionKilled?.();
-  stopPtyData = null;
-  stopSessionKilled = null;
+	allEntries().forEach(disposeEntry);
+	stopPtyData?.();
+	stopSessionKilled?.();
+	stopPtyData = null;
+	stopSessionKilled = null;
 }
