@@ -2,12 +2,25 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { findJavaRuntime, forgetJavaRuntime } from "../../../src/main/extensions/java-runtime";
+// These cases are about what the resolver does with a runtime it is handed, so
+// the machine's own runtimes are kept out of it — otherwise a developer with a
+// JDK installed and a CI box without one disagree about every assertion.
+vi.mock("../../../src/main/environment/java-path", () => ({
+	javaBinDirs: () => [],
+	javaHomeOf: (binDir: string) => binDir,
+}));
+
+const { findJavaRuntime, forgetJavaRuntime } =
+	await import("../../../src/main/extensions/java-runtime");
 
 const originalJavaHome = process.env.JAVA_HOME;
 const originalJdkHome = process.env.JDK_HOME;
+const originalPath = process.env.PATH;
+
+/** No `java` on it, so the bare-name fallback finds nothing either. */
+const emptyPath = fs.mkdtempSync(path.join(os.tmpdir(), "lazify-java-path-"));
 
 /** A stand-in `java` that answers `-version` the way a real one does. */
 function fakeJavaHome(versionLine: string): string {
@@ -23,6 +36,7 @@ function fakeJavaHome(versionLine: string): string {
 
 beforeEach(() => {
 	delete process.env.JDK_HOME;
+	process.env.PATH = emptyPath;
 	forgetJavaRuntime();
 });
 
@@ -33,6 +47,7 @@ afterEach(() => {
 	if (originalJdkHome === undefined) delete process.env.JDK_HOME;
 	else process.env.JDK_HOME = originalJdkHome;
 
+	process.env.PATH = originalPath;
 	forgetJavaRuntime();
 });
 
