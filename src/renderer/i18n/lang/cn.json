@@ -1088,6 +1088,11 @@
 		"blocked": "需要配置",
 		"how_to_fix": "如何解决",
 		"needs_java": "需要 Java 21+ 运行时",
+		"stage_queued": "正在连接 Open VSX…",
+		"stage_downloading": "下载中",
+		"stage_unpacking": "正在解压…",
+		"install_failed": "安装失败",
+		"recheck_hint": "装好之后，点击检查更新重新检测。",
 		"size_warning": "下载体积较大"
 	},
 	"starter_failure": {

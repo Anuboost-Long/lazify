@@ -46,5 +46,5 @@ export function registerDomainHandlers(ctx: IpcContext) {
 	registerTaskHandlers();
 	registerFormattingHandlers();
 	registerLintingHandlers(ctx);
-	registerExtensionHandlers();
+	registerExtensionHandlers(ctx);
 }

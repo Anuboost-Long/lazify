@@ -9,7 +9,7 @@ import { SectionLabel } from "./SectionLabel";
 
 export function ExtensionsSection() {
 	const { t } = useTranslation();
-	const { extensions, loading, busyId, error, refresh, install, remove, setEnabled } =
+	const { extensions, loading, busyId, jobs, error, refresh, install, remove, setEnabled } =
 		useExtensions(true);
 
 	return (
@@ -38,6 +38,7 @@ export function ExtensionsSection() {
 						key={extension.entry.id}
 						extension={extension}
 						busy={busyId === extension.entry.id}
+						job={jobs[extension.entry.id]}
 						onInstall={() => install(extension.entry.id)}
 						onRemove={() => remove(extension.entry.id)}
 						onToggle={(enabled) => setEnabled(extension.entry.id, enabled)}

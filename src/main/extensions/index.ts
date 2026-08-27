@@ -6,6 +6,13 @@ export {
 	removeExtension,
 	toggleExtension,
 } from "./manager";
+export {
+	beginInstall,
+	forgetInstallJob,
+	installJobs,
+	isInstalling,
+	onInstallProgress,
+} from "./install-jobs";
 export { findJavaRuntime, forgetJavaRuntime, type JavaRuntime } from "./java-runtime";
 export {
 	projectManifestPath,
@@ -25,5 +32,7 @@ export type {
 	ExtensionState,
 	ExtensionStatus,
 	InstalledExtension,
+	InstallJob,
+	InstallStage,
 	RegistryRelease,
 } from "./types";

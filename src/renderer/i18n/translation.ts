@@ -1147,6 +1147,11 @@ export const translation = {
 		Blocked: "extensions.blocked",
 		HowToFix: "extensions.how_to_fix",
 		NeedsJava: "extensions.needs_java",
+		StageQueued: "extensions.stage_queued",
+		StageDownloading: "extensions.stage_downloading",
+		StageUnpacking: "extensions.stage_unpacking",
+		InstallFailed: "extensions.install_failed",
+		RecheckHint: "extensions.recheck_hint",
 		SizeWarning: "extensions.size_warning",
 	},
 	StarterFailure: {

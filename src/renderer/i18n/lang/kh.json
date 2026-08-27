@@ -1088,6 +1088,11 @@
 		"blocked": "ត្រូវការការរៀបចំ",
 		"how_to_fix": "របៀបដោះស្រាយ",
 		"needs_java": "ត្រូវការ Java 21+",
+		"stage_queued": "កំពុងតភ្ជាប់ Open VSX…",
+		"stage_downloading": "កំពុងទាញយក",
+		"stage_unpacking": "កំពុងពន្លា…",
+		"install_failed": "ការដំឡើងបរាជ័យ",
+		"recheck_hint": "រៀបចំវារួច ចុចពិនិត្យបច្ចុប្បន្នភាពដើម្បីពិនិត្យម្ដងទៀត។",
 		"size_warning": "ទាញយកទំហំធំ"
 	},
 	"starter_failure": {

@@ -2,11 +2,12 @@ import fs from "node:fs";
 import path from "node:path";
 
 import { extractVsix } from "./archive";
+import { forgetJavaRuntime } from "./java-runtime";
 import { extensionDir, extensionsRoot, unpackedDir } from "./paths";
 import { PROVIDERS, providerFor } from "./providers";
 import { downloadRelease, fetchLatestRelease } from "./registry";
 import { forgetInstall, installedExtension, rememberInstall, setExtensionEnabled } from "./store";
-import type { ExtensionState, ExtensionStatus, RegistryRelease } from "./types";
+import type { ExtensionState, ExtensionStatus, InstallProgress, RegistryRelease } from "./types";
 
 const listeners = new Set<(id: string) => void>();
 
@@ -46,6 +47,13 @@ function statusOf(
 }
 
 export async function listExtensions(refresh = false): Promise<ExtensionState[]> {
+	/**
+	 * A runtime found once is remembered for the session, which is wrong the
+	 * moment someone installs the JRE an engine was waiting for. Checking again
+	 * is the button that says so — it re-probes rather than repeating itself.
+	 */
+	if (refresh) forgetJavaRuntime();
+
 	return Promise.all(
 		PROVIDERS.map(async (provider) => {
 			const { entry } = provider;
@@ -64,7 +72,12 @@ export async function listExtensions(refresh = false): Promise<ExtensionState[]>
 	);
 }
 
-export async function installExtension(id: string): Promise<ExtensionState[]> {
+export type InstallReporter = (progress: InstallProgress) => void;
+
+export async function installExtension(
+	id: string,
+	report: InstallReporter = () => undefined,
+): Promise<ExtensionState[]> {
 	const provider = providerFor(id);
 
 	if (!provider) throw new Error(`Unknown extension ${id}`);
@@ -73,7 +86,11 @@ export async function installExtension(id: string): Promise<ExtensionState[]> {
 
 	if (!release) throw new Error(`${provider.entry.displayName} is not reachable on Open VSX`);
 
-	const archive = await downloadRelease(release);
+	const archive = await downloadRelease(release, (receivedBytes, totalBytes) =>
+		report({ stage: "downloading", receivedBytes, totalBytes }),
+	);
+
+	report({ stage: "unpacking" });
 
 	fs.rmSync(path.join(extensionsRoot(), id), { recursive: true, force: true });
 	await extractVsix(archive, extensionDir(id, release.version));

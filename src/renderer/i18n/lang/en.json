@@ -1147,6 +1147,11 @@
 		"blocked": "Needs setup",
 		"how_to_fix": "How to fix",
 		"needs_java": "Needs a Java 21+ runtime",
+		"stage_queued": "Contacting Open VSX…",
+		"stage_downloading": "Downloading",
+		"stage_unpacking": "Unpacking…",
+		"install_failed": "Install failed",
+		"recheck_hint": "Set it up, then check for updates to look again.",
 		"size_warning": "Large download"
 	},
 	"starter_failure": {

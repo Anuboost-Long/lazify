@@ -42,7 +42,12 @@ export async function fetchLatestRelease(
  */
 const STALL_TIMEOUT_MS = 30_000;
 
-export async function downloadRelease(release: RegistryRelease): Promise<Buffer> {
+export type DownloadReporter = (receivedBytes: number, totalBytes: number | null) => void;
+
+export async function downloadRelease(
+	release: RegistryRelease,
+	onProgress: DownloadReporter = () => undefined,
+): Promise<Buffer> {
 	const controller = new AbortController();
 	let stalled: ReturnType<typeof setTimeout> | null = null;
 
@@ -62,6 +67,12 @@ export async function downloadRelease(release: RegistryRelease): Promise<Buffer>
 
 		const reader = response.body.getReader();
 		const chunks: Uint8Array[] = [];
+		/** Absent on a chunked response, which is why the bar has to cope without it. */
+		const declared = Number(response.headers.get("content-length"));
+		const totalBytes = Number.isFinite(declared) && declared > 0 ? declared : null;
+		let receivedBytes = 0;
+
+		onProgress(0, totalBytes);
 
 		for (;;) {
 			const { done, value } = await reader.read();
@@ -70,6 +81,8 @@ export async function downloadRelease(release: RegistryRelease): Promise<Buffer>
 
 			armStallTimer();
 			chunks.push(value);
+			receivedBytes += value.byteLength;
+			onProgress(receivedBytes, totalBytes);
 		}
 
 		return Buffer.concat(chunks);
