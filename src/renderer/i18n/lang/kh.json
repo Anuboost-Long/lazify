@@ -1311,7 +1311,7 @@
 		"storage_app": "ក្នុងម៉ាស៊ីននេះ",
 		"storage_app_hint": "ឯកជនសម្រាប់អ្នក។ គ្មានអ្វីសរសេរចូលថតគម្រោងទេ។",
 		"storage_project": "ក្នុងគម្រោង",
-		"storage_project_hint": "សរសេរទៅ .lazify/api-studio/requests.json ដូច្នេះក្រុមទទួលបានវាពេលចម្លងគម្រោង — រួមទាំងអ្វីសម្ងាត់ដែលអ្នកវាយផង។",
+		"storage_project_hint": "សរសេរទៅ .lazify/api-studio/requests.json ដូច្នេះភ្នាក់ងារដែលធ្វើការនៅទីនេះអានវាបាន។ Lazify រក្សា .lazify ចេញពី git ដូច្នេះការចម្លងគម្រោងមិននាំវាទៅជាមួយទេ។",
 		"storage_on_machine": "រក្សាទុកក្នុងម៉ាស៊ីននេះ",
 		"storage_in_project": "រក្សាទុកក្នុងគម្រោង",
 		"storage_unset": "ជ្រើសរើសកន្លែងរក្សាទុក",

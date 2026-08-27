@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 
+import { ensureLazifyDirectory } from "../projects/lazify-directory";
 import { listExtensions } from "./manager";
 import { PROVIDERS } from "./providers";
 
@@ -129,7 +130,7 @@ export async function writeProjectExtensionManifest(projectPath: string): Promis
 		return filePath;
 	}
 
-	fs.mkdirSync(directory, { recursive: true });
+	ensureLazifyDirectory(projectPath, directory);
 	fs.writeFileSync(filePath, `${JSON.stringify(manifest, null, 2)}\n`, "utf8");
 
 	return filePath;

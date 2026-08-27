@@ -1311,7 +1311,7 @@
 		"storage_app": "本机",
 		"storage_app_hint": "仅你可见，不会写入项目文件夹。",
 		"storage_project": "项目内",
-		"storage_project_hint": "写入 .lazify/api-studio/requests.json，团队克隆即可获得 — 包括你输入的敏感内容。",
+		"storage_project_hint": "写入 .lazify/api-studio/requests.json，在此项目中工作的智能体可以读取。Lazify 会把 .lazify 排除在 git 之外，克隆不会带走它们。",
 		"storage_on_machine": "保存在本机",
 		"storage_in_project": "保存在项目内",
 		"storage_unset": "选择保存位置",
