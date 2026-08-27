@@ -29,8 +29,9 @@ export interface AgentRateLimit {
 	planType: string | null;
 	observedAt: string;
 	/**
-	 * Every window the account reported, the one closest to running out first.
-	 * An agent that meters two of them at once keeps both here.
+	 * Every window the account reported, shortest first, so the rolling block
+	 * reads above the weekly allowance. An agent that meters two of them at once
+	 * keeps both here, and one that meters a single window sends just the one.
 	 */
 	windows: AgentRateLimitWindow[];
 	limitReached: boolean;

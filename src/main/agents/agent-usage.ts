@@ -70,7 +70,14 @@ export async function getAgentUsage(
 	const customs = listCustomAgents()
 		.filter(({ id }) => includes(id))
 		.map(({ id, label }) =>
-			summarize(id, label, [], null, budgets[id] ?? null, budgets[`${id}#5h`] ?? null),
+			summarize({
+				agentId: id,
+				label,
+				slices: [],
+				sessionTotals: null,
+				weeklyBudget: budgets[id] ?? null,
+				blockBudget: budgets[`${id}#5h`] ?? null,
+			}),
 		);
 
 	return {
@@ -79,29 +86,28 @@ export async function getAgentUsage(
 		agents: [
 			...(includes("claude")
 				? [
-						summarize(
-							"claude",
-							"Claude",
-							claudeSlices,
-							claudeSession,
-							budgets.claude ?? null,
-							budgets["claude#5h"] ?? null,
-							claudeUtilization,
-						),
+						summarize({
+							agentId: "claude",
+							label: "Claude",
+							slices: claudeSlices,
+							sessionTotals: claudeSession,
+							weeklyBudget: budgets.claude ?? null,
+							blockBudget: budgets["claude#5h"] ?? null,
+							reported: claudeUtilization,
+						}),
 					]
 				: []),
 			...(includes("codex")
 				? [
-						summarize(
-							"codex",
-							"Codex",
-							codexSlices,
-							codexSession,
-							budgets.codex ?? null,
-							budgets["codex#5h"] ?? null,
-							null,
-							codexRateLimit,
-						),
+						summarize({
+							agentId: "codex",
+							label: "Codex",
+							slices: codexSlices,
+							sessionTotals: codexSession,
+							weeklyBudget: budgets.codex ?? null,
+							blockBudget: budgets["codex#5h"] ?? null,
+							liveRateLimit: codexRateLimit,
+						}),
 					]
 				: []),
 			...customs,

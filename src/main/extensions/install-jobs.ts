@@ -16,10 +16,10 @@ import type { InstallJob, InstallStage } from "./types";
  * run already going rather than starting a second onto the same folder.
  */
 
-const RUNNING: InstallStage[] = ["queued", "downloading", "unpacking"];
+const RUNNING = new Set<InstallStage>(["queued", "downloading", "unpacking"]);
 
 export const isInstalling = (job: InstallJob | null | undefined): boolean =>
-	Boolean(job && RUNNING.includes(job.stage));
+	Boolean(job && RUNNING.has(job.stage));
 
 const jobs = new Map<string, InstallJob>();
 const listeners = new Set<(job: InstallJob) => void>();

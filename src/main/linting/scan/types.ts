@@ -9,7 +9,7 @@ export interface ScanFileFindings {
 
 export interface SonarScanReport {
 	projectPath: string;
-	/** The folders the files were taken from, e.g. `["src", "app"]`. */
+	/** The top-level folders the files came from, e.g. `["src", "tests"]`. */
 	roots: string[];
 	/** Engines that were installed when this ran: a missing one found nothing. */
 	engines: DiagnosticSource[];

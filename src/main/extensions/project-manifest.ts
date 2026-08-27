@@ -4,6 +4,7 @@ import path from "node:path";
 import { ensureLazifyDirectory } from "../projects/lazify-directory";
 import { listExtensions } from "./manager";
 import { PROVIDERS } from "./providers";
+import { extensionsFor } from "./source-extensions";
 
 const MANIFEST_DIR = ".lazify";
 const MANIFEST_NAME = "extensions.json";
@@ -31,45 +32,6 @@ const DESCRIPTION =
 	"is already underlining findings in the editor; its rules are the ones a fix has " +
 	"to satisfy. Read this rather than assuming which linters are in play.";
 
-function fileExtensionsFor(id: string): string[] {
-	const provider = PROVIDERS.find((candidate) => candidate.entry.id === id);
-
-	if (!provider) return [];
-
-	const known = [
-		".ts",
-		".tsx",
-		".mts",
-		".cts",
-		".js",
-		".jsx",
-		".mjs",
-		".cjs",
-		".java",
-		".py",
-		".php",
-		".go",
-		".cs",
-		".html",
-		".vue",
-		".svelte",
-		".astro",
-		".css",
-		".scss",
-		".xml",
-		".yaml",
-		".yml",
-		".tf",
-		".md",
-		".mdx",
-		".rb",
-		".sh",
-		".json",
-	];
-
-	return known.filter((extension) => provider.languageIdFor(`probe${extension}`) !== null);
-}
-
 async function buildManifest(): Promise<ProjectManifest> {
 	const states = await listExtensions();
 
@@ -82,7 +44,7 @@ async function buildManifest(): Promise<ProjectManifest> {
 		version: state.installed?.version ?? null,
 		enabled: Boolean(state.installed?.enabled) && state.requirement.satisfied,
 		status: state.status,
-		extensions: fileExtensionsFor(state.entry.id),
+		extensions: extensionsFor(state.entry.id),
 		requirement: state.requirement.note,
 	}));
 

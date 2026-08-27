@@ -20,29 +20,29 @@ const TERM_GRACE_MS = 1500;
  * files and has no such port.
  */
 function requiredPorts(): Set<number> {
-  const devServerUrl = process.env.VITE_DEV_SERVER_URL;
-  if (!devServerUrl) return new Set();
+	const devServerUrl = process.env.VITE_DEV_SERVER_URL;
+	if (!devServerUrl) return new Set();
 
-  try {
-    const { port } = new URL(devServerUrl);
-    return port ? new Set([Number(port)]) : new Set();
-  } catch {
-    return new Set();
-  }
+	try {
+		const { port } = new URL(devServerUrl);
+		return port ? new Set([Number(port)]) : new Set();
+	} catch {
+		return new Set();
+	}
 }
 
 export interface ListeningProcess {
-  pid: number;
-  port: number;
-  /** Short name from lsof, e.g. "node". */
-  command: string;
-  address: string;
-  /** Full argv, so `node` becomes something the user can recognise. */
-  commandLine: string;
-  /** Lazify itself. Never killable — it would take the app down. */
-  isProtected: boolean;
-  /** A script Lazify started. Killable, but the Scripts pane is tidier. */
-  isManaged: boolean;
+	pid: number;
+	port: number;
+	/** Short name from lsof, e.g. "node". */
+	command: string;
+	address: string;
+	/** Full argv, so `node` becomes something the user can recognise. */
+	commandLine: string;
+	/** Lazify itself. Never killable — it would take the app down. */
+	isProtected: boolean;
+	/** A script Lazify started. Killable, but the Scripts pane is tidier. */
+	isManaged: boolean;
 }
 
 /**
@@ -56,51 +56,78 @@ export interface ListeningProcess {
  * told apart from Lazify's own machinery.
  */
 export async function listListeningProcesses(
-  managedRootPids: number[] = []
+	managedRootPids: number[] = [],
 ): Promise<ListeningProcess[]> {
-  const [ports, tree, commandLines] = await Promise.all([
-    scanListeningPorts(),
-    buildProcessTree(),
-    readCommandLines()
-  ]);
+	const [ports, tree, commandLines] = await Promise.all([
+		scanListeningPorts(),
+		buildProcessTree(),
+		readCommandLines(),
+	]);
 
-  const ownPids = getDescendantPids(process.pid, tree);
-  const required = requiredPorts();
-  const managedPids = new Set<number>();
-  for (const rootPid of managedRootPids) {
-    for (const pid of getDescendantPids(rootPid, tree)) managedPids.add(pid);
-  }
+	const ownPids = getDescendantPids(process.pid, tree);
+	const required = requiredPorts();
+	const managedPids = new Set<number>();
+	for (const rootPid of managedRootPids) {
+		for (const pid of getDescendantPids(rootPid, tree)) managedPids.add(pid);
+	}
 
-  return ports
-    .filter((entry) => !required.has(entry.port))
-    .map((entry) => {
-      const isManaged = managedPids.has(entry.pid);
-      return {
-        ...entry,
-        commandLine: commandLines.get(entry.pid) ?? entry.command,
-        // A managed script lives inside Lazify's tree too, but it is exactly the
-        // thing the user means to kill — so it is not protected.
-        isProtected: ownPids.has(entry.pid) && !isManaged,
-        isManaged
-      };
-    });
+	return ports
+		.filter((entry) => !required.has(entry.port))
+		.map((entry) => {
+			const isManaged = managedPids.has(entry.pid);
+			return {
+				...entry,
+				commandLine: commandLines.get(entry.pid) ?? entry.command,
+				// A managed script lives inside Lazify's tree too, but it is exactly the
+				// thing the user means to kill — so it is not protected.
+				isProtected: ownPids.has(entry.pid) && !isManaged,
+				isManaged,
+			};
+		});
 }
 
 function isAlive(pid: number): boolean {
-  try {
-    // Signal 0 tests for existence without delivering anything.
-    process.kill(pid, 0);
-    return true;
-  } catch {
-    return false;
-  }
+	try {
+		// Signal 0 tests for existence without delivering anything.
+		process.kill(pid, 0);
+		return true;
+	} catch {
+		return false;
+	}
 }
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export interface KillResult {
-  success: boolean;
-  message: string;
+	success: boolean;
+	message: string;
+}
+
+/**
+ * Whether the subtree about to be signalled holds a port Lazify needs.
+ *
+ * The list never offers one, so this is only reached through a stale row or a
+ * caller that made the pid up — but one of those ports going down takes the
+ * window with it.
+ */
+async function holdsRequiredPort(targets: number[]): Promise<boolean> {
+	const required = requiredPorts();
+
+	if (required.size === 0) return false;
+
+	const listening = await scanListeningPorts();
+
+	return listening.some((entry) => targets.includes(entry.pid) && required.has(entry.port));
+}
+
+function signal(pids: number[], name: "SIGTERM" | "SIGKILL"): void {
+	for (const target of pids) {
+		try {
+			process.kill(target, name);
+		} catch {
+			// Already gone, or not ours to signal.
+		}
+	}
 }
 
 /**
@@ -111,68 +138,46 @@ export interface KillResult {
  * boundary where a wrong pid does real damage.
  */
 export async function killListeningProcess(
-  pid: number,
-  managedRootPids: number[] = []
+	pid: number,
+	managedRootPids: number[] = [],
 ): Promise<KillResult> {
-  if (!Number.isInteger(pid) || pid <= 1) {
-    return { success: false, message: "Refusing to signal that process." };
-  }
+	if (!Number.isInteger(pid) || pid <= 1) {
+		return { success: false, message: "Refusing to signal that process." };
+	}
 
-  const tree = await buildProcessTree();
-  const ownPids = getDescendantPids(process.pid, tree);
-  const managedPids = new Set<number>();
-  for (const rootPid of managedRootPids) {
-    for (const child of getDescendantPids(rootPid, tree)) managedPids.add(child);
-  }
+	const tree = await buildProcessTree();
+	const ownPids = getDescendantPids(process.pid, tree);
+	const managedPids = new Set<number>();
+	for (const rootPid of managedRootPids) {
+		for (const child of getDescendantPids(rootPid, tree)) managedPids.add(child);
+	}
 
-  if (ownPids.has(pid) && !managedPids.has(pid)) {
-    return { success: false, message: "That process belongs to Lazify." };
-  }
+	if (ownPids.has(pid) && !managedPids.has(pid)) {
+		return { success: false, message: "That process belongs to Lazify." };
+	}
 
-  // Children first: a parent reaped before its children orphans them, and an
-  // orphan can keep the socket open.
-  const targets = [...getDescendantPids(pid, tree)].sort((a, b) => b - a);
+	// Children first: a parent reaped before its children orphans them, and an
+	// orphan can keep the socket open.
+	const targets = [...getDescendantPids(pid, tree)].sort((a, b) => b - a);
 
-  // The list never offers a port Lazify needs, so this is only reached through a
-  // stale row or a caller that made the pid up — but the whole subtree is about
-  // to be signalled, and one of those ports going down takes the window with it.
-  const required = requiredPorts();
-  if (required.size > 0) {
-    const listening = await scanListeningPorts();
-    const holdsRequired = listening.some(
-      (entry) => targets.includes(entry.pid) && required.has(entry.port)
-    );
+	if (await holdsRequiredPort(targets)) {
+		return { success: false, message: "That port is keeping Lazify running." };
+	}
 
-    if (holdsRequired) {
-      return { success: false, message: "That port is keeping Lazify running." };
-    }
-  }
+	signal(targets, "SIGTERM");
 
-  for (const target of targets) {
-    try {
-      process.kill(target, "SIGTERM");
-    } catch {
-      // Already gone, or not ours to signal.
-    }
-  }
+	await sleep(TERM_GRACE_MS);
 
-  await sleep(TERM_GRACE_MS);
+	const survivors = targets.filter(isAlive);
 
-  const survivors = targets.filter(isAlive);
-  for (const target of survivors) {
-    try {
-      process.kill(target, "SIGKILL");
-    } catch {
-      // Same again — nothing left to do about it.
-    }
-  }
+	signal(survivors, "SIGKILL");
 
-  if (isAlive(pid)) {
-    return { success: false, message: "The process is still running." };
-  }
+	if (isAlive(pid)) {
+		return { success: false, message: "The process is still running." };
+	}
 
-  return {
-    success: true,
-    message: survivors.length > 0 ? "Force stopped." : "Stopped."
-  };
+	return {
+		success: true,
+		message: survivors.length > 0 ? "Force stopped." : "Stopped.",
+	};
 }

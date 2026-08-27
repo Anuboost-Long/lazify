@@ -40,7 +40,7 @@ export function routeDetailPath(projectPath: string, folder: string) {
 
 /** A monorepo groups by the service first: two backends may both serve /users. */
 export function folderOf(routePath: string, workspace = "") {
-	const [firstSegment] = routePath.split("/").filter(Boolean);
+	const firstSegment = routePath.split("/").find(Boolean);
 	const folder = (firstSegment ?? "root").replace(/[^\w.-]/g, "_");
 
 	return workspace ? `${workspace}/${folder}` : folder;

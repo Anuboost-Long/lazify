@@ -6,10 +6,10 @@ const ORGANIZABLE = new Set([".ts", ".tsx", ".mts", ".cts", ".js", ".jsx", ".mjs
 const BUILTINS = new Set(builtinModules);
 
 const STARTS_IMPORT = /^\s*import\s+(?![(=])/;
-const COMPLETE = /\bfrom\s*(['"])([^'"]+)\1\s*;?\s*(\/\/.*)?$/;
-const SIDE_EFFECT = /^\s*import\s*(['"])([^'"]+)\1\s*;?\s*(\/\/.*)?$/;
+const COMPLETE = /\bfrom\s*(['"])([^'"]+)\1\s*(?:;\s*)?(\/\/.*)?$/;
+const SIDE_EFFECT = /^\s*import\s*(['"])([^'"]+)\1\s*(?:;\s*)?(\/\/.*)?$/;
 const COMMENT_LINE = /^\s*(\/\/|\/\*|\*)/;
-const DIRECTIVE = /^\s*(['"])use [a-z ]+\1\s*;?\s*$/;
+const DIRECTIVE = /^\s*(['"])use [a-z ]+\1\s*(?:;\s*)?$/;
 
 const MAX_STATEMENT_LINES = 60;
 
@@ -111,6 +111,50 @@ function rebuild(statements: ImportStatement[], aliasPrefixes: string[]): string
 	return blocks.join("\n");
 }
 
+/** Where the next import statement could begin, or why the block has ended. */
+type Scan = { kind: "skip"; next: number } | { kind: "stop" } | { kind: "statement"; head: number };
+
+/** The first line after the comment lines leading whatever sits at `cursor`. */
+function headOf(lines: string[], cursor: number): number {
+	let head = cursor;
+
+	while (head < lines.length && COMMENT_LINE.test(lines[head])) head += 1;
+
+	return head;
+}
+
+function nextStatement(lines: string[], cursor: number, inBlock: boolean): Scan {
+	const line = lines[cursor];
+
+	if (line.trim() === "" || (!inBlock && DIRECTIVE.test(line))) {
+		return { kind: "skip", next: cursor + 1 };
+	}
+
+	const head = headOf(lines, cursor);
+
+	if (head >= lines.length) return { kind: "stop" };
+
+	/** Comments followed by a blank line lead nothing, so they are not the block's. */
+	if (head > cursor && lines[head].trim() === "") {
+		return inBlock ? { kind: "stop" } : { kind: "skip", next: head };
+	}
+
+	return { kind: "statement", head };
+}
+
+/** The import statement starting at `head`, or null when it is not one to move. */
+function statementAt(lines: string[], head: number) {
+	if (!STARTS_IMPORT.test(lines[head])) return null;
+
+	const end = statementEnd(lines, head);
+
+	if (end === null) return null;
+
+	const parsed = specifierOf(lines.slice(head, end + 1).join("\n"));
+
+	return parsed ? { end, parsed } : null;
+}
+
 export function isOrganizable(filePath: string): boolean {
 	return ORGANIZABLE.has(path.extname(filePath).toLowerCase());
 }
@@ -126,43 +170,29 @@ export function organizeImports(source: string, filePath: string, aliasPrefixes:
 	let blockEnd = -1;
 
 	while (cursor < lines.length) {
-		const line = lines[cursor];
+		const scan = nextStatement(lines, cursor, blockStart !== -1);
 
-		if (line.trim() === "" || (blockStart === -1 && DIRECTIVE.test(line))) {
-			cursor += 1;
+		if (scan.kind === "stop") break;
+
+		if (scan.kind === "skip") {
+			cursor = scan.next;
 			continue;
 		}
 
-		let head = cursor;
-		while (head < lines.length && COMMENT_LINE.test(lines[head])) head += 1;
+		const statement = statementAt(lines, scan.head);
 
-		if (head >= lines.length) break;
-
-		if (head > cursor && lines[head].trim() === "") {
-			if (blockStart !== -1) break;
-
-			cursor = head;
-			continue;
-		}
-
-		if (!STARTS_IMPORT.test(lines[head])) break;
-
-		const end = statementEnd(lines, head);
-		if (end === null) break;
-
-		const parsed = specifierOf(lines.slice(head, end + 1).join("\n"));
-		if (!parsed) break;
+		if (!statement) break;
 
 		if (blockStart === -1) blockStart = cursor;
 
 		statements.push({
-			text: lines.slice(cursor, end + 1).join("\n"),
-			...parsed,
+			text: lines.slice(cursor, statement.end + 1).join("\n"),
+			...statement.parsed,
 			order: statements.length,
 		});
 
-		blockEnd = end;
-		cursor = end + 1;
+		blockEnd = statement.end;
+		cursor = statement.end + 1;
 	}
 
 	if (statements.length < 2) return source;

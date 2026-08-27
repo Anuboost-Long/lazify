@@ -35,13 +35,13 @@ function readShellPath(): string[] {
 	}
 
 	const shell = process.env.SHELL || (process.platform === "darwin" ? "/bin/zsh" : "/bin/bash");
-	const result = spawnSync(shell, ["-lic", 'printf "\\nLAZIFY_PATH:%s\\n" "$PATH"'], {
+	const result = spawnSync(shell, ["-lic", String.raw`printf "\nLAZIFY_PATH:%s\n" "$PATH"`], {
 		encoding: "utf8",
 		timeout: 4000,
 	});
 
 	const output = [result.stdout, result.stderr].filter(Boolean).join("\n");
-	const match = output.match(/LAZIFY_PATH:(.+)/);
+	const match = /LAZIFY_PATH:(.+)/.exec(output);
 	return match?.[1] ? match[1].split(path.delimiter) : [];
 }
 

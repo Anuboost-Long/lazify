@@ -4,10 +4,10 @@ import { promisify } from "node:util";
 const execFileAsync = promisify(execFile);
 
 export interface ListeningPort {
-  pid: number;
-  port: number;
-  command: string;
-  address: string;
+	pid: number;
+	port: number;
+	command: string;
+	address: string;
 }
 
 const onWindows = () => process.platform === "win32";
@@ -23,23 +23,23 @@ const onWindows = () => process.platform === "win32";
  * their output that parses without a table-width guess.
  */
 async function powershellCsv(pipeline: string): Promise<string[][]> {
-  const { stdout } = await execFileAsync(
-    "powershell",
-    ["-NoProfile", "-NonInteractive", "-Command", `${pipeline} | ConvertTo-Csv -NoTypeInformation`],
-    { timeout: 8000, maxBuffer: 4 * 1024 * 1024, windowsHide: true }
-  );
+	const { stdout } = await execFileAsync(
+		"powershell",
+		["-NoProfile", "-NonInteractive", "-Command", `${pipeline} | ConvertTo-Csv -NoTypeInformation`],
+		{ timeout: 8000, maxBuffer: 4 * 1024 * 1024, windowsHide: true },
+	);
 
-  return stdout
-    .split("\n")
-    .slice(1) // the header row
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .map((line) => line.split('","').map((cell) => cell.replace(/^"|"$/g, "")));
+	return stdout
+		.split("\n")
+		.slice(1) // the header row
+		.map((line) => line.trim())
+		.filter(Boolean)
+		.map((line) => line.split('","').map((cell) => cell.replace(/^"|"$/g, "")));
 }
 
 /** The process table, the one way of asking for it that is still supported. */
 const cimProcesses = (select: string) =>
-  powershellCsv(`Get-CimInstance Win32_Process | Select-Object ${select}`);
+	powershellCsv(`Get-CimInstance Win32_Process | Select-Object ${select}`);
 
 // ---------------------------------------------------------------------------
 // Port scanning
@@ -47,31 +47,31 @@ const cimProcesses = (select: string) =>
 
 /** `lsof -i TCP -sTCP:LISTEN -P -n`, the macOS answer and the first Linux one. */
 function parseLsof(stdout: string): ListeningPort[] {
-  const results: ListeningPort[] = [];
-  const seen = new Set<string>();
+	const results: ListeningPort[] = [];
+	const seen = new Set<string>();
 
-  for (const line of stdout.split("\n").slice(1)) {
-    const parts = line.trim().split(/\s+/);
-    if (parts.length < 9) continue;
+	for (const line of stdout.split("\n").slice(1)) {
+		const parts = line.trim().split(/\s+/);
+		if (parts.length < 9) continue;
 
-    const command = parts[0];
-    const pid     = parseInt(parts[1], 10);
-    const name    = parts[8]; // e.g. "*:3000", "127.0.0.1:8080", "[::]:5173"
+		const command = parts[0];
+		const pid = Number.parseInt(parts[1], 10);
+		const name = parts[8]; // e.g. "*:3000", "127.0.0.1:8080", "[::]:5173"
 
-    const portMatch = name.match(/:(\d+)$/);
-    if (!portMatch || isNaN(pid)) continue;
+		const portMatch = /:(\d+)$/.exec(name);
+		if (!portMatch || Number.isNaN(pid)) continue;
 
-    const port    = parseInt(portMatch[1], 10);
-    const address = name.slice(0, name.lastIndexOf(":")) || "*";
-    const key     = `${pid}:${port}`;
+		const port = Number.parseInt(portMatch[1], 10);
+		const address = name.slice(0, name.lastIndexOf(":")) || "*";
+		const key = `${pid}:${port}`;
 
-    if (!seen.has(key)) {
-      seen.add(key);
-      results.push({ pid, port, command, address });
-    }
-  }
+		if (!seen.has(key)) {
+			seen.add(key);
+			results.push({ pid, port, command, address });
+		}
+	}
 
-  return results;
+	return results;
 }
 
 /**
@@ -81,36 +81,36 @@ function parseLsof(stdout: string): ListeningPort[] {
  *   LISTEN 0 511 0.0.0.0:3000 0.0.0.0:* users:(("node",pid=1234,fd=20))
  */
 function parseSs(stdout: string): ListeningPort[] {
-  const results: ListeningPort[] = [];
-  const seen = new Set<string>();
+	const results: ListeningPort[] = [];
+	const seen = new Set<string>();
 
-  for (const line of stdout.split("\n").slice(1)) {
-    const columns = line.trim().split(/\s+/);
-    if (columns.length < 4) continue;
+	for (const line of stdout.split("\n").slice(1)) {
+		const columns = line.trim().split(/\s+/);
+		if (columns.length < 4) continue;
 
-    const local = columns[3];
-    const portMatch = local.match(/:(\d+)$/);
-    if (!portMatch) continue;
+		const local = columns[3];
+		const portMatch = /:(\d+)$/.exec(local);
+		if (!portMatch) continue;
 
-    // The process column is absent for sockets owned by another user.
-    const owner = line.match(/users:\(\("([^"]+)",pid=(\d+)/);
-    const pid = owner ? parseInt(owner[2], 10) : 0;
-    if (!pid) continue;
+		// The process column is absent for sockets owned by another user.
+		const owner = /users:\(\("([^"]+)",pid=(\d+)/.exec(line);
+		const pid = owner ? Number.parseInt(owner[2], 10) : 0;
+		if (!pid) continue;
 
-    const port = parseInt(portMatch[1], 10);
-    const key = `${pid}:${port}`;
-    if (seen.has(key)) continue;
+		const port = Number.parseInt(portMatch[1], 10);
+		const key = `${pid}:${port}`;
+		if (seen.has(key)) continue;
 
-    seen.add(key);
-    results.push({
-      pid,
-      port,
-      command: owner?.[1] ?? "unknown",
-      address: local.slice(0, local.lastIndexOf(":")) || "*"
-    });
-  }
+		seen.add(key);
+		results.push({
+			pid,
+			port,
+			command: owner?.[1] ?? "unknown",
+			address: local.slice(0, local.lastIndexOf(":")) || "*",
+		});
+	}
 
-  return results;
+	return results;
 }
 
 /**
@@ -123,90 +123,93 @@ function parseSs(stdout: string): ListeningPort[] {
  * state column, so it does not care what language that column is in.
  */
 async function scanWindowsPorts(): Promise<ListeningPort[]> {
-  const names = await readProcessNames();
+	const names = await readProcessNames();
 
-  const collect = (rows: Array<{ address: string; port: number; pid: number }>) => {
-    const results: ListeningPort[] = [];
-    const seen = new Set<string>();
+	const collect = (rows: Array<{ address: string; port: number; pid: number }>) => {
+		const results: ListeningPort[] = [];
+		const seen = new Set<string>();
 
-    for (const row of rows) {
-      const key = `${row.pid}:${row.port}`;
-      if (seen.has(key)) continue;
+		for (const row of rows) {
+			const key = `${row.pid}:${row.port}`;
+			if (seen.has(key)) continue;
 
-      seen.add(key);
-      results.push({ ...row, command: names.get(row.pid) ?? "unknown" });
-    }
+			seen.add(key);
+			results.push({ ...row, command: names.get(row.pid) ?? "unknown" });
+		}
 
-    return results;
-  };
+		return results;
+	};
 
-  try {
-    const rows = await powershellCsv(
-      "Get-NetTCPConnection -State Listen | Select-Object LocalAddress,LocalPort,OwningProcess"
-    );
+	try {
+		const rows = await powershellCsv(
+			"Get-NetTCPConnection -State Listen | Select-Object LocalAddress,LocalPort,OwningProcess",
+		);
 
-    return collect(
-      rows
-        .map(([address, port, pid]) => ({
-          address: address || "*",
-          port: parseInt(port, 10),
-          pid: parseInt(pid, 10)
-        }))
-        .filter((row) => !isNaN(row.port) && !isNaN(row.pid))
-    );
-  } catch {
-    // TCP    0.0.0.0:3000    0.0.0.0:0    LISTENING    1234
-    const { stdout } = await execFileAsync("netstat", ["-ano", "-p", "TCP"], {
-      timeout: 6000,
-      maxBuffer: 4 * 1024 * 1024,
-      windowsHide: true
-    });
+		return collect(
+			rows
+				.map(([address, port, pid]) => ({
+					address: address || "*",
+					port: Number.parseInt(port, 10),
+					pid: Number.parseInt(pid, 10),
+				}))
+				.filter((row) => !Number.isNaN(row.port) && !Number.isNaN(row.pid)),
+		);
+	} catch {
+		// TCP    0.0.0.0:3000    0.0.0.0:0    LISTENING    1234
+		const { stdout } = await execFileAsync("netstat", ["-ano", "-p", "TCP"], {
+			timeout: 6000,
+			maxBuffer: 4 * 1024 * 1024,
+			windowsHide: true,
+		});
 
-    const rows: Array<{ address: string; port: number; pid: number }> = [];
+		const rows: Array<{ address: string; port: number; pid: number }> = [];
 
-    for (const line of stdout.split("\n")) {
-      const parts = line.trim().split(/\s+/);
-      if (parts.length < 5 || parts[0].toUpperCase() !== "TCP") continue;
+		for (const line of stdout.split("\n")) {
+			const parts = line.trim().split(/\s+/);
+			if (parts.length < 5 || parts[0].toUpperCase() !== "TCP") continue;
 
-      // A listening socket is the one with no peer on the other end.
-      if (!/:0$/.test(parts[2])) continue;
+			// A listening socket is the one with no peer on the other end.
+			if (!parts[2].endsWith(":0")) continue;
 
-      const portMatch = parts[1].match(/:(\d+)$/);
-      const pid = parseInt(parts[4], 10);
-      if (!portMatch || isNaN(pid)) continue;
+			const portMatch = /:(\d+)$/.exec(parts[1]);
+			const pid = Number.parseInt(parts[4], 10);
+			if (!portMatch || Number.isNaN(pid)) continue;
 
-      rows.push({
-        address: parts[1].slice(0, parts[1].lastIndexOf(":")) || "*",
-        port: parseInt(portMatch[1], 10),
-        pid
-      });
-    }
+			rows.push({
+				address: parts[1].slice(0, parts[1].lastIndexOf(":")) || "*",
+				port: Number.parseInt(portMatch[1], 10),
+				pid,
+			});
+		}
 
-    return collect(rows);
-  }
+		return collect(rows);
+	}
 }
 
 /** pid -> executable name, for the netstat rows that only carry a pid. */
 async function readProcessNames(): Promise<Map<number, string>> {
-  const names = new Map<number, string>();
+	const names = new Map<number, string>();
 
-  try {
-    const { stdout } = await execFileAsync("tasklist", ["/fo", "csv", "/nh"], {
-      timeout: 6000,
-      maxBuffer: 4 * 1024 * 1024,
-      windowsHide: true
-    });
+	try {
+		const { stdout } = await execFileAsync("tasklist", ["/fo", "csv", "/nh"], {
+			timeout: 6000,
+			maxBuffer: 4 * 1024 * 1024,
+			windowsHide: true,
+		});
 
-    for (const line of stdout.split("\n")) {
-      const cells = line.trim().split('","').map((cell) => cell.replace(/^"|"$/g, ""));
-      const pid = parseInt(cells[1], 10);
-      if (cells[0] && !isNaN(pid)) names.set(pid, cells[0]);
-    }
-  } catch {
-    // Names are a label; the rows are still usable without them.
-  }
+		for (const line of stdout.split("\n")) {
+			const cells = line
+				.trim()
+				.split('","')
+				.map((cell) => cell.replace(/^"|"$/g, ""));
+			const pid = Number.parseInt(cells[1], 10);
+			if (cells[0] && !Number.isNaN(pid)) names.set(pid, cells[0]);
+		}
+	} catch {
+		// Names are a label; the rows are still usable without them.
+	}
 
-  return names;
+	return names;
 }
 
 /**
@@ -218,33 +221,33 @@ async function readProcessNames(): Promise<Map<number, string>> {
  * harmless; what it must never do is take the app down for a missing binary.
  */
 export async function scanListeningPorts(): Promise<ListeningPort[]> {
-  try {
-    if (onWindows()) {
-      return (await scanWindowsPorts()).sort((a, b) => a.port - b.port);
-    }
+	try {
+		if (onWindows()) {
+			return (await scanWindowsPorts()).sort((a, b) => a.port - b.port);
+		}
 
-    try {
-      // -i TCP  : TCP sockets only
-      // -sTCP:LISTEN : only LISTEN state
-      // -P      : show port numbers (not service names)
-      // -n      : no hostname resolution
-      const { stdout } = await execFileAsync(
-        "lsof", ["-i", "TCP", "-sTCP:LISTEN", "-P", "-n"],
-        { timeout: 4000, maxBuffer: 2 * 1024 * 1024 }
-      );
-      return parseLsof(stdout).sort((a, b) => a.port - b.port);
-    } catch {
-      if (process.platform !== "linux") throw new Error("lsof unavailable");
+		try {
+			// -i TCP  : TCP sockets only
+			// -sTCP:LISTEN : only LISTEN state
+			// -P      : show port numbers (not service names)
+			// -n      : no hostname resolution
+			const { stdout } = await execFileAsync("lsof", ["-i", "TCP", "-sTCP:LISTEN", "-P", "-n"], {
+				timeout: 4000,
+				maxBuffer: 2 * 1024 * 1024,
+			});
+			return parseLsof(stdout).sort((a, b) => a.port - b.port);
+		} catch {
+			if (process.platform !== "linux") throw new Error("lsof unavailable");
 
-      const { stdout } = await execFileAsync("ss", ["-ltnp"], {
-        timeout: 4000,
-        maxBuffer: 2 * 1024 * 1024
-      });
-      return parseSs(stdout).sort((a, b) => a.port - b.port);
-    }
-  } catch {
-    return [];
-  }
+			const { stdout } = await execFileAsync("ss", ["-ltnp"], {
+				timeout: 4000,
+				maxBuffer: 2 * 1024 * 1024,
+			});
+			return parseSs(stdout).sort((a, b) => a.port - b.port);
+		}
+	} catch {
+		return [];
+	}
 }
 
 // ---------------------------------------------------------------------------
@@ -253,37 +256,37 @@ export async function scanListeningPorts(): Promise<ListeningPort[]> {
 
 // Returns a Map<childPid, parentPid> for the entire process table.
 export async function buildProcessTree(): Promise<Map<number, number>> {
-  const tree = new Map<number, number>();
+	const tree = new Map<number, number>();
 
-  try {
-    if (onWindows()) {
-      for (const [pid, ppid] of await cimProcesses("ProcessId,ParentProcessId")) {
-        const child = parseInt(pid, 10);
-        const parent = parseInt(ppid, 10);
-        if (!isNaN(child) && !isNaN(parent)) tree.set(child, parent);
-      }
+	try {
+		if (onWindows()) {
+			for (const [pid, ppid] of await cimProcesses("ProcessId,ParentProcessId")) {
+				const child = Number.parseInt(pid, 10);
+				const parent = Number.parseInt(ppid, 10);
+				if (!Number.isNaN(child) && !Number.isNaN(parent)) tree.set(child, parent);
+			}
 
-      return tree;
-    }
+			return tree;
+		}
 
-    const { stdout } = await execFileAsync(
-      "ps", ["-eo", "pid,ppid"],
-      { timeout: 3000, maxBuffer: 2 * 1024 * 1024 }
-    );
+		const { stdout } = await execFileAsync("ps", ["-eo", "pid,ppid"], {
+			timeout: 3000,
+			maxBuffer: 2 * 1024 * 1024,
+		});
 
-    for (const line of stdout.split("\n").slice(1)) {
-      const parts = line.trim().split(/\s+/);
-      if (parts.length >= 2) {
-        const pid  = parseInt(parts[0], 10);
-        const ppid = parseInt(parts[1], 10);
-        if (!isNaN(pid) && !isNaN(ppid)) tree.set(pid, ppid);
-      }
-    }
+		for (const line of stdout.split("\n").slice(1)) {
+			const parts = line.trim().split(/\s+/);
+			if (parts.length >= 2) {
+				const pid = Number.parseInt(parts[0], 10);
+				const ppid = Number.parseInt(parts[1], 10);
+				if (!Number.isNaN(pid) && !Number.isNaN(ppid)) tree.set(pid, ppid);
+			}
+		}
 
-    return tree;
-  } catch {
-    return new Map();
-  }
+		return tree;
+	} catch {
+		return new Map();
+	}
 }
 
 /**
@@ -293,46 +296,46 @@ export async function buildProcessTree(): Promise<Map<number, number>> {
  * on every poll, and a process spawn per listening port is not free.
  */
 export async function readCommandLines(): Promise<Map<number, string>> {
-  const lines = new Map<number, string>();
+	const lines = new Map<number, string>();
 
-  try {
-    if (onWindows()) {
-      for (const [pid, commandLine] of await cimProcesses("ProcessId,CommandLine")) {
-        const parsed = parseInt(pid, 10);
-        if (!isNaN(parsed) && commandLine) lines.set(parsed, commandLine);
-      }
+	try {
+		if (onWindows()) {
+			for (const [pid, commandLine] of await cimProcesses("ProcessId,CommandLine")) {
+				const parsed = Number.parseInt(pid, 10);
+				if (!Number.isNaN(parsed) && commandLine) lines.set(parsed, commandLine);
+			}
 
-      return lines;
-    }
+			return lines;
+		}
 
-    const { stdout } = await execFileAsync("ps", ["-eo", "pid=,command="], {
-      timeout: 4000,
-      maxBuffer: 4 * 1024 * 1024
-    });
+		const { stdout } = await execFileAsync("ps", ["-eo", "pid=,command="], {
+			timeout: 4000,
+			maxBuffer: 4 * 1024 * 1024,
+		});
 
-    for (const row of stdout.split("\n")) {
-      const match = row.trim().match(/^(\d+)\s+(.*)$/);
-      if (match) lines.set(Number(match[1]), match[2]);
-    }
-  } catch {
-    // Without argv the list still works, just with terser labels.
-  }
+		for (const row of stdout.split("\n")) {
+			const match = /^(\d+)\s(.*)$/.exec(row.trim());
+			if (match) lines.set(Number(match[1]), match[2].trim());
+		}
+	} catch {
+		// Without argv the list still works, just with terser labels.
+	}
 
-  return lines;
+	return lines;
 }
 
 // Returns the set of all descendant PIDs (inclusive of rootPid).
 export function getDescendantPids(rootPid: number, tree: Map<number, number>): Set<number> {
-  const result = new Set<number>([rootPid]);
-  let changed = true;
-  while (changed) {
-    changed = false;
-    for (const [child, parent] of tree) {
-      if (result.has(parent) && !result.has(child)) {
-        result.add(child);
-        changed = true;
-      }
-    }
-  }
-  return result;
+	const result = new Set<number>([rootPid]);
+	let changed = true;
+	while (changed) {
+		changed = false;
+		for (const [child, parent] of tree) {
+			if (result.has(parent) && !result.has(child)) {
+				result.add(child);
+				changed = true;
+			}
+		}
+	}
+	return result;
 }

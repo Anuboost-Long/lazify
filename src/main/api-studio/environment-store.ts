@@ -81,7 +81,7 @@ export function readEnvironments(projectPath: string): ApiEnvironmentSet {
 
 	const merged = environments.map((environment) => ({
 		...environment,
-		values: { ...environment.values, ...(secrets[environment.id] ?? {}) },
+		values: { ...environment.values, ...secrets[environment.id] },
 	}));
 
 	return {

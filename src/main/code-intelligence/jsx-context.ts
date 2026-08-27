@@ -12,10 +12,10 @@
  */
 
 export interface JsxAttribute {
-  /** The element the attribute is written on: `Pressable`. */
-  component: string;
-  /** The attribute itself: `onPress`. */
-  prop: string;
+	/** The element the attribute is written on: `Pressable`. */
+	component: string;
+	/** The attribute itself: `onPress`. */
+	prop: string;
 }
 
 const IDENTIFIER_CHAR = /[A-Za-z0-9_$]/;
@@ -24,24 +24,24 @@ const TAG_NAME = /^<\s*([A-Za-z_$][\w$.]*)/;
 
 /** The absolute offset of a 1-based line and 0-based column. */
 export function offsetAt(source: string, line: number, column: number): number | null {
-  const lines = source.split("\n");
-  if (line < 1 || line > lines.length) return null;
+	const lines = source.split("\n");
+	if (line < 1 || line > lines.length) return null;
 
-  let offset = 0;
-  for (let index = 0; index < line - 1; index += 1) offset += lines[index].length + 1;
+	let offset = 0;
+	for (let index = 0; index < line - 1; index += 1) offset += lines[index].length + 1;
 
-  return offset + Math.min(column, lines[line - 1].length);
+	return offset + Math.min(column, lines[line - 1].length);
 }
 
 /** The word around an offset, so the caller and this agree on what was clicked. */
 function wordAt(source: string, offset: number): { text: string; start: number; end: number } {
-  let start = offset;
-  let end = offset;
+	let start = offset;
+	let end = offset;
 
-  while (start > 0 && IDENTIFIER_CHAR.test(source[start - 1])) start -= 1;
-  while (end < source.length && IDENTIFIER_CHAR.test(source[end])) end += 1;
+	while (start > 0 && IDENTIFIER_CHAR.test(source[start - 1])) start -= 1;
+	while (end < source.length && IDENTIFIER_CHAR.test(source[end])) end += 1;
 
-  return { text: source.slice(start, end), start, end };
+	return { text: source.slice(start, end), start, end };
 }
 
 /**
@@ -54,39 +54,38 @@ function wordAt(source: string, offset: number): { text: string; start: number; 
  * the end of a tag. An unmatched `{` means the offset is inside an expression
  * container — a value, not an attribute name.
  */
+/** Depth after this character, or null when the offset sits inside a container. */
+function depthAfterBrace(char: string, depth: number): number | null {
+	if (char === "}") return depth + 1;
+	if (char !== "{") return depth;
+
+	return depth === 0 ? null : depth - 1;
+}
+
 function openingTagStart(source: string, offset: number): number | null {
-  let depth = 0;
+	let depth = 0;
 
-  for (let index = offset; index >= 0; index -= 1) {
-    const char = source[index];
+	for (let index = offset; index >= 0; index -= 1) {
+		const char = source[index];
+		const next = depthAfterBrace(char, depth);
 
-    if (char === "}") {
-      depth += 1;
-      continue;
-    }
+		if (next === null) return null;
 
-    if (char === "{") {
-      if (depth === 0) return null;
-      depth -= 1;
-      continue;
-    }
+		/** Only a brace moves the depth, and a brace is never anything else. */
+		if (next !== depth) {
+			depth = next;
+			continue;
+		}
 
-    if (depth > 0) continue;
+		if (depth > 0) continue;
 
-    if (char === ">") {
-      // An arrow, not a tag end.
-      if (source[index - 1] === "=") {
-        index -= 1;
-        continue;
-      }
+		// `=>` is an arrow, not a tag end.
+		if (char === ">" && source[index - 1] !== "=") return null;
 
-      return null;
-    }
+		if (char === "<") return index;
+	}
 
-    if (char === "<") return index;
-  }
-
-  return null;
+	return null;
 }
 
 /**
@@ -94,49 +93,53 @@ function openingTagStart(source: string, offset: number): number | null {
  * the position is a tag name, a value, or anything outside a JSX opening tag.
  */
 export function attributeAt(source: string, line: number, column: number): JsxAttribute | null {
-  const offset = offsetAt(source, line, column);
-  if (offset === null) return null;
+	const offset = offsetAt(source, line, column);
+	if (offset === null) return null;
 
-  const word = wordAt(source, offset);
-  if (!word.text) return null;
+	const word = wordAt(source, offset);
+	if (!word.text) return null;
 
-  const tagStart = openingTagStart(source, word.start - 1);
-  if (tagStart === null) return null;
+	const tagStart = openingTagStart(source, word.start - 1);
+	if (tagStart === null) return null;
 
-  const tag = TAG_NAME.exec(source.slice(tagStart, word.start));
-  if (!tag) return null;
+	const tag = TAG_NAME.exec(source.slice(tagStart, word.start));
+	if (!tag) return null;
 
-  // An attribute stands on its own: whitespace before it, and `=` or the end of
-  // the attribute after it. That is what keeps a quoted value — the "button" in
-  // `accessibilityRole="button"` — from reading as one.
-  if (!/\s/.test(source[word.start - 1] ?? "")) return null;
+	// An attribute stands on its own: whitespace before it, and `=` or the end of
+	// the attribute after it. That is what keeps a quoted value — the "button" in
+	// `accessibilityRole="button"` — from reading as one.
+	if (!/\s/.test(source[word.start - 1] ?? "")) return null;
 
-  const after = source.slice(word.end).match(/^\s*(.)/)?.[1] ?? "";
-  if (after && !"=/>".includes(after) && !/\s/.test(after)) return null;
+	const after = /^\s*(.)/.exec(source.slice(word.end))?.[1] ?? "";
+	if (after && !"=/>".includes(after) && !/\s/.test(after)) return null;
 
-  return { component: tag[1], prop: word.text };
+	return { component: tag[1], prop: word.text };
 }
 
 /** The module a name was imported from in this file, or null if it was not. */
 export function importSpecifierOf(source: string, name: string): string | null {
-  const imports = source.matchAll(/import\s+([\s\S]*?)\s*from\s*["']([^"']+)["']/g);
-  const word = new RegExp(`(^|[\\s,{}*]|as\\s+)${name.replace(/[$]/g, "\\$&")}($|[\\s,{}])`);
+	const imports = source.matchAll(/import\s+([\s\S]*?)from\s*["']([^"']+)["']/g);
+	const word = new RegExp(
+		String.raw`(^|[\s,{}*]|as\s+)${name.replace(/[$]/g, String.raw`\$&`)}($|[\s,{}])`,
+	);
 
-  for (const entry of imports) {
-    if (word.test(entry[1])) return entry[2];
-  }
+	for (const entry of imports) {
+		if (word.test(entry[1])) return entry[2];
+	}
 
-  return null;
+	return null;
 }
 
 /** Where a file re-exports a name from, for the barrels components hide behind. */
 export function reExportSpecifierOf(source: string, name: string): string | null {
-  const exports = source.matchAll(/export\s+([\s\S]*?)\s*from\s*["']([^"']+)["']/g);
-  const word = new RegExp(`(^|[\\s,{}*])${name.replace(/[$]/g, "\\$&")}($|[\\s,{}])`);
+	const exports = source.matchAll(/export\s+([\s\S]*?)from\s*["']([^"']+)["']/g);
+	const word = new RegExp(
+		String.raw`(^|[\s,{}*])${name.replace(/[$]/g, String.raw`\$&`)}($|[\s,{}])`,
+	);
 
-  for (const entry of exports) {
-    if (entry[1].includes("*") || word.test(entry[1])) return entry[2];
-  }
+	for (const entry of exports) {
+		if (entry[1].includes("*") || word.test(entry[1])) return entry[2];
+	}
 
-  return null;
+	return null;
 }

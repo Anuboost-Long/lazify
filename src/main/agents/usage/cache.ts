@@ -29,7 +29,7 @@ interface UsageCache {
 	agents: Record<string, Record<string, FileSlice>>;
 }
 
-export let cache: UsageCache | null = null;
+let cache: UsageCache | null = null;
 
 function cachePath(): string {
 	return path.join(app.getPath("userData"), "agent-usage-cache.json");

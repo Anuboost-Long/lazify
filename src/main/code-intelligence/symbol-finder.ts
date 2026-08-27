@@ -1,3 +1,4 @@
+import type { Dirent } from "node:fs";
 import fs from "node:fs/promises";
 import path from "node:path";
 
@@ -17,33 +18,33 @@ import path from "node:path";
 
 /** Directories that never hold a definition the user is reading. */
 const IGNORED_DIRECTORY_NAMES = new Set([
-  ".git",
-  "node_modules",
-  "dist",
-  "build",
-  ".next",
-  ".expo",
-  ".turbo",
-  "coverage",
-  "bin",
-  "obj",
-  ".vs",
-  "TestResults"
+	".git",
+	"node_modules",
+	"dist",
+	"build",
+	".next",
+	".expo",
+	".turbo",
+	"coverage",
+	"bin",
+	"obj",
+	".vs",
+	"TestResults",
 ]);
 
 /** Sources worth scanning. Anything else cannot declare a symbol we resolve. */
 const SOURCE_EXTENSIONS = new Set([
-  ".ts",
-  ".tsx",
-  ".js",
-  ".jsx",
-  ".mjs",
-  ".cjs",
-  ".mts",
-  ".cts",
-  ".vue",
-  ".svelte",
-  ".cs"
+	".ts",
+	".tsx",
+	".js",
+	".jsx",
+	".mjs",
+	".cjs",
+	".mts",
+	".cts",
+	".vue",
+	".svelte",
+	".cs",
 ]);
 
 /** A generated bundle can be megabytes of one line; it is never the answer. */
@@ -54,24 +55,24 @@ const MAX_FILES = 6000;
 const FILE_LIST_TTL_MS = 30_000;
 
 export interface SymbolDefinition {
-  absolutePath: string;
-  relativePath: string;
-  /** 1-based, so it can be handed straight to an editor gutter. */
-  line: number;
-  /** How the match was made, for callers that want to say. */
-  kind: "export" | "declaration" | "file";
+	absolutePath: string;
+	relativePath: string;
+	/** 1-based, so it can be handed straight to an editor gutter. */
+	line: number;
+	/** How the match was made, for callers that want to say. */
+	kind: "export" | "declaration" | "file";
 }
 
 interface FileListEntry {
-  files: string[];
-  readAt: number;
+	files: string[];
+	readAt: number;
 }
 
 const fileListCache = new Map<string, FileListEntry>();
 
 /** Only a plain identifier can be resolved; anything else is not a symbol. */
 function isIdentifier(symbol: string): boolean {
-  return /^[A-Za-z_$][\w$]*$/.test(symbol);
+	return /^[A-Za-z_$][\w$]*$/.test(symbol);
 }
 
 /**
@@ -79,34 +80,36 @@ function isIdentifier(symbol: string): boolean {
  * start of a line (after indentation) so a mention inside an expression or an
  * argument list is not mistaken for a declaration.
  */
-function declarationPatterns(symbol: string): { pattern: RegExp; kind: "export" | "declaration" }[] {
-  const name = symbol.replace(/[$]/g, "\\$&");
+function declarationPatterns(
+	symbol: string,
+): { pattern: RegExp; kind: "export" | "declaration" }[] {
+	const name = symbol.replace(/[$]/g, String.raw`\$&`);
 
-  return [
-    // export function Foo / export default class Foo / export const Foo
-    {
-      pattern: new RegExp(
-        `^\\s*export\\s+(?:default\\s+)?(?:async\\s+)?(?:function\\*?|class|const|let|var|interface|type|enum|abstract\\s+class)\\s+${name}\\b`
-      ),
-      kind: "export"
-    },
-    // export { Foo } — a barrel, but still a lead worth following.
-    { pattern: new RegExp(`^\\s*export\\s*\\{[^}]*\\b${name}\\b`), kind: "export" },
-    // function Foo / class Foo / const Foo = ...
-    {
-      pattern: new RegExp(
-        `^\\s*(?:async\\s+)?(?:function\\*?|class|const|let|var|interface|type|enum)\\s+${name}\\b`
-      ),
-      kind: "declaration"
-    },
-    // C# and other brace languages: public sealed class Foo, private void Foo(
-    {
-      pattern: new RegExp(
-        `^\\s*(?:public|private|protected|internal|static|sealed|partial|abstract|virtual|override|async|\\s)*\\b(?:class|record|struct|interface|enum)\\s+${name}\\b`
-      ),
-      kind: "declaration"
-    }
-  ];
+	return [
+		// export function Foo / export default class Foo / export const Foo
+		{
+			pattern: new RegExp(
+				String.raw`^\s*export\s+(?:default\s+)?(?:async\s+)?(?:function\*?|class|const|let|var|interface|type|enum|abstract\s+class)\s+${name}\b`,
+			),
+			kind: "export",
+		},
+		// export { Foo } — a barrel, but still a lead worth following.
+		{ pattern: new RegExp(String.raw`^\s*export\s*\{[^}]*\b${name}\b`), kind: "export" },
+		// function Foo / class Foo / const Foo = ...
+		{
+			pattern: new RegExp(
+				String.raw`^\s*(?:async\s+)?(?:function\*?|class|const|let|var|interface|type|enum)\s+${name}\b`,
+			),
+			kind: "declaration",
+		},
+		// C# and other brace languages: public sealed class Foo, private void Foo(
+		{
+			pattern: new RegExp(
+				String.raw`^\s*(?:public|private|protected|internal|static|sealed|partial|abstract|virtual|override|async|\s)*\b(?:class|record|struct|interface|enum)\s+${name}\b`,
+			),
+			kind: "declaration",
+		},
+	];
 }
 
 /**
@@ -115,59 +118,64 @@ function declarationPatterns(symbol: string): { pattern: RegExp; kind: "export" 
  * file it reached by following an import rather than by ranking the project.
  */
 export function declarationLine(
-  contents: string,
-  symbol: string
+	contents: string,
+	symbol: string,
 ): { line: number; kind: "export" | "declaration" } | null {
-  const patterns = declarationPatterns(symbol);
-  const lines = contents.split("\n");
+	const patterns = declarationPatterns(symbol);
+	const lines = contents.split("\n");
 
-  for (let index = 0; index < lines.length; index += 1) {
-    const match = patterns.find((candidate) => candidate.pattern.test(lines[index]));
-    if (match) return { line: index + 1, kind: match.kind };
-  }
+	for (let index = 0; index < lines.length; index += 1) {
+		const match = patterns.find((candidate) => candidate.pattern.test(lines[index]));
+		if (match) return { line: index + 1, kind: match.kind };
+	}
 
-  return null;
+	return null;
+}
+
+async function readDirectorySafely(directory: string) {
+	try {
+		return await fs.readdir(directory, { withFileTypes: true });
+	} catch {
+		// A directory that cannot be read simply holds no answer.
+		return [];
+	}
+}
+
+function collectEntry(entry: Dirent, current: string, files: string[], queue: string[]): void {
+	if (entry.isSymbolicLink()) return;
+
+	const entryPath = path.join(current, entry.name);
+
+	if (entry.isDirectory()) {
+		if (!IGNORED_DIRECTORY_NAMES.has(entry.name)) queue.push(entryPath);
+		return;
+	}
+
+	if (entry.isFile() && SOURCE_EXTENSIONS.has(path.extname(entry.name).toLowerCase())) {
+		files.push(entryPath);
+	}
 }
 
 /** Shared with the module resolver, which walks the same files for a path. */
 export async function collectSourceFiles(projectPath: string): Promise<string[]> {
-  const cached = fileListCache.get(projectPath);
-  if (cached && Date.now() - cached.readAt < FILE_LIST_TTL_MS) return cached.files;
+	const cached = fileListCache.get(projectPath);
+	if (cached && Date.now() - cached.readAt < FILE_LIST_TTL_MS) return cached.files;
 
-  const files: string[] = [];
-  const queue: string[] = [projectPath];
+	const files: string[] = [];
+	const queue: string[] = [projectPath];
 
-  while (queue.length > 0 && files.length < MAX_FILES) {
-    const current = queue.shift();
-    if (!current) break;
+	while (queue.length > 0 && files.length < MAX_FILES) {
+		const current = queue.shift();
+		if (!current) break;
 
-    let entries;
-    try {
-      entries = await fs.readdir(current, { withFileTypes: true });
-    } catch {
-      // A directory that cannot be read simply holds no answer.
-      continue;
-    }
+		for (const entry of await readDirectorySafely(current)) {
+			collectEntry(entry, current, files, queue);
+		}
+	}
 
-    for (const entry of entries) {
-      if (entry.isSymbolicLink()) continue;
+	fileListCache.set(projectPath, { files, readAt: Date.now() });
 
-      const entryPath = path.join(current, entry.name);
-
-      if (entry.isDirectory()) {
-        if (!IGNORED_DIRECTORY_NAMES.has(entry.name)) queue.push(entryPath);
-        continue;
-      }
-
-      if (entry.isFile() && SOURCE_EXTENSIONS.has(path.extname(entry.name).toLowerCase())) {
-        files.push(entryPath);
-      }
-    }
-  }
-
-  fileListCache.set(projectPath, { files, readAt: Date.now() });
-
-  return files;
+	return files;
 }
 
 /**
@@ -176,20 +184,32 @@ export async function collectSourceFiles(projectPath: string): Promise<string[]>
  * puts `src/` ahead of a fixture buried six levels down.
  */
 function rankFiles(files: string[], symbol: string): string[] {
-  const lowered = symbol.toLowerCase();
+	const lowered = symbol.toLowerCase();
 
-  const score = (filePath: string) => {
-    const base = path.basename(filePath, path.extname(filePath)).toLowerCase();
-    if (base === lowered) return 0;
-    if (base === "index") return 2;
-    return 1;
-  };
+	const score = (filePath: string) => {
+		const base = path.basename(filePath, path.extname(filePath)).toLowerCase();
+		if (base === lowered) return 0;
+		if (base === "index") return 2;
+		return 1;
+	};
 
-  return [...files].sort((a, b) => {
-    const byScore = score(a) - score(b);
-    if (byScore !== 0) return byScore;
-    return a.length - b.length;
-  });
+	return [...files].sort((a, b) => {
+		const byScore = score(a) - score(b);
+		if (byScore !== 0) return byScore;
+		return a.length - b.length;
+	});
+}
+
+/** The file's text, or null when it cannot be read or is too big to be worth reading. */
+async function readSource(filePath: string): Promise<string | null> {
+	try {
+		const stats = await fs.stat(filePath);
+		if (stats.size > MAX_FILE_BYTES) return null;
+
+		return await fs.readFile(filePath, "utf8");
+	} catch {
+		return null;
+	}
 }
 
 /**
@@ -199,57 +219,50 @@ function rankFiles(files: string[], symbol: string): string[] {
  * resolved to, so nothing later can be a better answer.
  */
 export async function findSymbolDefinition(
-  projectPath: string,
-  symbol: string
+	projectPath: string,
+	symbol: string,
 ): Promise<SymbolDefinition | null> {
-  if (!projectPath || !isIdentifier(symbol)) return null;
+	if (!projectPath || !isIdentifier(symbol)) return null;
 
-  const files = rankFiles(await collectSourceFiles(projectPath), symbol);
-  /** Kept in case nothing exported turns up. */
-  let fallback: SymbolDefinition | null = null;
+	const files = rankFiles(await collectSourceFiles(projectPath), symbol);
+	/** Kept in case nothing exported turns up. */
+	let fallback: SymbolDefinition | null = null;
 
-  for (const filePath of files) {
-    let contents: string;
-    try {
-      const stats = await fs.stat(filePath);
-      if (stats.size > MAX_FILE_BYTES) continue;
-      contents = await fs.readFile(filePath, "utf8");
-    } catch {
-      continue;
-    }
+	for (const filePath of files) {
+		const contents = await readSource(filePath);
 
-    // Cheap rejection before splitting a whole file into lines.
-    if (!contents.includes(symbol)) continue;
+		// Cheap rejection before splitting a whole file into lines.
+		if (!contents?.includes(symbol)) continue;
 
-    const found = declarationLine(contents, symbol);
+		const found = declarationLine(contents, symbol);
 
-    if (found) {
-      const hit: SymbolDefinition = {
-        absolutePath: filePath,
-        relativePath: path.relative(projectPath, filePath),
-        line: found.line,
-        kind: found.kind
-      };
+		if (found) {
+			const hit: SymbolDefinition = {
+				absolutePath: filePath,
+				relativePath: path.relative(projectPath, filePath),
+				line: found.line,
+				kind: found.kind,
+			};
 
-      if (found.kind === "export") return hit;
-      fallback ??= hit;
-    }
+			if (found.kind === "export") return hit;
+			fallback ??= hit;
+		}
 
-    // A file named after the symbol that declares nothing matching is still
-    // where the reader meant to go — a default-exported anonymous component,
-    // most often. Held as the weakest answer.
-    if (
-      !fallback &&
-      path.basename(filePath, path.extname(filePath)).toLowerCase() === symbol.toLowerCase()
-    ) {
-      fallback = {
-        absolutePath: filePath,
-        relativePath: path.relative(projectPath, filePath),
-        line: 1,
-        kind: "file"
-      };
-    }
-  }
+		// A file named after the symbol that declares nothing matching is still
+		// where the reader meant to go — a default-exported anonymous component,
+		// most often. Held as the weakest answer.
+		if (
+			!fallback &&
+			path.basename(filePath, path.extname(filePath)).toLowerCase() === symbol.toLowerCase()
+		) {
+			fallback = {
+				absolutePath: filePath,
+				relativePath: path.relative(projectPath, filePath),
+				line: 1,
+				kind: "file",
+			};
+		}
+	}
 
-  return fallback;
+	return fallback;
 }

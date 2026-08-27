@@ -37,7 +37,9 @@ function lineOf(diagnostic: Diagnostic): string {
 	const rule = diagnostic.code ? `${diagnostic.code} (${diagnostic.rule})` : diagnostic.rule;
 	const where = `${diagnostic.line}:${diagnostic.column}`;
 
-	return `  ${where}  ${rule}  ${diagnostic.message}${diagnostic.url ? `  ${diagnostic.url}` : ""}`;
+	const link = diagnostic.url ? `  ${diagnostic.url}` : "";
+
+	return `  ${where}  ${rule}  ${diagnostic.message}${link}`;
 }
 
 const CLOSING = [

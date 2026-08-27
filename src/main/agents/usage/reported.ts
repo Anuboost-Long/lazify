@@ -7,21 +7,21 @@ export interface RawRateWindow {
 	resets_at?: number | null;
 }
 
+function resetsAtOf(window: RawRateWindow): string | null {
+	return window.resets_at ? new Date(window.resets_at * 1000).toISOString() : null;
+}
+
 export function toRateLimit(
-	window: RawRateWindow | null | undefined,
+	windows: (RawRateWindow | null | undefined)[],
 	planType: string | null,
 	observedAt: string,
 ): AgentRateLimit | null {
-	if (!window) return null;
-
 	return buildRateLimit(
-		[
-			rateLimitWindow(
-				window.used_percent,
-				window.window_minutes ?? null,
-				window.resets_at ? new Date(window.resets_at * 1000).toISOString() : null,
-			),
-		],
+		windows.map((window) =>
+			window
+				? rateLimitWindow(window.used_percent, window.window_minutes ?? null, resetsAtOf(window))
+				: null,
+		),
 		{ source: "reported", planType, observedAt },
 	);
 }

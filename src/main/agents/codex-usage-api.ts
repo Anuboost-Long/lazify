@@ -78,7 +78,9 @@ function windowOf(window: RawWindow | null | undefined) {
 
 	return rateLimitWindow(
 		window.used_percent,
-		window.limit_window_seconds ? Math.round(window.limit_window_seconds / 60) : null,
+		typeof window.limit_window_seconds === "number"
+			? Math.round(window.limit_window_seconds / 60)
+			: null,
 		window.reset_at ? new Date(window.reset_at * 1000).toISOString() : null,
 	);
 }

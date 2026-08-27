@@ -3,34 +3,38 @@ import type { ApiRoute, ApiVariable, CustomVariable, RouteSecurity } from "./typ
 
 /** Everything the environment is derived from — a summary carries all of it. */
 export type RouteEnvironmentSource = Pick<ApiRoute, "servers" | "security" | "headers"> & {
-  workspace?: string;
+	workspace?: string;
 };
 
 export const BASE_URL_VARIABLE = environmentPolicy.baseUrlVariable;
 
 function camelCase(name: string) {
-  const words = name
-    .split(/[^A-Za-z0-9]+/)
-    .filter((word) => word.length > 0)
-    .map((word) => (word === word.toUpperCase() ? word.charAt(0) + word.slice(1).toLowerCase() : word));
+	const words = name
+		.split(/[^A-Za-z0-9]+/)
+		.filter((word) => word.length > 0)
+		.map((word) =>
+			word === word.toUpperCase() ? word.charAt(0) + word.slice(1).toLowerCase() : word,
+		);
 
-  return words
-    .map((word, index) =>
-      index === 0
-        ? word.charAt(0).toLowerCase() + word.slice(1)
-        : word.charAt(0).toUpperCase() + word.slice(1)
-    )
-    .join("");
+	return words
+		.map((word, index) =>
+			index === 0
+				? word.charAt(0).toLowerCase() + word.slice(1)
+				: word.charAt(0).toUpperCase() + word.slice(1),
+		)
+		.join("");
 }
 
 export function variableNameForSecurity(security: RouteSecurity): string {
-  const rule = environmentPolicy.security[security.kind];
+	const rule = environmentPolicy.security[security.kind];
 
-  return rule.nameFromParameter ? camelCase(security.parameterName) : (rule.variable ?? security.kind);
+	return rule.nameFromParameter
+		? camelCase(security.parameterName)
+		: (rule.variable ?? security.kind);
 }
 
 export function variableNameForHeader(headerName: string): string {
-  return camelCase(headerName);
+	return camelCase(headerName);
 }
 
 /**
@@ -39,126 +43,126 @@ export function variableNameForHeader(headerName: string): string {
  * keeps the plain `baseUrl` it always had.
  */
 export function baseUrlVariableFor(route: Pick<RouteEnvironmentSource, "workspace">): string {
-  return route.workspace ? `${camelCase(route.workspace)}BaseUrl` : BASE_URL_VARIABLE;
+	return route.workspace ? `${camelCase(route.workspace)}BaseUrl` : BASE_URL_VARIABLE;
 }
 
 function upsert(
-  variables: Map<string, ApiVariable>,
-  variable: Omit<ApiVariable, "routeCount" | "name">
+	variables: Map<string, ApiVariable>,
+	variable: Omit<ApiVariable, "routeCount" | "name">,
 ): void {
-  const existing = variables.get(variable.key);
+	const existing = variables.get(variable.key);
 
-  if (existing) {
-    existing.routeCount += 1;
-    existing.defaultValue = existing.defaultValue ?? variable.defaultValue;
-    return;
-  }
+	if (existing) {
+		existing.routeCount += 1;
+		existing.defaultValue = existing.defaultValue ?? variable.defaultValue;
+		return;
+	}
 
-  variables.set(variable.key, { ...variable, name: variable.key, routeCount: 1 });
+	variables.set(variable.key, { ...variable, name: variable.key, routeCount: 1 });
 }
 
 export function deriveEnvironmentVariables(routes: RouteEnvironmentSource[]): ApiVariable[] {
-  const variables = new Map<string, ApiVariable>();
+	const variables = new Map<string, ApiVariable>();
 
-  for (const route of routes) {
-    upsert(variables, {
-      key: baseUrlVariableFor(route),
-      secret: false,
-      location: "url",
-      parameterName: null,
-      defaultValue: route.servers[0] ?? null,
-      custom: false
-    });
+	for (const route of routes) {
+		upsert(variables, {
+			key: baseUrlVariableFor(route),
+			secret: false,
+			location: "url",
+			parameterName: null,
+			defaultValue: route.servers[0] ?? null,
+			custom: false,
+		});
 
-    for (const security of route.security) {
-      upsert(variables, {
-        key: variableNameForSecurity(security),
-        secret: environmentPolicy.security[security.kind].secret,
-        location: security.location,
-        parameterName: security.parameterName,
-        defaultValue: null,
-        custom: false
-      });
-    }
+		for (const security of route.security) {
+			upsert(variables, {
+				key: variableNameForSecurity(security),
+				secret: environmentPolicy.security[security.kind].secret,
+				location: security.location,
+				parameterName: security.parameterName,
+				defaultValue: null,
+				custom: false,
+			});
+		}
 
-    for (const header of route.headers) {
-      if (environmentPolicy.headers.onlyRequired && !header.required) continue;
+		for (const header of route.headers) {
+			if (environmentPolicy.headers.onlyRequired && !header.required) continue;
 
-      upsert(variables, {
-        key: variableNameForHeader(header.name),
-        secret: environmentPolicy.headers.secret,
-        location: "header",
-        parameterName: header.name,
-        defaultValue: header.value,
-        custom: false
-      });
-    }
-  }
+			upsert(variables, {
+				key: variableNameForHeader(header.name),
+				secret: environmentPolicy.headers.secret,
+				location: "header",
+				parameterName: header.name,
+				defaultValue: header.value,
+				custom: false,
+			});
+		}
+	}
 
-  return Array.from(variables.values()).sort(
-    (left, right) => right.routeCount - left.routeCount || left.name.localeCompare(right.name)
-  );
+	return Array.from(variables.values()).sort(
+		(left, right) => right.routeCount - left.routeCount || left.name.localeCompare(right.name),
+	);
 }
 
 /** The user's own variables ride along with every request in the collection. */
 export function withCustomVariables(
-  derived: ApiVariable[],
-  custom: CustomVariable[]
+	derived: ApiVariable[],
+	custom: CustomVariable[],
 ): ApiVariable[] {
-  const declared = new Set(derived.map((variable) => variable.key));
+	const declared = new Set(derived.map((variable) => variable.key));
 
-  return [
-    ...derived,
-    ...custom
-      .filter((variable) => !declared.has(variable.key))
-      .map((variable) => ({
-        ...variable,
-        location: null,
-        parameterName: null,
-        defaultValue: null,
-        routeCount: 0,
-        custom: true
-      }))
-  ];
+	return [
+		...derived,
+		...custom
+			.filter((variable) => !declared.has(variable.key))
+			.map((variable) => ({
+				...variable,
+				location: null,
+				parameterName: null,
+				defaultValue: null,
+				routeCount: 0,
+				custom: true,
+			})),
+	];
 }
 
 /** The name is the user's to choose; the key it binds to is not. */
 export function withVariableNames(
-  variables: ApiVariable[],
-  names: Record<string, string> | undefined
+	variables: ApiVariable[],
+	names: Record<string, string> | undefined,
 ): ApiVariable[] {
-  return variables.map((variable) => ({
-    ...variable,
-    name: (names ?? {})[variable.key]?.trim() || variable.name || variable.key
-  }));
+	return variables.map((variable) => ({
+		...variable,
+		name: names?.[variable.key]?.trim() || variable.name || variable.key,
+	}));
 }
 
 export function customVariableFor(key: string, name: string, secret = false): CustomVariable {
-  return { key, name, secret };
+	return { key, name, secret };
 }
 
 export function variablesForRoute(route: RouteEnvironmentSource): string[] {
-  return [
-    baseUrlVariableFor(route),
-    ...route.security.map(variableNameForSecurity),
-    ...route.headers
-      .filter((header) => header.required || !environmentPolicy.headers.onlyRequired)
-      .map((header) => variableNameForHeader(header.name))
-  ];
+	return [
+		baseUrlVariableFor(route),
+		...route.security.map(variableNameForSecurity),
+		...route.headers
+			.filter((header) => header.required || !environmentPolicy.headers.onlyRequired)
+			.map((header) => variableNameForHeader(header.name)),
+	];
 }
 
 /** Callers hold either the key a route binds to or the name a user typed. */
 export function resolveVariable(
-  variables: ApiVariable[],
-  values: Record<string, string>,
-  nameOrKey: string
+	variables: ApiVariable[],
+	values: Record<string, string>,
+	nameOrKey: string,
 ): string | null {
-  const variable = variables.find(
-    (candidate) => candidate.key === nameOrKey || candidate.name === nameOrKey
-  );
-  const value = (variable ? values[variable.name] : values[nameOrKey])?.trim();
+	const variable = variables.find(
+		(candidate) => candidate.key === nameOrKey || candidate.name === nameOrKey,
+	);
+	const value = (variable ? values[variable.name] : values[nameOrKey])?.trim();
 
-  if (value) return value;
+	if (value) return value;
 
-  return variable?.defaultValue ?? null;
+	return variable?.defaultValue ?? null;
 }

@@ -47,16 +47,19 @@ function sessionWindowFor(
 	};
 }
 
-export function summarize(
-	agentId: string,
-	label: string,
-	slices: FileSlice[],
-	sessionTotals: TokenTotals | null,
-	weeklyBudget: number | null,
-	blockBudget: number | null,
-	reported: ClaudeUtilization | null = null,
-	liveRateLimit: AgentRateLimit | null = null,
-): AgentUsageSummary {
+export interface SummarizeInput {
+	agentId: string;
+	label: string;
+	slices: FileSlice[];
+	sessionTotals: TokenTotals | null;
+	weeklyBudget: number | null;
+	blockBudget: number | null;
+	reported?: ClaudeUtilization | null;
+	liveRateLimit?: AgentRateLimit | null;
+}
+
+/** Every scanned slice added together: the totals, and the newest of each snapshot. */
+function foldSlices(slices: FileSlice[]) {
 	const daily: Record<string, TokenTotals> = {};
 	const hourly: Record<string, TokenTotals> = {};
 	const hourlyFirst: Record<string, string> = {};
@@ -87,6 +90,23 @@ export function summarize(
 			rateLimit = slice.rateLimit;
 		}
 	}
+
+	return { daily, hourly, hourlyFirst, lastActivity, rateLimit };
+}
+
+export function summarize(input: SummarizeInput): AgentUsageSummary {
+	const {
+		agentId,
+		label,
+		slices,
+		sessionTotals,
+		weeklyBudget,
+		blockBudget,
+		reported = null,
+		liveRateLimit = null,
+	} = input;
+	const { daily, hourly, hourlyFirst, lastActivity, rateLimit: scanned } = foldSlices(slices);
+	let rateLimit = scanned;
 
 	const today = new Date().toISOString().slice(0, 10);
 	const weekStart = new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);

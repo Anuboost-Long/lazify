@@ -3,7 +3,11 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { translation } from "@renderer/i18n/translation";
-import type { AgentRateLimitWindow, AgentUsageSummary } from "@renderer/shared/types/lazify";
+import type {
+	AgentRateLimit,
+	AgentRateLimitWindow,
+	AgentUsageSummary,
+} from "@renderer/shared/types/lazify";
 import { MonoText, SmallText } from "@renderer/shared/typography";
 import { IconButton } from "@renderer/shared/ui/IconButton";
 
@@ -178,40 +182,12 @@ export function LimitBar({
 		);
 	}
 
-	const { usedPercent, source, resetsAt, planType, observedAt, windows, limitReached } =
-		agent.rateLimit;
-	const remainingPercent = limitReached ? 0 : (remainingOf(usedPercent) ?? 0);
-	const planSuffix = planType ? ` · ${planType}` : "";
-	const windowSuffix =
-		source === "reported" && windows.length > 1 ? ` · ${windowLabel(windows[0])}` : "";
-	const limitLabel =
-		source === "reported"
-			? `${t(translation.Agents.LimitLeft)}${windowSuffix}${planSuffix}`
-			: t(translation.Agents.BudgetLeft);
-
+	const { usedPercent, source, planType, observedAt, windows, limitReached } = agent.rateLimit;
 	const observedMs = observedAt ? Date.parse(observedAt) : NaN;
 	const staleSince =
 		source === "reported" && Number.isFinite(observedMs) && Date.now() - observedMs > STALE_READING_MS
-			? formatResetMoment(observedAt as string)
+			? formatResetMoment(observedAt)
 			: null;
-	const resetTooltip =
-		[
-			resetsAt ? `${t(translation.Agents.ResetsAt)} ${formatResetMoment(resetsAt)}` : null,
-			...windows.slice(1).map((window) => {
-				const left = `${Math.round(remainingOf(window.usedPercent) ?? 0)}% ${t(translation.Agents.Left)}`;
-				const reset = window.resetsAt
-					? ` · ${t(translation.Agents.ResetsAt)} ${formatResetMoment(window.resetsAt)}`
-					: "";
-
-				return `${windowLabel(window)} ${left}${reset}`;
-			}),
-			staleSince ? `${t(translation.Agents.ReadingStale)} ${staleSince}` : null,
-		]
-			.filter(Boolean)
-			.join("\n") || undefined;
-	const limitValue = limitReached
-		? t(translation.Agents.LimitReached)
-		: `${Math.round(remainingPercent)}% ${t(translation.Agents.Left)}`;
 
 	return (
 		<button
@@ -223,29 +199,73 @@ export function LimitBar({
 				}
 			}}
 			disabled={source === "reported"}
-			title={resetTooltip}
-			className="w-full text-left disabled:cursor-default"
+			title={staleSince ? `${t(translation.Agents.ReadingStale)} ${staleSince}` : undefined}
+			className="w-full space-y-2 text-left disabled:cursor-default"
 		>
+			{windows.map((window, index) => (
+				<LimitWindowRow
+					key={`${window.kind}-${window.windowMinutes}`}
+					window={window}
+					source={source}
+					plan={index === 0 ? planType : null}
+					reached={limitReached && window.usedPercent === usedPercent}
+					stale={staleSince !== null}
+				/>
+			))}
+		</button>
+	);
+}
+
+/**
+ * One metered window. How many of these there are is the account's to say: a
+ * plan that meters a rolling block alongside a weekly allowance draws two, one
+ * that meters only the week draws one.
+ */
+function LimitWindowRow({
+	window,
+	source,
+	plan,
+	reached,
+	stale,
+}: Readonly<{
+	window: AgentRateLimitWindow;
+	source: AgentRateLimit["source"];
+	plan: string | null;
+	reached: boolean;
+	stale: boolean;
+}>) {
+	const { t } = useTranslation();
+
+	const remainingPercent = reached ? 0 : (remainingOf(window.usedPercent) ?? 0);
+	const label = [
+		source === "reported" ? t(translation.Agents.LimitLeft) : t(translation.Agents.BudgetLeft),
+		windowLabel(window),
+		plan,
+	]
+		.filter(Boolean)
+		.join(" · ");
+	const value = reached
+		? t(translation.Agents.LimitReached)
+		: `${Math.round(remainingPercent)}% ${t(translation.Agents.Left)}`;
+
+	return (
+		<div>
 			<div className="flex items-center justify-between gap-2">
 				<SmallText as="span" className="!text-muted truncate">
-					{limitLabel}
+					{label}
 				</SmallText>
 				<MonoText as="span" className="!text-muted shrink-0 text-[11px]">
-					{staleSince ? `~${limitValue}` : limitValue}
+					{stale ? `~${value}` : value}
 				</MonoText>
 			</div>
 			<div className="mt-1 h-1 overflow-hidden rounded-full bg-text/10">
 				<div
-					className={clsx(
-						"h-full rounded-full",
-						barToneClass(remainingPercent),
-						staleSince && "opacity-50",
-					)}
+					className={clsx("h-full rounded-full", barToneClass(remainingPercent), stale && "opacity-50")}
 					style={{ width: `${Math.max(remainingPercent, 2)}%` }}
 				/>
 			</div>
 
-			<ResetLine resetsAt={resetsAt} />
-		</button>
+			<ResetLine resetsAt={window.resetsAt} />
+		</div>
 	);
 }

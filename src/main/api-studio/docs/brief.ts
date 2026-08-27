@@ -9,7 +9,13 @@ import { buildDocJob } from "./job";
 import { docGaps } from "./outline";
 import { DEFAULT_DOC_PRESET_ID, docPreset } from "./presets";
 import { COLLECTION_SECTIONS, FOLDER_SECTION, ROUTE_SECTIONS, sectionTitle } from "./sections";
-import type { CollectionDoc, DocBrief, DocBriefFiles, DocImportResult } from "./types";
+import type {
+	CollectionDoc,
+	DocBrief,
+	DocBriefFiles,
+	DocImportResult,
+	DocSectionSpec,
+} from "./types";
 
 const BRIEF_ROOT = path.join(".lazify", "api-studio", "docs");
 const BRIEF_FILE = "doc-brief.md";
@@ -50,11 +56,17 @@ function relative(projectPath: string, filePath: string): string {
 	return path.relative(path.resolve(projectPath), filePath).split(path.sep).join("/");
 }
 
+function sectionScope(section: DocSectionSpec): string {
+	if (section === FOLDER_SECTION) return "Folder";
+
+	return section.scope === "collection" ? "Collection" : "Route";
+}
+
 function sectionRules(): string {
 	return [...COLLECTION_SECTIONS, FOLDER_SECTION, ...ROUTE_SECTIONS]
 		.map(
 			(section) =>
-				`- ${section === FOLDER_SECTION ? "Folder" : section.scope === "collection" ? "Collection" : "Route"} · ${section.title} (${section.id})${
+				`- ${sectionScope(section)} · ${section.title} (${section.id})${
 					section.required ? " — required" : ""
 				}: ${section.hint} ${section.rule}`,
 		)

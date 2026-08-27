@@ -144,11 +144,13 @@ export function parseCodexLine(line: string, slice: FileSlice): void {
 		const limits = entry.payload.rate_limits;
 
 		if (limits) {
-			const window =
-				toRateLimit(limits.primary, limits.plan_type ?? null, entry.timestamp) ??
-				toRateLimit(limits.secondary, limits.plan_type ?? null, entry.timestamp);
+			const limit = toRateLimit(
+				[limits.primary, limits.secondary],
+				limits.plan_type ?? null,
+				entry.timestamp,
+			);
 
-			if (window) slice.rateLimit = window;
+			if (limit) slice.rateLimit = limit;
 		}
 	} catch {
 		// Same as above: skip unparseable lines.
