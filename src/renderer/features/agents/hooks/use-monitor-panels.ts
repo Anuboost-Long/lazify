@@ -1,6 +1,7 @@
 import { atom, useAtom } from "jotai";
 import { useCallback, useEffect, useRef } from "react";
 
+import { isRestarting, onRunReplaced } from "@renderer/shared/terminal";
 import {
 	overflowScreens,
 	readingDemand,
@@ -12,6 +13,7 @@ import {
 	loadWallLayout,
 	pruneLayout,
 	registerSession,
+	renameSession,
 	saveWallLayout,
 	type MonitorWallLayout,
 } from "./monitor-session-registry";
@@ -168,6 +170,32 @@ export function useMonitorPanels() {
 		[commitLayout, setPanels],
 	);
 
+	/**
+	 * A panel holds its place, its size and its name across a restart, whichever
+	 * surface asked for it — the wall keeps everything it knows under the run id,
+	 * so that record moves with the session.
+	 */
+	useEffect(
+		() =>
+			onRunReplaced(({ fromRunId, toRunId }) => {
+				if (toRunId) setLayout(renameSession(fromRunId, toRunId));
+
+				setPanels((current) =>
+					current.map((panel) =>
+						panel.runId === fromRunId
+							? {
+									...panel,
+									id: toRunId ?? panel.id,
+									runId: toRunId ?? panel.runId,
+									exited: toRunId === null,
+								}
+							: panel,
+					),
+				);
+			}),
+		[setLayout, setPanels],
+	);
+
 	const rename = useCallback(
 		(runId: string, title: string) => {
 			const trimmed = title.trim();
@@ -308,6 +336,8 @@ export function useMonitorPanels() {
 	useEffect(() => {
 		return globalThis.lazify.onScriptStatus((event) => {
 			if (event.status !== "done" && event.status !== "error") return;
+			// A restart ends the old session on purpose; the panel is not finished.
+			if (isRestarting(event.runId)) return;
 
 			setPanels((current) =>
 				current.map((panel) => (panel.runId === event.runId ? { ...panel, exited: true } : panel)),
@@ -317,6 +347,9 @@ export function useMonitorPanels() {
 
 	useEffect(() => {
 		return globalThis.lazify.onSessionKilled((event) => {
+			// The panel outlives a restart, keeping its size, its order and its name.
+			if (isRestarting(event.runId)) return;
+
 			setPanels((current) => current.filter((panel) => panel.runId !== event.runId));
 		});
 	}, [setPanels]);

@@ -4,7 +4,9 @@ import { Terminal } from "@xterm/xterm";
 import { registerTerminalPaste } from "@renderer/shared/lib/terminal-paste";
 
 import { attachClipboardPaste } from "./clipboard-paste";
+import { forgetColorScheme, reportSchemeChange, watchColorScheme } from "./color-scheme-notify";
 import { registerFileLinks, type FileLinkHandlers } from "./file-link-provider";
+import { endRestart, isRestarting } from "./session-restart";
 import { terminalTheme } from "./terminal-theme";
 
 /**
@@ -32,6 +34,8 @@ interface Entry extends PooledTerminal {
 	sizeObserver: ResizeObserver | null;
 	firstFit: number | null;
 	disposers: (() => void)[];
+	/** Keyed by run rather than by terminal, so a restart has to re-register it. */
+	pasteDisposer: (() => void) | null;
 }
 
 const entriesByRun = new Map<string, Entry[]>();
@@ -43,6 +47,8 @@ let currentTheme = "dark";
 function allEntries() {
 	return [...entriesByRun.values()].flat();
 }
+
+const writeToSession = (runId: string, data: string) => globalThis.lazify.ptyWrite(runId, data);
 
 function ensureListeners() {
 	if (stopPtyData) return;
@@ -62,6 +68,10 @@ function ensureListeners() {
 	});
 
 	stopSessionKilled = globalThis.lazify.onSessionKilled((event) => {
+		// A restart kills the old session on purpose; its terminal is about to be
+		// handed the new one.
+		if (isRestarting(event.runId)) return;
+
 		disposeRun(event.runId);
 	});
 }
@@ -168,13 +178,21 @@ function buildTerminal(entry: Entry) {
 	entry.fit = fit;
 
 	term.onData((data) => globalThis.lazify.ptyWrite(entry.runId, data));
+	entry.disposers.push(
+		watchColorScheme(
+			term,
+			() => entry.runId,
+			() => currentTheme,
+			writeToSession,
+		),
+	);
 	entry.disposers.push(registerFileLinks(term, entry.links));
 	entry.disposers.push(attachClipboardPaste(entry.holder, term));
 
 	// The app-level paste bridge addresses one run, so only the shared terminal
 	// claims it — a private instance would silently take over the delivery.
 	if (entry.shared) {
-		entry.disposers.push(registerTerminalPaste(entry.runId, (text) => term.paste(text)));
+		entry.pasteDisposer = registerTerminalPaste(entry.runId, (text) => term.paste(text));
 	}
 
 	entry.sizeObserver = new ResizeObserver(() => fitToOwner(entry));
@@ -209,6 +227,7 @@ function createEntry(runId: string, shared: boolean): Entry {
 		sizeObserver: null,
 		firstFit: null,
 		disposers: [],
+		pasteDisposer: null,
 	};
 }
 
@@ -219,6 +238,8 @@ function disposeEntry(entry: Entry) {
 	entry.openObserver?.disconnect();
 	entry.sizeObserver?.disconnect();
 	entry.disposers.forEach((dispose) => dispose());
+	entry.pasteDisposer?.();
+	entry.pasteDisposer = null;
 	entry.term?.dispose();
 	entry.term = null;
 	entry.fit = null;
@@ -239,7 +260,52 @@ function evictDetached() {
 }
 
 export function disposeRun(runId: string) {
+	endRestart(runId);
+	forgetColorScheme(runId);
 	(entriesByRun.get(runId) ?? []).slice().forEach(disposeEntry);
+}
+
+/**
+ * Points the terminals of one run at another.
+ *
+ * Restarting an agent is necessarily a new process — a running one cannot be
+ * told to change its colours — but it does not have to be a new terminal. What
+ * is on screen stays on screen: same instance, same scrollback, same place,
+ * with the next session writing into it.
+ */
+export function rebindRun(fromRunId: string, toRunId: string) {
+	const entries = entriesByRun.get(fromRunId) ?? [];
+
+	endRestart(fromRunId);
+	forgetColorScheme(fromRunId);
+
+	if (entries.length === 0) return;
+
+	entriesByRun.delete(fromRunId);
+	entriesByRun.set(toRunId, [...(entriesByRun.get(toRunId) ?? []), ...entries]);
+
+	entries.forEach((entry) => {
+		entry.runId = toRunId;
+
+		// Whatever the new session printed while it was being started is still in
+		// its backlog, so it is replayed the way a freshly built terminal would.
+		entry.replayed = false;
+		entry.pending = [];
+
+		const term = entry.term;
+
+		if (!term) return;
+
+		if (entry.shared) {
+			entry.pasteDisposer?.();
+			entry.pasteDisposer = registerTerminalPaste(toRunId, (text) => term.paste(text));
+		}
+
+		// The session was spawned at a default size, and this terminal is whatever
+		// size it already was.
+		fitToOwner(entry);
+		replayBacklog(entry);
+	});
 }
 
 export function acquire(runId: string, shared = true): PooledTerminal {
@@ -400,6 +466,11 @@ export function setTerminalTheme(resolvedTheme: string) {
 
 		entry.term.options.theme = terminalTheme(resolvedTheme);
 	});
+
+	// Repainting the canvas only changes what the terminal draws. A TUI paints
+	// its own colours, chosen from what the terminal told it at startup, so the
+	// ones that asked to be kept up to date are told the scheme has changed.
+	reportSchemeChange(resolvedTheme, writeToSession);
 }
 
 export function stopTerminalPool() {

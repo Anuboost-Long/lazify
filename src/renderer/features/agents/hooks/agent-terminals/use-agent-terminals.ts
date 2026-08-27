@@ -1,6 +1,8 @@
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { isRestarting, onRunReplaced } from "@renderer/shared/terminal";
+
 import {
 	RUNNABLE_SCRIPTS,
 	RUN_SCRIPT_OVERRIDES_KEY,
@@ -166,6 +168,8 @@ export function useAgentTerminals(projectPath: string) {
 	useEffect(() => {
 		return globalThis.lazify.onScriptStatus((event) => {
 			if (event.status !== "done" && event.status !== "error") return;
+			// A restart ends the old session on purpose; the tab is not finished.
+			if (isRestarting(event.runId)) return;
 
 			setTerminals((current) =>
 				current.map((terminal) =>
@@ -179,6 +183,10 @@ export function useAgentTerminals(projectPath: string) {
 
 	useEffect(() => {
 		return globalThis.lazify.onSessionKilled((event) => {
+			// The tab outlives a restart: something is already taking the session's
+			// place, and closing it here would take the terminal with it.
+			if (isRestarting(event.runId)) return;
+
 			const target = terminalsRef.current.find((terminal) => terminal.runId === event.runId);
 			if (!target) return;
 
@@ -195,6 +203,24 @@ export function useAgentTerminals(projectPath: string) {
 			forgetWaiting(event.runId);
 		});
 	}, [setActiveByProject, setTerminals, forgetWaiting]);
+
+	// A restart can be asked for from the monitor wall as easily as from here,
+	// so the tab follows the swap rather than the button that caused it.
+	useEffect(
+		() =>
+			onRunReplaced(({ fromRunId, toRunId }) => {
+				setTerminals((current) =>
+					current.map((terminal) =>
+						terminal.runId === fromRunId
+							? { ...terminal, runId: toRunId ?? fromRunId, exited: toRunId === null }
+							: terminal,
+					),
+				);
+
+				forgetWaiting(fromRunId);
+			}),
+		[setTerminals, forgetWaiting],
+	);
 
 	useEffect(() => {
 		return globalThis.lazify.onAgentAttention((event) => {
