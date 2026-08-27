@@ -74,13 +74,18 @@ function engineOf(findings: FindingReference[]): string {
 	return sources.size === 1 ? (ENGINE_NAME[[...sources][0]] ?? "Code quality") : "Code quality";
 }
 
-function descriptionFor(findings: FindingReference[], projectPath: string): string {
+function descriptionFor(
+	findings: FindingReference[],
+	projectPath: string,
+	label: string | null,
+): string {
 	const files = new Set(findings.map((finding) => finding.filePath));
 	const where =
 		files.size === 1 ? relativeTo(projectPath, findings[0].filePath) : `${files.size} files`;
 
 	return [
 		`${engineOf(findings)} reported ${findings.length} ${findings.length === 1 ? "finding" : "findings"} in ${where}.`,
+		...(label ? [`${label} of a project scan; the other phases cover other files.`] : []),
 		"",
 		"Each requirement below is one finding. Fix it in place, leave the",
 		"surrounding behaviour unchanged, and do not reformat code the rule is",
@@ -151,6 +156,11 @@ export interface FixTaskInput {
 	findings: FindingReference[];
 	/** Preset the prompt is usually built with, or null to decide each time. */
 	presetId?: string | null;
+	/**
+	 * The round this batch belongs to, e.g. `Phase 2 of 4`. It leads the name so
+	 * a board holding a whole scan reads in the order it is meant to be worked.
+	 */
+	label?: string | null;
 }
 
 /** The task as it will be stored, without storing it — for a preview. */
@@ -158,13 +168,14 @@ export function describeFixTask({
 	projectPath,
 	findings,
 	presetId = null,
+	label = null,
 }: FixTaskInput): TaskInput | null {
 	if (findings.length === 0) return null;
 
 	return {
 		projectPath,
-		name: nameFor(findings, projectPath),
-		description: descriptionFor(findings, projectPath),
+		name: label ? `${label} · ${nameFor(findings, projectPath)}` : nameFor(findings, projectPath),
+		description: descriptionFor(findings, projectPath, label),
 		requirements: requirementsFor(findings, projectPath),
 		notes: [...rulesSection(findings), ...snippetsSection(findings, projectPath)]
 			.join("\n")
