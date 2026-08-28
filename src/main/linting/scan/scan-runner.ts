@@ -149,6 +149,9 @@ export async function startSonarScan(
 	await Promise.all(Array.from({ length: Math.min(CONCURRENCY, files.length) }, () => consume()));
 
 	const stopped = cancelled.has(projectPath);
+
+	found.sort((left, right) => left.path.localeCompare(right.path));
+
 	const report: SonarScanReport = {
 		projectPath,
 		roots,
@@ -158,7 +161,7 @@ export async function startSonarScan(
 		fileCount: state.scanned,
 		findingCount: found.reduce((count, file) => count + file.findings.length, 0),
 		skippedCount: skipped + (files.length - state.scanned),
-		files: found.sort((left, right) => left.path.localeCompare(right.path)),
+		files: found,
 	};
 
 	writeScanReport(report);

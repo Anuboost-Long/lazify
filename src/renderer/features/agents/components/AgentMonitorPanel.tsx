@@ -64,6 +64,13 @@ export const AgentMonitorPanel = memo(function AgentMonitorPanel({
 
 	const rootRef = useRef<HTMLDivElement>(null);
 
+	const borderTone = () => {
+		if (dropTarget || waiting) return "border-accent";
+		if (selected) return "border-accent/60";
+
+		return "border-border";
+	};
+
 	return (
 		<div
 			ref={rootRef}
@@ -91,13 +98,7 @@ export const AgentMonitorPanel = memo(function AgentMonitorPanel({
 				dragging && "opacity-40",
 
 				waiting && "shadow-glow",
-				dropTarget
-					? "border-accent"
-					: waiting
-						? "border-accent"
-						: selected
-							? "border-accent/60"
-							: "border-border",
+				borderTone(),
 			)}
 		>
 			<div

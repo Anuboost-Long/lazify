@@ -78,10 +78,11 @@ export function ResetLine({ resetsAt }: Readonly<{ resetsAt: string | null }>) {
 	if (!resetsAt) return null;
 
 	const countdown = formatReset(resetsAt);
+	const countdownSuffix = countdown ? ` · ${countdown}` : "";
 
 	return (
 		<SmallText as="span" className="!text-muted mt-1.5 block truncate">
-			{`${t(translation.Agents.ResetsAt)} ${formatResetMoment(resetsAt)}${countdown ? ` · ${countdown}` : ""}`}
+			{`${t(translation.Agents.ResetsAt)} ${formatResetMoment(resetsAt)}${countdownSuffix}`}
 		</SmallText>
 	);
 }
@@ -183,7 +184,7 @@ export function LimitBar({
 	}
 
 	const { usedPercent, source, planType, observedAt, windows, limitReached } = agent.rateLimit;
-	const observedMs = observedAt ? Date.parse(observedAt) : NaN;
+	const observedMs = observedAt ? Date.parse(observedAt) : Number.NaN;
 	const staleSince =
 		source === "reported" && Number.isFinite(observedMs) && Date.now() - observedMs > STALE_READING_MS
 			? formatResetMoment(observedAt)

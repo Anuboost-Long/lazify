@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 
 import type { ScanFileFindings, SonarScanReport } from "@main/linting";
 import { buildScanReportText } from "@main/linting/scan/report-text";
+import type { SonarScanFailure } from "@main/linting/scan/types";
 import { getWorkspaceFileRoute } from "@renderer/app/app-routes";
 import { translation } from "@renderer/i18n/translation";
 import { CaptionText } from "@renderer/shared/typography";
@@ -18,6 +19,65 @@ import { useSonarScan } from "./use-sonar-scan";
 
 interface SonarScanPaneProps {
 	projectPath: string;
+}
+
+/** Why a scan produced nothing: no engine to run, or nothing to run it on. */
+function ScanFailure({ failure }: Readonly<{ failure: SonarScanFailure | null }>) {
+	const { t } = useTranslation();
+	const noEngines = failure === "no-engines";
+
+	return (
+		<ScanNotice
+			icon={noEngines ? "warning-triangle" : "empty-page"}
+			title={t(noEngines ? translation.SonarScan.NoEngines : translation.SonarScan.NoFiles)}
+			hint={t(noEngines ? translation.SonarScan.NoEnginesHint : translation.SonarScan.ScopeHint)}
+		/>
+	);
+}
+
+/** What the last scan found, file by file. */
+function ScanResults({
+	report,
+	onSendFiles,
+	onOpen,
+}: Readonly<{
+	report: SonarScanReport;
+	onSendFiles: ((files: ScanFileFindings[]) => void) | undefined;
+	onOpen: (path: string, line: number) => void;
+}>) {
+	const { t } = useTranslation();
+
+	return (
+		<>
+			<div className="flex flex-wrap items-baseline gap-x-2 px-3 py-2">
+				<CaptionText tone="muted">
+					{t(translation.SonarScan.FoundCount, {
+						count: report.findingCount,
+						files: report.files.length,
+					})}
+				</CaptionText>
+				<CaptionText tone="muted" className="truncate">
+					{t(translation.SonarScan.ScannedAt, { when: scannedAt(report) })}
+				</CaptionText>
+				{report.skippedCount > 0 ? (
+					<CaptionText tone="muted">
+						{t(translation.SonarScan.Skipped, { count: report.skippedCount })}
+					</CaptionText>
+				) : null}
+			</div>
+
+			<div className="border-t border-border">
+				{report.files.map((file) => (
+					<ScanFileGroup
+						key={file.path}
+						file={file}
+						onFix={onSendFiles ? () => onSendFiles([file]) : undefined}
+						onOpen={(line) => onOpen(file.path, line)}
+					/>
+				))}
+			</div>
+		</>
+	);
 }
 
 /**
@@ -51,21 +111,7 @@ export function SonarScanPane({ projectPath }: Readonly<SonarScanPaneProps>) {
 				onFixInPhases={() => setChoosingPhases(true)}
 			/>
 
-			{state?.status === "failed" ? (
-				<ScanNotice
-					icon={state.failure === "no-engines" ? "warning-triangle" : "empty-page"}
-					title={t(
-						state.failure === "no-engines"
-							? translation.SonarScan.NoEngines
-							: translation.SonarScan.NoFiles,
-					)}
-					hint={t(
-						state.failure === "no-engines"
-							? translation.SonarScan.NoEnginesHint
-							: translation.SonarScan.ScopeHint,
-					)}
-				/>
-			) : null}
+			{state?.status === "failed" ? <ScanFailure failure={state.failure} /> : null}
 
 			{!report && state?.status !== "failed" ? (
 				<ScanNotice
@@ -75,7 +121,7 @@ export function SonarScanPane({ projectPath }: Readonly<SonarScanPaneProps>) {
 				/>
 			) : null}
 
-			{report && report.files.length === 0 ? (
+			{report?.files.length === 0 ? (
 				<ScanNotice
 					icon="check-circle"
 					title={t(translation.SonarScan.Clean, { count: report.fileCount })}
@@ -84,35 +130,11 @@ export function SonarScanPane({ projectPath }: Readonly<SonarScanPaneProps>) {
 			) : null}
 
 			{report && report.files.length > 0 ? (
-				<>
-					<div className="flex flex-wrap items-baseline gap-x-2 px-3 py-2">
-						<CaptionText tone="muted">
-							{t(translation.SonarScan.FoundCount, {
-								count: report.findingCount,
-								files: report.files.length,
-							})}
-						</CaptionText>
-						<CaptionText tone="muted" className="truncate">
-							{t(translation.SonarScan.ScannedAt, { when: scannedAt(report) })}
-						</CaptionText>
-						{report.skippedCount > 0 ? (
-							<CaptionText tone="muted">
-								{t(translation.SonarScan.Skipped, { count: report.skippedCount })}
-							</CaptionText>
-						) : null}
-					</div>
-
-					<div className="border-t border-border">
-						{report.files.map((file) => (
-							<ScanFileGroup
-								key={file.path}
-								file={file}
-								onFix={sendFiles ? () => sendFiles([file]) : undefined}
-								onOpen={(line) => navigate(getWorkspaceFileRoute(projectPath, file.path, line))}
-							/>
-						))}
-					</div>
-				</>
+				<ScanResults
+					report={report}
+					onSendFiles={sendFiles}
+					onOpen={(path, line) => navigate(getWorkspaceFileRoute(projectPath, path, line))}
+				/>
 			) : null}
 
 			<FixPhaseModal

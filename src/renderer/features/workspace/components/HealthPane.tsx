@@ -40,6 +40,117 @@ interface SectionLoading {
 	audit: boolean;
 }
 
+/** The outdated tab's badge: nothing until the check has run, then a count. */
+function OutdatedPill({ checked, count }: Readonly<{ checked: boolean; count: number }>) {
+	const { t } = useTranslation();
+
+	if (!checked) return null;
+
+	if (count === 0) {
+		return (
+			<PillText
+				as="span"
+				className="rounded-full border border-accent/20 bg-accent/8 px-2.5 py-0.5 text-[10px] font-semibold text-accent"
+			>
+				{t(translation.HealthPane.OutdatedNone)}
+			</PillText>
+		);
+	}
+
+	return (
+		<PillText
+			as="span"
+			className="rounded-full border border-warning/25 bg-warning/10 px-2.5 py-0.5 text-[10px] font-semibold text-warning"
+		>
+			{t(
+				count === 1
+					? translation.HealthPane.OutdatedCountOne
+					: translation.HealthPane.OutdatedCountOther,
+				{ count },
+			)}
+		</PillText>
+	);
+}
+
+/** The audit tab's badge, red only when something critical is in the list. */
+function AuditPill({
+	checked,
+	count,
+	criticalCount,
+}: Readonly<{ checked: boolean; count: number; criticalCount: number }>) {
+	const { t } = useTranslation();
+
+	if (!checked) return null;
+
+	if (count === 0) {
+		return (
+			<PillText
+				as="span"
+				className="rounded-full border border-accent/20 bg-accent/8 px-2.5 py-0.5 text-[10px] font-semibold text-accent"
+			>
+				{t(translation.HealthPane.AuditClean)}
+			</PillText>
+		);
+	}
+
+	return (
+		<PillText
+			as="span"
+			className={clsx(
+				"rounded-full border px-2.5 py-0.5 text-[10px] font-semibold",
+				criticalCount > 0
+					? "border-error/25 bg-error/10 text-error"
+					: "border-warning/25 bg-warning/10 text-warning",
+			)}
+		>
+			{t(count === 1 ? translation.HealthPane.AuditCountOne : translation.HealthPane.AuditCountOther, {
+				count,
+			})}
+		</PillText>
+	);
+}
+
+type AuditVulnerability = NpmAuditResult["vulnerabilities"][string];
+
+/** The audit tab's body: still running, nothing found, or the findings. */
+function AuditFindings({
+	checked,
+	vulns,
+	counts,
+	groups,
+}: Readonly<{
+	checked: boolean;
+	vulns: AuditVulnerability[];
+	counts: NpmAuditResult["metadata"]["vulnerabilities"] | undefined;
+	groups: ReturnType<typeof groupByFix>;
+}>) {
+	const { t } = useTranslation();
+
+	if (!checked) return <SectionEmpty message={t(translation.HealthPane.Loading)} />;
+	if (vulns.length === 0) return <SectionEmpty message={t(translation.HealthPane.AuditClean)} />;
+
+	return (
+		<>
+			{/* Same affordance as the package list: hand the findings to
+          an agent instead of retyping them. */}
+			<div className="flex items-center gap-2">
+				{counts && <AuditSeveritySummary counts={counts} />}
+				<CopyButton
+					className="ml-auto"
+					value={() => buildAuditMarkdown(vulns, counts)}
+					label={t(translation.HealthPane.CopyForAgent)}
+					copiedLabel={t(translation.HealthPane.CopiedForAgent)}
+				/>
+			</div>
+			<div className="grid gap-2">
+				{groups.map((group) => (
+					<AuditFixGroup key={group.target} target={group.target} vulns={group.list} />
+				))}
+			</div>
+		</>
+	);
+}
+
 export function HealthPane({ projectPath }: Readonly<HealthPaneProps>) {
 	const { t } = useTranslation();
 
@@ -94,56 +205,15 @@ export function HealthPane({ projectPath }: Readonly<HealthPaneProps>) {
 	const auditCounts = audit?.metadata?.vulnerabilities;
 	const auditGroups = groupByFix(auditVulns);
 
-	const outdatedPill = outdated ? (
-		behind.length === 0 ? (
-			<PillText
-				as="span"
-				className="rounded-full border border-accent/20 bg-accent/8 px-2.5 py-0.5 text-[10px] font-semibold text-accent"
-			>
-				{t(translation.HealthPane.OutdatedNone)}
-			</PillText>
-		) : (
-			<PillText
-				as="span"
-				className="rounded-full border border-warning/25 bg-warning/10 px-2.5 py-0.5 text-[10px] font-semibold text-warning"
-			>
-				{t(
-					behind.length === 1
-						? translation.HealthPane.OutdatedCountOne
-						: translation.HealthPane.OutdatedCountOther,
-					{ count: behind.length },
-				)}
-			</PillText>
-		)
-	) : null;
+	const outdatedPill = <OutdatedPill checked={outdated !== null} count={behind.length} />;
 
-	const auditPill = audit ? (
-		auditVulns.length === 0 ? (
-			<PillText
-				as="span"
-				className="rounded-full border border-accent/20 bg-accent/8 px-2.5 py-0.5 text-[10px] font-semibold text-accent"
-			>
-				{t(translation.HealthPane.AuditClean)}
-			</PillText>
-		) : (
-			<PillText
-				as="span"
-				className={clsx(
-					"rounded-full border px-2.5 py-0.5 text-[10px] font-semibold",
-					(auditCounts?.critical ?? 0) > 0
-						? "border-error/25 bg-error/10 text-error"
-						: "border-warning/25 bg-warning/10 text-warning",
-				)}
-			>
-				{t(
-					auditVulns.length === 1
-						? translation.HealthPane.AuditCountOne
-						: translation.HealthPane.AuditCountOther,
-					{ count: auditVulns.length },
-				)}
-			</PillText>
-		)
-	) : null;
+	const auditPill = (
+		<AuditPill
+			checked={audit !== null}
+			count={auditVulns.length}
+			criticalCount={auditCounts?.critical ?? 0}
+		/>
+	);
 
 	/** The open section's detail. */
 	const renderPanel = () => {
@@ -186,32 +256,12 @@ export function HealthPane({ projectPath }: Readonly<HealthPaneProps>) {
 			case "audit":
 				return (
 					<div className="space-y-3">
-						{audit ? (
-							auditVulns.length === 0 ? (
-								<SectionEmpty message={t(translation.HealthPane.AuditClean)} />
-							) : (
-								<>
-									{/* Same affordance as the package list: hand the findings to
-                      an agent instead of retyping them. */}
-									<div className="flex items-center gap-2">
-										{auditCounts && <AuditSeveritySummary counts={auditCounts} />}
-										<CopyButton
-											className="ml-auto"
-											value={() => buildAuditMarkdown(auditVulns, auditCounts)}
-											label={t(translation.HealthPane.CopyForAgent)}
-											copiedLabel={t(translation.HealthPane.CopiedForAgent)}
-										/>
-									</div>
-									<div className="grid gap-2">
-										{auditGroups.map((group) => (
-											<AuditFixGroup key={group.target} target={group.target} vulns={group.list} />
-										))}
-									</div>
-								</>
-							)
-						) : (
-							<SectionEmpty message={t(translation.HealthPane.Loading)} />
-						)}
+						<AuditFindings
+							checked={audit !== null}
+							vulns={auditVulns}
+							counts={auditCounts}
+							groups={auditGroups}
+						/>
 						{audit?.error && <BodyText className="mt-1 text-[11px] text-error">{audit.error}</BodyText>}
 					</div>
 				);

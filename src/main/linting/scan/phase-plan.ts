@@ -84,6 +84,6 @@ export function commonFolder(files: ScanFileFindings[]): string {
 			while (shares < shared.length && shared[shares] === parts[shares]) shares += 1;
 
 			return shared.slice(0, shares);
-		})
+		}, segments[0])
 		.join("/");
 }

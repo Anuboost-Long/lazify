@@ -151,6 +151,10 @@ export function AgentMonitorGrid({
 	);
 
 	const emptySlotCount = Math.max(MONITOR_MIN_SLOTS - panels.length, 1);
+	const emptySlotNumbers = Array.from(
+		{ length: emptySlotCount },
+		(_, index) => panels.length + index + 1,
+	);
 	const sizingPanel = panels.find((panel) => panel.runId === sizingRunId) ?? null;
 	const renamingPanel = panels.find((panel) => panel.runId === renamingRunId) ?? null;
 
@@ -233,8 +237,8 @@ export function AgentMonitorGrid({
 							/>
 						))}
 
-						{Array.from({ length: emptySlotCount }).map((_, index) => (
-							<AgentMonitorSlot key={index} index={panels.length + index + 1} onAdd={openSetup} />
+						{emptySlotNumbers.map((slot) => (
+							<AgentMonitorSlot key={`slot-${slot}`} index={slot} onAdd={openSetup} />
 						))}
 					</div>
 				</div>

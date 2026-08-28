@@ -185,9 +185,9 @@ function buildTerminal(entry: Entry) {
 			() => currentTheme,
 			writeToSession,
 		),
+		registerFileLinks(term, entry.links),
+		attachClipboardPaste(entry.holder, term),
 	);
-	entry.disposers.push(registerFileLinks(term, entry.links));
-	entry.disposers.push(attachClipboardPaste(entry.holder, term));
 
 	// The app-level paste bridge addresses one run, so only the shared terminal
 	// claims it — a private instance would silently take over the delivery.
@@ -416,8 +416,44 @@ export function readingDemand(runId: string) {
 const COMMAND_LINE = /^[\s⏺●○◆▪•*-]*(?:[$%>#❯➜]\s+|(?:Bash|Shell|Run|Exec|Command)\s*\(\s*)(.+)/;
 
 /** Plumbing: worth doing, never worth reading. */
-const ROUTINE_COMMAND =
-	/^(?:sudo\s+)?(git|npm|yarn|pnpm|bun|npx|ls|ll|cd|pwd|cat|echo|mkdir|rmdir|rm|cp|mv|touch|which|whoami|export|source|clear|open|code)\b/;
+const ROUTINE_COMMANDS = new Set([
+	"git",
+	"npm",
+	"yarn",
+	"pnpm",
+	"bun",
+	"npx",
+	"ls",
+	"ll",
+	"cd",
+	"pwd",
+	"cat",
+	"echo",
+	"mkdir",
+	"rmdir",
+	"rm",
+	"cp",
+	"mv",
+	"touch",
+	"which",
+	"whoami",
+	"export",
+	"source",
+	"clear",
+	"open",
+	"code",
+]);
+
+const LEADING_WORD = /^\w+/;
+
+/** The command a line runs, looking past a `sudo` that only carries it. */
+function invokedCommand(line: string): string | null {
+	const first = LEADING_WORD.exec(line)?.[0] ?? null;
+
+	if (first !== "sudo") return first;
+
+	return LEADING_WORD.exec(line.slice("sudo".length).trimStart())?.[0] ?? null;
+}
 
 /** One command says nothing about a session; a handful is a pattern. */
 const MIN_COMMANDS_TO_JUDGE = 2;
@@ -450,7 +486,9 @@ export function routineWork(runId: string) {
 		if (!invoked) continue;
 
 		commands += 1;
-		if (ROUTINE_COMMAND.test(invoked.trim())) routine += 1;
+		const command = invokedCommand(invoked.trim());
+
+		if (command && ROUTINE_COMMANDS.has(command)) routine += 1;
 	}
 
 	if (commands < MIN_COMMANDS_TO_JUDGE) return 0;

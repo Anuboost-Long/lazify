@@ -846,7 +846,8 @@
 		"scripts_count_other": "{{count}} scripts",
 		"running_count": "{{count}} running",
 		"running_count_one": "{{count}} running",
-		"running_count_other": "{{count}} running"
+		"running_count_other": "{{count}} running",
+		"resize_terminal": "Resize the terminal"
 	},
 	"dependency_pane": {
 		"title": "Dependencies",

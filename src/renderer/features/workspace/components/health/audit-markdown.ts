@@ -126,8 +126,10 @@ export function buildAuditMarkdown(
 	const safeFixes = vulns.filter((vuln) => vuln.fixAvailable === true).length;
 	const finding = vulns.length === 1 ? "finding" : "findings";
 
+	const detail = summary ? ` (${summary})` : "";
+
 	return [
-		`Review ${vulns.length} npm audit ${finding}${summary ? ` (${summary})` : ""}.`,
+		`Review ${vulns.length} npm audit ${finding}${detail}.`,
 		"",
 		`They resolve to ${upgrades} ${upgrades === 1 ? "upgrade" : "upgrades"}:`,
 		"",

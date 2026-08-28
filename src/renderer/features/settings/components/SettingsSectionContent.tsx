@@ -11,7 +11,7 @@ interface SettingsSectionContentProps {
 	activeSection: SettingsSection;
 }
 
-export function SettingsSectionContent({ activeSection }: SettingsSectionContentProps) {
+export function SettingsSectionContent({ activeSection }: Readonly<SettingsSectionContentProps>) {
 	return (
 		<div className="min-w-0 flex-1">
 			{activeSection === "appearance" && <AppearanceSection />}

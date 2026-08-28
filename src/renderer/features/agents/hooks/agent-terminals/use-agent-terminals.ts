@@ -1,6 +1,7 @@
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { uniqueId } from "@renderer/shared/lib/unique-id";
 import { isRestarting, onRunReplaced } from "@renderer/shared/terminal";
 
 import {
@@ -72,9 +73,7 @@ export function useAgentTerminals(projectPath: string) {
 			setActiveByProject((current) => {
 				const next = { ...current };
 				for (const terminal of restored) {
-					if (next[terminal.projectPath] == null) {
-						next[terminal.projectPath] = terminal.tabId;
-					}
+					next[terminal.projectPath] ??= terminal.tabId;
 				}
 				return next;
 			});
@@ -99,9 +98,7 @@ export function useAgentTerminals(projectPath: string) {
 		setActiveByProject((current) => {
 			const next = { ...current };
 			for (const terminal of adopted) {
-				if (next[terminal.projectPath] == null) {
-					next[terminal.projectPath] = terminal.tabId;
-				}
+				next[terminal.projectPath] ??= terminal.tabId;
 			}
 			return next;
 		});
@@ -246,7 +243,7 @@ export function useAgentTerminals(projectPath: string) {
 
 	const addTerminal = useCallback(
 		async (tab: Pick<AgentTerminal, "kind" | "sourceId" | "label">, start: () => Promise<string>) => {
-			const tabId = `agent-tab-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
+			const tabId = uniqueId("agent-tab");
 
 			setTerminals((current) => [
 				...current,
@@ -435,7 +432,7 @@ export function useAgentTerminals(projectPath: string) {
 		...new Set(
 			terminals.filter((terminal) => terminal.kind === "agent").map((terminal) => terminal.sourceId),
 		),
-	].sort();
+	].sort((left, right) => left.localeCompare(right));
 
 	return {
 		availableAgents,

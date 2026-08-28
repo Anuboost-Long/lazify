@@ -16,6 +16,13 @@ interface ScanToolbarProps {
 	onFixInPhases: () => void;
 }
 
+function scanLabel(running: boolean, scanned: boolean): string {
+	if (running) return translation.SonarScan.Stop;
+	if (scanned) return translation.SonarScan.ScanAgain;
+
+	return translation.SonarScan.Scan;
+}
+
 export function ScanToolbar({
 	state,
 	reportText,
@@ -45,13 +52,7 @@ export function ScanToolbar({
 						name={running ? "stop-circle" : "radar"}
 						className={clsx("h-3.5 w-3.5", running && "motion-safe:animate-pulse")}
 					/>
-					{t(
-						running
-							? translation.SonarScan.Stop
-							: report
-								? translation.SonarScan.ScanAgain
-								: translation.SonarScan.Scan,
-					)}
+					{t(scanLabel(running, Boolean(report)))}
 				</button>
 
 				<SmallText as="span" className="min-w-0 flex-1 truncate !text-muted">

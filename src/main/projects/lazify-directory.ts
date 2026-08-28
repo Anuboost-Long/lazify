@@ -22,7 +22,7 @@ function insideRepository(projectPath: string): boolean {
 function listed(content: string): boolean {
 	return content
 		.split(/\r?\n/)
-		.some((line) => line.trim().replace(/^\/+|\/+$/g, "") === DIRECTORY_NAME);
+		.some((line) => line.trim().split("/").filter(Boolean).join("/") === DIRECTORY_NAME);
 }
 
 export function ignoreLazifyDirectory(projectPath: string): void {

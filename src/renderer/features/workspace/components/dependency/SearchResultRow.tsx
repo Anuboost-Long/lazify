@@ -21,7 +21,7 @@ export function SearchResultRow({
 	isActioning,
 	anyActioning,
 	onInstall,
-}: SearchResultRowProps) {
+}: Readonly<SearchResultRowProps>) {
 	return (
 		<div
 			className={clsx(

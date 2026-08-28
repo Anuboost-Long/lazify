@@ -33,6 +33,81 @@ function statusLabel({ status, installed, unreachable, requirement }: ExtensionS
 	}
 }
 
+/** Availability at a glance: amber for anything the user has to act on. */
+function StatusDot({
+	extension,
+	active,
+}: Readonly<{ extension: ExtensionState; active: boolean }>) {
+	const { requirement, status } = extension;
+
+	return (
+		<span
+			aria-hidden
+			className={clsx(
+				"h-1.5 w-1.5 shrink-0 rounded-full",
+				!requirement.satisfied && "bg-warning",
+				requirement.satisfied && status === "update-available" && "bg-warning",
+				requirement.satisfied && status === "installed" && (active ? "bg-accent" : "bg-border"),
+				requirement.satisfied && status === "not-installed" && "bg-border",
+			)}
+		/>
+	);
+}
+
+/** What the runtime is missing, and where to go about it. */
+function RequirementNotice({
+	requirement,
+	blocked,
+}: Readonly<{ requirement: ExtensionState["requirement"]; blocked: boolean }>) {
+	const { t } = useTranslation();
+
+	if (!requirement.label) return null;
+
+	return (
+		<div className="mt-1.5 flex flex-wrap items-center gap-2">
+			<CaptionText className="!text-warning">{t(requirement.label)}</CaptionText>
+			{requirement.helpUrl ? (
+				<button
+					type="button"
+					onClick={() => void globalThis.lazify.openExternalUrl(requirement.helpUrl as string)}
+					className="text-xs text-accent transition-colors hover:text-accent-hover"
+				>
+					{t(translation.Extensions.HowToFix)}
+				</button>
+			) : null}
+			{blocked ? (
+				<CaptionText tone="muted">{t(translation.Extensions.RecheckHint)}</CaptionText>
+			) : null}
+		</div>
+	);
+}
+
+/** The id, what is on disk, what is waiting, and under which licence. */
+function VersionLine({ extension }: Readonly<{ extension: ExtensionState }>) {
+	const { entry, installed, latest, status } = extension;
+
+	return (
+		<CaptionText tone="muted" className="mt-1 block font-mono">
+			{entry.id}
+			{installed ? ` · v${installed.version}` : ""}
+			{status === "update-available" && latest ? ` → v${latest.version}` : ""}
+			{latest?.license ? ` · ${latest.license}` : ""}
+		</CaptionText>
+	);
+}
+
+function actionLabel(
+	working: boolean,
+	removable: boolean,
+	status: ExtensionState["status"],
+): string {
+	if (working) return translation.Extensions.Working;
+	if (removable) return translation.Extensions.Remove;
+	if (status === "update-available") return translation.Extensions.Update;
+
+	return translation.Extensions.Install;
+}
+
 export function ExtensionCard({
 	extension,
 	busy,
@@ -42,7 +117,7 @@ export function ExtensionCard({
 	onToggle,
 }: Readonly<ExtensionCardProps>) {
 	const { t } = useTranslation();
-	const { entry, installed, latest, requirement, status } = extension;
+	const { entry, installed, requirement, status } = extension;
 	const active = Boolean(installed?.enabled) && requirement.satisfied;
 	const installing = isInstalling(job);
 
@@ -65,45 +140,15 @@ export function ExtensionCard({
 				<div className="min-w-0 flex-1">
 					<div className="flex items-center gap-2">
 						<BodyText className="font-semibold">{entry.displayName}</BodyText>
-						<span
-							aria-hidden
-							className={clsx(
-								"h-1.5 w-1.5 shrink-0 rounded-full",
-								!requirement.satisfied && "bg-warning",
-								requirement.satisfied && status === "update-available" && "bg-warning",
-								requirement.satisfied && status === "installed" && (active ? "bg-accent" : "bg-border"),
-								requirement.satisfied && status === "not-installed" && "bg-border",
-							)}
-						/>
+						<StatusDot extension={extension} active={active} />
 						<CaptionText tone="muted">{t(statusLabel(extension))}</CaptionText>
 					</div>
 
 					<SmallText className="mt-0.5 leading-5">{entry.summary}</SmallText>
 
-					{requirement.label ? (
-						<div className="mt-1.5 flex flex-wrap items-center gap-2">
-							<CaptionText className="!text-warning">{t(requirement.label)}</CaptionText>
-							{requirement.helpUrl ? (
-								<button
-									type="button"
-									onClick={() => void globalThis.lazify.openExternalUrl(requirement.helpUrl as string)}
-									className="text-xs text-accent transition-colors hover:text-accent-hover"
-								>
-									{t(translation.Extensions.HowToFix)}
-								</button>
-							) : null}
-							{blocked ? (
-								<CaptionText tone="muted">{t(translation.Extensions.RecheckHint)}</CaptionText>
-							) : null}
-						</div>
-					) : null}
+					<RequirementNotice requirement={requirement} blocked={blocked} />
 
-					<CaptionText tone="muted" className="mt-1 block font-mono">
-						{entry.id}
-						{installed ? ` · v${installed.version}` : ""}
-						{status === "update-available" && latest ? ` → v${latest.version}` : ""}
-						{latest?.license ? ` · ${latest.license}` : ""}
-					</CaptionText>
+					<VersionLine extension={extension} />
 				</div>
 
 				<div className="flex shrink-0 items-center gap-3">
@@ -122,15 +167,7 @@ export function ExtensionCard({
 								: "border-accent/30 text-accent hover:border-accent",
 						)}
 					>
-						{t(
-							installing || busy
-								? translation.Extensions.Working
-								: removable
-									? translation.Extensions.Remove
-									: status === "update-available"
-										? translation.Extensions.Update
-										: translation.Extensions.Install,
-						)}
+						{t(actionLabel(installing || busy, removable, status))}
 					</button>
 				</div>
 			</div>

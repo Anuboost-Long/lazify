@@ -24,7 +24,7 @@ export function useSonarScan(projectPath: string) {
 	 */
 	const apply = useCallback((next: SonarScanState) => {
 		setState((current) => {
-			if (!current || current.projectPath !== next.projectPath) return next;
+			if (current?.projectPath !== next.projectPath) return next;
 
 			const stale =
 				next.status === "running" && current.status === "running" && next.scanned < current.scanned;

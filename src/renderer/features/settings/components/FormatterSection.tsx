@@ -90,6 +90,9 @@ function SamplePreview({ defaults }: Readonly<{ defaults: FormatterDefaults }>) 
 	}, [defaults]);
 
 	const lines = useHighlightedLines(code.replace(/\n$/, ""), "typescript");
+	/** A line of a sample is identified by where it sits, so number them once. */
+	const numbered = lines.map((line, index) => ({ number: index + 1, line }));
+	const indent = defaults.useTabs ? "tab" : `${defaults.tabWidth}sp`;
 
 	return (
 		<div className="overflow-hidden rounded-2xl border border-border bg-terminal">
@@ -98,14 +101,14 @@ function SamplePreview({ defaults }: Readonly<{ defaults: FormatterDefaults }>) 
 					{t(translation.Settings.FormatPreview)}
 				</SmallText>
 				<MonoText as="span" className="!text-muted text-[11px]">
-					{`${defaults.printWidth}c · ${defaults.useTabs ? "tab" : `${defaults.tabWidth}sp`}`}
+					{`${defaults.printWidth}c · ${indent}`}
 				</MonoText>
 			</div>
 
 			<pre className="overflow-x-auto px-4 py-3">
 				<code className="block font-mono text-[12.5px] leading-[1.6]">
-					{lines.map((line, index) => (
-						<span key={index} className="block whitespace-pre">
+					{numbered.map(({ number, line }) => (
+						<span key={number} className="block whitespace-pre">
 							{line}
 						</span>
 					))}

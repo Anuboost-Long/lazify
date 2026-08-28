@@ -17,10 +17,10 @@ export interface ExtensionsState {
 	setEnabled: (id: string, enabled: boolean) => void;
 }
 
-const RUNNING_STAGES = ["queued", "downloading", "unpacking"];
+const RUNNING_STAGES = new Set(["queued", "downloading", "unpacking"]);
 
 export const isInstalling = (job: InstallJob | undefined): boolean =>
-	Boolean(job && RUNNING_STAGES.includes(job.stage));
+	Boolean(job && RUNNING_STAGES.has(job.stage));
 
 /**
  * The extensions, and what is being downloaded for them.

@@ -14,7 +14,7 @@ interface PackageRowProps {
 	onRemove: () => void;
 }
 
-export function PackageRow({ pkg, removing, disabled, onRemove }: PackageRowProps) {
+export function PackageRow({ pkg, removing, disabled, onRemove }: Readonly<PackageRowProps>) {
 	const { t } = useTranslation();
 
 	return (

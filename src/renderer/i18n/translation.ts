@@ -847,6 +847,7 @@ export const translation = {
 		RunningCount: "scripts_pane.running_count",
 		RunningCountOne: "scripts_pane.running_count_one",
 		RunningCountOther: "scripts_pane.running_count_other",
+		ResizeTerminal: "scripts_pane.resize_terminal",
 	},
 	DependencyPane: {
 		Title: "dependency_pane.title",

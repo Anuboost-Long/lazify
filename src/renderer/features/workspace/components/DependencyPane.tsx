@@ -21,7 +21,7 @@ interface DependencyPaneProps {
 
 // ─── Package row ─────────────────────────────────────────────────────────────
 
-export function DependencyPane({ projectPath }: DependencyPaneProps) {
+export function DependencyPane({ projectPath }: Readonly<DependencyPaneProps>) {
 	const { t } = useTranslation();
 
 	const [packages, setPackages] = useState<InstalledPackage[]>([]);

@@ -11,7 +11,10 @@ interface SettingsNavigationProps {
 	onSectionChange: (section: SettingsSection) => void;
 }
 
-export function SettingsNavigation({ activeSection, onSectionChange }: SettingsNavigationProps) {
+export function SettingsNavigation({
+	activeSection,
+	onSectionChange,
+}: Readonly<SettingsNavigationProps>) {
 	const { t } = useTranslation();
 
 	return (

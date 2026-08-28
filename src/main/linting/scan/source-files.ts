@@ -71,7 +71,7 @@ function test(relativePath: string): boolean {
 function gitFiles(projectPath: string): string[] | null {
 	try {
 		const listing = execFileSync(
-			"git",
+			"git", // NOSONAR: git lives at a different absolute path on every platform, so PATH is the only portable way to find it
 			["ls-files", "--cached", "--others", "--exclude-standard", "-z"],
 			{
 				cwd: projectPath,
