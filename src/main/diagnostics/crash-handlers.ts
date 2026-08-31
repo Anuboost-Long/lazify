@@ -16,38 +16,72 @@ let shuttingDown = false;
 /** How long `will-quit` cleanup gets before the exit is forced. */
 const QUIT_GRACE_MS = 3000;
 
+/**
+ * Closing the terminal that ran `yarn dev` breaks stdout under a process that
+ * is otherwise healthy. Nothing is corrupted, so the write is dropped rather
+ * than taken as a reason to put a crash dialog on screen.
+ */
+const BROKEN_PIPE_CODES = new Set(["EPIPE", "ERR_STREAM_DESTROYED", "ERR_STREAM_WRITE_AFTER_END"]);
+
+function isBrokenPipe(error: unknown): boolean {
+	return BROKEN_PIPE_CODES.has((error as NodeJS.ErrnoException)?.code ?? "");
+}
+
+/**
+ * Signals the app is expected to die from: closing the terminal, `kill`, and
+ * Ctrl+C. Electron does not turn these into a quit on its own, so `will-quit`
+ * never ran and every language server it started was left orphaned — still
+ * holding pipes to a terminal that had gone.
+ */
+const EXIT_SIGNALS = ["SIGHUP", "SIGINT", "SIGTERM"] as const;
+
 export function installCrashHandlers() {
-  crashReporter.start({ uploadToServer: false });
+	crashReporter.start({ uploadToServer: false });
 
-  logInfo(
-    "app",
-    `Lazify ${app.getVersion()} starting on ${process.platform}/${process.arch}, Electron ${process.versions.electron}`
-  );
+	logInfo(
+		"app",
+		`Lazify ${app.getVersion()} starting on ${process.platform}/${process.arch}, Electron ${process.versions.electron}`,
+	);
 
-  app.on("before-quit", () => {
-    shuttingDown = true;
-  });
+	app.on("before-quit", () => {
+		shuttingDown = true;
+	});
 
-  process.on("uncaughtException", (error) => {
-    handleFatalError("main", error);
-  });
+	process.on("uncaughtException", (error) => {
+		if (isBrokenPipe(error)) {
+			logError("main", "Dropped a write to a closed pipe", error);
+			return;
+		}
 
-  // Deliberately *not* fatal. An unawaited promise that rejects is usually a
-  // failed fetch or a cancelled read, not a corrupted process — killing the
-  // app over one would throw away work for something it recovers from on its
-  // own. It still gets written down, which is what makes it findable later.
-  process.on("unhandledRejection", (reason) => {
-    logError("main", "Unhandled rejection", reason);
-  });
+		handleFatalError("main", error);
+	});
 
-  // Utility and GPU processes dying is usually why the window went strange.
-  // Chromium restarts these on its own, so this is a note, not an ending.
-  app.on("child-process-gone", (_event, details) => {
-    logError(
-      "child-process",
-      `${details.type} process gone: ${details.reason} (exit ${details.exitCode})`
-    );
-  });
+	for (const signal of EXIT_SIGNALS) {
+		process.on(signal, () => {
+			if (shuttingDown) return;
+
+			shuttingDown = true;
+			logInfo("app", `Received ${signal}, shutting down`);
+			quitWithGrace();
+		});
+	}
+
+	// Deliberately *not* fatal. An unawaited promise that rejects is usually a
+	// failed fetch or a cancelled read, not a corrupted process — killing the
+	// app over one would throw away work for something it recovers from on its
+	// own. It still gets written down, which is what makes it findable later.
+	process.on("unhandledRejection", (reason) => {
+		logError("main", "Unhandled rejection", reason);
+	});
+
+	// Utility and GPU processes dying is usually why the window went strange.
+	// Chromium restarts these on its own, so this is a note, not an ending.
+	app.on("child-process-gone", (_event, details) => {
+		logError(
+			"child-process",
+			`${details.type} process gone: ${details.reason} (exit ${details.exitCode})`,
+		);
+	});
 }
 
 /**
@@ -60,38 +94,38 @@ export function installCrashHandlers() {
  * rather than abandoning the shadow repos and terminals mid-flight.
  */
 export function handleFatalError(scope: string, error: unknown) {
-  // A second failure while the first is still unwinding must not re-prompt.
-  if (shuttingDown) {
-    logError(scope, "Further error while shutting down", error);
-    return;
-  }
+	// A second failure while the first is still unwinding must not re-prompt.
+	if (shuttingDown) {
+		logError(scope, "Further error while shutting down", error);
+		return;
+	}
 
-  shuttingDown = true;
-  logError(scope, "Fatal error, shutting down", error);
+	shuttingDown = true;
+	logError(scope, "Fatal error, shutting down", error);
 
-  // Before the app is ready there is no window to parent a dialog to and no
-  // cleanup worth running. The log is already on disk, so just go.
-  if (!app.isReady()) {
-    app.exit(1);
-    return;
-  }
+	// Before the app is ready there is no window to parent a dialog to and no
+	// cleanup worth running. The log is already on disk, so just go.
+	if (!app.isReady()) {
+		app.exit(1);
+		return;
+	}
 
-  const choice = dialog.showMessageBoxSync({
-    type: "error",
-    title: "Lazify has to close",
-    message: "Lazify hit an error it can't recover from.",
-    detail: `Nothing was sent anywhere. The details were written to:\n${getLogFilePath()}`,
-    buttons: ["Quit", "Show log"],
-    defaultId: 0,
-    cancelId: 0,
-    noLink: true,
-  });
+	const choice = dialog.showMessageBoxSync({
+		type: "error",
+		title: "Lazify has to close",
+		message: "Lazify hit an error it can't recover from.",
+		detail: `Nothing was sent anywhere. The details were written to:\n${getLogFilePath()}`,
+		buttons: ["Quit", "Show log"],
+		defaultId: 0,
+		cancelId: 0,
+		noLink: true,
+	});
 
-  if (choice === 1) {
-    shell.showItemInFolder(getLogFilePath());
-  }
+	if (choice === 1) {
+		shell.showItemInFolder(getLogFilePath());
+	}
 
-  quitWithGrace();
+	quitWithGrace();
 }
 
 /**
@@ -99,58 +133,55 @@ export function handleFatalError(scope: string, error: unknown) {
  * broken app on screen — at which point exiting hard is the kinder outcome.
  */
 function quitWithGrace() {
-  app.quit();
-  setTimeout(() => app.exit(1), QUIT_GRACE_MS);
+	app.quit();
+	setTimeout(() => app.exit(1), QUIT_GRACE_MS);
 }
 
 /** The renderer's own failures, which the main process never sees otherwise. */
 export function watchWindowCrashes(window: BrowserWindow) {
-  window.webContents.on("render-process-gone", (_event, details) => {
-    logError(
-      "renderer",
-      `Render process gone: ${details.reason} (exit ${details.exitCode})`
-    );
+	window.webContents.on("render-process-gone", (_event, details) => {
+		logError("renderer", `Render process gone: ${details.reason} (exit ${details.exitCode})`);
 
-    // "clean-exit" is what a normal quit looks like from here, and a crash
-    // during shutdown is already being handled.
-    if (shuttingDown || details.reason === "clean-exit") {
-      return;
-    }
+		// "clean-exit" is what a normal quit looks like from here, and a crash
+		// during shutdown is already being handled.
+		if (shuttingDown || details.reason === "clean-exit") {
+			return;
+		}
 
-    // Unlike a dead main process, this one is genuinely recoverable — the
-    // window reloads into a fresh renderer. Offer that before quitting, or the
-    // user is left staring at a blank frame with no way forward.
-    const choice = dialog.showMessageBoxSync(window, {
-      type: "error",
-      title: "Lazify stopped responding",
-      message: "The Lazify window crashed.",
-      detail: `Reloading usually recovers it. Details were written to:\n${getLogFilePath()}`,
-      buttons: ["Reload", "Quit"],
-      defaultId: 0,
-      cancelId: 0,
-      noLink: true,
-    });
+		// Unlike a dead main process, this one is genuinely recoverable — the
+		// window reloads into a fresh renderer. Offer that before quitting, or the
+		// user is left staring at a blank frame with no way forward.
+		const choice = dialog.showMessageBoxSync(window, {
+			type: "error",
+			title: "Lazify stopped responding",
+			message: "The Lazify window crashed.",
+			detail: `Reloading usually recovers it. Details were written to:\n${getLogFilePath()}`,
+			buttons: ["Reload", "Quit"],
+			defaultId: 0,
+			cancelId: 0,
+			noLink: true,
+		});
 
-    if (choice === 0) {
-      logInfo("renderer", "Reloading after a crash");
-      window.reload();
-      return;
-    }
+		if (choice === 0) {
+			logInfo("renderer", "Reloading after a crash");
+			window.reload();
+			return;
+		}
 
-    shuttingDown = true;
-    quitWithGrace();
-  });
+		shuttingDown = true;
+		quitWithGrace();
+	});
 
-  window.webContents.on("unresponsive", () => {
-    logError("renderer", "Window stopped responding");
-  });
+	window.webContents.on("unresponsive", () => {
+		logError("renderer", "Window stopped responding");
+	});
 
-  window.webContents.on("responsive", () => {
-    logInfo("renderer", "Window responsive again");
-  });
+	window.webContents.on("responsive", () => {
+		logInfo("renderer", "Window responsive again");
+	});
 }
 
 /** Test seam: the module-level shutdown latch is deliberately sticky. */
 export function resetShutdownStateForTests() {
-  shuttingDown = false;
+	shuttingDown = false;
 }

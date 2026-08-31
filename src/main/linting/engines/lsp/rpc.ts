@@ -23,10 +23,19 @@ export function connect(child: ChildProcess): RpcConnection {
 	let requestHandler: (method: string, params: unknown) => unknown = () => null;
 	let notificationHandler: (method: string, params: unknown) => void = () => undefined;
 
+	// A server that has gone takes its pipes with it. Writing to one raises an
+	// error event, and an unheard one would take the whole app down with it.
+	const ignoreBrokenPipe = () => undefined;
+
+	child.stdin?.on("error", ignoreBrokenPipe);
+	child.stdout?.on("error", ignoreBrokenPipe);
+
 	const write = (message: object) => {
+		if (!child.stdin?.writable) return;
+
 		const body = JSON.stringify({ jsonrpc: "2.0", ...message });
 
-		child.stdin?.write(`Content-Length: ${Buffer.byteLength(body)}${HEADER_END}${body}`);
+		child.stdin.write(`Content-Length: ${Buffer.byteLength(body)}${HEADER_END}${body}`);
 	};
 
 	let buffer = Buffer.alloc(0);
