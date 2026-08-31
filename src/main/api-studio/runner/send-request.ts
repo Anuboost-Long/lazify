@@ -1,5 +1,6 @@
 import { buildMultipartBody } from "./multipart-body";
 import { fileNameFor, isTextual, writeResponseFile, type ResponseFile } from "./response-file";
+import { apiRequestDispatcher } from "./tls-trust";
 import type { ApiRequestDraft, ApiResponseSummary, ApiSendOutcome, RequestHeader } from "./types";
 
 const TIMEOUT_MS = 30_000;
@@ -75,6 +76,8 @@ function failureMessage(error: unknown): string {
 	return message instanceof Error ? message.message : String(message);
 }
 
+type ApiRequestInit = RequestInit & { dispatcher?: typeof apiRequestDispatcher };
+
 type Payload =
 	{ body: string | Uint8Array | undefined; headers: RequestHeader[] } | { error: string };
 
@@ -110,13 +113,16 @@ export async function sendApiRequest(draft: ApiRequestDraft): Promise<ApiSendOut
 	}
 
 	try {
-		const response = await fetch(draft.url, {
+		const init: ApiRequestInit = {
 			method: draft.method,
 			headers: payload.headers.map((header) => [header.name, header.value] as [string, string]),
 			body: BODYLESS_METHODS.has(draft.method) ? undefined : (payload.body as RequestInit["body"]),
 			redirect: "follow",
 			signal: controller.signal,
-		});
+			dispatcher: apiRequestDispatcher,
+		};
+
+		const response = await fetch(draft.url, init);
 
 		const body = isTextual(response.headers.get("content-type"))
 			? await readBoundedBody(response)
