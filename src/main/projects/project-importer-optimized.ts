@@ -8,7 +8,7 @@ import type {
 	ProjectTreeNode,
 } from "../../renderer/shared/types/lazify";
 
-const IGNORED_DIRECTORY_NAMES = new Set([
+export const IGNORED_DIRECTORY_NAMES = new Set([
 	".git",
 	"node_modules",
 	"dist",
@@ -25,7 +25,7 @@ const IGNORED_DIRECTORY_NAMES = new Set([
 ]);
 const MAX_PREVIEW_BYTES = 256 * 1024;
 
-interface IgnoreRule {
+export interface IgnoreRule {
 	negated: boolean;
 	directoryOnly: boolean;
 	basenameOnly: boolean;
@@ -119,7 +119,7 @@ function compileIgnoreRule(rawPattern: string, baseRelativePath: string): Ignore
 	};
 }
 
-async function loadIgnoreRules(currentPath: string, baseRelativePath: string) {
+export async function loadIgnoreRules(currentPath: string, baseRelativePath: string) {
 	const gitignorePath = path.join(currentPath, ".gitignore");
 
 	try {
@@ -134,7 +134,7 @@ async function loadIgnoreRules(currentPath: string, baseRelativePath: string) {
 	}
 }
 
-function shouldIgnore(
+export function shouldIgnore(
 	relativePath: string,
 	entryName: string,
 	isDirectory: boolean,
@@ -164,7 +164,7 @@ function shouldIgnore(
  * explorer to check, so the tree lists them anyway. Only the explorer index
  * makes this exception — template exports keep honouring .gitignore.
  */
-function isEnvFile(entryName: string, isDirectory: boolean) {
+export function isEnvFile(entryName: string, isDirectory: boolean) {
 	return !isDirectory && (entryName === ".env" || entryName.startsWith(".env."));
 }
 

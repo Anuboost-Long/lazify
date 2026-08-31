@@ -34,6 +34,8 @@ import { useActiveFileContent } from "./synced-tree/use-active-file-content";
 
 export type { RevealTarget } from "./synced-tree/node-lookup";
 
+export type SidebarPanelId = "explorer" | "search" | "git";
+
 export function useSyncedProjectTree({
 	allowGitStatus = false,
 	editable = false,
@@ -45,7 +47,7 @@ export function useSyncedProjectTree({
 	project: ImportedProjectIndexResult;
 	reveal?: RevealTarget | null;
 }) {
-	const [activePanel, setActivePanel] = useState<"explorer" | "git">("explorer");
+	const [activePanel, setActivePanel] = useState<SidebarPanelId>("explorer");
 	const [showGitInfo, setShowGitInfo] = useState(false);
 	const [editableTree, setEditableTree] = useState<ImportedProjectIndexNode[]>(project.tree);
 	const [expandedIds, setExpandedIds] = useState<string[]>(() => []);
@@ -158,10 +160,20 @@ export function useSyncedProjectTree({
 		[openFiles, activeFilePath],
 	);
 
-	const activeFileNode = useMemo(
-		() => (activeTab ? findNodeByAbsolutePath(editableTree, activeTab.filePath) : null),
-		[editableTree, activeTab],
-	);
+	const activeFileNode = useMemo(() => {
+		if (!activeTab) return null;
+
+		return (
+			findNodeByAbsolutePath(editableTree, activeTab.filePath) ?? {
+				id: activeTab.path,
+				name: activeTab.name,
+				type: "file" as const,
+				relativePath: activeTab.name,
+				absolutePath: activeTab.filePath,
+				children: [],
+			}
+		);
+	}, [editableTree, activeTab]);
 
 	const selectedFileState = activeFilePath
 		? (fileCache[activeFilePath] ?? { status: "idle", content: "" })
@@ -205,6 +217,23 @@ export function useSyncedProjectTree({
 					],
 		);
 		setActiveFilePath(node.absolutePath);
+	};
+
+	const handleOpenSearchMatch = (absolutePath: string, name: string, line: number) => {
+		const node = findNodeByAbsolutePath(editableTree, absolutePath);
+
+		if (node) {
+			handleSelectNode(node);
+		} else {
+			setOpenFiles((current) =>
+				current.some((tab) => tab.path === absolutePath)
+					? current
+					: [...current, { path: absolutePath, name, kind: "file" as const, filePath: absolutePath }],
+			);
+			setActiveFilePath(absolutePath);
+		}
+
+		setSymbolTarget({ filePath: absolutePath, line });
 	};
 
 	const handleOpenDiff = (entry: GitStatusEntry) => {
@@ -469,6 +498,7 @@ export function useSyncedProjectTree({
 		handleDeleteNode,
 		handleOpenDiff,
 		handleOpenGitEntry,
+		handleOpenSearchMatch,
 		handleOpenSymbol,
 		focusLine:
 			symbolTarget && activeTab?.kind === "file" && activeTab.filePath === symbolTarget.filePath
