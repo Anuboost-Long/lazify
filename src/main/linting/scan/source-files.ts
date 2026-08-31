@@ -36,14 +36,23 @@ const TEST_FILE = /\.(test|spec)\.[^.]+$/i;
 const GIT_TIMEOUT_MS = 10_000;
 const GIT_MAX_BUFFER = 64 * 1024 * 1024;
 
-/** Past this a scan outlasts anyone's patience; what is left out is counted. */
-const MAX_FILES = 1000;
+/** One run's slice of the project, so a scan stays minutes rather than hours. */
+export const BATCH_SIZE = 1000;
+
+export interface ScanBatch {
+	/** 1-based and inclusive, counted over every analyzable file in path order. */
+	start: number;
+	end: number;
+	total: number;
+}
 
 export interface ScanFileSet {
 	files: string[];
 	/** Folders the files came from, relative to the project. */
 	roots: string[];
-	skipped: number;
+	batch: ScanBatch;
+	/** The file a clean batch hands on to; null once the last one is covered. */
+	nextCursor: string | null;
 }
 
 function analyzable(filePath: string): boolean {
@@ -108,13 +117,26 @@ function walk(directory: string, prefix: string, found: string[]): void {
 }
 
 /** The top folder a file sits in, so a report can say where it looked. */
-function rootOf(projectPath: string, filePath: string): string {
-	const segments = path.relative(projectPath, filePath).split(path.sep);
+function rootOf(relativePath: string): string {
+	const segments = relativePath.split("/");
 
 	return segments.length > 1 ? segments[0] : ".";
 }
 
-export function collectScanFiles(projectPath: string): ScanFileSet {
+/**
+ * Where this run picks up. A cursor names the file the last run handed on to;
+ * the first path at or after it survives that file being renamed or deleted
+ * between runs.
+ */
+function startIndex(found: string[], cursor: string | null): number {
+	if (!cursor) return 0;
+
+	const index = found.findIndex((relativePath) => relativePath.localeCompare(cursor) >= 0);
+
+	return index === -1 ? 0 : index;
+}
+
+export function collectScanFiles(projectPath: string, cursor: string | null = null): ScanFileSet {
 	const resolved = path.resolve(projectPath);
 	const walked: string[] = [];
 	const tracked = gitFiles(resolved);
@@ -125,18 +147,21 @@ export function collectScanFiles(projectPath: string): ScanFileSet {
 		.filter(
 			(relativePath) => analyzable(relativePath) && !installed(relativePath) && !test(relativePath),
 		)
-		.map((relativePath) => path.join(resolved, relativePath))
 		// `--cached` lists what the index holds, which outlives a deletion.
-		.filter((filePath) => fs.existsSync(filePath));
+		.filter((relativePath) => fs.existsSync(path.join(resolved, relativePath)));
 
 	/** Path order keeps a folder together, which is what a phase is cut along. */
 	found.sort((left, right) => left.localeCompare(right));
 
-	const roots = [...new Set(found.map((filePath) => rootOf(resolved, filePath)))];
+	const start = startIndex(found, cursor);
+	const slice = found.slice(start, start + BATCH_SIZE);
+	const end = start + slice.length;
+	const roots = [...new Set(slice.map(rootOf))];
 
 	return {
-		files: found.slice(0, MAX_FILES),
+		files: slice.map((relativePath) => path.join(resolved, relativePath)),
 		roots: roots.length > 0 ? roots : ["."],
-		skipped: Math.max(0, found.length - MAX_FILES),
+		batch: { start: slice.length === 0 ? 0 : start + 1, end, total: found.length },
+		nextCursor: end < found.length ? found[end] : null,
 	};
 }

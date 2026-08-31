@@ -62,6 +62,21 @@ beforeEach(() => {
 });
 
 describe("startSonarScan", () => {
+	it("holds its place while a batch has findings, and moves on once it is clean", async () => {
+		write("src/Loud.tsx");
+		write("src/Quiet.tsx");
+
+		const noisy = await startSonarScan(projectPath, () => {});
+		expect(noisy.report?.resumeFrom).toBe("src/Loud.tsx");
+		expect(noisy.report?.batch).toEqual({ start: 1, end: 2, total: 2 });
+
+		fs.rmSync(path.join(projectPath, "src/Loud.tsx"));
+
+		const clean = await startSonarScan(projectPath, () => {});
+		expect(clean.report?.findingCount).toBe(0);
+		expect(clean.report?.resumeFrom).toBeNull();
+	});
+
 	it("reports the files that had findings, and says which engines ran", async () => {
 		write("src/Loud.tsx");
 		write("src/Quiet.tsx");

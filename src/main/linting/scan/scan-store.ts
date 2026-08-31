@@ -14,7 +14,7 @@ import type { SonarScanReport } from "./types";
  */
 
 const REPORT_FILE = path.join(".lazify", "sonar-scan.json");
-const REPORT_VERSION = 1;
+const REPORT_VERSION = 2;
 
 interface StoredReport {
 	version: number;
@@ -27,7 +27,9 @@ export function readScanReport(projectPath: string): SonarScanReport | null {
 	try {
 		const stored = JSON.parse(fs.readFileSync(reportPath(projectPath), "utf8")) as StoredReport;
 
-		return stored?.version === REPORT_VERSION && Array.isArray(stored.report?.files)
+		return stored?.version === REPORT_VERSION &&
+			Array.isArray(stored.report?.files) &&
+			stored.report?.batch !== undefined
 			? stored.report
 			: null;
 	} catch {

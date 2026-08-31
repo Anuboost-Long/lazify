@@ -5,7 +5,7 @@ import path from "node:path";
 
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-import { collectScanFiles } from "../../../src/main/linting/scan/source-files";
+import { BATCH_SIZE, collectScanFiles } from "../../../src/main/linting/scan/source-files";
 
 /**
  * A scan reads what the project keeps, wherever it keeps it. Anything git was
@@ -87,6 +87,30 @@ describe("collectScanFiles", () => {
 
 		expect(scanned()).toEqual(["components/Panel.tsx"]);
 		expect(collectScanFiles(projectPath).roots).toEqual(["components"]);
+	});
+
+	it("reads one batch at a time, and resumes from the cursor it was handed", () => {
+		initRepo();
+		for (let index = 0; index < 1200; index += 1) {
+			write(`src/module-${String(index).padStart(4, "0")}.ts`);
+		}
+
+		const first = collectScanFiles(projectPath);
+		expect(first.files).toHaveLength(BATCH_SIZE);
+		expect(first.batch).toEqual({ start: 1, end: BATCH_SIZE, total: 1200 });
+		expect(first.nextCursor).toBe("src/module-1000.ts");
+
+		const second = collectScanFiles(projectPath, first.nextCursor);
+		expect(second.files).toHaveLength(200);
+		expect(second.batch).toEqual({ start: 1001, end: 1200, total: 1200 });
+		expect(second.nextCursor).toBeNull();
+	});
+
+	it("starts over when a cursor points past the files that are left", () => {
+		initRepo();
+		write("src/Panel.tsx");
+
+		expect(collectScanFiles(projectPath, "src/zzz-gone.ts").files).toHaveLength(1);
 	});
 
 	it("leaves the tests out, in their own folder or beside the code", () => {

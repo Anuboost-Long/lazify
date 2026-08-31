@@ -1,4 +1,5 @@
 import type { DiagnosticSource, FindingReference } from "../types";
+import type { ScanBatch } from "./source-files";
 
 /** One file's findings, named the way the report shows them. */
 export interface ScanFileFindings {
@@ -17,8 +18,16 @@ export interface SonarScanReport {
 	durationMs: number;
 	fileCount: number;
 	findingCount: number;
-	/** Files left unread, so a partial answer never reads as a complete one. */
+	/** Batch files left unread, so a stopped run never reads as a complete one. */
 	skippedCount: number;
+	/** Which slice of the project this run read. */
+	batch: ScanBatch;
+	/**
+	 * Where the next run starts. A batch that came back clean hands on to the
+	 * files after it; one that still has findings keeps its place, so the same
+	 * code is re-read until it is quiet. Null starts again from the first file.
+	 */
+	resumeFrom: string | null;
 	/** Only files with something to say — a clean file is not a row. */
 	files: ScanFileFindings[];
 }

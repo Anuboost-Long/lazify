@@ -1140,6 +1140,7 @@ export const translation = {
 		Skipped: "sonar_scan.skipped",
 		SkippedOne: "sonar_scan.skipped_one",
 		SkippedOther: "sonar_scan.skipped_other",
+		BatchPosition: "sonar_scan.batch_position",
 		ScannedAt: "sonar_scan.scanned_at",
 		Copy: "sonar_scan.copy",
 		Copied: "sonar_scan.copied",

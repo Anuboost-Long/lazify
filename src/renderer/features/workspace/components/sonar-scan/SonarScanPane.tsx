@@ -59,6 +59,15 @@ function ScanResults({
 				<CaptionText tone="muted" className="truncate">
 					{t(translation.SonarScan.ScannedAt, { when: scannedAt(report) })}
 				</CaptionText>
+				{report.batch.total > report.batch.end - report.batch.start + 1 ? (
+					<CaptionText tone="muted">
+						{t(translation.SonarScan.BatchPosition, {
+							from: report.batch.start,
+							to: report.batch.end,
+							total: report.batch.total,
+						})}
+					</CaptionText>
+				) : null}
 				{report.skippedCount > 0 ? (
 					<CaptionText tone="muted">
 						{t(translation.SonarScan.Skipped, { count: report.skippedCount })}

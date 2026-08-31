@@ -31,6 +31,9 @@ export function buildScanReportText(report: SonarScanReport): string {
 			report.files.length
 		} of ${report.fileCount} files`,
 		`Scanned ${scope} in ${report.projectPath} on ${report.scannedAt}`,
+		...(report.batch.total > report.batch.end - report.batch.start + 1
+			? [`Files ${report.batch.start}-${report.batch.end} of ${report.batch.total}.`]
+			: []),
 		...(report.skippedCount > 0 ? [`${report.skippedCount} files were not read.`] : []),
 		"",
 		...report.files.flatMap((file) => [file.path, ...file.findings.map(lineOf), ""]),

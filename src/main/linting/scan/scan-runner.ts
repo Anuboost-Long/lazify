@@ -104,7 +104,10 @@ export async function startSonarScan(
 		return publish({ ...idle(projectPath), status: "failed", failure: "no-engines" });
 	}
 
-	const { files, roots, skipped } = collectScanFiles(projectPath);
+	const { files, roots, batch, nextCursor } = collectScanFiles(
+		projectPath,
+		previous?.resumeFrom ?? null,
+	);
 
 	if (files.length === 0) {
 		return publish({ ...idle(projectPath), status: "failed", failure: "no-files" });
@@ -152,6 +155,9 @@ export async function startSonarScan(
 
 	found.sort((left, right) => left.path.localeCompare(right.path));
 
+	const findingCount = found.reduce((count, file) => count + file.findings.length, 0);
+	const covered = !stopped && findingCount === 0;
+
 	const report: SonarScanReport = {
 		projectPath,
 		roots,
@@ -159,8 +165,10 @@ export async function startSonarScan(
 		scannedAt: new Date().toISOString(),
 		durationMs: Date.now() - started,
 		fileCount: state.scanned,
-		findingCount: found.reduce((count, file) => count + file.findings.length, 0),
-		skippedCount: skipped + (files.length - state.scanned),
+		findingCount,
+		skippedCount: files.length - state.scanned,
+		batch,
+		resumeFrom: covered ? nextCursor : relativeTo(projectPath, files[0]),
 		files: found,
 	};
 
