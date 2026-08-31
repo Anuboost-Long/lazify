@@ -51,6 +51,7 @@ export const expressRules: FrameworkRules = {
 			/\brouter\.use\s*\(\s*[\w.]*(?:apiKey|apikey|ApiKey)\w*/,
 		],
 		guardNames: [
+			/(?:API_KEY_HEADER|APIKEY_HEADER|apiKeyHeader|headerName)\s*[:=]\s*['"`]([^'"`]+)['"`]/i,
 			/headers\s*\[\s*['"`]([^'"`]+)['"`]\s*\]/,
 			/header\s*\(\s*['"`]([^'"`]+)['"`]\s*\)/,
 			/get\s*\(\s*['"`](x-[\w-]+)['"`]\s*\)/i,

@@ -62,7 +62,12 @@ export const nestJsRules: FrameworkRules = {
 			/useGlobalGuards\s*\(\s*new\s+\w*ApiKey\w*/,
 			/provide\s*:\s*APP_GUARD[\s\S]{0,120}?useClass\s*:\s*\w*ApiKey\w*/,
 		],
-		guardNames: [/headers\s*\[\s*['"`]([^'"`]+)['"`]\s*\]/, /header\s*\(\s*['"`]([^'"`]+)['"`]\s*\)/],
+		guardNames: [
+			/addApiKey\s*\(\s*\{[^}]*name\s*:\s*['"`]([^'"`]+)['"`]/,
+			/(?:API_KEY_HEADER|APIKEY_HEADER|apiKeyHeader|headerName)\s*[:=]\s*['"`]([^'"`]+)['"`]/i,
+			/headers\s*\[\s*['"`]([^'"`]+)['"`]\s*\]/,
+			/header\s*\(\s*['"`]([^'"`]+)['"`]\s*\)/,
+		],
 		guardParameterName: "x-api-key",
 		hints: ["addApiKey", "ApiKey", "apiKey", "APP_GUARD", "securitySchemes"],
 	},

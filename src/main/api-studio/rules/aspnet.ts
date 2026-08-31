@@ -96,9 +96,11 @@ export const aspNetRules: FrameworkRules = {
 			/ServiceFilter\s*\(\s*typeof\s*\(\s*\w*ApiKey\w*/,
 		],
 		guardNames: [
+			/HeaderName\s*\{[^}]*\}\s*=\s*"([^"]+)"/,
 			/HeaderName\s*(?:=|=>)\s*"([^"]+)"/,
-			/Headers\s*\[\s*"([^"]+)"\s*\]/,
+			/HeaderName[^;\n]*\?\?\s*"([^"]+)"/,
 			/Headers\.TryGetValue\s*\(\s*"([^"]+)"/,
+			/Headers\s*\[\s*"([^"]+)"\s*\]/,
 		],
 		guardParameterName: "X-API-Key",
 		hints: ["AddSecurityDefinition", "ApiKey", "APIKey", "SecurityRequirement"],

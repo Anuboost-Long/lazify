@@ -72,6 +72,7 @@ export const flaskRules: FrameworkRules = {
 			/@\s*\w+\.before_request[\s\S]{0,200}?api_?key/i,
 		],
 		guardNames: [
+			/(?:API_KEY_HEADER|API_KEY_NAME|HEADER_NAME)\s*=\s*['"]([^'"]+)['"]/i,
 			/headers\s*\.\s*get\s*\(\s*['"]([^'"]+)['"]/,
 			/headers\s*\[\s*['"]([^'"]+)['"]\s*\]/,
 		],
