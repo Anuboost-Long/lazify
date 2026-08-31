@@ -1,6 +1,8 @@
+import { createPortal } from "react-dom";
+import { useTranslation } from "react-i18next";
+
 import { translation } from "@renderer/i18n/translation";
 import { PillText } from "@renderer/shared/typography";
-import { useTranslation } from "react-i18next";
 
 interface TreeContextMenuProps {
   position: { x: number; y: number } | null;
@@ -71,7 +73,13 @@ export function TreeContextMenu({
   const left = Math.min(position.x, globalThis.innerWidth - MENU_WIDTH - 12);
   const top = Math.min(position.y, globalThis.innerHeight - menuHeight - 12);
 
-  return (
+  /**
+   * Into the body, not beside the row it belongs to. A modal wrapper carries a
+   * transform while it animates in, and a transform makes its box the
+   * containing block for anything `fixed` inside it — which would resolve
+   * these viewport coordinates against the panel instead of the window.
+   */
+  return createPortal(
     <div
       className="fixed z-30 min-w-[10.5rem] rounded-[16px] border border-border bg-soft p-2 shadow-panel"
       style={{ left, top }}
@@ -91,6 +99,7 @@ export function TreeContextMenu({
           ) : null}
         </button>
       ))}
-    </div>
+    </div>,
+    document.body,
   );
 }
