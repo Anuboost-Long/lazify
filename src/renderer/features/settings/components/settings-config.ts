@@ -148,5 +148,12 @@ export const TIME_FORMAT_OPTIONS = [
 	{ id: "24h", label: "24-hour" },
 ] as const;
 
+export const CLOCK_STYLE_OPTIONS = [
+	{ id: "digital", label: "Digital" },
+	{ id: "analog", label: "Analog" },
+	{ id: "both", label: "Both" },
+] as const;
+
 export type DateFormatId = (typeof DATE_FORMAT_OPTIONS)[number]["id"];
 export type TimeFormatId = (typeof TIME_FORMAT_OPTIONS)[number]["id"];
+export type ClockStyleId = (typeof CLOCK_STYLE_OPTIONS)[number]["id"];

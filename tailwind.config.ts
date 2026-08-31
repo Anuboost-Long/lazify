@@ -44,6 +44,11 @@ export default {
 				drift: "drift 14s ease-in-out infinite",
 				fadeIn: "fadeIn 420ms ease-out forwards",
 				pulseLine: "pulseLine 2.6s ease-in-out infinite",
+				// `backwards` matters: without it an element sits in its resting state
+				// through `animation-delay` — a full-size filled disc — instead of the
+				// 0% frame it is meant to start from.
+				ripple: "ripple 9s ease-out infinite backwards",
+				splash: "splash 9s ease-out infinite backwards",
 			},
 			keyframes: {
 				fadeIn: {
@@ -57,6 +62,17 @@ export default {
 				pulseLine: {
 					"0%, 100%": { opacity: "0.4" },
 					"50%": { opacity: "1" },
+				},
+				ripple: {
+					"0%": { transform: "translate(-50%, -50%) scale(0.08)", opacity: "0" },
+					"14%": { opacity: "0.7" },
+					"60%": { opacity: "0.4" },
+					"100%": { transform: "translate(-50%, -50%) scale(1)", opacity: "0" },
+				},
+				splash: {
+					"0%": { transform: "translate(-50%, -50%) scale(0.05)", opacity: "0.3" },
+					"30%": { transform: "translate(-50%, -50%) scale(0.3)", opacity: "0" },
+					"100%": { transform: "translate(-50%, -50%) scale(0.3)", opacity: "0" },
 				},
 			},
 		},
