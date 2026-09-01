@@ -9,12 +9,13 @@ import {
 	ArrowRight,
 	Bot,
 	Boxes,
-	Code2,
-	Eye,
-	GitBranch,
 	Heart,
+	LayoutGrid,
 	MonitorPlay,
+	Network,
+	ScanSearch,
 	ShieldCheck,
+	Sparkles,
 	Terminal,
 	TerminalSquare,
 	Wrench,
@@ -25,19 +26,19 @@ const capabilities = [
 		icon: Bot,
 		title: "Agents that work where your code lives",
 		description:
-			"Run Codex, Claude, or your own CLI agent inside the project it is changing. Conversations, files, diffs, and usage stay in one place.",
+			"Run Claude, Codex, or your own CLI agent inside the project it is changing. Sessions, files, diffs, and how much of your rate limit is left all stay in one place.",
 	},
 	{
 		icon: MonitorPlay,
-		title: "Run and preview without leaving",
+		title: "Run it and watch it in the same window",
 		description:
-			"Launch your dev script, detect its local port, and inspect the result beside the agent doing the work.",
+			"Start your dev script, open the port it just printed, and keep the running app beside the agent doing the work.",
 	},
 	{
-		icon: GitBranch,
-		title: "Review every change with context",
+		icon: ScanSearch,
+		title: "Findings become work, not a backlog",
 		description:
-			"Read files, inspect session diffs, switch branches, and understand what changed before anything ships.",
+			"SonarQube for IDE reads the project, and a scan splits into phased tasks an agent can pick up one at a time.",
 	},
 ];
 
@@ -48,9 +49,19 @@ const workspaceFeatures = [
 		detail: "Agents and scripts stay scoped to the right project.",
 	},
 	{
-		icon: Eye,
-		label: "Live localhost preview",
-		detail: "See the product update while the task is still running.",
+		icon: LayoutGrid,
+		label: "Live monitor",
+		detail: "Every agent and dev server, from every project, on one grid.",
+	},
+	{
+		icon: Network,
+		label: "API Studio",
+		detail: "Routes read from your source, linked to the line that defines them.",
+	},
+	{
+		icon: Sparkles,
+		label: "Prompt presets",
+		detail: "The same task becomes the same instructions every time.",
 	},
 	{
 		icon: Boxes,
@@ -59,18 +70,13 @@ const workspaceFeatures = [
 	},
 	{
 		icon: Wrench,
-		label: "Local environment tools",
-		detail: "Runtimes, package managers, dependencies, and ports—visible.",
+		label: "Local toolchain",
+		detail: "Runtimes, package managers, and agent CLIs with their versions.",
 	},
 	{
 		icon: ShieldCheck,
 		label: "Bounded autopilot",
 		detail: "Routine prompts move forward; risky decisions still wait for you.",
-	},
-	{
-		icon: Code2,
-		label: "Files and diffs",
-		detail: "Open paths from agent output and inspect the exact source.",
 	},
 ];
 
@@ -80,22 +86,21 @@ export default function Home() {
 			<SiteHeader />
 
 			<section className="hero-grid relative px-5 pb-24 pt-40 sm:px-8 lg:pt-48">
-				<div className="hero-glow pointer-events-none absolute left-1/2 top-0 h-[720px] w-[960px] -translate-x-1/2" />
+				<div className="hero-glow pointer-events-none absolute left-1/2 top-0 h-180 w-240 -translate-x-1/2" />
 				<div className="relative mx-auto max-w-7xl">
 					<div className="mx-auto max-w-5xl text-center">
-						<div className="reveal reveal-1 mb-7 inline-flex items-center gap-2 rounded-full border border-emerald-300/20 bg-emerald-300/[.06] px-3 py-1.5 font-mono text-[10px] uppercase tracking-[.18em] text-emerald-200">
-							<span className="h-1.5 w-1.5 rounded-full bg-emerald-300 shadow-[0_0_12px_#6ee7b7]" />
+						<div className="reveal reveal-1 mb-7 inline-flex items-center gap-2 rounded-full border border-emerald-300/20 bg-emerald-300/6 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[.18em] text-emerald-200">
+							<span className="h-1.5 w-1.5 rounded-full bg-emerald-300 shadow-[0_0_12px_#6ee7b7]" />{" "}
 							Desktop workspace for developers
 						</div>
 
 						<h1 className="reveal reveal-2 text-balance font-display text-[clamp(3.4rem,8vw,7.4rem)] font-semibold leading-[.94] tracking-[.005em] text-[#f4f3ed]">
-							Build, run, and review.
-							<span className="mt-2 block text-emerald-300">All in Lazify.</span>
+							Build, run, and review. <span className="mt-2 block text-emerald-300">All in Lazify.</span>
 						</h1>
 
 						<p className="reveal reveal-3 mx-auto mt-8 max-w-2xl text-balance text-base leading-7 text-stone-400 sm:text-lg">
-							One desktop command center for your projects, coding agents, terminals, live previews,
-							templates, and local development tools.
+							One desktop command center for your projects, coding agents, terminals, live previews, code
+							analysis, and the API you are building.
 						</p>
 
 						<div className="reveal reveal-4 mt-9 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center">
@@ -106,10 +111,10 @@ export default function Home() {
 								href="#download"
 								className={clsx(
 									"inline-flex min-h-12 items-center justify-center gap-3 rounded-xl",
-									"bg-white/[.05] text-white",
+									"bg-white/5 text-white",
 									"border border-white/12",
 									"px-5 py-3 text-sm font-bold",
-									"transition-[transform,background-color] hover:-translate-y-0.5 hover:bg-white/[.09]",
+									"transition-[transform,background-color] hover:-translate-y-0.5 hover:bg-white/9",
 								)}
 							>
 								<Terminal size={16} className="opacity-70" /> Install from Terminal
@@ -132,7 +137,7 @@ export default function Home() {
 
 			<section
 				id="features"
-				className="scroll-mt-24 border-y border-white/[.08] bg-[#0b1411] px-5 py-28 sm:px-8 lg:py-36"
+				className="scroll-mt-24 border-y border-white/8 bg-[#0b1411] px-5 py-28 sm:px-8 lg:py-36"
 			>
 				<div className="mx-auto max-w-7xl">
 					<div className="max-w-3xl">
@@ -156,7 +161,7 @@ export default function Home() {
 									key={capability.title}
 									className={clsx(
 										"grid items-start gap-6 rounded-2xl sm:grid-cols-[64px_1fr] sm:items-center",
-										"bg-white/[.025]",
+										"bg-white/2.5",
 										"border border-white/10",
 										"p-6 sm:p-8",
 									)}
@@ -180,7 +185,7 @@ export default function Home() {
 				</div>
 			</section>
 
-			<section className="border-b border-white/[.08] bg-[#08100e] px-5 py-28 text-stone-100 sm:px-8 lg:py-36">
+			<section className="border-b border-white/8 bg-[#08100e] px-5 py-28 text-stone-100 sm:px-8 lg:py-36">
 				<div className="mx-auto max-w-7xl">
 					<div className="max-w-3xl">
 						<p className="eyebrow">Everything close at hand</p>
@@ -201,7 +206,7 @@ export default function Home() {
 							return (
 								<div
 									key={feature.label}
-									className="rounded-2xl border border-white/10 bg-white/[.025] p-6 sm:p-7"
+									className="rounded-2xl border border-white/10 bg-white/2.5 p-6 sm:p-7"
 								>
 									<Icon size={20} strokeWidth={1.6} className="text-emerald-300" />
 									<h3 className="mt-6 font-display text-xl font-semibold text-white">{feature.label}</h3>
@@ -220,9 +225,9 @@ export default function Home() {
 					href="/donate"
 					className={clsx(
 						"mx-auto flex max-w-7xl flex-col items-center gap-4 rounded-2xl sm:flex-row sm:justify-between",
-						"border border-rose-300/20 bg-rose-300/[.05]",
+						"border border-rose-300/20 bg-rose-300/5",
 						"px-6 py-6 text-center sm:px-8 sm:text-left",
-						"transition-colors hover:bg-rose-300/[.09]",
+						"transition-colors hover:bg-rose-300/9",
 					)}
 				>
 					<div className="flex items-center gap-4">
@@ -243,7 +248,7 @@ export default function Home() {
 			</section>
 
 			<footer className="px-5 pb-10 pt-6 sm:px-8">
-				<div className="mx-auto flex max-w-7xl flex-col gap-6 border-t border-white/[.08] pt-8 sm:flex-row sm:items-center sm:justify-between">
+				<div className="mx-auto flex max-w-7xl flex-col gap-6 border-t border-white/8 pt-8 sm:flex-row sm:items-center sm:justify-between">
 					<div className="flex items-center gap-2.5 text-sm font-semibold">
 						<BrandIcon size={28} className="rounded-lg" /> Lazify
 					</div>
