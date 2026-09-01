@@ -1,5 +1,4 @@
-import path from "node:path";
-
+import { projectRelative } from "./relative-path";
 import type { Diagnostic, LintResult } from "./types";
 
 /**
@@ -25,12 +24,6 @@ function engineOf(results: LintResult[]): string {
 	);
 
 	return sources.size === 1 ? (ENGINE_NAME[[...sources][0]] ?? "Code quality") : "Code quality";
-}
-
-function relativeTo(projectPath: string, filePath: string): string {
-	const relative = path.relative(projectPath, filePath);
-
-	return relative && !relative.startsWith("..") ? relative : filePath;
 }
 
 function lineOf(diagnostic: Diagnostic): string {
@@ -60,7 +53,7 @@ export function buildLintReport(results: LintResult[], projectPath: string): str
 		}:`,
 		"",
 		...found.flatMap((result) => [
-			relativeTo(projectPath, result.path),
+			projectRelative(projectPath, result.path),
 			...result.diagnostics.map(lineOf),
 			"",
 		]),

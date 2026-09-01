@@ -21,13 +21,27 @@ vi.mock("node:os", async (importOriginal) => ({
 
 const { javaBinDirs, javaHomeOf } = await import("../../../src/main/environment/java-path");
 
-/** A runtime as SDKMAN lays one out: a version folder with a launcher in it. */
+const onWindows = process.platform === "win32";
+
+const LAUNCHER = onWindows ? "java.exe" : "java";
+
+/**
+ * A place the running platform actually looks: an installer's folder under
+ * Program Files on Windows, and SDKMAN's candidates everywhere else. Windows is
+ * pointed at the test's own tree through `ProgramFiles`, which is where the
+ * resolver reads that location from.
+ */
+const runtimeParent = onWindows
+	? path.join(home, "Java")
+	: path.join(home, ".sdkman", "candidates", "java");
+
+/** A runtime as an installer lays one out: a version folder with a launcher in it. */
 function installRuntime(version: string, withBinary = true) {
-	const binDir = path.join(home, ".sdkman", "candidates", "java", version, "bin");
+	const binDir = path.join(runtimeParent, version, "bin");
 
 	fs.mkdirSync(binDir, { recursive: true });
 
-	if (withBinary) fs.writeFileSync(path.join(binDir, "java"), "", { mode: 0o755 });
+	if (withBinary) fs.writeFileSync(path.join(binDir, LAUNCHER), "", { mode: 0o755 });
 
 	return binDir;
 }
@@ -39,11 +53,13 @@ function installRuntime(version: string, withBinary = true) {
 const installed = () => javaBinDirs().filter((dir) => dir.startsWith(home));
 
 beforeEach(() => {
-	fs.rmSync(path.join(home, ".sdkman"), { recursive: true, force: true });
+	vi.stubEnv("ProgramFiles", home);
+	fs.rmSync(runtimeParent, { recursive: true, force: true });
 });
 
 afterEach(() => {
-	fs.rmSync(path.join(home, ".sdkman"), { recursive: true, force: true });
+	vi.unstubAllEnvs();
+	fs.rmSync(runtimeParent, { recursive: true, force: true });
 });
 
 describe("javaBinDirs", () => {
