@@ -14,6 +14,8 @@ const mocks = vi.hoisted(() => ({
 	crashReporter: { start: vi.fn() },
 	logError: vi.fn(),
 	logInfo: vi.fn(),
+	silenceConsole: vi.fn(),
+	ignoreBrokenConsolePipe: vi.fn(),
 }));
 
 vi.mock("electron", () => ({
@@ -26,6 +28,8 @@ vi.mock("electron", () => ({
 vi.mock("../../src/main/diagnostics/logger", () => ({
 	logError: mocks.logError,
 	logInfo: mocks.logInfo,
+	silenceConsole: mocks.silenceConsole,
+	ignoreBrokenConsolePipe: mocks.ignoreBrokenConsolePipe,
 	getLogFilePath: () => "/tmp/lazify-test-logs/lazify.log",
 }));
 
@@ -187,6 +191,14 @@ describe("shutting down from the terminal", () => {
 
 		expect(mocks.dialog.showMessageBoxSync).not.toHaveBeenCalled();
 		expect(mocks.app.quit).not.toHaveBeenCalled();
+		// Writing the drop to the same dead pipe is what made this a loop.
+		expect(mocks.silenceConsole).toHaveBeenCalledOnce();
+	});
+
+	it("listens for the stream's own error, which no try/catch can reach", async () => {
+		await install();
+
+		expect(mocks.ignoreBrokenConsolePipe).toHaveBeenCalledOnce();
 	});
 
 	it("turns a terminal signal into a quit, so cleanup runs", async () => {

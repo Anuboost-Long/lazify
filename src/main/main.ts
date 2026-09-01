@@ -36,6 +36,10 @@ if (process.platform === "win32") {
 	app.setAppUserModelId("com.lazify.desktop");
 }
 
+if (app.isPackaged && !app.requestSingleInstanceLock()) {
+	app.exit(0);
+}
+
 let mainWindow: BrowserWindow | null = null;
 let stopAgentActivityWatch: (() => void) | null = null;
 
@@ -329,6 +333,15 @@ app.whenReady().then(() => {
 			showSplash();
 			mainWindow = createMainWindow();
 		}
+	});
+
+	app.on("second-instance", () => {
+		if (!mainWindow || mainWindow.isDestroyed()) return;
+
+		if (mainWindow.isMinimized()) mainWindow.restore();
+
+		mainWindow.show();
+		mainWindow.focus();
 	});
 });
 

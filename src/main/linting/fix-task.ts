@@ -1,6 +1,7 @@
 import path from "node:path";
 
 import { createTask, type Task, type TaskInput } from "../tasks";
+import { projectRelative } from "./relative-path";
 import type { FindingReference } from "./types";
 
 /**
@@ -34,14 +35,6 @@ function fenceLanguage(filePath: string): string {
 	return FENCE_LANGUAGE[extension] ?? extension;
 }
 
-function relativeTo(projectPath: string, filePath: string): string {
-	const relative = path.relative(projectPath, filePath);
-
-	// A file outside the project is named in full: a `../../` path would read as
-	// if it were somewhere in the tree.
-	return relative && !relative.startsWith("..") ? relative : filePath;
-}
-
 function spanOf({ diagnostic }: FindingReference): string {
 	return diagnostic.line === diagnostic.endLine
 		? `${diagnostic.line}`
@@ -55,7 +48,7 @@ function nameFor(findings: FindingReference[], projectPath: string): string {
 	const files = new Set(findings.map((finding) => finding.filePath));
 	const where =
 		files.size === 1
-			? `in ${relativeTo(projectPath, findings[0].filePath)}`
+			? `in ${projectRelative(projectPath, findings[0].filePath)}`
 			: `across ${files.size} files`;
 
 	return findings.length === 1
@@ -81,7 +74,7 @@ function descriptionFor(
 ): string {
 	const files = new Set(findings.map((finding) => finding.filePath));
 	const where =
-		files.size === 1 ? relativeTo(projectPath, findings[0].filePath) : `${files.size} files`;
+		files.size === 1 ? projectRelative(projectPath, findings[0].filePath) : `${files.size} files`;
 
 	return [
 		`${engineOf(findings)} reported ${findings.length} ${findings.length === 1 ? "finding" : "findings"} in ${where}.`,
@@ -97,7 +90,7 @@ function descriptionFor(
 function requirementsFor(findings: FindingReference[], projectPath: string): string[] {
 	return findings.map(
 		(finding) =>
-			`${ruleOf(finding)} · ${relativeTo(projectPath, finding.filePath)}:${spanOf(finding)} — ${finding.diagnostic.message}`,
+			`${ruleOf(finding)} · ${projectRelative(projectPath, finding.filePath)}:${spanOf(finding)} — ${finding.diagnostic.message}`,
 	);
 }
 
@@ -127,7 +120,7 @@ function snippetsSection(findings: FindingReference[], projectPath: string): str
 	for (const finding of findings) {
 		const fence = "```";
 		const block = [
-			`${relativeTo(projectPath, finding.filePath)}:${spanOf(finding)} (${ruleOf(finding)}), shown from line ${finding.snippetStartLine}:`,
+			`${projectRelative(projectPath, finding.filePath)}:${spanOf(finding)} (${ruleOf(finding)}), shown from line ${finding.snippetStartLine}:`,
 			`${fence}${fenceLanguage(finding.filePath)}`,
 			finding.snippet,
 			fence,

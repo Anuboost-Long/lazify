@@ -12,6 +12,21 @@ vi.mock("../../../src/main/environment/java-path", () => ({
 	javaHomeOf: (binDir: string) => binDir,
 }));
 
+/** What each stand-in launcher prints, keyed by the path the resolver runs. */
+const banners = new Map<string, string>();
+
+// Real launchers write their banner to stderr, and only a real one can be run:
+// a Windows runner cannot execute a shell script named java.exe. What is under
+// test is which candidate is chosen and how its banner is read, so the spawn
+// itself is answered here.
+vi.mock("node:child_process", () => ({
+	spawnSync: (command: string) => {
+		const banner = banners.get(command);
+
+		return banner ? { stderr: banner, stdout: "" } : { error: new Error("not a launcher") };
+	},
+}));
+
 const { findJavaRuntime, forgetJavaRuntime } =
 	await import("../../../src/main/extensions/java-runtime");
 
@@ -22,14 +37,16 @@ const originalPath = process.env.PATH;
 /** No `java` on it, so the bare-name fallback finds nothing either. */
 const emptyPath = fs.mkdtempSync(path.join(os.tmpdir(), "lazify-java-path-"));
 
-/** A stand-in `java` that answers `-version` the way a real one does. */
+const LAUNCHER = process.platform === "win32" ? "java.exe" : "java";
+
+/** A stand-in launcher that answers `-version` the way a real one does. */
 function fakeJavaHome(versionLine: string): string {
 	const home = fs.mkdtempSync(path.join(os.tmpdir(), "lazify-java-"));
-	const binary = path.join(home, "bin", "java");
+	const binary = path.join(home, "bin", LAUNCHER);
 
 	fs.mkdirSync(path.dirname(binary), { recursive: true });
-	// Real launchers write the banner to stderr, which is what the resolver reads.
-	fs.writeFileSync(binary, `#!/bin/sh\necho '${versionLine}' 1>&2\n`, { mode: 0o755 });
+	fs.writeFileSync(binary, "", { mode: 0o755 });
+	banners.set(binary, versionLine);
 
 	return home;
 }
@@ -56,7 +73,7 @@ describe("findJavaRuntime", () => {
 		process.env.JAVA_HOME = fakeJavaHome('openjdk version "21.0.4" 2024-07-16');
 
 		expect(findJavaRuntime(21, true)).toEqual({
-			path: path.join(process.env.JAVA_HOME, "bin", "java"),
+			path: path.join(process.env.JAVA_HOME, "bin", LAUNCHER),
 			major: 21,
 		});
 	});

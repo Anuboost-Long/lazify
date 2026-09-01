@@ -25,12 +25,15 @@ function camelCase(name: string) {
 		.join("");
 }
 
-export function variableNameForSecurity(security: RouteSecurity): string {
-	const rule = environmentPolicy.security[security.kind];
+export function parameterNameForSecurity(security: RouteSecurity): string {
+	return (
+		security.parameterName.trim() ||
+		(environmentPolicy.security[security.kind].defaultParameterName ?? "")
+	);
+}
 
-	return rule.nameFromParameter
-		? camelCase(security.parameterName)
-		: (rule.variable ?? security.kind);
+export function variableNameForSecurity(security: RouteSecurity): string {
+	return camelCase(parameterNameForSecurity(security)) || security.kind;
 }
 
 export function variableNameForHeader(headerName: string): string {
@@ -58,7 +61,11 @@ function upsert(
 		return;
 	}
 
-	variables.set(variable.key, { ...variable, name: variable.key, routeCount: 1 });
+	variables.set(variable.key, {
+		...variable,
+		name: variable.parameterName ?? variable.key,
+		routeCount: 1,
+	});
 }
 
 export function deriveEnvironmentVariables(routes: RouteEnvironmentSource[]): ApiVariable[] {
@@ -79,7 +86,7 @@ export function deriveEnvironmentVariables(routes: RouteEnvironmentSource[]): Ap
 				key: variableNameForSecurity(security),
 				secret: environmentPolicy.security[security.kind].secret,
 				location: security.location,
-				parameterName: security.parameterName,
+				parameterName: parameterNameForSecurity(security) || null,
 				defaultValue: null,
 				custom: false,
 			});
@@ -160,7 +167,9 @@ export function resolveVariable(
 	const variable = variables.find(
 		(candidate) => candidate.key === nameOrKey || candidate.name === nameOrKey,
 	);
-	const value = (variable ? values[variable.name] : values[nameOrKey])?.trim();
+	const value = (
+		variable ? (values[variable.key] ?? values[variable.name]) : values[nameOrKey]
+	)?.trim();
 
 	if (value) return value;
 

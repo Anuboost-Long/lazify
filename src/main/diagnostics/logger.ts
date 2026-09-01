@@ -79,21 +79,39 @@ function describe(detail: unknown): string {
 	}
 }
 
+let consoleIsOpen = true;
+
+export function silenceConsole() {
+	consoleIsOpen = false;
+}
+
+export function ignoreBrokenConsolePipe() {
+	for (const stream of [process.stdout, process.stderr]) {
+		stream.on("error", silenceConsole);
+	}
+}
+
+function writeToConsole(level: LogLevel, line: string) {
+	if (!consoleIsOpen || process.stdout.destroyed || process.stderr.destroyed) return;
+
+	try {
+		if (level === "error") {
+			console.error(line);
+		} else {
+			console.log(line);
+		}
+	} catch {
+		silenceConsole();
+	}
+}
+
 export function log(level: LogLevel, scope: string, message: string, detail?: unknown) {
 	const line = `${new Date().toISOString()} ${level.toUpperCase().padEnd(5)} [${scope}] ${message}${
 		detail === undefined ? "" : `\n${describe(detail)}`
 	}\n`;
 
 	// Still goes to the console, so `yarn dev` reads exactly as it always did.
-	try {
-		if (level === "error") {
-			console.error(line.trimEnd());
-		} else {
-			console.log(line.trimEnd());
-		}
-	} catch {
-		// Closing the dev terminal breaks stdout; a log line is not worth a crash.
-	}
+	writeToConsole(level, line.trimEnd());
 
 	try {
 		const file = getLogFilePath();
