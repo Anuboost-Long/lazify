@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import {
 	clampFrame,
@@ -9,6 +9,7 @@ import {
 } from "./window-frame";
 
 const FRAMES_STORAGE_KEY = "lazify-desktop-frames";
+const OPEN_STORAGE_KEY = "lazify-desktop-open-windows";
 
 export interface DesktopWindowState {
 	id: DesktopWindowId;
@@ -38,9 +39,30 @@ function persistFrames(frames: Partial<Record<DesktopWindowId, WindowFrame>>) {
 	}
 }
 
+function readOpenWindows(): DesktopWindowState[] {
+	try {
+		const stored = globalThis.localStorage.getItem(OPEN_STORAGE_KEY);
+
+		return stored ? (JSON.parse(stored) as DesktopWindowState[]) : [];
+	} catch {
+		// A desktop that comes back empty is a smaller loss than one that throws.
+		return [];
+	}
+}
+
+function persistOpenWindows(windows: DesktopWindowState[]) {
+	try {
+		globalThis.localStorage.setItem(OPEN_STORAGE_KEY, JSON.stringify(windows));
+	} catch {
+		// Private windows and cleared site data both land here.
+	}
+}
+
 export function useDesktopWindows(bounds: DesktopBounds) {
-	const [windows, setWindows] = useState<DesktopWindowState[]>([]);
-	const nextZ = useRef(0);
+	const [windows, setWindows] = useState<DesktopWindowState[]>(readOpenWindows);
+	const nextZ = useRef(windows.reduce((highest, window) => Math.max(highest, window.z), 0));
+
+	useEffect(() => persistOpenWindows(windows), [windows]);
 
 	const isOpen = useCallback(
 		(id: DesktopWindowId) => windows.some((window) => window.id === id),
@@ -65,7 +87,7 @@ export function useDesktopWindows(bounds: DesktopBounds) {
 			}
 
 			const stored = readStoredFrames()[id];
-			const frame = clampFrame(stored ?? defaultFrame(id, bounds), bounds);
+			const frame = clampFrame(stored ?? defaultFrame(id, bounds, windows.length), bounds);
 
 			nextZ.current += 1;
 			setWindows((current) => [
@@ -73,13 +95,15 @@ export function useDesktopWindows(bounds: DesktopBounds) {
 				{ id, frame, z: nextZ.current, minimized: false, maximized: false },
 			]);
 		},
-		[bounds, focusWindow, isOpen],
+		[bounds, focusWindow, isOpen, windows.length],
 	);
 
 	const closeWindow = useCallback(
 		(id: DesktopWindowId) => setWindows((current) => current.filter((window) => window.id !== id)),
 		[],
 	);
+
+	const closeAllWindows = useCallback(() => setWindows([]), []);
 
 	const toggleMinimized = useCallback(
 		(id: DesktopWindowId) =>
@@ -89,6 +113,20 @@ export function useDesktopWindows(bounds: DesktopBounds) {
 				),
 			),
 		[],
+	);
+
+	const frontmost = windows.reduce((highest, window) => Math.max(highest, window.z), 0);
+
+	const selectWindow = useCallback(
+		(id: DesktopWindowId) => {
+			const target = windows.find((window) => window.id === id);
+			if (!target) return;
+
+			if (target.minimized) openWindow(id);
+			else if (target.z === frontmost) toggleMinimized(id);
+			else focusWindow(id);
+		},
+		[focusWindow, frontmost, openWindow, toggleMinimized, windows],
 	);
 
 	const persistTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -117,10 +155,13 @@ export function useDesktopWindows(bounds: DesktopBounds) {
 
 	return {
 		windows,
+		frontmost,
 		isOpen,
 		openWindow,
 		closeWindow,
+		closeAllWindows,
 		focusWindow,
+		selectWindow,
 		toggleMinimized,
 		toggleMaximized,
 		setFrame,

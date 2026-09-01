@@ -6,18 +6,25 @@ import type { Task, TaskStatus } from "@main/tasks/types";
 import { appRoute, getAgentsRoute, getWorkspaceProjectRoute } from "@renderer/app/app-routes";
 import { translation } from "@renderer/i18n/translation";
 import type { SyncedWorkspaceProject } from "@renderer/shared/types/lazify";
-import type { UiIconName } from "@renderer/shared/ui/icons/UiIcon";
 import { ProjectPickerModal } from "@renderer/shared/ui/project-picker/ProjectPickerModal";
 
+import { useLiveAgentSessions } from "../../agents/hooks/use-live-agent-sessions";
 import { usePromptPresets } from "../../prompts";
 import { DeleteTaskConfirm } from "../../tasks/components/DeleteTaskConfirm";
 import { SendTaskModal } from "../../tasks/components/SendTaskModal";
 import { TaskDetailModal } from "../../tasks/components/TaskDetailModal";
+import { LiveAgentPanel } from "../components/LiveAgentPanel";
 import { ProjectsPanel } from "../components/ProjectsPanel";
 import { TasksPanel, type TaskFilter } from "../components/TasksPanel";
-import { HomeDesktop, type DesktopShortcut } from "../desktop/HomeDesktop";
+import { WatchAgentsModal } from "../components/WatchAgentsModal";
+import { HomeDesktop, type DesktopShortcut, type DesktopWindowTitle } from "../desktop/HomeDesktop";
 import { CustomizePanel } from "../desktop/personalize/CustomizePanel";
-import type { DesktopWindowId } from "../desktop/windows/window-frame";
+import {
+	agentRunId,
+	agentWindowId,
+	type DesktopWindowId,
+	type FixedWindowId,
+} from "../desktop/windows/window-frame";
 
 interface HomePageProps {
 	projects: SyncedWorkspaceProject[];
@@ -46,8 +53,11 @@ export function HomePage({
 	const { t } = useTranslation();
 	const navigate = useNavigate();
 	const { presets } = usePromptPresets();
+	const { sessions: liveAgents } = useLiveAgentSessions();
 
 	const [tasks, setTasks] = useState<Task[]>([]);
+	const [watchChoice, setWatchChoice] = useState(false);
+	const [requestedWindow, setRequestedWindow] = useState<DesktopWindowId | null>(null);
 	const [filter, setFilter] = useState<TaskFilter>("open");
 	const [pickingProject, setPickingProject] = useState(false);
 	const [sending, setSending] = useState<Task | null>(null);
@@ -56,6 +66,8 @@ export function HomePage({
 	const [editor, setEditor] = useState<{ task: Task | null; projectPath: string } | null>(null);
 	const opened = editor?.task ?? null;
 	const [deleting, setDeleting] = useState<Task | null>(null);
+
+	const clearWindowRequest = useCallback(() => setRequestedWindow(null), []);
 
 	const refresh = useCallback(async () => {
 		setTasks(await globalThis.lazify.listAllTasks());
@@ -99,6 +111,18 @@ export function HomePage({
 		navigate(getAgentsRoute(projectPath));
 	};
 
+	const leaveForAgents = () =>
+		activeProjectPath ? openAgents(activeProjectPath) : navigate(appRoute.agents);
+
+	const startAgents = () => {
+		if (liveAgents.length === 0) {
+			leaveForAgents();
+			return;
+		}
+
+		setWatchChoice(true);
+	};
+
 	const shortcuts: DesktopShortcut[] = [
 		{
 			id: "tasks",
@@ -116,7 +140,7 @@ export function HomePage({
 			id: "agents",
 			label: t(translation.Navigation.Agents),
 			icon: "code",
-			onSelect: () => (activeProjectPath ? openAgents(activeProjectPath) : navigate(appRoute.agents)),
+			onSelect: startAgents,
 		},
 		{
 			id: "workspace",
@@ -138,14 +162,35 @@ export function HomePage({
 		},
 	];
 
-	const windowTitles: Record<DesktopWindowId, { title: string; icon: UiIconName }> = {
+	const fixedWindowTitles: Record<FixedWindowId, DesktopWindowTitle> = {
 		tasks: { title: t(translation.Home.YourTasks), icon: "journal-page" },
 		projects: { title: t(translation.Agents.Projects), icon: "folder" },
 		customize: { title: t(translation.Home.Customize), icon: "sparks" },
 	};
 
+	const findSession = (id: DesktopWindowId) => {
+		const runId = agentRunId(id);
+		return runId ? (liveAgents.find((session) => session.runId === runId) ?? null) : null;
+	};
+
+	const windowTitle = (id: DesktopWindowId): DesktopWindowTitle => {
+		const runId = agentRunId(id);
+		if (!runId) return fixedWindowTitles[id as FixedWindowId];
+
+		const session = findSession(id);
+
+		return {
+			title: session ? session.label : t(translation.Home.AgentsWindow),
+			icon: "radar",
+		};
+	};
+
 	const renderWindow = (id: DesktopWindowId) => {
 		if (id === "customize") return <CustomizePanel />;
+
+		if (agentRunId(id)) {
+			return <LiveAgentPanel session={findSession(id)} onOpenAgents={openAgents} />;
+		}
 
 		if (id === "tasks") {
 			return (
@@ -183,14 +228,30 @@ export function HomePage({
 		<>
 			<HomeDesktop
 				shortcuts={shortcuts}
-				windowTitles={windowTitles}
+				windowTitle={windowTitle}
 				widgetData={{
 					now: new Date(),
 					openTasks: tasks.filter((task) => task.status !== "done").length,
 					doneTasks: tasks.filter((task) => task.status === "done").length,
 					projectCount: projects.length,
 				}}
+				requestedWindow={requestedWindow}
+				onWindowOpened={clearWindowRequest}
 				renderWindow={renderWindow}
+			/>
+
+			<WatchAgentsModal
+				open={watchChoice}
+				sessions={liveAgents}
+				onWatch={(runId) => {
+					setWatchChoice(false);
+					setRequestedWindow(agentWindowId(runId));
+				}}
+				onOpenAgents={() => {
+					setWatchChoice(false);
+					leaveForAgents();
+				}}
+				onClose={() => setWatchChoice(false)}
 			/>
 
 			<TaskDetailModal

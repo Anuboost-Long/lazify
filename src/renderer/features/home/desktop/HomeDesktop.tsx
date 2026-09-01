@@ -1,3 +1,4 @@
+import clsx from "clsx";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
 import type { UiIconName } from "@renderer/shared/ui/icons/UiIcon";
@@ -5,11 +6,20 @@ import type { UiIconName } from "@renderer/shared/ui/icons/UiIcon";
 import { DesktopClock } from "./clock/DesktopClock";
 import { DesktopIcon } from "./DesktopIcon";
 import { DesktopBackdrop } from "./personalize/DesktopBackdrop";
-import { useDesktopPersonalization } from "./personalize/use-desktop-personalization";
+import {
+	useDesktopPersonalization,
+	type DesktopIconPlacement,
+} from "./personalize/use-desktop-personalization";
 import { DesktopWidgets, type DesktopWidgetData } from "./widgets/DesktopWidgets";
+import { DesktopDock } from "./windows/DesktopDock";
 import { DesktopWindow } from "./windows/DesktopWindow";
 import { useDesktopWindows } from "./windows/use-desktop-windows";
-import type { DesktopBounds, DesktopWindowId } from "./windows/window-frame";
+import {
+	clampFrame,
+	DOCK_HEIGHT,
+	type DesktopBounds,
+	type DesktopWindowId,
+} from "./windows/window-frame";
 
 export interface DesktopShortcut {
 	id: string;
@@ -20,17 +30,32 @@ export interface DesktopShortcut {
 	onSelect?: () => void;
 }
 
+const PLACEMENT_CLASS: Record<Exclude<DesktopIconPlacement, "center">, string> = {
+	top: "inset-x-0 top-4 flex justify-center px-6",
+	left: "bottom-20 left-4 top-4 overflow-y-auto",
+	right: "bottom-20 right-4 top-4 overflow-y-auto",
+};
+
+export interface DesktopWindowTitle {
+	title: string;
+	icon: UiIconName;
+}
+
 interface HomeDesktopProps {
 	shortcuts: DesktopShortcut[];
-	windowTitles: Record<DesktopWindowId, { title: string; icon: UiIconName }>;
+	windowTitle: (id: DesktopWindowId) => DesktopWindowTitle;
 	widgetData: DesktopWidgetData;
+	requestedWindow?: DesktopWindowId | null;
+	onWindowOpened?: () => void;
 	renderWindow: (id: DesktopWindowId) => ReactNode;
 }
 
 export function HomeDesktop({
 	shortcuts,
-	windowTitles,
+	windowTitle,
 	widgetData,
+	requestedWindow,
+	onWindowOpened,
 	renderWindow,
 }: Readonly<HomeDesktopProps>) {
 	const surfaceRef = useRef<HTMLDivElement>(null);
@@ -43,16 +68,48 @@ export function HomeDesktop({
 		if (!surface) return;
 
 		const observer = new ResizeObserver(([entry]) =>
-			setBounds({ width: entry.contentRect.width, height: entry.contentRect.height }),
+			setBounds({
+				width: entry.contentRect.width,
+				height: Math.max(0, entry.contentRect.height - DOCK_HEIGHT),
+			}),
 		);
 
 		observer.observe(surface);
 		return () => observer.disconnect();
 	}, []);
 
-	const frontmost = desktop.windows.reduce<number>(
-		(highest, window) => Math.max(highest, window.z),
-		0,
+	const { openWindow } = desktop;
+
+	useEffect(() => {
+		if (!requestedWindow) return;
+
+		openWindow(requestedWindow);
+		onWindowOpened?.();
+	}, [onWindowOpened, openWindow, requestedWindow]);
+
+	const { frontmost } = desktop;
+	const placement = personalization.icons;
+
+	const shortcutIcons = (stacked: boolean) => (
+		<div
+			className={clsx(
+				"flex gap-2",
+				stacked ? "flex-col items-center" : "flex-wrap items-start justify-center",
+			)}
+		>
+			{shortcuts.map((shortcut) => (
+				<DesktopIcon
+					key={shortcut.id}
+					label={shortcut.label}
+					icon={shortcut.icon}
+					active={shortcut.windowId ? desktop.isOpen(shortcut.windowId) : false}
+					onOpen={() => {
+						if (shortcut.windowId) desktop.openWindow(shortcut.windowId);
+						else shortcut.onSelect?.();
+					}}
+				/>
+			))}
+		</div>
 	);
 
 	return (
@@ -64,33 +121,28 @@ export function HomeDesktop({
 			<DesktopBackdrop backdrop={personalization.backdrop} surface={surfaceRef} />
 
 			<div className="absolute inset-0 flex flex-col items-center justify-center gap-10 px-6">
-				<DesktopClock dimmed={desktop.windows.length > 0} />
+				<DesktopClock />
 
 				<DesktopWidgets widgets={personalization.widgets} data={widgetData} />
 
-				<div className="flex flex-wrap items-start justify-center gap-2">
-					{shortcuts.map((shortcut) => (
-						<DesktopIcon
-							key={shortcut.id}
-							label={shortcut.label}
-							icon={shortcut.icon}
-							active={shortcut.windowId ? desktop.isOpen(shortcut.windowId) : false}
-							onOpen={() => {
-								if (shortcut.windowId) desktop.openWindow(shortcut.windowId);
-								else shortcut.onSelect?.();
-							}}
-						/>
-					))}
-				</div>
+				{placement === "center" ? shortcutIcons(false) : null}
 			</div>
+
+			{placement === "center" ? null : (
+				<div className={clsx("absolute", PLACEMENT_CLASS[placement])}>
+					{shortcutIcons(placement !== "top")}
+				</div>
+			)}
 
 			{desktop.windows.map((window) => (
 				<DesktopWindow
 					key={window.id}
-					title={windowTitles[window.id].title}
-					icon={windowTitles[window.id].icon}
+					title={windowTitle(window.id).title}
+					icon={windowTitle(window.id).icon}
 					frame={
-						window.maximized ? { x: 0, y: 0, width: bounds.width, height: bounds.height } : window.frame
+						window.maximized
+							? { x: 0, y: 0, width: bounds.width, height: bounds.height }
+							: clampFrame(window.frame, bounds)
 					}
 					bounds={bounds}
 					z={window.z}
@@ -106,6 +158,21 @@ export function HomeDesktop({
 					{renderWindow(window.id)}
 				</DesktopWindow>
 			))}
+
+			{desktop.windows.length > 0 ? (
+				<DesktopDock
+					items={desktop.windows.map((window) => ({
+						id: window.id,
+						title: windowTitle(window.id).title,
+						icon: windowTitle(window.id).icon,
+						minimized: window.minimized,
+						focused: window.z === frontmost,
+					}))}
+					z={frontmost + 1}
+					onSelect={(id) => desktop.selectWindow(id)}
+					onCloseAll={desktop.closeAllWindows}
+				/>
+			) : null}
 		</div>
 	);
 }

@@ -60,6 +60,8 @@ export function DesktopWindow({
 		</button>
 	);
 
+	if (minimized) return null;
+
 	return (
 		<section
 			aria-label={title}
@@ -70,7 +72,7 @@ export function DesktopWindow({
 				left: frame.x,
 				top: frame.y,
 				width: frame.width,
-				height: minimized ? undefined : frame.height,
+				height: frame.height,
 				zIndex: z,
 			}}
 			className={clsx(
@@ -93,11 +95,7 @@ export function DesktopWindow({
 				<CaptionText as="span" className="min-w-0 flex-1 truncate !text-text">
 					{title}
 				</CaptionText>
-				{control(
-					t(minimized ? translation.Home.RestoreWindow : translation.Home.MinimizeWindow),
-					"minus",
-					onToggleMinimized,
-				)}
+				{control(t(translation.Home.MinimizeWindow), "minus", onToggleMinimized)}
 				{control(
 					t(maximized ? translation.Home.RestoreSize : translation.Home.MaximizeWindow),
 					maximized ? "collapse" : "expand",
@@ -106,20 +104,16 @@ export function DesktopWindow({
 				{control(t(translation.Home.CloseWindow), "xmark", onClose)}
 			</header>
 
-			{minimized ? null : (
-				<>
-					<div className="min-h-0 flex-1 overflow-y-auto">{children}</div>
+			<div className="min-h-0 flex-1 overflow-y-auto">{children}</div>
 
-					{maximized ? null : (
-						<button
-							type="button"
-							onPointerDown={gesture.startResize}
-							aria-hidden="true"
-							tabIndex={-1}
-							className="absolute bottom-0 right-0 h-4 w-4 cursor-nwse-resize bg-transparent"
-						/>
-					)}
-				</>
+			{maximized ? null : (
+				<button
+					type="button"
+					onPointerDown={gesture.startResize}
+					aria-hidden="true"
+					tabIndex={-1}
+					className="absolute bottom-0 right-0 h-4 w-4 cursor-nwse-resize bg-transparent"
+				/>
 			)}
 		</section>
 	);

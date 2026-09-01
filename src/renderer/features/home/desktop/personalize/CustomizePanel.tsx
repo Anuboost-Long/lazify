@@ -8,10 +8,12 @@ import { CaptionText, OverlineText } from "@renderer/shared/typography";
 
 import {
 	BACKDROP_OPTIONS,
+	ICON_PLACEMENT_OPTIONS,
 	TINT_OPTIONS,
 	WIDGET_OPTIONS,
 	useDesktopPersonalization,
 	type DesktopBackdrop,
+	type DesktopIconPlacement,
 	type DesktopWidgetId,
 } from "./use-desktop-personalization";
 
@@ -21,6 +23,13 @@ const BACKDROP_LABELS: Record<DesktopBackdrop, string> = {
 	grid: translation.Home.BackdropGrid,
 	pulse: translation.Home.BackdropPulse,
 	cursor: translation.Home.BackdropCursor,
+};
+
+const ICON_PLACEMENT_LABELS: Record<DesktopIconPlacement, string> = {
+	center: translation.Home.IconsCenter,
+	left: translation.Home.IconsLeft,
+	right: translation.Home.IconsRight,
+	top: translation.Home.IconsTop,
 };
 
 const WIDGET_LABELS: Record<DesktopWidgetId, string> = {
@@ -122,6 +131,19 @@ export function CustomizePanel() {
 				<CaptionText tone="muted" className="mt-2">
 					{t(translation.Home.CustomizeColourHint)}
 				</CaptionText>
+			</Section>
+
+			<Section title={t(translation.Home.CustomizeIcons)}>
+				<div className="flex flex-wrap gap-1.5">
+					{ICON_PLACEMENT_OPTIONS.map((placement) => (
+						<Choice
+							key={placement}
+							label={t(ICON_PLACEMENT_LABELS[placement])}
+							selected={personalization.icons === placement}
+							onSelect={() => update({ icons: placement })}
+						/>
+					))}
+				</div>
 			</Section>
 
 			<Section title={t(translation.Home.CustomizeWidgets)}>
