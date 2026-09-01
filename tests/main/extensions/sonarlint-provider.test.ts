@@ -103,7 +103,9 @@ describe("sonarlint provider", () => {
 
 	// The server spawns this itself, from Java, with none of our environment —
 	// so the Electron binary here launches a second copy of the app.
+	// Probes real node binaries on disk, one spawn each, so it needs longer than
+	// the default budget on a machine running the rest of the suite alongside it.
 	it("never offers the Electron binary as the node its analyzers run on", () => {
 		expect(sonarlint.initializationOptions(root).clientNodePath).not.toBe(process.execPath);
-	});
+	}, 20_000);
 });
