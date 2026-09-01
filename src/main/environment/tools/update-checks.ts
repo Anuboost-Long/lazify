@@ -11,13 +11,13 @@ const normalize = (version: string) => version.replace(/^v/, "").trim();
 
 /** Same version, differently written, is not an update. */
 export function compareToLatest(currentVersion: string, latest: string | null): ToolUpdateInfo {
-  if (!latest) return CANNOT_CHECK;
+	if (!latest) return CANNOT_CHECK;
 
-  return {
-    hasUpdate: normalize(latest) !== normalize(currentVersion),
-    latestVersion: latest,
-    canCheck: true
-  };
+	return {
+		hasUpdate: normalize(latest) !== normalize(currentVersion),
+		latestVersion: latest,
+		canCheck: true,
+	};
 }
 
 /**
@@ -27,15 +27,15 @@ export function compareToLatest(currentVersion: string, latest: string | null): 
  * project's toolchain gets changed underneath it.
  */
 export async function npmViewUpdate(name: string, currentVersion: string): Promise<ToolUpdateInfo> {
-  const major = normalize(currentVersion).split(".")[0];
-  const tag = major ? `${name}@${major}` : name;
+	const major = normalize(currentVersion).split(".")[0];
+	const tag = major ? `${name}@${major}` : name;
 
-  try {
-    const { stdout } = await runWithNvm(`npm view ${tag} version`, 10000);
-    return compareToLatest(currentVersion, parseNpmViewVersion(stdout));
-  } catch {
-    return CANNOT_CHECK;
-  }
+	try {
+		const { stdout } = await runWithNvm(`npm view ${tag} version`, 10000);
+		return compareToLatest(currentVersion, parseNpmViewVersion(stdout));
+	} catch {
+		return CANNOT_CHECK;
+	}
 }
 
 /**
@@ -47,11 +47,15 @@ export async function npmViewUpdate(name: string, currentVersion: string): Promi
  * one and offered a downgrade as an update.
  */
 export function parseNpmViewVersion(stdout: string): string | null {
-  const lines = stdout.trim().split("\n").map((line) => line.trim()).filter(Boolean);
-  const last = lines[lines.length - 1];
-  if (!last) return null;
+	const lines = stdout
+		.trim()
+		.split("\n")
+		.map((line) => line.trim())
+		.filter(Boolean);
+	const last = lines[lines.length - 1];
+	if (!last) return null;
 
-  return last.match(/'([^']+)'\s*$/)?.[1] ?? last;
+	return /'([^']+)'\s*$/.exec(last)?.[1] ?? last;
 }
 
 /**
@@ -59,17 +63,17 @@ export function parseNpmViewVersion(stdout: string): string | null {
  * rather than spawning a package manager that would want a password to reply.
  */
 export async function brewOutdated(formula: string): Promise<ToolUpdateInfo> {
-  if (process.platform !== "darwin") return CANNOT_CHECK;
+	if (process.platform !== "darwin") return CANNOT_CHECK;
 
-  try {
-    const { stdout } = await execFileAsync(
-      ...loginShell(`brew outdated ${formula} --verbose`),
-      { timeout: 20000, maxBuffer: 1024 * 1024 }
-    );
-    const out = stdout.trim();
-    const match = out.match(/\S+\s+(\S+)\s+<\s+(\S+)/);
-    return { hasUpdate: out.length > 0, latestVersion: match?.[2] ?? null, canCheck: true };
-  } catch {
-    return CANNOT_CHECK;
-  }
+	try {
+		const { stdout } = await execFileAsync(...loginShell(`brew outdated ${formula} --verbose`), {
+			timeout: 20000,
+			maxBuffer: 1024 * 1024,
+		});
+		const out = stdout.trim();
+		const match = /\S+\s+([^\s<]+)\s+<\s+(\S+)/.exec(out);
+		return { hasUpdate: out.length > 0, latestVersion: match?.[2] ?? null, canCheck: true };
+	} catch {
+		return CANNOT_CHECK;
+	}
 }

@@ -1,5 +1,10 @@
 import { spawn } from "node:child_process";
 import fs from "node:fs";
+import path from "node:path";
+
+/** Spawned by absolute path: what PATH points at is the user's shell to decide, not this. */
+const MACOS_OPEN = "/usr/bin/open";
+const WINDOWS_SHELL = path.join(process.env.SystemRoot ?? "C:\\Windows", "System32", "cmd.exe");
 
 /**
  * Opens the OS's terminal app rooted at `targetPath`, the way a file
@@ -7,28 +12,28 @@ import fs from "node:fs";
  * alone, same as reveal-in-file-manager.
  */
 export function openTerminal(targetPath: string): void {
-  if (!targetPath || !fs.existsSync(targetPath)) return;
+	if (!targetPath || !fs.existsSync(targetPath)) return;
 
-  if (process.platform === "darwin") {
-    // Terminal.app opens a new window at the given folder when it's passed
-    // as an argument, the same as double-clicking it in the dock would.
-    spawn("open", ["-a", "Terminal", targetPath], { detached: true, stdio: "ignore" }).unref();
-    return;
-  }
+	if (process.platform === "darwin") {
+		// Terminal.app opens a new window at the given folder when it's passed
+		// as an argument, the same as double-clicking it in the dock would.
+		spawn(MACOS_OPEN, ["-a", "Terminal", targetPath], { detached: true, stdio: "ignore" }).unref();
+		return;
+	}
 
-  if (process.platform === "win32") {
-    // `start` reads its first quoted argument as the new window's title, not
-    // part of the command — without the empty `""` here it would mistake
-    // "cmd.exe" for the title and launch nothing.
-    spawn("cmd.exe", ["/c", "start", "", "cmd.exe"], {
-      cwd: targetPath,
-      detached: true,
-      stdio: "ignore"
-    }).unref();
-    return;
-  }
+	if (process.platform === "win32") {
+		// `start` reads its first quoted argument as the new window's title, not
+		// part of the command — without the empty `""` here it would mistake
+		// "cmd.exe" for the title and launch nothing.
+		spawn(WINDOWS_SHELL, ["/c", "start", "", "cmd.exe"], {
+			cwd: targetPath,
+			detached: true,
+			stdio: "ignore",
+		}).unref();
+		return;
+	}
 
-  openLinuxTerminal(targetPath);
+	openLinuxTerminal(targetPath);
 }
 
 /**
@@ -43,34 +48,34 @@ export function openTerminal(targetPath: string): void {
  * tried in a try/catch.
  */
 function openLinuxTerminal(targetPath: string): void {
-  const candidates = [
-    // The distro's own choice first, where the distro makes one.
-    { binary: "x-terminal-emulator", args: [] },
-    { binary: "gnome-terminal", args: [] },
-    { binary: "konsole", args: ["--workdir", targetPath] },
-    { binary: "xfce4-terminal", args: [] },
-    { binary: "kgx", args: [] },
-    { binary: "tilix", args: [] },
-    { binary: "alacritty", args: [] },
-    { binary: "kitty", args: [] },
-    { binary: "foot", args: [] },
-    { binary: "xterm", args: [] }
-  ];
+	const candidates = [
+		// The distro's own choice first, where the distro makes one.
+		{ binary: "x-terminal-emulator", args: [] },
+		{ binary: "gnome-terminal", args: [] },
+		{ binary: "konsole", args: ["--workdir", targetPath] },
+		{ binary: "xfce4-terminal", args: [] },
+		{ binary: "kgx", args: [] },
+		{ binary: "tilix", args: [] },
+		{ binary: "alacritty", args: [] },
+		{ binary: "kitty", args: [] },
+		{ binary: "foot", args: [] },
+		{ binary: "xterm", args: [] },
+	];
 
-  const tryNext = (index: number) => {
-    const candidate = candidates[index];
-    if (!candidate) return;
+	const tryNext = (index: number) => {
+		const candidate = candidates[index];
+		if (!candidate) return;
 
-    const child = spawn(candidate.binary, candidate.args, {
-      cwd: targetPath,
-      detached: true,
-      stdio: "ignore"
-    });
+		const child = spawn(candidate.binary, candidate.args, {
+			cwd: targetPath,
+			detached: true,
+			stdio: "ignore",
+		});
 
-    // ENOENT lands here, not on the call above.
-    child.on("error", () => tryNext(index + 1));
-    child.unref();
-  };
+		// ENOENT lands here, not on the call above.
+		child.on("error", () => tryNext(index + 1));
+		child.unref();
+	};
 
-  tryNext(0);
+	tryNext(0);
 }

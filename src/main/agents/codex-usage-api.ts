@@ -3,6 +3,7 @@ import os from "node:os";
 import path from "node:path";
 
 import type { AgentRateLimit } from "../../renderer/shared/types/lazify";
+import { rateLimitWindow, toRateLimit } from "./rate-limit";
 
 /**
  * Codex's rate-limit window, read from the account rather than the transcripts.
@@ -19,13 +20,20 @@ const AUTH_FILE = path.join(os.homedir(), ".codex", "auth.json");
 const REQUEST_TIMEOUT_MS = 8_000;
 
 interface RawWindow {
-  used_percent?: number | null;
-  limit_window_seconds?: number | null;
-  reset_at?: number | null;
+	used_percent?: number | null;
+	limit_window_seconds?: number | null;
+	reset_at?: number | null;
 }
 
+/**
+ * Codex meters a rolling block and a weekly allowance at the same time, and
+ * turns the block on and off between plan changes. Both windows are kept as the
+ * account sends them, so a response carrying one is as readable as one carrying
+ * two, and nothing has to guess which is in force.
+ */
+
 interface StoredAuth {
-  tokens?: { access_token?: string; account_id?: string };
+	tokens?: { access_token?: string; account_id?: string };
 }
 
 /**
@@ -37,55 +45,44 @@ let inFlight: Promise<AgentRateLimit | null> | null = null;
 
 /** `exp` out of a JWT, so an expired token is never spent on a doomed call. */
 function expiresAt(token: string): number | null {
-  try {
-    const payload = token.split(".")[1];
-    if (!payload) return null;
+	try {
+		const payload = token.split(".")[1];
+		if (!payload) return null;
 
-    const claims = JSON.parse(
-      Buffer.from(payload, "base64url").toString("utf8"),
-    ) as { exp?: number };
+		const claims = JSON.parse(Buffer.from(payload, "base64url").toString("utf8")) as { exp?: number };
 
-    return typeof claims.exp === "number" ? claims.exp * 1000 : null;
-  } catch {
-    return null;
-  }
+		return typeof claims.exp === "number" ? claims.exp * 1000 : null;
+	} catch {
+		return null;
+	}
 }
 
 function readAuth(): { token: string; accountId: string } | null {
-  try {
-    const tokens = (JSON.parse(fs.readFileSync(AUTH_FILE, "utf8")) as StoredAuth)
-      .tokens;
+	try {
+		const tokens = (JSON.parse(fs.readFileSync(AUTH_FILE, "utf8")) as StoredAuth).tokens;
 
-    if (!tokens?.access_token || !tokens.account_id) return null;
+		if (!tokens?.access_token || !tokens.account_id) return null;
 
-    const expiry = expiresAt(tokens.access_token);
-    if (expiry !== null && expiry <= Date.now()) return null;
+		const expiry = expiresAt(tokens.access_token);
+		if (expiry !== null && expiry <= Date.now()) return null;
 
-    return { token: tokens.access_token, accountId: tokens.account_id };
-  } catch {
-    // Codex is not installed, or the user has not signed in with ChatGPT.
-    return null;
-  }
+		return { token: tokens.access_token, accountId: tokens.account_id };
+	} catch {
+		// Codex is not installed, or the user has not signed in with ChatGPT.
+		return null;
+	}
 }
 
-function toRateLimit(
-  window: RawWindow | null | undefined,
-  planType: string | null,
-): AgentRateLimit | null {
-  if (!window || typeof window.used_percent !== "number") return null;
+function windowOf(window: RawWindow | null | undefined) {
+	if (!window) return null;
 
-  return {
-    source: "reported",
-    usedPercent: window.used_percent,
-    windowMinutes: window.limit_window_seconds
-      ? Math.round(window.limit_window_seconds / 60)
-      : null,
-    resetsAt: window.reset_at
-      ? new Date(window.reset_at * 1000).toISOString()
-      : null,
-    planType,
-    observedAt: new Date().toISOString(),
-  };
+	return rateLimitWindow(
+		window.used_percent,
+		typeof window.limit_window_seconds === "number"
+			? Math.round(window.limit_window_seconds / 60)
+			: null,
+		window.reset_at ? new Date(window.reset_at * 1000).toISOString() : null,
+	);
 }
 
 /**
@@ -93,43 +90,49 @@ function toRateLimit(
  * in which case the caller keeps whatever the transcripts last recorded.
  */
 export function getCodexRateLimit(): Promise<AgentRateLimit | null> {
-  inFlight ??= fetchRateLimit().finally(() => {
-    inFlight = null;
-  });
+	inFlight ??= fetchRateLimit().finally(() => {
+		inFlight = null;
+	});
 
-  return inFlight;
+	return inFlight;
 }
 
 async function fetchRateLimit(): Promise<AgentRateLimit | null> {
-  const auth = readAuth();
-  if (!auth) return null;
+	const auth = readAuth();
+	if (!auth) return null;
 
-  try {
-    const response = await fetch(USAGE_URL, {
-      headers: {
-        Authorization: `Bearer ${auth.token}`,
-        "chatgpt-account-id": auth.accountId,
-      },
-      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-    });
+	try {
+		const response = await fetch(USAGE_URL, {
+			headers: {
+				Authorization: `Bearer ${auth.token}`,
+				"chatgpt-account-id": auth.accountId,
+			},
+			signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+		});
 
-    if (!response.ok) return null;
+		if (!response.ok) return null;
 
-    const body = (await response.json()) as {
-      plan_type?: string | null;
-      rate_limit?: {
-        primary_window?: RawWindow | null;
-        secondary_window?: RawWindow | null;
-      } | null;
-    };
+		const body = (await response.json()) as {
+			plan_type?: string | null;
+			rate_limit_reached_type?: string | null;
+			rate_limit?: {
+				limit_reached?: boolean | null;
+				primary_window?: RawWindow | null;
+				secondary_window?: RawWindow | null;
+			} | null;
+		};
 
-    const plan = body.plan_type ?? null;
-
-    return (
-      toRateLimit(body.rate_limit?.primary_window, plan) ??
-      toRateLimit(body.rate_limit?.secondary_window, plan)
-    );
-  } catch {
-    return null;
-  }
+		return toRateLimit(
+			[windowOf(body.rate_limit?.primary_window), windowOf(body.rate_limit?.secondary_window)],
+			{
+				source: "reported",
+				planType: body.plan_type ?? null,
+				observedAt: new Date().toISOString(),
+				limitReached: body.rate_limit?.limit_reached === true,
+				reachedType: body.rate_limit_reached_type ?? null,
+			},
+		);
+	} catch {
+		return null;
+	}
 }

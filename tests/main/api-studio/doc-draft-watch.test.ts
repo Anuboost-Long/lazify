@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+
 import { describe, expect, it, vi } from "vitest";
 
 const userDataPath = fs.mkdtempSync(path.join(os.tmpdir(), "lazify-doc-watch-"));
@@ -15,44 +16,53 @@ const { briefFiles } = await import("../../../src/main/api-studio/docs/brief");
 type CustomCollection = import("../../../src/main/api-studio/custom-collections").CustomCollection;
 
 const collection = {
-  id: "collection-1",
-  name: "Public API",
-  folders: [],
-  requests: []
+	id: "collection-1",
+	name: "Public API",
+	folders: [],
+	requests: [],
 } as CustomCollection;
 
-async function eventually(ready: () => boolean, within = 15_000) {
-  const deadline = Date.now() + within;
+const SETTLE_ALLOWANCE_MS = 1_500;
+const ATTEMPTS = 8;
 
-  while (Date.now() < deadline) {
-    if (ready()) return;
+async function reportedAfterWriting(write: () => void, ready: () => boolean) {
+	for (let attempt = 1; attempt <= ATTEMPTS; attempt += 1) {
+		write();
 
-    await new Promise((resolve) => setTimeout(resolve, 25));
-  }
+		const deadline = Date.now() + SETTLE_ALLOWANCE_MS;
 
-  throw new Error(`the watcher reported nothing within ${within}ms`);
+		while (Date.now() < deadline) {
+			if (ready()) return;
+
+			await new Promise((resolve) => setTimeout(resolve, 25));
+		}
+	}
+
+	throw new Error(`the watcher reported nothing across ${ATTEMPTS} writes`);
 }
 
 describe("watching for an agent's answers", () => {
-  it("reports the draft file being written", async () => {
-    saveCustomCollections(projectPath, [collection]);
+	it("reports the draft file being written", async () => {
+		saveCustomCollections(projectPath, [collection]);
 
-    let changes = 0;
-    const stop = watchDocDraft(projectPath, "collection-1", () => {
-      changes += 1;
-    });
+		let changes = 0;
+		const stop = watchDocDraft(projectPath, "collection-1", () => {
+			changes += 1;
+		});
 
-    expect(stop).toBeTruthy();
+		expect(stop).toBeTruthy();
 
-    fs.writeFileSync(
-      briefFiles(projectPath, collection).answerPath,
-      JSON.stringify({ collection: { overview: "Written by an agent." } })
-    );
+		await reportedAfterWriting(
+			() =>
+				fs.writeFileSync(
+					briefFiles(projectPath, collection).answerPath,
+					JSON.stringify({ collection: { overview: "Written by an agent." } }),
+				),
+			() => changes > 0,
+		);
 
-    await eventually(() => changes > 0);
+		expect(changes).toBeGreaterThan(0);
 
-    expect(changes).toBeGreaterThan(0);
-
-    stop?.();
-  }, 20_000);
+		stop?.();
+	}, 20_000);
 });

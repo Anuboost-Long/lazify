@@ -1,466 +1,273 @@
 import clsx from "clsx";
 import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type KeyboardEvent as ReactKeyboardEvent,
-  type MutableRefObject,
-  type ReactNode
+	useEffect,
+	useMemo,
+	useRef,
+	type KeyboardEvent as ReactKeyboardEvent,
+	type MutableRefObject,
+	type ReactNode,
 } from "react";
 
+import type { Diagnostic } from "@main/linting";
+
 import { useHighlightedLines } from "./CodeText";
+import { findingReference } from "./diagnostics/diagnostic-snippet";
+import { DiagnosticCard } from "./diagnostics/DiagnosticCard";
+import { useCodeQualityActions } from "./diagnostics/quality-actions";
+import { useCodeDiagnostics } from "./diagnostics/use-code-diagnostics";
 import { CodeFindBar } from "./find/CodeFindBar";
 import { useCodeFind } from "./find/use-code-find";
-import { CodeContextMenu } from "./menu/CodeContextMenu";
-import {
-  readCodeSelection,
-  readTextareaSelection,
-  type CodeSelectionAction,
-  type CodeSelectionContext
-} from "./menu/code-selection";
-import { useCodeSelectionActions } from "./menu/selection-actions";
-import { symbolHitAtPoint, type SymbolPosition } from "./symbol-at-point";
-import { useCodePalette } from "./highlighter/use-highlighter";
 import { PLAIN_LANGUAGE } from "./highlighter/languages";
+import { useCodePalette } from "./highlighter/use-highlighter";
+import type { CodeSelectionAction } from "./menu/code-selection";
+import { CodeContextMenu } from "./menu/CodeContextMenu";
+import { useCodeMenu } from "./menu/use-code-menu";
+import { CodeGutter } from "./surface/CodeGutter";
+import { EditableCode } from "./surface/EditableCode";
+import { ReadOnlyCode } from "./surface/ReadOnlyCode";
+import { CODE_WRAP, STYLES, type SurfaceVariant } from "./surface/styles";
+import { useSymbolLink } from "./surface/use-symbol-link";
+import type { SymbolPosition } from "./symbol-at-point";
 import { languageOf } from "./tokenize";
 
 interface CodeSurfaceProps {
-  content: string;
-  editable?: boolean;
-  /** Drives which syntax rules apply; the file's own name is enough. */
-  fileName?: string | null;
-  /** Omit to render read-only; editable mode overlays a textarea on highlighted code. */
-  onContentChange?: (value: string) => void;
-  placeholder?: string;
-  /**
-   * "panel" is the framed, roomy surface the editor panes use. "flush" fills a
-   * container that already provides its own frame — a modal body — and packs
-   * the lines tighter for reading.
-   */
-  variant?: "panel" | "flush";
-  /**
-   * Fold long lines instead of scrolling sideways. Numbering goes with it: a
-   * wrapped line covers several rows, which no fixed-height gutter can follow.
-   */
-  wrap?: boolean;
-  /** Names the surface, the way any other input or region is named. */
-  label?: string;
-  className?: string;
-  /**
-   * Clicking an identifier asks to go to where it is declared. Read-only
-   * surfaces only — the caller decides what "go" means, because each place
-   * this appears navigates its own way. The position comes along so the name
-   * can be read in its context rather than looked up on spelling alone.
-   */
-  onOpenSymbol?: (symbol: string, position?: SymbolPosition) => void;
-  /** 1-based line to reveal and mark, e.g. the definition just jumped to. */
-  focusLine?: number | null;
-  filePath?: string | null;
-  selectionActions?: CodeSelectionAction[];
-  /** Editable mode only: the caret and selection the caller needs to read. */
-  inputRef?: MutableRefObject<HTMLTextAreaElement | null>;
-  onKeyDown?: (event: ReactKeyboardEvent<HTMLTextAreaElement>) => void;
+	content: string;
+	editable?: boolean;
+	/** Drives which syntax rules apply; the file's own name is enough. */
+	fileName?: string | null;
+	/** Omit to render read-only; editable mode overlays a textarea on highlighted code. */
+	onContentChange?: (value: string) => void;
+	placeholder?: string;
+	/**
+	 * "panel" is the framed, roomy surface the editor panes use. "flush" fills a
+	 * container that already provides its own frame — a modal body — and packs
+	 * the lines tighter for reading.
+	 */
+	variant?: SurfaceVariant;
+	/**
+	 * Fold long lines instead of scrolling sideways. Numbering goes with it: a
+	 * wrapped line covers several rows, which no fixed-height gutter can follow.
+	 */
+	wrap?: boolean;
+	/** Names the surface, the way any other input or region is named. */
+	label?: string;
+	className?: string;
+	/**
+	 * Clicking an identifier asks to go to where it is declared. Read-only
+	 * surfaces only — the caller decides what "go" means, because each place
+	 * this appears navigates its own way. The position comes along so the name
+	 * can be read in its context rather than looked up on spelling alone.
+	 */
+	onOpenSymbol?: (symbol: string, position?: SymbolPosition) => void;
+	/** 1-based line to reveal and mark, e.g. the definition just jumped to. */
+	focusLine?: number | null;
+	/**
+	 * Code quality findings for this file, underlined where they were reported.
+	 * The caller owns the analysis: this surface only draws what it is handed.
+	 */
+	diagnostics?: readonly Diagnostic[];
+	filePath?: string | null;
+	selectionActions?: CodeSelectionAction[];
+	/** Editable mode only: the caret and selection the caller needs to read. */
+	inputRef?: MutableRefObject<HTMLTextAreaElement | null>;
+	onKeyDown?: (event: ReactKeyboardEvent<HTMLTextAreaElement>) => void;
 }
-
-const STYLES = {
-  panel: {
-    frame: "rounded-[20px] border border-accent/15 bg-bg/60",
-    gutter: "w-14 px-3 py-4 text-xs leading-[25px]",
-    code: "px-5 py-4 text-sm leading-[25px]",
-  },
-  flush: {
-    frame: "",
-    // Gutter and code share one leading to the pixel: they are two separately
-    // scrolled columns, so any difference walks the line numbers off the code.
-    gutter: "w-12 px-2 py-2 text-[11px] leading-[25px]",
-    code: "px-3 py-2 text-[12px] leading-[25px]",
-  },
-} as const;
 
 /** Past this, highlighting a document costs more than the colour is worth. */
 const MAX_HIGHLIGHTED = 250_000;
 
-const GUTTER_BASE =
-  "shrink-0 overflow-hidden border-r border-border bg-bg/60 text-right font-mono text-muted/80";
-// The code column takes the row's leftover width (flex-1 + min-w-0) but its
-// scroller is absolutely positioned inside it: out-of-flow content reports zero
-// intrinsic width, so a long line can never stretch this column — or any
-// ancestor that forgot its own min-w-0 — and instead scrolls within.
-const CODE_WRAP = "relative h-full min-w-0 flex-1";
-const CODE_BASE = "absolute inset-0 font-mono";
-
-/** Cmd on macOS, Ctrl everywhere else — the split every editor uses for this. */
-const IS_MAC = navigator.userAgent.includes("Mac OS X");
-
-const holdsModifier = (event: { metaKey: boolean; ctrlKey: boolean }) =>
-  IS_MAC ? event.metaKey : event.ctrlKey;
-
-/** Where a link cue goes, in the code column's own scrolled coordinates. */
-interface LinkBox {
-  left: number;
-  top: number;
-  width: number;
-  height: number;
-}
-
-function sameBoxes(a: LinkBox[] | null, b: LinkBox[]): boolean {
-  if (!a || a.length !== b.length) return false;
-
-  return a.every(
-    (box, index) =>
-      box.left === b[index].left &&
-      box.top === b[index].top &&
-      box.width === b[index].width &&
-      box.height === b[index].height
-  );
-}
+/** One array, so a surface with no findings never re-paints on a render. */
+const NO_DIAGNOSTICS: readonly Diagnostic[] = [];
 
 /**
  * The gutter-plus-code area both editor panes were carrying their own copy of.
- * Read-only content is syntax highlighted directly. Editable content uses the
- * same highlighted document as a non-interactive underlay, with a transparent
- * textarea above it carrying the caret, selection, and native editing behavior.
+ * This owns the refs the columns are measured against and the reading of the
+ * file; everything layered over that text — find, findings, the link cue, the
+ * context menu — is its own hook, and each column its own component.
  */
 export function CodeSurface({
-  content,
-  editable = false,
-  fileName,
-  onContentChange,
-  placeholder,
-  wrap = false,
-  label,
-  variant = "panel",
-  className,
-  onOpenSymbol,
-  focusLine,
-  filePath,
-  selectionActions,
-  inputRef,
-  onKeyDown,
+	content,
+	editable = false,
+	fileName,
+	onContentChange,
+	placeholder,
+	wrap = false,
+	label,
+	variant = "panel",
+	className,
+	onOpenSymbol,
+	focusLine,
+	diagnostics = NO_DIAGNOSTICS,
+	filePath,
+	selectionActions,
+	inputRef,
+	onKeyDown,
 }: Readonly<CodeSurfaceProps>) {
-  const style = STYLES[variant];
-  const rootRef = useRef<HTMLDivElement | null>(null);
-  const gutterRef = useRef<HTMLDivElement | null>(null);
-  const codeRef = useRef<HTMLPreElement | null>(null);
-  const editableHighlightRef = useRef<HTMLPreElement | null>(null);
-  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
-  const language = content.length > MAX_HIGHLIGHTED ? PLAIN_LANGUAGE : languageOf(fileName);
-  const lines = useHighlightedLines(
-    content,
-    language,
-  );
-  const palette = useCodePalette();
-  const inheritedActions = useCodeSelectionActions();
-  const actions = selectionActions ?? inheritedActions;
-  // `lines` stands in for the painted text: it is rebuilt whenever the content
-  // or the highlighting behind it changes.
-  const find = useCodeFind({
-    root: rootRef,
-    scroller: codeRef,
-    revision: lines,
-    textarea: editable ? textareaRef : undefined,
-  });
+	const style = STYLES[variant];
+	const rootRef = useRef<HTMLDivElement | null>(null);
+	const gutterRef = useRef<HTMLDivElement | null>(null);
+	const codeRef = useRef<HTMLPreElement | null>(null);
+	const editableHighlightRef = useRef<HTMLPreElement | null>(null);
+	const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+	const language = content.length > MAX_HIGHLIGHTED ? PLAIN_LANGUAGE : languageOf(fileName);
+	const lines = useHighlightedLines(content, language);
+	const palette = useCodePalette();
 
-  // A dark code theme inside a light pane (or the reverse) has to bring its own
-  // background, the way the VS Code editor does.
-  const themed = palette
-    ? { background: palette.bg, color: palette.fg }
-    : undefined;
+	// `lines` stands in for the painted text: it is rebuilt whenever the content
+	// or the highlighting behind it changes.
+	const find = useCodeFind({
+		root: rootRef,
+		scroller: codeRef,
+		revision: lines,
+		textarea: editable ? textareaRef : undefined,
+	});
+	// Painted into whichever layer carries the text: the code itself when it is
+	// being read, the underlay when a textarea is stacked over it.
+	const quality = useCodeDiagnostics({
+		root: editable ? editableHighlightRef : codeRef,
+		diagnostics,
+		revision: lines,
+	});
+	const link = useSymbolLink({ code: codeRef, onOpenSymbol });
+	const qualityActions = useCodeQualityActions();
+	const menu = useCodeMenu({
+		editable,
+		code: codeRef,
+		textarea: textareaRef,
+		filePath,
+		fileName,
+		selectionActions,
+	});
 
-  const syncGutter = (scrollTop: number) => {
-    if (gutterRef.current) gutterRef.current.scrollTop = scrollTop;
-  };
+	// A dark code theme inside a light pane (or the reverse) has to bring its own
+	// background, the way the VS Code editor does.
+	const themed = palette ? { background: palette.bg, color: palette.fg } : undefined;
 
-  // Lands the requested line in the middle of the pane rather than at its top
-  // edge, so the definition arrives with its surroundings. Scrolled by hand
-  // instead of scrollIntoView, which would also scroll the page around it —
-  // and setting scrollTop still fires the event the gutter follows.
-  useEffect(() => {
-    const code = codeRef.current;
-    if (!focusLine || !code) return;
+	const syncGutter = (scrollTop: number) => {
+		if (gutterRef.current) gutterRef.current.scrollTop = scrollTop;
+	};
 
-    const line = code.children[focusLine - 1] as HTMLElement | undefined;
-    if (!line) return;
+	// Lands the requested line in the middle of the pane rather than at its top
+	// edge, so the definition arrives with its surroundings. Scrolled by hand
+	// instead of scrollIntoView, which would also scroll the page around it —
+	// and setting scrollTop still fires the event the gutter follows.
+	useEffect(() => {
+		const code = codeRef.current;
+		if (!focusLine || !code) return;
 
-    code.scrollTop = Math.max(0, line.offsetTop - code.clientHeight / 2);
-    // `lines` is a dependency because the content arrives after the request:
-    // the file is opened, then loaded, and only then is there a line to reach.
-  }, [focusLine, lines]);
+		const line = code.children[focusLine - 1] as HTMLElement | undefined;
+		if (!line) return;
 
-  /**
-   * The word the modifier-held pointer is over. Null whenever the key is up,
-   * so ordinary reading and selecting look exactly as they did.
-   */
-  const [linkBoxes, setLinkBoxes] = useState<LinkBox[] | null>(null);
-  /** Last seen pointer, so pressing the key without moving still lights a word. */
-  const pointer = useRef<{ x: number; y: number } | null>(null);
+		code.scrollTop = Math.max(0, line.offsetTop - code.clientHeight / 2);
+		// `lines` is a dependency because the content arrives after the request:
+		// the file is opened, then loaded, and only then is there a line to reach.
+	}, [focusLine, lines]);
 
-  const paintLink = useCallback(
-    (x: number, y: number, held: boolean) => {
-      const code = codeRef.current;
-      if (!onOpenSymbol || !code || !held) {
-        setLinkBoxes(null);
-        return;
-      }
+	// Built while a card is showing rather than on every render: reading the
+	// code around a finding means splitting the whole file.
+	const cardFinding = useMemo(
+		() => (quality.card ? findingReference(content, filePath, quality.card.diagnostic) : null),
+		[content, filePath, quality.card],
+	);
 
-      const hit = symbolHitAtPoint(x, y);
-      // The caret API answers for whatever is under the point, which may be a
-      // pane stacked over this one.
-      if (!hit || !code.contains(hit.range.startContainer)) {
-        setLinkBoxes(null);
-        return;
-      }
+	// Held together so moving the link cue re-renders one span instead of every
+	// line in the file: same elements in, React leaves the listing alone.
+	const renderedLines = useMemo(
+		() =>
+			lines.map((line, index) => (
+				<div
+					key={index}
+					// Find works on the painted text, and this is where one line ends.
+					data-code-line=""
+					// The line jumped to keeps a tint until the next jump, the way an
+					// editor leaves the caret line marked after a search.
+					className={focusLine === index + 1 ? "bg-accent/[0.14]" : undefined}
+				>
+					{line as ReactNode}
+				</div>
+			)),
+		[lines, focusLine],
+	);
 
-      // Client rects are viewport-relative and the cue is drawn inside the
-      // scroller, so it is put back into content coordinates — that way it
-      // stays on its word while the code scrolls under it.
-      const frame = code.getBoundingClientRect();
-      const boxes = Array.from(hit.range.getClientRects(), (rect) => ({
-        left: rect.left - frame.left + code.scrollLeft,
-        top: rect.top - frame.top + code.scrollTop,
-        width: rect.width,
-        height: rect.height
-      }));
+	return (
+		<div
+			ref={rootRef}
+			className={clsx(
+				// Relative so the find bar can float over the code rather than take
+				// width from it.
+				"relative flex h-full overflow-hidden text-text",
+				style.frame,
+				className,
+			)}
+		>
+			{wrap ? null : (
+				<CodeGutter
+					scrollRef={gutterRef}
+					lineCount={lines.length}
+					markedLines={quality.markedLines}
+					className={style.gutter}
+					background={themed?.background}
+				/>
+			)}
 
-      // Held down, the pointer moves across the same word many times over. Only
-      // a cue that actually moved is worth a render of the whole listing.
-      const next = boxes.length ? boxes : null;
-      setLinkBoxes((current) => (next && sameBoxes(current, next) ? current : next));
-    },
-    [onOpenSymbol]
-  );
+			<div className={CODE_WRAP}>
+				{editable ? (
+					<EditableCode
+						content={content}
+						lines={renderedLines}
+						highlightRef={editableHighlightRef}
+						textareaRef={textareaRef}
+						inputRef={inputRef}
+						className={style.code}
+						themed={themed}
+						wrap={wrap}
+						label={label}
+						placeholder={placeholder}
+						onContentChange={onContentChange}
+						onScrollTop={syncGutter}
+						onKeyDown={onKeyDown}
+						onContextMenu={menu.onContextMenu}
+						onMouseMove={quality.onPointerMove}
+						onMouseLeave={quality.onPointerLeave}
+					/>
+				) : (
+					<ReadOnlyCode
+						scrollRef={codeRef}
+						lines={renderedLines}
+						className={style.code}
+						themed={themed}
+						wrap={wrap}
+						label={label}
+						linkBoxes={link.boxes}
+						onScrollTop={(scrollTop) => {
+							syncGutter(scrollTop);
+							// The word under the pointer has moved out from under it.
+							link.clear();
+						}}
+						onClick={link.onClick}
+						onContextMenu={menu.onContextMenu}
+						onMouseMove={(event) => {
+							link.onMouseMove(event);
+							quality.onPointerMove(event);
+						}}
+						onMouseLeave={() => {
+							link.onMouseLeave();
+							quality.onPointerLeave();
+						}}
+					/>
+				)}
+			</div>
 
-  // The key is watched on the window rather than the surface: it is pressed and
-  // released while the pointer rests on a word, and a blur — cmd-tab away, for
-  // one — never sends the keyup that would otherwise leave a word lit.
-  useEffect(() => {
-    if (!onOpenSymbol) return;
+			<CodeFindBar find={find} />
 
-    const onKey = (event: KeyboardEvent) => {
-      const at = pointer.current;
-      if (!at) return;
-      paintLink(at.x, at.y, holdsModifier(event));
-    };
-    const clear = () => setLinkBoxes(null);
+			<DiagnosticCard
+				state={quality.card}
+				onPointerEnter={quality.onCardEnter}
+				onPointerLeave={quality.onCardLeave}
+				onFix={qualityActions && cardFinding ? () => qualityActions.fix([cardFinding]) : undefined}
+			/>
 
-    globalThis.addEventListener("keydown", onKey);
-    globalThis.addEventListener("keyup", onKey);
-    globalThis.addEventListener("blur", clear);
-
-    return () => {
-      globalThis.removeEventListener("keydown", onKey);
-      globalThis.removeEventListener("keyup", onKey);
-      globalThis.removeEventListener("blur", clear);
-    };
-  }, [onOpenSymbol, paintLink]);
-
-  // Held together so moving the link cue re-renders one span instead of every
-  // line in the file: same elements in, React leaves the listing alone.
-  const renderedLines = useMemo(
-    () =>
-      lines.map((line, index) => (
-        <div
-          key={index}
-          // Find works on the painted text, and this is where one line ends.
-          data-code-line=""
-          // The line jumped to keeps a tint until the next jump, the way an
-          // editor leaves the caret line marked after a search.
-          className={focusLine === index + 1 ? "bg-accent/[0.14]" : undefined}
-        >
-          {line as ReactNode}
-        </div>
-      )),
-    [lines, focusLine]
-  );
-
-  const [menu, setMenu] = useState<{
-    at: { x: number; y: number };
-    selection: CodeSelectionContext;
-  } | null>(null);
-
-  const closeMenu = useCallback(() => setMenu(null), []);
-
-  const handleContextMenu = (
-    event: React.MouseEvent<HTMLPreElement | HTMLTextAreaElement>
-  ) => {
-    if (actions.length === 0) return;
-
-    const selection = editable
-      ? readTextareaSelection(textareaRef.current)
-      : codeRef.current && readCodeSelection(codeRef.current);
-
-    if (!selection) return;
-
-    event.preventDefault();
-    setMenu({
-      at: { x: event.clientX, y: event.clientY },
-      selection: { ...selection, filePath: filePath ?? null, fileName: fileName ?? null }
-    });
-  };
-
-  const handleCodeMove = (event: React.MouseEvent<HTMLPreElement>) => {
-    pointer.current = { x: event.clientX, y: event.clientY };
-    paintLink(event.clientX, event.clientY, holdsModifier(event));
-  };
-
-  const handleCodeLeave = () => {
-    pointer.current = null;
-    setLinkBoxes(null);
-  };
-
-  const handleCodeClick = (event: React.MouseEvent<HTMLPreElement>) => {
-    if (!onOpenSymbol) return;
-
-    // Held, the way an editor asks: a bare click still belongs to reading and
-    // selecting, and only the modifier turns a name into a link.
-    if (!holdsModifier(event)) return;
-
-    // A drag that selected text was after the text, not a jump.
-    const selection = globalThis.getSelection();
-    if (selection && !selection.isCollapsed) return;
-
-    const hit = symbolHitAtPoint(event.clientX, event.clientY);
-    if (!hit) return;
-
-    // The cue belongs to the word that was here; the jump replaces what is
-    // under the pointer, so it goes with it.
-    setLinkBoxes(null);
-    onOpenSymbol(hit.symbol, hit.position);
-  };
-
-  return (
-    <div
-      ref={rootRef}
-      className={clsx(
-        // Relative so the find bar can float over the code rather than take
-        // width from it.
-        "relative flex h-full overflow-hidden text-text",
-        style.frame,
-        className,
-      )}
-    >
-      {wrap ? null : (
-        <div
-          ref={gutterRef}
-          className={clsx(GUTTER_BASE, style.gutter)}
-          style={themed ? { background: themed.background } : undefined}
-        >
-          {lines.map((_, index) => (
-            <div key={index}>{index + 1}</div>
-          ))}
-        </div>
-      )}
-
-      <div className={CODE_WRAP}>
-        {editable ? (
-          <>
-            <pre
-              ref={editableHighlightRef}
-              aria-hidden="true"
-              data-editable-highlight=""
-              className={clsx(
-                CODE_BASE,
-                style.code,
-                "pointer-events-none overflow-hidden",
-                wrap ? "whitespace-pre-wrap break-words" : "whitespace-pre",
-              )}
-              style={themed}
-            >
-              {renderedLines}
-            </pre>
-            <textarea
-              ref={(node) => {
-                textareaRef.current = node;
-                if (inputRef) inputRef.current = node;
-              }}
-              value={content}
-              aria-label={label}
-              wrap={wrap ? "soft" : "off"}
-              onChange={(event) => onContentChange?.(event.target.value)}
-              onKeyDown={onKeyDown}
-              onContextMenu={handleContextMenu}
-              onScroll={(event) => {
-                const { scrollLeft, scrollTop } = event.currentTarget;
-                syncGutter(scrollTop);
-                if (editableHighlightRef.current) {
-                  editableHighlightRef.current.scrollLeft = scrollLeft;
-                  editableHighlightRef.current.scrollTop = scrollTop;
-                }
-              }}
-              spellCheck={false}
-              className={clsx(
-                CODE_BASE,
-                style.code,
-                "resize-none bg-transparent text-transparent outline-none placeholder:text-muted",
-                wrap
-                  ? "overflow-y-auto overflow-x-hidden whitespace-pre-wrap break-words"
-                  : "overflow-auto whitespace-pre",
-              )}
-              style={{ caretColor: themed?.color ?? "rgb(var(--color-text))" }}
-              placeholder={placeholder}
-            />
-          </>
-        ) : (
-          <pre
-            ref={codeRef}
-            aria-label={label}
-            onScroll={(event) => {
-              syncGutter(event.currentTarget.scrollTop);
-              // The word under the pointer has moved out from under it.
-              setLinkBoxes(null);
-            }}
-            onClick={handleCodeClick}
-            onContextMenu={handleContextMenu}
-            onMouseMove={onOpenSymbol ? handleCodeMove : undefined}
-            onMouseLeave={onOpenSymbol ? handleCodeLeave : undefined}
-            className={clsx(
-              CODE_BASE,
-              style.code,
-              "bg-transparent",
-              wrap
-                ? "overflow-y-auto overflow-x-hidden whitespace-pre-wrap break-words"
-                : "overflow-auto whitespace-pre",
-              linkBoxes && "cursor-pointer",
-            )}
-            style={themed}
-          >
-            {renderedLines}
-
-            {/* The link cue: a tint and an underline over the word itself, laid
-                on top rather than wrapped around it, so the highlighter's own
-                spans and colours are left exactly as they are. Out of flow and
-                deaf to the pointer, so it moves no text and swallows no click.
-                Rendered after the lines because the jump-to effect reaches the
-                lines by index. */}
-            {linkBoxes?.map((box, index) => (
-              <span
-                key={index}
-                aria-hidden
-                className="pointer-events-none absolute border-b border-accent bg-accent/[0.16]"
-                style={box}
-              />
-            ))}
-          </pre>
-        )}
-      </div>
-
-      <CodeFindBar find={find} />
-
-      <CodeContextMenu
-        position={menu?.at ?? null}
-        onClose={closeMenu}
-        items={actions.map((action) => ({
-          id: action.id,
-          label: action.label,
-          icon: action.icon,
-          disabled: action.disabled,
-          onSelect: () => {
-            if (menu) action.onSelect(menu.selection);
-          }
-        }))}
-      />
-    </div>
-  );
+			<CodeContextMenu position={menu.position} onClose={menu.close} items={menu.items} />
+		</div>
+	);
 }

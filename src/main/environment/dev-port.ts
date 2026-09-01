@@ -19,69 +19,69 @@ const DEV_SCRIPTS = new Set(["dev", "start", "serve"]);
 
 /** Default listen ports per tool, used when the script does not name one. */
 const FRAMEWORK_PORTS: Array<{ test: RegExp; port: number }> = [
-  { test: /\bvite\b/, port: 5173 },
-  { test: /\bastro\b/, port: 4321 },
-  { test: /\bnext\b/, port: 3000 },
-  { test: /\bnuxt\b/, port: 3000 },
-  { test: /\bremix\b/, port: 3000 },
-  { test: /\breact-scripts\b/, port: 3000 },
-  { test: /\bng\b[\s\S]*\bserve\b|@angular/, port: 4200 },
-  { test: /\bgatsby\b/, port: 8000 },
-  { test: /\bexpo\b/, port: 8081 },
-  { test: /\bvue-cli-service\b/, port: 8080 },
-  { test: /\bwebpack(-dev-server)?\b/, port: 8080 },
+	{ test: /\bvite\b/, port: 5173 },
+	{ test: /\bastro\b/, port: 4321 },
+	{ test: /\bnext\b/, port: 3000 },
+	{ test: /\bnuxt\b/, port: 3000 },
+	{ test: /\bremix\b/, port: 3000 },
+	{ test: /\breact-scripts\b/, port: 3000 },
+	{ test: /\bng\b[\s\S]*\bserve\b|@angular/, port: 4200 },
+	{ test: /\bgatsby\b/, port: 8000 },
+	{ test: /\bexpo\b/, port: 8081 },
+	{ test: /\bvue-cli-service\b/, port: 8080 },
+	{ test: /\bwebpack(-dev-server)?\b/, port: 8080 },
 ];
 
 export interface DevPortInjection {
-  /** Extra CLI args to forward to the script (empty when no change is needed). */
-  extraArgs: string[];
-  /** Extra env for the process (empty when no change is needed). */
-  env: Record<string, string>;
+	/** Extra CLI args to forward to the script (empty when no change is needed). */
+	extraArgs: string[];
+	/** Extra env for the process (empty when no change is needed). */
+	env: Record<string, string>;
 }
 
 const NO_INJECTION: DevPortInjection = { extraArgs: [], env: {} };
 
 /** Resolves true only if the port can currently be bound locally. */
 export function isPortFree(port: number): Promise<boolean> {
-  return new Promise((resolve) => {
-    const tester = net.createServer();
-    tester.once("error", () => resolve(false));
-    tester.once("listening", () => tester.close(() => resolve(true)));
-    tester.listen(port, "0.0.0.0");
-  });
+	return new Promise((resolve) => {
+		const tester = net.createServer();
+		tester.once("error", () => resolve(false));
+		tester.once("listening", () => tester.close(() => resolve(true)));
+		tester.listen(port, "0.0.0.0");
+	});
 }
 
 /** First free port at or above `start`, stepping up by 1. */
 export async function findFreePort(start: number, maxTries = 100): Promise<number> {
-  let port = start;
-  for (let attempt = 0; attempt < maxTries; attempt += 1) {
-    if (await isPortFree(port)) return port;
-    port += 1;
-  }
-  return start;
+	let port = start;
+	for (let attempt = 0; attempt < maxTries; attempt += 1) {
+		if (await isPortFree(port)) return port;
+		port += 1;
+	}
+	return start;
 }
 
 function readScriptCommand(projectPath: string, scriptName: string): string {
-  try {
-    const raw = JSON.parse(
-      fs.readFileSync(path.join(projectPath, "package.json"), "utf8")
-    ) as { scripts?: Record<string, string> };
-    return raw.scripts?.[scriptName] ?? "";
-  } catch {
-    return "";
-  }
+	try {
+		const raw = JSON.parse(fs.readFileSync(path.join(projectPath, "package.json"), "utf8")) as {
+			scripts?: Record<string, string>;
+		};
+		return raw.scripts?.[scriptName] ?? "";
+	} catch {
+		return "";
+	}
 }
 
 function explicitPort(command: string): number | null {
-  const match = command.match(/(?:--port[=\s]+|(?:^|\s)-p\s+|(?:^|\s)PORT=)(\d{2,5})/);
-  return match ? Number(match[1]) : null;
+	const match = /(?:--port[=\s]+|(?:^|\s)-p\s+|(?:^|\s)PORT=)(\d{2,5})/.exec(command);
+	return match ? Number(match[1]) : null;
 }
 
 /** The port a dev script would use, or null when it cannot be determined. */
 export function resolveBasePort(command: string): number | null {
-  const explicit = explicitPort(command);
-  if (explicit !== null) return explicit;
-  return FRAMEWORK_PORTS.find(({ test }) => test.test(command))?.port ?? null;
+	const explicit = explicitPort(command);
+	if (explicit !== null) return explicit;
+	return FRAMEWORK_PORTS.find(({ test }) => test.test(command))?.port ?? null;
 }
 
 /**
@@ -89,22 +89,22 @@ export function resolveBasePort(command: string): number | null {
  * Returns empty extras when no change is needed, so callers can spread blindly.
  */
 export async function resolveDevPortInjection(
-  projectPath: string,
-  scriptName: string,
-  packageManager: PackageManager
+	projectPath: string,
+	scriptName: string,
+	packageManager: PackageManager,
 ): Promise<DevPortInjection> {
-  if (!DEV_SCRIPTS.has(scriptName)) return NO_INJECTION;
+	if (!DEV_SCRIPTS.has(scriptName)) return NO_INJECTION;
 
-  const basePort = resolveBasePort(readScriptCommand(projectPath, scriptName));
-  if (basePort === null) return NO_INJECTION;
-  if (await isPortFree(basePort)) return NO_INJECTION;
+	const basePort = resolveBasePort(readScriptCommand(projectPath, scriptName));
+	if (basePort === null) return NO_INJECTION;
+	if (await isPortFree(basePort)) return NO_INJECTION;
 
-  const freePort = await findFreePort(basePort + 1);
-  const portArgs = ["--port", String(freePort)];
+	const freePort = await findFreePort(basePort + 1);
+	const portArgs = ["--port", String(freePort)];
 
-  return {
-    // npm needs `--` to forward args to the underlying tool; yarn forwards directly.
-    extraArgs: packageManager === "npm" ? ["--", ...portArgs] : portArgs,
-    env: { PORT: String(freePort) },
-  };
+	return {
+		// npm needs `--` to forward args to the underlying tool; yarn forwards directly.
+		extraArgs: packageManager === "npm" ? ["--", ...portArgs] : portArgs,
+		env: { PORT: String(freePort) },
+	};
 }

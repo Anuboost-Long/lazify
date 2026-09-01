@@ -1,301 +1,309 @@
 import { spawn } from "node:child_process";
 import type { ChildProcess } from "node:child_process";
+import { randomBytes } from "node:crypto";
 
 import { ensureCommandAvailable } from "./environment/scanner";
 
 export type LogStream = "stdout" | "stderr" | "system";
 
 export interface LogEvent {
-  id: string;
-  timestamp: string;
-  stream: LogStream;
-  message: string;
+	id: string;
+	timestamp: string;
+	stream: LogStream;
+	message: string;
 }
 
 export interface CommandRequest {
-  command: string;
-  args: string[];
-  cwd?: string;
-  /** Extra env merged over the process env for this command. */
-  env?: Record<string, string>;
+	command: string;
+	args: string[];
+	cwd?: string;
+	/** Extra env merged over the process env for this command. */
+	env?: Record<string, string>;
 }
 
 export interface CommandResult {
-  success: boolean;
-  exitCode: number | null;
+	success: boolean;
+	exitCode: number | null;
 }
 
 export interface CommandChoiceOption {
-  id: string;
-  label: string;
+	id: string;
+	label: string;
 }
 
 export interface CommandChoicePrompt {
-  id: string;
-  commandId: string;
-  message: string;
-  options: CommandChoiceOption[];
+	id: string;
+	commandId: string;
+	message: string;
+	options: CommandChoiceOption[];
 }
 
 type LogEmitter = (event: LogEvent) => void;
 type ChoicePromptEmitter = (prompt: CommandChoicePrompt) => void;
 
 interface DetectedChoicePrompt {
-  message: string;
-  options: Array<CommandChoiceOption & { input: string }>;
+	message: string;
+	options: Array<CommandChoiceOption & { input: string }>;
 }
 
 interface ActiveChoicePrompt {
-  child: ChildProcess;
-  inputs: Map<string, string>;
+	child: ChildProcess;
+	inputs: Map<string, string>;
 }
 
-const ANSI_SEQUENCE = /\u001b(?:\[[0-?]*[ -/]*[@-~]|\][^\u0007]*(?:\u0007|\u001b\\))/g;
+const ANSI_SEQUENCE = /\u001b(?:\[[0-?]*[ -/]*[@-~]|\][^\u0007]*(?:\u0007|\u001b\\))/g; // NOSONAR: ESC and BEL are the sequence being stripped
+
+/** `Overwrite this file? (y/N)` — the bracket rides at the end of the line. */
+const CONFIRMATION_SUFFIX = /[([]([Yy]\/[Nn])[)\]]\s*$/;
+const NUMBERED_OPTION = /^(\d+)[.)]\s(.+)$/;
 
 export function detectCommandChoicePrompt(output: string): DetectedChoicePrompt | null {
-  const lines = output
-    .replace(ANSI_SEQUENCE, "")
-    .replace(/\r/g, "\n")
-    .split("\n")
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .slice(-30);
-  const lastLine = lines.at(-1) ?? "";
-  const confirmation = lastLine.match(/^(.*?)(?:\s*[([])([Yy]\/[Nn])(?:[)\]])\s*$/);
+	const lines = output
+		.replace(ANSI_SEQUENCE, "")
+		.replace(/\r/g, "\n")
+		.split("\n")
+		.map((line) => line.trim())
+		.filter(Boolean)
+		.slice(-30);
+	const lastLine = lines.at(-1) ?? "";
+	const confirmation = CONFIRMATION_SUFFIX.exec(lastLine);
 
-  if (confirmation) {
-    return {
-      message: confirmation[1].trim() || "Choose an option",
-      options: [
-        { id: "yes", label: "Yes", input: "y\n" },
-        { id: "no", label: "No", input: "n\n" },
-      ],
-    };
-  }
+	if (confirmation) {
+		return {
+			message: lastLine.slice(0, confirmation.index).trim() || "Choose an option",
+			options: [
+				{ id: "yes", label: "Yes", input: "y\n" },
+				{ id: "no", label: "No", input: "n\n" },
+			],
+		};
+	}
 
-  const numberedOptions = lines
-    .map((line) => line.match(/^(\d+)[.)]\s+(.+)$/))
-    .filter((match): match is RegExpMatchArray => Boolean(match));
+	const numberedOptions = lines
+		.map((line) => NUMBERED_OPTION.exec(line))
+		.filter((match): match is RegExpExecArray => Boolean(match));
 
-  if (numberedOptions.length < 2) {
-    return null;
-  }
+	if (numberedOptions.length < 2) {
+		return null;
+	}
 
-  const firstOptionIndex = lines.findIndex((line) => /^(\d+)[.)]\s+/.test(line));
-  const promptLine = [...lines.slice(0, firstOptionIndex)].reverse().find((line) => !/^>\s/.test(line));
+	const firstOptionIndex = lines.findIndex((line) => /^(\d+)[.)]\s+/.test(line));
+	const promptLine = lines
+		.slice(0, firstOptionIndex)
+		.reverse()
+		.find((line) => !/^>\s/.test(line));
 
-  return {
-    message: promptLine ?? "Choose an option",
-    options: numberedOptions.map((match) => ({
-      id: `option-${match[1]}`,
-      label: match[2].trim(),
-      input: `${match[1]}\n`,
-    })),
-  };
+	return {
+		message: promptLine ?? "Choose an option",
+		options: numberedOptions.map((match) => ({
+			id: `option-${match[1]}`,
+			label: match[2].trim(),
+			input: `${match[1]}\n`,
+		})),
+	};
 }
 
 export class CommandRunner {
-  private readonly activeScripts = new Map<string, ChildProcess>();
-  private readonly activeChoicePrompts = new Map<string, ActiveChoicePrompt>();
+	private readonly activeScripts = new Map<string, ChildProcess>();
+	private readonly activeChoicePrompts = new Map<string, ActiveChoicePrompt>();
 
-  constructor(
-    private readonly emitLog: LogEmitter,
-    private readonly emitChoicePrompt: ChoicePromptEmitter = () => undefined,
-  ) {}
+	constructor(
+		private readonly emitLog: LogEmitter,
+		private readonly emitChoicePrompt: ChoicePromptEmitter = () => undefined,
+	) {}
 
-  startScript(
-    request: CommandRequest,
-    emitScriptLog: LogEmitter,
-    onDone: (runId: string, exitCode: number | null) => void
-  ): string {
-    const { command, args, cwd, env } = request;
-    const runId = `script-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
+	startScript(
+		request: CommandRequest,
+		emitScriptLog: LogEmitter,
+		onDone: (runId: string, exitCode: number | null) => void,
+	): string {
+		const { command, args, cwd, env } = request;
+		const runId = `script-${Date.now()}-${randomBytes(3).toString("hex")}`;
 
-    emitScriptLog({
-      id: runId,
-      timestamp: new Date().toISOString(),
-      stream: "system",
-      message: `> ${command} ${args.join(" ")}`
-    });
+		emitScriptLog({
+			id: runId,
+			timestamp: new Date().toISOString(),
+			stream: "system",
+			message: `> ${command} ${args.join(" ")}`,
+		});
 
-    const child = spawn(command, args, {
-      cwd,
-      env: env ? { ...process.env, ...env } : process.env,
-      shell: process.platform === "win32"
-    });
+		const child = spawn(command, args, {
+			cwd,
+			env: env ? { ...process.env, ...env } : process.env,
+			shell: process.platform === "win32",
+		});
 
-    this.activeScripts.set(runId, child);
+		this.activeScripts.set(runId, child);
 
-    child.stdout.on("data", (chunk: Buffer) => {
-      emitScriptLog({
-        id: runId,
-        timestamp: new Date().toISOString(),
-        stream: "stdout",
-        message: chunk.toString()
-      });
-    });
+		child.stdout.on("data", (chunk: Buffer) => {
+			emitScriptLog({
+				id: runId,
+				timestamp: new Date().toISOString(),
+				stream: "stdout",
+				message: chunk.toString(),
+			});
+		});
 
-    child.stderr.on("data", (chunk: Buffer) => {
-      emitScriptLog({
-        id: runId,
-        timestamp: new Date().toISOString(),
-        stream: "stderr",
-        message: chunk.toString()
-      });
-    });
+		child.stderr.on("data", (chunk: Buffer) => {
+			emitScriptLog({
+				id: runId,
+				timestamp: new Date().toISOString(),
+				stream: "stderr",
+				message: chunk.toString(),
+			});
+		});
 
-    child.on("error", (error: Error) => {
-      emitScriptLog({
-        id: runId,
-        timestamp: new Date().toISOString(),
-        stream: "stderr",
-        message: error.message
-      });
-    });
+		child.on("error", (error: Error) => {
+			emitScriptLog({
+				id: runId,
+				timestamp: new Date().toISOString(),
+				stream: "stderr",
+				message: error.message,
+			});
+		});
 
-    child.on("close", (exitCode: number | null) => {
-      this.activeScripts.delete(runId);
-      emitScriptLog({
-        id: runId,
-        timestamp: new Date().toISOString(),
-        stream: exitCode === 0 ? "system" : "stderr",
-        message: exitCode === 0 ? "Process finished." : `Process exited with code ${String(exitCode)}.`
-      });
-      onDone(runId, exitCode);
-    });
+		child.on("close", (exitCode: number | null) => {
+			this.activeScripts.delete(runId);
+			emitScriptLog({
+				id: runId,
+				timestamp: new Date().toISOString(),
+				stream: exitCode === 0 ? "system" : "stderr",
+				message: exitCode === 0 ? "Process finished." : `Process exited with code ${String(exitCode)}.`,
+			});
+			onDone(runId, exitCode);
+		});
 
-    return runId;
-  }
+		return runId;
+	}
 
-  stopScript(runId: string): boolean {
-    const child = this.activeScripts.get(runId);
-    if (!child) return false;
-    child.kill("SIGTERM");
-    this.activeScripts.delete(runId);
-    return true;
-  }
+	stopScript(runId: string): boolean {
+		const child = this.activeScripts.get(runId);
+		if (!child) return false;
+		child.kill("SIGTERM");
+		this.activeScripts.delete(runId);
+		return true;
+	}
 
-  chooseCommandOption(promptId: string, optionId: string): boolean {
-    const prompt = this.activeChoicePrompts.get(promptId);
-    const input = prompt?.inputs.get(optionId);
+	chooseCommandOption(promptId: string, optionId: string): boolean {
+		const prompt = this.activeChoicePrompts.get(promptId);
+		const input = prompt?.inputs.get(optionId);
 
-    if (!prompt || !input || !prompt.child.stdin?.writable) {
-      return false;
-    }
+		if (!prompt || !input || !prompt.child.stdin?.writable) {
+			return false;
+		}
 
-    prompt.child.stdin.write(input);
-    this.activeChoicePrompts.delete(promptId);
-    return true;
-  }
+		prompt.child.stdin.write(input);
+		this.activeChoicePrompts.delete(promptId);
+		return true;
+	}
 
-  runCommand(request: CommandRequest): Promise<CommandResult> {
-    const { command, args, cwd } = request;
-    const commandId = `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
+	runCommand(request: CommandRequest): Promise<CommandResult> {
+		const { command, args, cwd } = request;
+		const commandId = `${Date.now()}-${randomBytes(3).toString("hex")}`;
 
-    ensureCommandAvailable(command);
+		ensureCommandAvailable(command);
 
-    this.emitLog({
-      id: commandId,
-      timestamp: new Date().toISOString(),
-      stream: "system",
-      message: `> ${command} ${args.join(" ")}`
-    });
+		this.emitLog({
+			id: commandId,
+			timestamp: new Date().toISOString(),
+			stream: "system",
+			message: `> ${command} ${args.join(" ")}`,
+		});
 
-    return new Promise((resolve, reject) => {
-      const child = spawn(command, args, {
-        cwd,
-        env: process.env,
-        shell: process.platform === "win32"
-      });
-      let promptBuffer = "";
-      let promptTimer: NodeJS.Timeout | null = null;
-      let promptSequence = 0;
-      const emittedPromptSignatures = new Set<string>();
+		return new Promise((resolve, reject) => {
+			const child = spawn(command, args, {
+				cwd,
+				env: process.env,
+				shell: process.platform === "win32",
+			});
+			let promptBuffer = "";
+			let promptTimer: NodeJS.Timeout | null = null;
+			let promptSequence = 0;
+			const emittedPromptSignatures = new Set<string>();
 
-      const clearCommandPrompts = () => {
-        if (promptTimer) clearTimeout(promptTimer);
-        for (const [promptId, prompt] of this.activeChoicePrompts) {
-          if (prompt.child === child) this.activeChoicePrompts.delete(promptId);
-        }
-      };
+			const clearCommandPrompts = () => {
+				if (promptTimer) clearTimeout(promptTimer);
+				for (const [promptId, prompt] of this.activeChoicePrompts) {
+					if (prompt.child === child) this.activeChoicePrompts.delete(promptId);
+				}
+			};
 
-      const inspectForChoicePrompt = () => {
-        promptTimer = null;
-        const detected = detectCommandChoicePrompt(promptBuffer);
-        if (!detected) return;
+			const inspectForChoicePrompt = () => {
+				promptTimer = null;
+				const detected = detectCommandChoicePrompt(promptBuffer);
+				if (!detected) return;
 
-        const signature = `${detected.message}\u0000${detected.options.map((option) => option.label).join("\u0000")}`;
-        if (emittedPromptSignatures.has(signature)) return;
-        emittedPromptSignatures.add(signature);
+				const signature = `${detected.message}\u0000${detected.options.map((option) => option.label).join("\u0000")}`;
+				if (emittedPromptSignatures.has(signature)) return;
+				emittedPromptSignatures.add(signature);
 
-        const promptId = `${commandId}-prompt-${promptSequence++}`;
-        this.activeChoicePrompts.set(promptId, {
-          child,
-          inputs: new Map(detected.options.map((option) => [option.id, option.input])),
-        });
-        this.emitChoicePrompt({
-          id: promptId,
-          commandId,
-          message: detected.message,
-          options: detected.options.map(({ id, label }) => ({ id, label })),
-        });
-      };
+				const promptId = `${commandId}-prompt-${promptSequence++}`;
+				this.activeChoicePrompts.set(promptId, {
+					child,
+					inputs: new Map(detected.options.map((option) => [option.id, option.input])),
+				});
+				this.emitChoicePrompt({
+					id: promptId,
+					commandId,
+					message: detected.message,
+					options: detected.options.map(({ id, label }) => ({ id, label })),
+				});
+			};
 
-      const queuePromptInspection = (chunk: Buffer) => {
-        promptBuffer = `${promptBuffer}${chunk.toString()}`.slice(-8_192);
-        if (promptTimer) clearTimeout(promptTimer);
-        promptTimer = setTimeout(inspectForChoicePrompt, 40);
-      };
+			const queuePromptInspection = (chunk: Buffer) => {
+				promptBuffer = `${promptBuffer}${chunk.toString()}`.slice(-8_192);
+				if (promptTimer) clearTimeout(promptTimer);
+				promptTimer = setTimeout(inspectForChoicePrompt, 40);
+			};
 
-      child.stdout.on("data", (chunk: Buffer) => {
-        queuePromptInspection(chunk);
-        this.emitLog({
-          id: commandId,
-          timestamp: new Date().toISOString(),
-          stream: "stdout",
-          message: chunk.toString()
-        });
-      });
+			child.stdout.on("data", (chunk: Buffer) => {
+				queuePromptInspection(chunk);
+				this.emitLog({
+					id: commandId,
+					timestamp: new Date().toISOString(),
+					stream: "stdout",
+					message: chunk.toString(),
+				});
+			});
 
-      child.stderr.on("data", (chunk: Buffer) => {
-        queuePromptInspection(chunk);
-        this.emitLog({
-          id: commandId,
-          timestamp: new Date().toISOString(),
-          stream: "stderr",
-          message: chunk.toString()
-        });
-      });
+			child.stderr.on("data", (chunk: Buffer) => {
+				queuePromptInspection(chunk);
+				this.emitLog({
+					id: commandId,
+					timestamp: new Date().toISOString(),
+					stream: "stderr",
+					message: chunk.toString(),
+				});
+			});
 
-      child.on("error", (error) => {
-        clearCommandPrompts();
-        this.emitLog({
-          id: commandId,
-          timestamp: new Date().toISOString(),
-          stream: "stderr",
-          message: error.message
-        });
-        reject(error);
-      });
+			child.on("error", (error) => {
+				clearCommandPrompts();
+				this.emitLog({
+					id: commandId,
+					timestamp: new Date().toISOString(),
+					stream: "stderr",
+					message: error.message,
+				});
+				reject(error);
+			});
 
-      child.on("close", (exitCode) => {
-        clearCommandPrompts();
-        const success = exitCode === 0;
+			child.on("close", (exitCode) => {
+				clearCommandPrompts();
+				const success = exitCode === 0;
 
-        this.emitLog({
-          id: commandId,
-          timestamp: new Date().toISOString(),
-          stream: success ? "system" : "stderr",
-          message: success
-            ? "Command finished successfully."
-            : `Command exited with code ${String(exitCode)}.`
-        });
+				this.emitLog({
+					id: commandId,
+					timestamp: new Date().toISOString(),
+					stream: success ? "system" : "stderr",
+					message: success
+						? "Command finished successfully."
+						: `Command exited with code ${String(exitCode)}.`,
+				});
 
-        resolve({
-          success,
-          exitCode
-        });
-      });
-    });
-  }
+				resolve({
+					success,
+					exitCode,
+				});
+			});
+		});
+	}
 }
