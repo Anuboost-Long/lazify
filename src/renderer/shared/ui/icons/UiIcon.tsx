@@ -31,6 +31,7 @@ import {
 	MediaImage,
 	MediaVideo,
 	Menu,
+	Minus,
 	MoreHoriz,
 	MultiWindow,
 	NavArrowLeft,
@@ -133,6 +134,7 @@ export type UiIconName =
 	| "moon"
 	| "arrow-left"
 	| "menu"
+	| "minus"
 	| "search"
 	| "xmark"
 	| "plus"
@@ -202,6 +204,7 @@ const iconMap: Record<UiIconName, ComponentType<SVGProps<SVGSVGElement>>> = {
 	moon: HalfMoon,
 	"arrow-left": NavArrowLeft,
 	menu: Menu,
+	minus: Minus,
 	search: Search,
 	xmark: Xmark,
 	plus: Plus,

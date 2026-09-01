@@ -96,6 +96,18 @@ interface ProjectDeclaration {
 	guardName: string | null;
 }
 
+/**
+ * A guard names its header in one file and reads it in another, so the answer
+ * is the most telling match in the project rather than the first one found:
+ * the option a project declares its header name in outranks a line that merely
+ * reads some header, whichever file the scan reaches first.
+ */
+function collectGuardNames(text: string, patterns: RegExp[], found: (string | null)[]): void {
+	patterns.forEach((pattern, rank) => {
+		found[rank] ??= pattern.exec(text)?.[1] ?? null;
+	});
+}
+
 function read(sources: Array<{ lines: string[] }>, rules: GlobalSecurityRules): ProjectDeclaration {
 	const declaration: ProjectDeclaration = {
 		schemes: [],
@@ -104,6 +116,7 @@ function read(sources: Array<{ lines: string[] }>, rules: GlobalSecurityRules): 
 		guardName: null,
 	};
 
+	const guardNames: (string | null)[] = rules.guardNames.map(() => null);
 	let read = 0;
 
 	for (const source of sources) {
@@ -117,8 +130,10 @@ function read(sources: Array<{ lines: string[] }>, rules: GlobalSecurityRules): 
 		declaration.schemes.push(...readDefinitions(text, rules));
 		for (const id of idsIn(text, rules.requirements)) declaration.required.add(id);
 		declaration.guarded ||= rules.guards.some((pattern) => pattern.test(text));
-		declaration.guardName ??= firstGroup(text, rules.guardNames) ?? null;
+		collectGuardNames(text, rules.guardNames, guardNames);
 	}
+
+	declaration.guardName = guardNames.find((name) => name) ?? null;
 
 	return declaration;
 }

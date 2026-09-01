@@ -100,4 +100,10 @@ describe("sonarlint provider", () => {
 	it("keeps telemetry off in the settings it hands the server", () => {
 		expect(sonarlint.defaultSettings()).toMatchObject({ disableTelemetry: true });
 	});
+
+	// The server spawns this itself, from Java, with none of our environment —
+	// so the Electron binary here launches a second copy of the app.
+	it("never offers the Electron binary as the node its analyzers run on", () => {
+		expect(sonarlint.initializationOptions(root).clientNodePath).not.toBe(process.execPath);
+	});
 });

@@ -68,37 +68,55 @@
    (specificity 0,1,1 — same as light theme rule
    below, so must come BEFORE light theme block)
    ───────────────────────────────────────────── */
-:root[data-accent="sky"] {
+[data-desktop-tint="emerald"] {
+	--color-accent: 16 185 129;
+	--color-accent-hover: 5 150 105;
+	--color-accent-soft: rgba(16, 185, 129, 0.1);
+}
+:root[data-theme="light"] [data-desktop-tint="emerald"] {
+	--color-accent: 4 120 87;
+	--color-accent-hover: 6 95 70;
+	--color-accent-soft: rgba(4, 120, 87, 0.08);
+}
+
+:root[data-accent="sky"],
+[data-desktop-tint="sky"] {
 	--color-accent: 14 165 233;
 	--color-accent-hover: 2 132 199;
 	--color-accent-soft: rgba(14, 165, 233, 0.1);
 }
-:root[data-accent="violet"] {
+:root[data-accent="violet"],
+[data-desktop-tint="violet"] {
 	--color-accent: 139 92 246;
 	--color-accent-hover: 124 58 237;
 	--color-accent-soft: rgba(139, 92, 246, 0.1);
 }
-:root[data-accent="rose"] {
+:root[data-accent="rose"],
+[data-desktop-tint="rose"] {
 	--color-accent: 244 63 94;
 	--color-accent-hover: 225 29 72;
 	--color-accent-soft: rgba(244, 63, 94, 0.1);
 }
-:root[data-accent="amber"] {
+:root[data-accent="amber"],
+[data-desktop-tint="amber"] {
 	--color-accent: 245 158 11;
 	--color-accent-hover: 217 119 6;
 	--color-accent-soft: rgba(245, 158, 11, 0.1);
 }
-:root[data-accent="cyan"] {
+:root[data-accent="cyan"],
+[data-desktop-tint="cyan"] {
 	--color-accent: 6 182 212;
 	--color-accent-hover: 8 145 178;
 	--color-accent-soft: rgba(6, 182, 212, 0.1);
 }
-:root[data-accent="pink"] {
+:root[data-accent="pink"],
+[data-desktop-tint="pink"] {
 	--color-accent: 236 72 153;
 	--color-accent-hover: 219 39 119;
 	--color-accent-soft: rgba(236, 72, 153, 0.1);
 }
-:root[data-accent="indigo"] {
+:root[data-accent="indigo"],
+[data-desktop-tint="indigo"] {
 	--color-accent: 99 102 241;
 	--color-accent-hover: 79 70 229;
 	--color-accent-soft: rgba(99, 102, 241, 0.1);
@@ -152,37 +170,44 @@
    (specificity 0,2,1 — always beats the single-
    attribute rules above)
    ───────────────────────────────────────────── */
-:root[data-accent="sky"][data-theme="light"] {
+:root[data-accent="sky"][data-theme="light"],
+:root[data-theme="light"] [data-desktop-tint="sky"] {
 	--color-accent: 2 132 199;
 	--color-accent-hover: 3 105 161;
 	--color-accent-soft: rgba(2, 132, 199, 0.08);
 }
-:root[data-accent="violet"][data-theme="light"] {
+:root[data-accent="violet"][data-theme="light"],
+:root[data-theme="light"] [data-desktop-tint="violet"] {
 	--color-accent: 109 40 217;
 	--color-accent-hover: 91 33 182;
 	--color-accent-soft: rgba(109, 40, 217, 0.08);
 }
-:root[data-accent="rose"][data-theme="light"] {
+:root[data-accent="rose"][data-theme="light"],
+:root[data-theme="light"] [data-desktop-tint="rose"] {
 	--color-accent: 190 18 60;
 	--color-accent-hover: 159 18 57;
 	--color-accent-soft: rgba(190, 18, 60, 0.08);
 }
-:root[data-accent="amber"][data-theme="light"] {
+:root[data-accent="amber"][data-theme="light"],
+:root[data-theme="light"] [data-desktop-tint="amber"] {
 	--color-accent: 180 83 9;
 	--color-accent-hover: 146 64 14;
 	--color-accent-soft: rgba(180, 83, 9, 0.08);
 }
-:root[data-accent="cyan"][data-theme="light"] {
+:root[data-accent="cyan"][data-theme="light"],
+:root[data-theme="light"] [data-desktop-tint="cyan"] {
 	--color-accent: 14 116 144;
 	--color-accent-hover: 21 94 117;
 	--color-accent-soft: rgba(14, 116, 144, 0.08);
 }
-:root[data-accent="pink"][data-theme="light"] {
+:root[data-accent="pink"][data-theme="light"],
+:root[data-theme="light"] [data-desktop-tint="pink"] {
 	--color-accent: 190 24 93;
 	--color-accent-hover: 157 23 77;
 	--color-accent-soft: rgba(190, 24, 93, 0.08);
 }
-:root[data-accent="indigo"][data-theme="light"] {
+:root[data-accent="indigo"][data-theme="light"],
+:root[data-theme="light"] [data-desktop-tint="indigo"] {
 	--color-accent: 67 56 202;
 	--color-accent-hover: 55 48 163;
 	--color-accent-soft: rgba(67, 56, 202, 0.08);

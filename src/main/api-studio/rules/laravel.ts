@@ -68,9 +68,9 @@ export const laravelRules: FrameworkRules = {
 			/['"][\w.-]*api[_.-]?key[\w.-]*['"]\s*=>\s*\w*ApiKey\w*::class/i,
 		],
 		guardNames: [
+			/(?:HEADER|HEADER_NAME|API_KEY_HEADER)\s*=\s*['"]([^'"]+)['"]/i,
 			/\$request->header\s*\(\s*['"]([^'"]+)['"]/,
 			/headers->get\s*\(\s*['"]([^'"]+)['"]/,
-			/HEADER\s*=\s*['"]([^'"]+)['"]/,
 		],
 		guardParameterName: "X-API-KEY",
 		hints: ["api-key", "api_key", "apiKey", "ApiKey", "SecurityScheme", "securityScheme"],

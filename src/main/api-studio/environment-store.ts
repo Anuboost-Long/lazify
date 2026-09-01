@@ -63,6 +63,38 @@ function readSecrets(projectPath: string) {
 	return migrateSecrets(all[path.resolve(projectPath)]);
 }
 
+/** What the policy called these before variables took the header's own name. */
+const RETIRED_KEYS: Record<string, string> = {
+	bearerToken: "authorization",
+	basicAuth: "authorization",
+};
+
+function withRenamedKeys<TValue>(values: Record<string, TValue>): Record<string, TValue> {
+	const retired = Object.entries(values)
+		.filter(([key]) => RETIRED_KEYS[key])
+		.map(([key, value]) => [RETIRED_KEYS[key], value] as const);
+	const current = Object.entries(values).filter(([key]) => !RETIRED_KEYS[key]);
+
+	return Object.fromEntries([...retired, ...current]);
+}
+
+/** A declared variable's value used to be filed under its label, not its key. */
+function withCustomKeys(
+	values: Record<string, string>,
+	variables: { key: string; name: string }[],
+): Record<string, string> {
+	const moved = { ...values };
+
+	for (const variable of variables) {
+		if (moved[variable.key] === undefined && moved[variable.name] !== undefined) {
+			moved[variable.key] = moved[variable.name];
+			delete moved[variable.name];
+		}
+	}
+
+	return moved;
+}
+
 function withoutEmpty(values: Record<string, string>) {
 	return Object.fromEntries(
 		Object.entries(values).filter(([, value]) => typeof value === "string" && value.length > 0),
@@ -79,9 +111,17 @@ export function readEnvironments(projectPath: string): ApiEnvironmentSet {
 			? presets.environments
 			: [DEFAULT_ENVIRONMENT];
 
+	const declared = (presets?.variables ?? []).map((variable) => ({
+		key: variable.key ?? variable.name,
+		name: variable.name,
+	}));
+
 	const merged = environments.map((environment) => ({
 		...environment,
-		values: { ...environment.values, ...secrets[environment.id] },
+		values: withCustomKeys(
+			withRenamedKeys({ ...environment.values, ...secrets[environment.id] }),
+			declared,
+		),
 	}));
 
 	return {
@@ -93,7 +133,7 @@ export function readEnvironments(projectPath: string): ApiEnvironmentSet {
 			...variable,
 			key: variable.key ?? variable.name,
 		})),
-		names: presets?.names ?? {},
+		names: withRenamedKeys(presets?.names ?? {}),
 	};
 }
 

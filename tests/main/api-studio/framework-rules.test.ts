@@ -1,6 +1,7 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import { deriveEnvironmentVariables, scanProjectRoutes } from "../../../src/main/api-studio";
@@ -103,172 +104,220 @@ module.exports = apiKeyGuard;
 `;
 
 async function writeProject(files: Record<string, string>) {
-  for (const [relativePath, content] of Object.entries(files)) {
-    const absolutePath = path.join(projectPath, relativePath);
-    await fs.mkdir(path.dirname(absolutePath), { recursive: true });
-    await fs.writeFile(absolutePath, content, "utf8");
-  }
+	for (const [relativePath, content] of Object.entries(files)) {
+		const absolutePath = path.join(projectPath, relativePath);
+		await fs.mkdir(path.dirname(absolutePath), { recursive: true });
+		await fs.writeFile(absolutePath, content, "utf8");
+	}
 }
 
 function packageJson(dependencies: Record<string, string>) {
-  return JSON.stringify({ name: "demo", dependencies });
+	return JSON.stringify({ name: "demo", dependencies });
 }
 
 beforeEach(async () => {
-  projectPath = await fs.mkdtemp(path.join(os.tmpdir(), "lazify-framework-"));
+	projectPath = await fs.mkdtemp(path.join(os.tmpdir(), "lazify-framework-"));
 });
 
 afterEach(async () => {
-  await fs.rm(projectPath, { recursive: true, force: true });
+	await fs.rm(projectPath, { recursive: true, force: true });
 });
 
 describe("NestJS, from its rule set alone", () => {
-  it("joins the controller prefix to each decorator's path", async () => {
-    await writeProject({
-      "package.json": packageJson({ "@nestjs/common": "^10.0.0" }),
-      "src/users/users.controller.ts": NEST_CONTROLLER
-    });
+	it("joins the controller prefix to each decorator's path", async () => {
+		await writeProject({
+			"package.json": packageJson({ "@nestjs/common": "^10.0.0" }),
+			"src/users/users.controller.ts": NEST_CONTROLLER,
+		});
 
-    const result = await scanProjectRoutes(projectPath);
+		const result = await scanProjectRoutes(projectPath);
 
-    expect(result.scannersRun).toEqual(["nestjs"]);
-    expect(result.routes.map((route) => `${route.method} ${route.path}`)).toEqual([
-      "GET /users",
-      "POST /users",
-      "GET /users/health",
-      "GET /users/{id}/orders/{orderId}"
-    ]);
+		expect(result.scannersRun).toEqual(["nestjs"]);
+		expect(result.routes.map((route) => `${route.method} ${route.path}`)).toEqual([
+			"GET /users",
+			"POST /users",
+			"GET /users/health",
+			"GET /users/{id}/orders/{orderId}",
+		]);
+	});
 
-  });
+	it("binds decorator parameters by the name the decorator carries", async () => {
+		await writeProject({
+			"package.json": packageJson({ "@nestjs/common": "^10.0.0" }),
+			"src/users/users.controller.ts": NEST_CONTROLLER,
+		});
 
-  it("binds decorator parameters by the name the decorator carries", async () => {
-    await writeProject({
-      "package.json": packageJson({ "@nestjs/common": "^10.0.0" }),
-      "src/users/users.controller.ts": NEST_CONTROLLER
-    });
+		const result = await scanProjectRoutes(projectPath);
+		const list = result.routes.find((route) => route.path === "/users" && route.method === "GET")!;
+		const create = result.routes.find((route) => route.method === "POST")!;
+		const nested = result.routes.find((route) => route.path.includes("orders"))!;
 
-    const result = await scanProjectRoutes(projectPath);
-    const list = result.routes.find((route) => route.path === "/users" && route.method === "GET")!;
-    const create = result.routes.find((route) => route.method === "POST")!;
-    const nested = result.routes.find((route) => route.path.includes("orders"))!;
+		expect(list.parameters.map((parameter) => `${parameter.name}:${parameter.schemaType}`)).toEqual([
+			"page:number",
+			"search:string",
+		]);
+		expect(list.parameters[1].required).toBe(false);
+		expect(nested.parameters.map((parameter) => parameter.name)).toEqual(["id", "orderId"]);
+		expect(create.requestBody?.variants[0].schemaType).toBe("CreateUserDto");
+		expect(create.headers).toEqual([
+			{ name: "x-tenant", value: null, required: true, description: null },
+		]);
+	});
 
-    expect(list.parameters.map((parameter) => `${parameter.name}:${parameter.schemaType}`)).toEqual([
-      "page:number",
-      "search:string"
-    ]);
-    expect(list.parameters[1].required).toBe(false);
-    expect(nested.parameters.map((parameter) => parameter.name)).toEqual(["id", "orderId"]);
-    expect(create.requestBody?.variants[0].schemaType).toBe("CreateUserDto");
-    expect(create.headers).toEqual([
-      { name: "x-tenant", value: null, required: true, description: null }
-    ]);
-  });
+	it("reads a guard as auth, and the class-level guard as inherited", async () => {
+		await writeProject({
+			"package.json": packageJson({ "@nestjs/common": "^10.0.0" }),
+			"src/users/users.controller.ts": NEST_CONTROLLER,
+		});
 
-  it("reads a guard as auth, and the class-level guard as inherited", async () => {
-    await writeProject({
-      "package.json": packageJson({ "@nestjs/common": "^10.0.0" }),
-      "src/users/users.controller.ts": NEST_CONTROLLER
-    });
+		const result = await scanProjectRoutes(projectPath);
 
-    const result = await scanProjectRoutes(projectPath);
-
-    expect(result.routes.find((route) => route.path === "/users")!.security).toEqual([
-      { kind: "bearer", schemeName: "UseGuards", location: "header", parameterName: "Authorization" }
-    ]);
-    expect(result.routes.find((route) => route.path === "/users/health")!.security).toEqual([]);
-    expect(deriveEnvironmentVariables(result.routes).map((variable) => variable.name)).toEqual([
-      "baseUrl",
-      "bearerToken",
-      "xTenant"
-    ]);
-  });
+		expect(result.routes.find((route) => route.path === "/users")!.security).toEqual([
+			{ kind: "bearer", schemeName: "UseGuards", location: "header", parameterName: "Authorization" },
+		]);
+		expect(result.routes.find((route) => route.path === "/users/health")!.security).toEqual([]);
+		expect(deriveEnvironmentVariables(result.routes).map((variable) => variable.name)).toEqual([
+			"baseUrl",
+			"Authorization",
+			"x-tenant",
+		]);
+	});
 });
 
 describe("Express, from its rule set alone", () => {
-  it("applies the mount path a router is used under", async () => {
-    await writeProject({
-      "package.json": packageJson({ express: "^4.19.0" }),
-      "src/routes/invoices.js": EXPRESS_ROUTER
-    });
+	it("applies the mount path a router is used under", async () => {
+		await writeProject({
+			"package.json": packageJson({ express: "^4.19.0" }),
+			"src/routes/invoices.js": EXPRESS_ROUTER,
+		});
 
-    const result = await scanProjectRoutes(projectPath);
+		const result = await scanProjectRoutes(projectPath);
 
-    expect(result.scannersRun).toEqual(["express"]);
-    expect(result.routes.map((route) => `${route.method} ${route.path}`)).toEqual([
-      "GET /api/invoices",
-      "GET /api/invoices/{invoiceId}",
-      "POST /api/invoices/{invoiceId}/lines"
-    ]);
-  });
+		expect(result.scannersRun).toEqual(["express"]);
+		expect(result.routes.map((route) => `${route.method} ${route.path}`)).toEqual([
+			"GET /api/invoices",
+			"GET /api/invoices/{invoiceId}",
+			"POST /api/invoices/{invoiceId}/lines",
+		]);
+	});
 
-  it("reads middleware as auth and reports a path it cannot resolve", async () => {
-    await writeProject({
-      "package.json": packageJson({ express: "^4.19.0" }),
-      "src/routes/invoices.js": EXPRESS_ROUTER
-    });
+	it("reads middleware as auth and reports a path it cannot resolve", async () => {
+		await writeProject({
+			"package.json": packageJson({ express: "^4.19.0" }),
+			"src/routes/invoices.js": EXPRESS_ROUTER,
+		});
 
-    const result = await scanProjectRoutes(projectPath);
-    const byId = result.routes.find((route) => route.path === "/api/invoices/{invoiceId}")!;
+		const result = await scanProjectRoutes(projectPath);
+		const byId = result.routes.find((route) => route.path === "/api/invoices/{invoiceId}")!;
 
-    expect(byId.parameters.map((parameter) => parameter.name)).toEqual(["invoiceId"]);
-    expect(byId.security[0]).toMatchObject({ kind: "bearer", parameterName: "Authorization" });
-    expect(byId.source.confidence).toBe("inferred");
-    expect(result.unsupported[0].reason).toMatch(/delete is called with a path/);
-  });
+		expect(byId.parameters.map((parameter) => parameter.name)).toEqual(["invoiceId"]);
+		expect(byId.security[0]).toMatchObject({ kind: "bearer", parameterName: "Authorization" });
+		expect(byId.source.confidence).toBe("inferred");
+		expect(result.unsupported[0].reason).toMatch(/delete is called with a path/);
+	});
 });
 
 describe("a project's own security declaration, whatever the framework", () => {
-  it("reads NestJS's document builder and requires the key it makes global", async () => {
-    await writeProject({
-      "package.json": packageJson({ "@nestjs/common": "^10.0.0" }),
-      "src/users/users.controller.ts": NEST_CONTROLLER,
-      "src/main.ts": NEST_MAIN
-    });
+	it("reads NestJS's document builder and requires the key it makes global", async () => {
+		await writeProject({
+			"package.json": packageJson({ "@nestjs/common": "^10.0.0" }),
+			"src/users/users.controller.ts": NEST_CONTROLLER,
+			"src/main.ts": NEST_MAIN,
+		});
 
-    const result = await scanProjectRoutes(projectPath);
-    const list = result.routes.find((route) => route.method === "GET" && route.path === "/users")!;
-    const health = result.routes.find((route) => route.path.endsWith("health"))!;
-    const names = deriveEnvironmentVariables(result.routes).map((variable) => variable.name);
+		const result = await scanProjectRoutes(projectPath);
+		const list = result.routes.find((route) => route.method === "GET" && route.path === "/users")!;
+		const health = result.routes.find((route) => route.path.endsWith("health"))!;
+		const names = deriveEnvironmentVariables(result.routes).map((variable) => variable.name);
 
-    expect(list.security).toContainEqual({
-      kind: "apiKey",
-      schemeName: "api-key",
-      location: "header",
-      parameterName: "X-API-KEY"
-    });
-    expect(health.security).toEqual([]);
-    expect(names).toEqual(expect.arrayContaining(["xApiKey", "bearerToken"]));
-    expect(names).not.toContain("authorization");
-  });
+		expect(list.security).toContainEqual({
+			kind: "apiKey",
+			schemeName: "api-key",
+			location: "header",
+			parameterName: "X-API-KEY",
+		});
+		expect(health.security).toEqual([]);
+		expect(names).toEqual(expect.arrayContaining(["X-API-KEY", "Authorization"]));
+	});
 
-  it("reads an Express swagger definition and applies what its security names", async () => {
-    await writeProject({
-      "package.json": packageJson({ express: "^4.18.0" }),
-      "routes/invoices.js": EXPRESS_ROUTER,
-      "swagger.js": EXPRESS_SWAGGER
-    });
+	it("reads an Express swagger definition and applies what its security names", async () => {
+		await writeProject({
+			"package.json": packageJson({ express: "^4.18.0" }),
+			"routes/invoices.js": EXPRESS_ROUTER,
+			"swagger.js": EXPRESS_SWAGGER,
+		});
 
-    const result = await scanProjectRoutes(projectPath);
+		const result = await scanProjectRoutes(projectPath);
 
-    for (const route of result.routes) {
-      expect(route.security.map((security) => security.parameterName)).toContain("X-API-KEY");
-    }
-  });
+		for (const route of result.routes) {
+			expect(route.security.map((security) => security.parameterName)).toContain("X-API-KEY");
+		}
+	});
 
-  it("falls back to the header an Express guard reads when nothing declares it", async () => {
-    await writeProject({
-      "package.json": packageJson({ express: "^4.18.0" }),
-      "routes/invoices.js": EXPRESS_ROUTER,
-      "middleware/api-key.js": EXPRESS_KEY_MIDDLEWARE
-    });
+	it("falls back to the header an Express guard reads when nothing declares it", async () => {
+		await writeProject({
+			"package.json": packageJson({ express: "^4.18.0" }),
+			"routes/invoices.js": EXPRESS_ROUTER,
+			"middleware/api-key.js": EXPRESS_KEY_MIDDLEWARE,
+		});
 
-    const result = await scanProjectRoutes(projectPath);
+		const result = await scanProjectRoutes(projectPath);
 
-    expect(result.routes[0].security).toContainEqual({
-      kind: "apiKey",
-      schemeName: "ApiKey",
-      location: "header",
-      parameterName: "x-client-key"
-    });
-  });
+		expect(result.routes[0].security).toContainEqual({
+			kind: "apiKey",
+			schemeName: "ApiKey",
+			location: "header",
+			parameterName: "x-client-key",
+		});
+	});
+});
+
+/**
+ * Every rule set reads a guard's header the same way, so the ordering that
+ * fixed ASP.NET has to hold everywhere: a project states the header once, in a
+ * constant or a document builder, and reads a dozen unrelated ones elsewhere.
+ */
+describe("the header a guard checks, whatever the framework", () => {
+	const EXPRESS_GUARD = `const API_KEY_HEADER = "x-tenant-key";
+
+module.exports = function apiKeyGuard(req, res, next) {
+  const key = req.headers[API_KEY_HEADER];
+  if (!key) return res.status(401).json({ error: "api key required" });
+  next();
+};
+`;
+
+	const EXPRESS_LOGGER = `// Sits beside the apiKey guard and reads a header of its own.
+module.exports = function requestLogger(req, res, next) {
+  const correlationId = req.headers["x-correlation-id"];
+  next();
+};
+`;
+
+	const EXPRESS_APP = `const express = require("express");
+const apiKeyGuard = require("./api-key-guard");
+const requestLogger = require("./request-logger");
+
+const app = express();
+app.use(requestLogger);
+app.use(apiKeyGuard);
+app.get("/reports", (req, res) => res.json([]));
+`;
+
+	it("takes the header a constant declares over one another middleware happens to read", async () => {
+		await writeProject({
+			"package.json": packageJson({ express: "^4.19.0" }),
+			"request-logger.js": EXPRESS_LOGGER,
+			"api-key-guard.js": EXPRESS_GUARD,
+			"app.js": EXPRESS_APP,
+		});
+
+		const { routes } = await scanProjectRoutes(projectPath);
+		const headers = routes.flatMap((route) =>
+			route.security.filter((scheme) => scheme.kind === "apiKey").map((s) => s.parameterName),
+		);
+
+		expect(headers).toContain("x-tenant-key");
+		expect(headers).not.toContain("x-correlation-id");
+	});
 });

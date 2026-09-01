@@ -1,6 +1,12 @@
 import { app, crashReporter, dialog, shell, type BrowserWindow } from "electron";
 
-import { getLogFilePath, logError, logInfo } from "./logger";
+import {
+	getLogFilePath,
+	ignoreBrokenConsolePipe,
+	logError,
+	logInfo,
+	silenceConsole,
+} from "./logger";
 
 /**
  * Records the ways the app can die, and ends the ones it cannot come back from.
@@ -37,6 +43,7 @@ const EXIT_SIGNALS = ["SIGHUP", "SIGINT", "SIGTERM"] as const;
 
 export function installCrashHandlers() {
 	crashReporter.start({ uploadToServer: false });
+	ignoreBrokenConsolePipe();
 
 	logInfo(
 		"app",
@@ -49,6 +56,7 @@ export function installCrashHandlers() {
 
 	process.on("uncaughtException", (error) => {
 		if (isBrokenPipe(error)) {
+			silenceConsole();
 			logError("main", "Dropped a write to a closed pipe", error);
 			return;
 		}

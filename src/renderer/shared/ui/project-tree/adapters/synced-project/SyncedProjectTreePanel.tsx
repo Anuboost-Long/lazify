@@ -87,11 +87,9 @@ export function SyncedProjectTreePanel({
 								const node = findNodeById(adapter.editableTree, nodeId);
 
 								if (node) {
-									adapter.setContextMenu({
-										node,
-										x: event.clientX,
-										y: event.clientY,
-									});
+									const row = event.currentTarget.getBoundingClientRect();
+
+									adapter.setContextMenu({ node, x: row.left, y: row.bottom + 4 });
 								}
 							}
 						: undefined

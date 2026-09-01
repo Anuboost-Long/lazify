@@ -1,5 +1,6 @@
 import path from "node:path";
 
+import { findNodeBinary } from "../../environment/node-path";
 import { findJavaRuntime } from "../java-runtime";
 import { MET, type ExtensionProvider } from "./types";
 
@@ -102,7 +103,7 @@ export const sonarlint: ExtensionProvider = {
 		platform: process.platform,
 		architecture: process.arch,
 		additionalAttributes: {},
-		clientNodePath: process.execPath,
+		clientNodePath: findNodeBinary() ?? undefined,
 		firstSecretDetected: false,
 		enableNotebooks: false,
 	}),
