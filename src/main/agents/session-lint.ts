@@ -4,6 +4,7 @@ import path from "node:path";
 import { app } from "electron";
 
 import { ensureLintBridge, LINT_CLIENT_SOURCE, warmLintEngines } from "../linting";
+import { pruneInstanceDirs } from "./instance-dirs";
 
 /**
  * What an agent is given so it can see the app's findings.
@@ -117,7 +118,7 @@ export async function prepareSessionLint(
 	};
 }
 
-/** Sessions outlive nothing; anything still on disk is from a past run. */
+/** Sessions outlive nothing — but another running Lazify's do, so they stay. */
 export function clearAgentSessionDirs() {
-	fs.rmSync(sessionsRoot(), { recursive: true, force: true });
+	pruneInstanceDirs(sessionsRoot(), (name) => Number(name.split("-").at(-1)));
 }
