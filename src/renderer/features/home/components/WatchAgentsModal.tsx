@@ -5,6 +5,7 @@ import { SetupChoiceRow } from "@renderer/features/agents/components/monitor/Set
 import type { LiveAgentSession } from "@renderer/features/agents/hooks/use-live-agent-sessions";
 import { translation } from "@renderer/i18n/translation";
 import { BodyText, OverlineText, SectionTitle } from "@renderer/shared/typography";
+import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import { BaseModal } from "@renderer/shared/ui/modal/BaseModal";
 
 interface WatchAgentsModalProps {
@@ -32,14 +33,28 @@ export function WatchAgentsModal({
 					"overflow-hidden rounded-shell border border-border bg-soft shadow-panel",
 				)}
 			>
-				<header className="shrink-0 border-b border-border px-5 pb-4 pt-5">
-					<OverlineText className="text-muted">{t(translation.Navigation.Agents)}</OverlineText>
-					<SectionTitle className="mt-1 text-xl">
-						{t(translation.Home.AgentsRunning, { count: sessions.length })}
-					</SectionTitle>
-					<BodyText className="mt-1 text-xs text-muted">
-						{t(translation.Home.AgentsRunningDesc)}
-					</BodyText>
+				<header className="flex shrink-0 items-start justify-between gap-4 border-b border-border px-5 pb-4 pt-5">
+					<div>
+						<OverlineText className="text-muted">{t(translation.Navigation.Agents)}</OverlineText>
+						<SectionTitle className="mt-1 text-xl">
+							{t(translation.Home.AgentsRunning, { count: sessions.length })}
+						</SectionTitle>
+						<BodyText className="mt-1 text-xs text-muted">
+							{t(translation.Home.AgentsRunningDesc)}
+						</BodyText>
+					</div>
+
+					<button
+						type="button"
+						onClick={onClose}
+						aria-label={t(translation.GlobalTerm.Close)}
+						className={clsx(
+							"shrink-0 rounded-xl border border-border bg-bg p-2 transition-colors duration-150",
+							"text-muted hover:border-accent/30 hover:text-text",
+						)}
+					>
+						<UiIcon name="xmark" className="h-4 w-4" />
+					</button>
 				</header>
 
 				<div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto p-5">

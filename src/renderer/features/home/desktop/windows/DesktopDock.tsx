@@ -1,6 +1,7 @@
 import clsx from "clsx";
 import { useTranslation } from "react-i18next";
 
+import { AgentGlyph } from "@renderer/features/agents/components/AgentGlyph";
 import { translation } from "@renderer/i18n/translation";
 import UiIcon, { type UiIconName } from "@renderer/shared/ui/icons/UiIcon";
 import { Tooltip } from "@renderer/shared/ui/Tooltip";
@@ -11,6 +12,7 @@ export interface DockItem {
 	id: DesktopWindowId;
 	title: string;
 	icon: UiIconName;
+	agentId?: string | null;
 	minimized: boolean;
 	focused: boolean;
 }
@@ -57,7 +59,11 @@ export function DesktopDock({ items, z, onSelect, onCloseAll }: Readonly<Desktop
 							item.minimized && "opacity-60",
 						)}
 					>
-						<UiIcon name={item.icon} className="h-5 w-5" />
+						{item.agentId === undefined ? (
+							<UiIcon name={item.icon} className="h-5 w-5" />
+						) : (
+							<AgentGlyph agentId={item.agentId ?? ""} className="h-5 w-5" />
+						)}
 
 						{item.minimized ? null : (
 							<span

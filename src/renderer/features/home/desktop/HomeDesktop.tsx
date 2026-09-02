@@ -39,6 +39,7 @@ const PLACEMENT_CLASS: Record<Exclude<DesktopIconPlacement, "center">, string> =
 export interface DesktopWindowTitle {
 	title: string;
 	icon: UiIconName;
+	agentId?: string | null;
 }
 
 interface HomeDesktopProps {
@@ -165,6 +166,7 @@ export function HomeDesktop({
 						id: window.id,
 						title: windowTitle(window.id).title,
 						icon: windowTitle(window.id).icon,
+						agentId: windowTitle(window.id).agentId,
 						minimized: window.minimized,
 						focused: window.z === frontmost,
 					}))}

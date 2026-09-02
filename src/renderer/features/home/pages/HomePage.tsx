@@ -182,6 +182,7 @@ export function HomePage({
 		return {
 			title: session ? session.label : t(translation.Home.AgentsWindow),
 			icon: "radar",
+			agentId: session?.agentId,
 		};
 	};
 
