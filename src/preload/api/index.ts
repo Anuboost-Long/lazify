@@ -3,6 +3,7 @@ import { apiDocsApi } from "./api-docs";
 import { apiStudioApi } from "./api-studio";
 import { browserApi } from "./browser";
 import { codeIntelligenceApi } from "./code-intelligence";
+import { diagnosticTestsApi } from "./diagnostic-tests";
 import { dmgApi } from "./dmg";
 import { envApi } from "./env";
 import { environmentApi } from "./environment";
@@ -27,6 +28,7 @@ export const lazifyApi = {
 	...apiStudioApi,
 	...browserApi,
 	...codeIntelligenceApi,
+	...diagnosticTestsApi,
 	...dmgApi,
 	...envApi,
 	...environmentApi,
