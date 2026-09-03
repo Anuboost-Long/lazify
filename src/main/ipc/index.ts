@@ -4,6 +4,7 @@ import { registerApiStudioHandlers } from "./api-studio";
 import { registerBrowserHandlers } from "./browser";
 import { registerCodeIntelligenceHandlers } from "./code-intelligence";
 import type { IpcContext } from "./context";
+import { registerDiagnosticTestHandlers } from "./diagnostic-tests";
 import { registerDmgHandlers } from "./dmg";
 import { registerEnvFileHandlers } from "./env";
 import { registerEnvironmentHandlers } from "./environment";
@@ -47,4 +48,5 @@ export function registerDomainHandlers(ctx: IpcContext) {
 	registerFormattingHandlers();
 	registerLintingHandlers(ctx);
 	registerExtensionHandlers(ctx);
+	registerDiagnosticTestHandlers(ctx);
 }
