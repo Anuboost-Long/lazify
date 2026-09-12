@@ -10,7 +10,13 @@ function stopMessage(reason: string): string {
 
 export async function runApiRequest(input: ScriptedRunInput): Promise<ApiRunOutcome> {
 	const pre = input.scripts.pre.trim()
-		? runPreRequest(input.scripts.pre, input.draft, input.values, input.globalName)
+		? runPreRequest(
+				input.scripts.pre,
+				input.draft,
+				input.values,
+				input.globalName,
+				input.variables,
+			)
 		: null;
 
 	if (pre && (pre.stopped !== null || pre.run.error)) {
@@ -35,6 +41,7 @@ export async function runApiRequest(input: ScriptedRunInput): Promise<ApiRunOutc
 					outcome.response,
 					{ ...input.values, ...pre?.values },
 					input.globalName,
+					input.variables,
 				)
 			: null;
 

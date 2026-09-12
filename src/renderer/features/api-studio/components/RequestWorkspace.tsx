@@ -3,7 +3,11 @@ import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
-import { BASE_URL_VARIABLE, resolveVariable } from "@main/api-studio/environment";
+import {
+	BASE_URL_VARIABLE,
+	resolveVariable,
+	suggestableVariableNames,
+} from "@main/api-studio/environment";
 import { hostOf } from "@main/api-studio/runner/build-request";
 import { getWorkspaceFileRoute } from "@renderer/app/app-routes";
 import { translation } from "@renderer/i18n/translation";
@@ -118,7 +122,7 @@ export function RequestWorkspace({
 		() => ({
 			responseBody: request.outcome?.ok ? request.outcome.response.body : null,
 			declaredBody: declaredResponseBody(route),
-			variableNames: [...variables.map((variable) => variable.name), ...Object.keys(values)],
+			variableNames: suggestableVariableNames(variables, values),
 			requestHeaderNames: requestHeaderNames(route),
 			responseHeaderNames: request.outcome?.ok
 				? request.outcome.response.headers.map((header) => header.name)

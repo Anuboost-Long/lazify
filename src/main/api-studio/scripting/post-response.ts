@@ -1,5 +1,6 @@
 import type { ApiRequestDraft, ApiResponseSummary } from "../runner/types";
 import { createEnvironmentHandle } from "./environment-handle";
+import type { EnvironmentVariableKey } from "./environment-handle";
 import { createRecorder } from "./recorder";
 import { createRequestHandle } from "./request-handle";
 import { createResponseHandle } from "./response-handle";
@@ -11,9 +12,10 @@ export function runPostResponse(
   draft: ApiRequestDraft,
   response: ApiResponseSummary,
   values: Record<string, string>,
-  globalName?: string
+  globalName?: string,
+  variables: EnvironmentVariableKey[] = [],
 ): PostResponseResult {
-  const environment = createEnvironmentHandle(values);
+  const environment = createEnvironmentHandle(values, variables);
   const recorder = createRecorder();
   const startedAt = Date.now();
 
@@ -27,10 +29,10 @@ export function runPostResponse(
         env: environment.handle,
         log: recorder.log,
         test: recorder.test,
-        expect: recorder.expect
-      }
+        expect: recorder.expect,
+      },
     },
-    globalName
+    globalName,
   );
 
   return {
@@ -38,8 +40,8 @@ export function runPostResponse(
       logs: recorder.logs,
       checks: recorder.checks,
       error,
-      durationMs: Date.now() - startedAt
+      durationMs: Date.now() - startedAt,
     },
-    values: environment.changed
+    values: environment.changed,
   };
 }

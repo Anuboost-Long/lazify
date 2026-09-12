@@ -5,6 +5,8 @@ import { useTranslation } from "react-i18next";
 import { translation } from "@renderer/i18n/translation";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 
+import { useVariableSuggestions } from "../hooks/use-variable-suggestions";
+import { FieldSuggestionList } from "./FieldSuggestionList";
 import { InlineRename } from "./InlineRename";
 import { RowMenuButton, useRowMenu } from "./RowMenuButton";
 
@@ -22,6 +24,7 @@ interface RequestFieldRowsProps {
 	fields: RequestField[];
 	values: Record<string, string>;
 	readOnly?: boolean;
+	variableNames?: string[];
 	onChange: (key: string, value: string) => void;
 	onRename?: (key: string, name: string) => void;
 	onRemove?: (key: string) => void;
@@ -34,6 +37,7 @@ interface FieldRowProps {
 	value: string;
 	renaming: boolean;
 	readOnly: boolean;
+	variableNames: string[];
 	onChange: (value: string) => void;
 	onRename: (name: string) => void;
 	onRenamingChange: (renaming: boolean) => void;
@@ -46,6 +50,7 @@ function FieldRow({
 	value,
 	renaming,
 	readOnly,
+	variableNames,
 	onChange,
 	onRename,
 	onRenamingChange,
@@ -54,6 +59,7 @@ function FieldRow({
 }: Readonly<FieldRowProps>) {
 	const { t } = useTranslation();
 	const [menuAt, setMenuAt] = useRowMenu();
+	const suggestions = useVariableSuggestions(readOnly ? [] : variableNames, onChange);
 
 	const name = () => {
 		if (renaming) {
@@ -151,13 +157,18 @@ function FieldRow({
 
 			<td className="px-2 py-1.5 align-middle">
 				<input
+					ref={suggestions.input}
 					value={value}
 					readOnly={readOnly}
 					aria-label={field.label}
 					spellCheck={false}
 					autoComplete="off"
 					placeholder={field.placeholder}
-					onChange={(event) => onChange(event.target.value)}
+					onChange={(event) => {
+						onChange(event.target.value);
+						suggestions.follow();
+					}}
+					onKeyDown={suggestions.onKeyDown}
 					className={clsx(
 						"h-9 w-full rounded-lg border border-transparent bg-transparent px-2.5",
 						"font-mono text-xs text-text outline-none placeholder:text-muted/60",
@@ -165,6 +176,14 @@ function FieldRow({
 							? "cursor-default text-muted"
 							: "hover:border-border focus:border-accent/50 focus:bg-bg/45",
 					)}
+				/>
+
+				<FieldSuggestionList
+					items={suggestions.items}
+					anchor={suggestions.anchor}
+					highlighted={suggestions.highlighted}
+					onPick={suggestions.apply}
+					onHighlight={suggestions.highlight}
 				/>
 			</td>
 
@@ -188,6 +207,7 @@ export function RequestFieldRows({
 	fields,
 	values,
 	readOnly = false,
+	variableNames = [],
 	onChange,
 	onRename,
 	onRemove,
@@ -217,6 +237,7 @@ export function RequestFieldRows({
 							field={field}
 							value={values[field.key] ?? ""}
 							readOnly={readOnly}
+							variableNames={variableNames}
 							renaming={renamingKey === field.key}
 							onChange={(value) => onChange(field.key, value)}
 							onRename={(name) => onRename?.(field.key, name)}
