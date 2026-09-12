@@ -500,3 +500,156 @@ MVP.
 
 The first implementation should prove the flow contract and diagnostic evidence
 model on web before mobile platform complexity is introduced.
+
+---
+
+## 14. Implementation Status — Handoff Notes
+
+This section is maintained for whoever (human or agent) picks this feature up
+next. Update it — don't leave it stale — whenever you change what's built or
+what's broken. Last updated: 2026-09-07, on branch `feat/diagnostic-test-runner`.
+
+### 14.1 What actually works right now
+
+Everything below was verified by hand: building the app, launching the real
+Electron binary, syncing a real project, recording, saving, and replaying
+flows against a live target (a Next.js dev server for the click/tap/navigate
+path; a throwaway static HTML fixture with a native HTML5 drag list, a
+pointer-based drag div, and a `<input type=file>` for the drag/drop and upload
+path). Not just unit-tested against `FakeDriver` — actually driven end to end.
+
+- **Web driver only** (`drivers/web/web-driver.ts`), via Electron's own
+  `webContents.debugger` CDP session. Supports: `launch`, `stop`, `open`,
+  `tap`, `input`, `clearInput`, `scroll`, `back`, `visibility`, `url`,
+  `screenshot`, `runtimeErrors`, `dragDrop`, `uploadFile`.
+- **Recorder** (`recorder/`): opens a real, visible `BrowserWindow`, injects a
+  page script via CDP (`Page.addScriptToEvaluateOnNewDocument`) that captures
+  clicks (→ `tap`, or `expectVisible` on alt-click), text-field changes (→
+  `input`, secrets redirected to `valueFrom`), native HTML5 drag-and-drop
+  (`dragstart`/`drop` → `dragDrop`), pointer-based drag-and-drop (`pointerdown`
+  → `pointermove` past a 10px threshold → `pointerup`, guarded against text
+  selection and suppressed when a native drag already fired → `dragDrop`), and
+  file inputs (`change` on `input[type=file]` → `uploadFile`).
+- **File uploads are real, replayable fixtures**, not a description of intent:
+  the recorder window has a small preload (`src/preload/diagnostics-recorder.ts`)
+  whose only job is resolving the picked `File` to a real filesystem path via
+  `webUtils.getPathForFile` (this cannot be done from the page-world script —
+  `File.path` is gone from sandboxed renderers). `RecorderSession` pairs that
+  path (arrives over `ipc`) with the `uploadFile` step (arrives over the CDP
+  binding — same native `change` event, two transports, so a short poll
+  bridges the race), copies the file into
+  `<project>/.lazify/diagnostics/fixtures/`, and the saved YAML references it
+  by that relative path. Replay feeds it back in via CDP `DOM.setFileInputFiles`.
+- **Drag-and-drop replay** dispatches a real `Input.dispatchMouseEvent`
+  press → N interpolated moves → release sequence (the same approach
+  Playwright's own `dragTo()` uses) — this is what makes it work for *both*
+  native `draggable="true"` elements and pointer/mouse-driven dnd libraries;
+  a JS-level `dispatchEvent(new DragEvent(...))` would not have triggered
+  Chromium's native drag machinery.
+
+### 14.2 Bugs found and fixed this session (all under this branch, not yet a separate commit history — check `git log` for whether these landed before you read this)
+
+- `RecorderSession.onAction` built the generic step object without copying
+  `action.targetSelector` through — every recorded `dragDrop`'s target
+  silently came out as `{}`, which passed recording but failed flow
+  validation at save time (`readSelector` threw "needs an element to act
+  on"). Fixed by adding the field to both `IncomingAction` and the
+  constructed `RecordedStep`.
+- `WebDiagnosticDriver.uploadFile` got `Could not find node with given id`
+  from `DOM.setFileInputFiles` every time. `DOM.requestNode` doesn't resolve
+  anything until the DOM domain has synced to the *current* document via
+  `DOM.getDocument`, and that sync doesn't survive a navigation — so it has
+  to be called inside `uploadFile()` itself (right before `requestNode`), not
+  once in `connect()` before the flow has navigated anywhere.
+- The YAML writer's `dragDrop` branch originally reused the flat 4-space-
+  indented `selector` lines under both `from:` and `to:`, which is one indent
+  level too shallow for a nested map and would have parsed `to:` as sharing
+  the *step's* field level rather than nesting under `from`. Fixed by giving
+  `selectorLines()` an indent parameter and using 6 spaces for the nested
+  case.
+
+### 14.3 What's NOT done — real gaps, not nice-to-haves
+
+- **No Android or iOS driver exists.** `service.ts`'s `createDriver` always
+  returns `WebDiagnosticDriver`, unconditionally, regardless of the flow's
+  `target:` field. A `target: mobile` flow with `launchApp`/`tap`/etc. will
+  currently either fail confusingly (mobile-flavored selectors trying to
+  resolve in a Chromium DOM) or silently "run" against nothing meaningful —
+  it will **not** produce a clear "Android/iOS not supported yet" error. If
+  someone reports a mobile flow behaving strangely, this is why. Section 6.2
+  and 6.3 above describe the intended design; none of it is built.
+- **No hover, right-click, double-click, or key-press capture/replay.** The
+  user explicitly scoped this session to drag-and-drop + file upload only
+  (asked and confirmed via AskUserQuestion) — broader interaction coverage
+  was the option *not* chosen. If asked to extend further, the pattern to
+  follow is: add the DOM listener in `recorder-source.ts`, a field on
+  `RecordedStep`/`IncomingAction` if it needs one, a case in
+  `describeRecordedStep`, a branch in `flow-yaml.ts`'s `stepLines`, a new
+  `steps/*.ts` factory registered in `steps/index.ts`, a method on
+  `DiagnosticDriver` (`drivers/types.ts`) implemented in `web-driver.ts`, and
+  a matching stub in `tests/main/diagnostic-tests/fake-driver.ts`.
+- **No automated tests for `dragDrop`/`uploadFile`.** Deliberately skipped
+  this session per explicit instruction ("don't focus on writing test when
+  doing the feature — we will make it work fully before making the test").
+  The existing suite (`flow-parsing.test.ts`, `recorder.test.ts`,
+  `run-coordinator.test.ts`) still passes (24/24) because `FakeDriver` was
+  updated with stub `dragDrop`/`uploadFile` methods to satisfy the
+  `DiagnosticDriver` interface change, but nothing exercises the new
+  behavior. **This is the next concrete task**: add parse/serialize/describe
+  coverage for both step kinds to `flow-parsing.test.ts`, a recording-side
+  test to `recorder.test.ts` (construct the `RecordedStep`s directly and
+  check `toValidatedFlowYaml` round-trips), and an execution test to
+  `run-coordinator.test.ts` using `FakeDriver`.
+- **Pointer-based drag detection is a heuristic, not a guarantee.** It relies
+  on the browser still dispatching `pointerdown`/`pointerup` to a
+  capture-phase listener on `document` even when a dnd library calls
+  `preventDefault()`/`stopPropagation()` deeper in the tree (this works,
+  verified — capture phase reaches `document` first). What it *can't* handle:
+  a library that fully replaces pointer events with its own custom
+  hit-testing (e.g. canvas/WebGL-based drag), or a drag that ends before
+  moving 10px (the threshold in `recorder-source.ts`'s `DRAG_THRESHOLD_PX`).
+- **No screenshot artifact on `dragDrop`/`uploadFile` failure paths was
+  specifically exercised** — the existing failure-screenshot path in
+  `coordinator.ts` (`captureFailure`) is generic and should already cover
+  these steps like any other, but it was not deliberately tested failing.
+- **`app-menu.ts` has an unrelated uncommitted change** (macOS dictation/
+  emoji-palette menu opt-out) sitting in the working tree on this branch from
+  before this session's work started. It is not part of the diagnostic
+  runner — don't fold it into a diagnostics commit, and don't discard it
+  either; it's someone's in-progress work.
+
+### 14.4 If you need to drive the real app again to verify something
+
+There is no committed project skill for launching this Electron app (this
+came up during testing — consider `/run-skill-generator` if this becomes a
+recurring need). What worked, from a cold start on this machine:
+
+1. This machine's default Node (18.17.0 via nvm) is too old for this
+   project's Vite version. Use Node 20+ (22.23.2 was already installed via
+   nvm here): `export PATH="$HOME/.nvm/versions/node/v22.23.2/bin:$PATH"`.
+2. `npm install --no-save playwright-core` — **check `git status` on
+   `yarn.lock` immediately after** and revert if it changed; on this machine
+   a plain `npm install` rewrote `yarn.lock` as a side effect even though
+   this project is Yarn-managed. `--no-save` did not stop that; only
+   reverting the file afterward did.
+3. `npm run build` (needs the Node 20+ path from step 1).
+4. Drive it with Playwright's `_electron.launch({ executablePath:
+   'node_modules/electron/dist/Electron.app/Contents/MacOS/Electron', args:
+   ['.'] })`, find the real window via `app.windows().find(w =>
+   w.url().includes('dist/index.html'))` (there's a separate splash window
+   first), and drive it with `page.evaluate(...)` DOM clicks rather than
+   Playwright locators (some of this app's clickable text lives on a `<div>`
+   wrapping the actual `<button>`, not the button itself — walk up with
+   `closest('button, a, [role="button"]')` *and* down with
+   `querySelector(...)`, since the match direction isn't consistent).
+5. The native OS folder picker (`dialog.showOpenDialog`, used by "Sync
+   project") can't be clicked through automation. Stub it from the test
+   script before triggering the flow: `await app.evaluate(async ({ dialog },
+   path) => { dialog.showOpenDialog = async () => ({ canceled: false,
+   filePaths: [path] }); }, projectPath)`.
+6. The Diagnostics settings gear and the sidebar's global Settings nav item
+   both render `aria-label="Settings"` — a real (minor) duplicate-label bug,
+   not just a test inconvenience. Pick the *last* match if you need the
+   diagnostics one specifically.
+7. Recording needs `config.baseUrl` set first (Diagnostics → the gear icon →
+   Base url), or "Record flow" just opens Settings instead of recording.

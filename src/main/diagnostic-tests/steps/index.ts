@@ -1,5 +1,6 @@
 import { launchAppStep, stopAppStep } from "./app-lifecycle";
 import type { StepFactory } from "./definition";
+import { dragDropStep } from "./drag-drop";
 import { expectUrlStep } from "./expect-url";
 import { backStep, openStep } from "./navigation";
 import { expectNoRuntimeErrorsStep } from "./runtime-errors";
@@ -7,6 +8,7 @@ import { screenshotStep } from "./screenshot";
 import { scrollStep } from "./scroll";
 import { tapStep } from "./tap";
 import { clearInputStep, inputStep } from "./text-input";
+import { uploadFileStep } from "./upload-file";
 import { expectNotVisibleStep, expectVisibleStep, waitForStep } from "./visibility";
 
 const FACTORIES: readonly StepFactory[] = [
@@ -18,6 +20,8 @@ const FACTORIES: readonly StepFactory[] = [
 	clearInputStep,
 	scrollStep,
 	backStep,
+	dragDropStep,
+	uploadFileStep,
 	waitForStep,
 	expectVisibleStep,
 	expectNotVisibleStep,

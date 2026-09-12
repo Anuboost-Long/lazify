@@ -12,7 +12,9 @@ export type DriverCapability =
 	| "visibility"
 	| "url"
 	| "screenshot"
-	| "runtimeErrors";
+	| "runtimeErrors"
+	| "dragDrop"
+	| "uploadFile";
 
 export interface DiagnosticTarget {
 	platform: DiagnosticPlatform;
@@ -49,6 +51,8 @@ export interface DiagnosticDriver {
 	clearInput(selector: ElementSelector): Promise<void>;
 	scroll(request: ScrollRequest): Promise<void>;
 	back(): Promise<void>;
+	dragDrop(source: ElementSelector, target: ElementSelector): Promise<void>;
+	uploadFile(selector: ElementSelector, filePath: string): Promise<void>;
 	isVisible(selector: ElementSelector): Promise<boolean>;
 	currentUrl(): Promise<string>;
 	screenshot(filePath: string): Promise<void>;

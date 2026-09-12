@@ -17,14 +17,14 @@ function scalar(value: string): string {
 	return risky ? JSON.stringify(value) : value;
 }
 
-function selectorLines(selector: ElementSelector): string[] {
+function selectorLines(selector: ElementSelector, indent = "    "): string[] {
 	const lines: string[] = [];
 
-	if (selector.id) lines.push(`    id: ${scalar(selector.id)}`);
-	if (selector.label) lines.push(`    label: ${scalar(selector.label)}`);
-	if (selector.role) lines.push(`    role: ${scalar(selector.role)}`);
-	if (selector.name) lines.push(`    name: ${scalar(selector.name)}`);
-	if (selector.text) lines.push(`    text: ${scalar(selector.text)}`);
+	if (selector.id) lines.push(`${indent}id: ${scalar(selector.id)}`);
+	if (selector.label) lines.push(`${indent}label: ${scalar(selector.label)}`);
+	if (selector.role) lines.push(`${indent}role: ${scalar(selector.role)}`);
+	if (selector.name) lines.push(`${indent}name: ${scalar(selector.name)}`);
+	if (selector.text) lines.push(`${indent}text: ${scalar(selector.text)}`);
 
 	return lines;
 }
@@ -56,6 +56,17 @@ function stepLines(step: RecordedStep, baseUrl: string): string[] {
 			: `    value: ${scalar(step.value ?? "")}`;
 
 		return [" - input:", ...selector, value];
+	}
+
+	if (step.kind === "dragDrop") {
+		const from = selectorLines(step.selector ?? {}, "      ");
+		const target = selectorLines(step.targetSelector ?? {}, "      ");
+
+		return [" - dragDrop:", "    from:", ...from, "    to:", ...target];
+	}
+
+	if (step.kind === "uploadFile") {
+		return [" - uploadFile:", ...selector, `    file: ${scalar(step.file ?? "")}`];
 	}
 
 	return [` - ${step.kind}:`, ...selector];

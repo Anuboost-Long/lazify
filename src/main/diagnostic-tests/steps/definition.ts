@@ -9,6 +9,8 @@ export interface StepContext {
 	readonly signal: AbortSignal;
 	secret(name: string): string;
 	screenshot(name: string): Promise<ArtifactRef>;
+	/** Resolves a `file:` field against the project, so flows can be committed alongside their fixtures. */
+	resolveFixture(relativePath: string): string;
 }
 
 export interface ParsedStep {

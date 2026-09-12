@@ -20,6 +20,11 @@ export function diagnosticsDirectory(projectPath: string): string {
 	return path.join(path.resolve(projectPath), DIAGNOSTICS_DIR);
 }
 
+/** Where files recorded from an `uploadFile` interaction get copied, so a flow can replay them later. */
+export function fixturesDirectory(projectPath: string): string {
+	return path.join(diagnosticsDirectory(projectPath), "fixtures");
+}
+
 export function configFile(projectPath: string): string {
 	return path.join(diagnosticsDirectory(projectPath), "config.json");
 }

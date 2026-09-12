@@ -92,6 +92,14 @@ export const RECORDER_SOURCE = `(function () {
   document.addEventListener(
     "click",
     function (event) {
+      // A drag that just landed produces its own dragDrop step; the click the
+      // browser fires right after on whatever is now under the pointer is not
+      // a second, separate interaction.
+      if (suppressNextClick) {
+        suppressNextClick = false;
+        return;
+      }
+
       var node = actionable(event.target);
       if (!node) return;
 
@@ -118,12 +126,111 @@ export const RECORDER_SOURCE = `(function () {
       var selector = selectorFor(node);
       if (!selector) return;
 
+      if (type === "file") {
+        // The path itself only exists on the main-world preload's side — see
+        // diagnostics-recorder.ts — this just names the interaction and which
+        // input it happened on; the two get paired up in RecorderSession.
+        var file = node.files && node.files[0];
+        if (file) send({ kind: "uploadFile", selector: selector, fileName: file.name });
+        return;
+      }
+
       if (isSecret(node)) {
         send({ kind: "input", selector: selector, valueFrom: secretName(node) });
         return;
       }
 
       send({ kind: "input", selector: selector, value: String(node.value == null ? "" : node.value) });
+    },
+    true
+  );
+
+  // Two independent signals for "the user dragged something": native HTML5
+  // drag-and-drop (draggable="true" elements) fires dragstart/drop and is
+  // unambiguous; everything else (sortable lists, kanban boards, sliders) is
+  // built on plain pointer events, so a press-move-release gesture that moves
+  // far enough and isn't a text selection counts too.
+  var dragSource = null;
+
+  document.addEventListener(
+    "dragstart",
+    function (event) {
+      dragSource = actionable(event.target);
+      // The native path is taking this gesture; the pointer-based fallback
+      // below must not also fire a second dragDrop for it.
+      pointerDown = null;
+    },
+    true
+  );
+
+  document.addEventListener(
+    "drop",
+    function (event) {
+      var targetNode = actionable(event.target);
+      if (!dragSource || !targetNode || targetNode === dragSource) {
+        dragSource = null;
+        return;
+      }
+
+      var from = selectorFor(dragSource);
+      var to = selectorFor(targetNode);
+      dragSource = null;
+
+      if (from && to) send({ kind: "dragDrop", selector: from, targetSelector: to });
+    },
+    true
+  );
+
+  var DRAG_THRESHOLD_PX = 10;
+  var pointerDown = null;
+  var suppressNextClick = false;
+
+  function isTextEditable(node) {
+    if (!node) return false;
+    var tag = node.tagName ? node.tagName.toLowerCase() : "";
+
+    return tag === "input" || tag === "textarea" || node.isContentEditable === true;
+  }
+
+  document.addEventListener(
+    "pointerdown",
+    function (event) {
+      if (event.button !== 0) return;
+
+      var node = actionable(event.target);
+      if (!node || isTextEditable(event.target)) {
+        pointerDown = null;
+        return;
+      }
+
+      pointerDown = { node: node, x: event.clientX, y: event.clientY };
+    },
+    true
+  );
+
+  document.addEventListener(
+    "pointerup",
+    function (event) {
+      var start = pointerDown;
+      pointerDown = null;
+      if (!start) return;
+
+      var dx = event.clientX - start.x;
+      var dy = event.clientY - start.y;
+      if (Math.sqrt(dx * dx + dy * dy) < DRAG_THRESHOLD_PX) return;
+
+      var selection = window.getSelection ? window.getSelection() : null;
+      if (selection && !selection.isCollapsed) return;
+
+      var endNode = actionable(event.target);
+      if (!endNode || endNode === start.node) return;
+
+      var from = selectorFor(start.node);
+      var to = selectorFor(endNode);
+      if (!from || !to) return;
+
+      suppressNextClick = true;
+      send({ kind: "dragDrop", selector: from, targetSelector: to });
     },
     true
   );

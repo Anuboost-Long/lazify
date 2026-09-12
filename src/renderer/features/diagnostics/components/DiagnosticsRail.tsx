@@ -65,7 +65,7 @@ export function DiagnosticsRail({
 					<span className="flex items-center gap-0.5">
 						<Tooltip content={t(translation.Diagnostics.RecordFlow)} side="left">
 							<RailAction
-								icon="play"
+								icon="record"
 								label={t(translation.Diagnostics.RecordFlow)}
 								disabled={recording}
 								onClick={onRecord}

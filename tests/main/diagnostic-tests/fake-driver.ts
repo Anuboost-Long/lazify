@@ -19,6 +19,8 @@ const ALL_CAPABILITIES: DriverCapability[] = [
 	"url",
 	"screenshot",
 	"runtimeErrors",
+	"dragDrop",
+	"uploadFile",
 ];
 
 export interface FakeDriverOptions {
@@ -84,6 +86,14 @@ export class FakeDriver implements DiagnosticDriver {
 
 	back() {
 		return this.record("back");
+	}
+
+	dragDrop(source: ElementSelector, target: ElementSelector) {
+		return this.record(`dragDrop ${JSON.stringify(source)} -> ${JSON.stringify(target)}`);
+	}
+
+	uploadFile(selector: ElementSelector, filePath: string) {
+		return this.record(`uploadFile ${JSON.stringify(selector)} ${filePath}`);
 	}
 
 	isVisible(selector: ElementSelector) {

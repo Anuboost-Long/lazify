@@ -221,7 +221,7 @@ export class DiagnosticTestService {
 			throw new Error("Set a base url for this project before recording a flow.");
 		}
 
-		const session = new RecorderSession(`rec-${Date.now()}`, this.emitRecorder);
+		const session = new RecorderSession(`rec-${Date.now()}`, projectPath, this.emitRecorder);
 		this.recorder = session;
 
 		await session.start(target);

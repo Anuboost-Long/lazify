@@ -105,6 +105,10 @@ export class DiagnosticRun {
 			signal: this.controller.signal,
 			secret: (name) => vault.resolve(name),
 			screenshot: (name) => this.screenshot(name),
+			resolveFixture: (relativePath) =>
+				path.isAbsolute(relativePath)
+					? relativePath
+					: path.join(this.request.projectPath, relativePath),
 		};
 	}
 

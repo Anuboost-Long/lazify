@@ -1,7 +1,7 @@
 import { describeSelector } from "../flow/read-selector";
 import type { ElementSelector } from "../types";
 
-export type RecordedStepKind = "open" | "tap" | "input" | "expectVisible";
+export type RecordedStepKind = "open" | "tap" | "input" | "expectVisible" | "dragDrop" | "uploadFile";
 
 export interface RecordedStep {
 	kind: RecordedStepKind;
@@ -9,6 +9,10 @@ export interface RecordedStep {
 	value?: string;
 	valueFrom?: string;
 	url?: string;
+	/** dragDrop only: where the drag ends up. */
+	targetSelector?: ElementSelector;
+	/** uploadFile only: the fixture file copied into the project, relative to it. */
+	file?: string;
 	at: number;
 	description: string;
 }
@@ -28,6 +32,10 @@ export function describeRecordedStep(step: RecordedStep): string {
 
 			return `Enter ${what} into ${describeSelector(step.selector ?? {})}`;
 		}
+		case "dragDrop":
+			return `Drag ${describeSelector(step.selector ?? {})} to ${describeSelector(step.targetSelector ?? {})}`;
+		case "uploadFile":
+			return `Upload ${step.file ?? ""} to ${describeSelector(step.selector ?? {})}`;
 	}
 }
 

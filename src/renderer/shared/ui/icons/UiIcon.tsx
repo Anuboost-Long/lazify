@@ -7,6 +7,7 @@ import {
 	ChatBubbleQuestion,
 	CheckCircle,
 	CheckCircleSolid,
+	ClockRotateRight,
 	Code,
 	Collapse,
 	Css3,
@@ -78,6 +79,7 @@ import {
 	NetworkSolid,
 	PackageSolid,
 	RadarSolid,
+	RecordDot,
 	SettingsSolid,
 	SparksSolid,
 	TerminalSolid,
@@ -105,6 +107,7 @@ export type UiIconName =
 	| "globe"
 	| "hard-drive"
 	| "health-cross"
+	| "history"
 	| "home"
 	| "html"
 	| "import"
@@ -142,7 +145,8 @@ export type UiIconName =
 	| "trash"
 	| "stop-circle"
 	| "pause"
-	| "pin";
+	| "pin"
+	| "record";
 
 interface UiIconProps extends SVGProps<SVGSVGElement> {
 	name: UiIconName;
@@ -173,6 +177,7 @@ const iconMap: Record<UiIconName, ComponentType<SVGProps<SVGSVGElement>>> = {
 	"hard-drive": HardDrive,
 	/** A medical cross in a ring: a check-up, not the tick that ends one. */
 	"health-cross": PharmacyCrossCircle,
+	history: ClockRotateRight,
 	home: HomeSimple,
 	html: Html5,
 	import: Import,
@@ -212,6 +217,7 @@ const iconMap: Record<UiIconName, ComponentType<SVGProps<SVGSVGElement>>> = {
 	trash: Trash,
 	"stop-circle": Pause,
 	pause: Pause,
+	record: RecordDot,
 };
 
 /**

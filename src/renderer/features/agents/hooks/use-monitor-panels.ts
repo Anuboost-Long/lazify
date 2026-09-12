@@ -11,6 +11,7 @@ import {
 import type { AgentDescriptor } from "../../../../main/agents/agent-registry";
 import {
 	loadWallLayout,
+	nextWallOrder,
 	pruneLayout,
 	registerSession,
 	renameSession,
@@ -19,9 +20,9 @@ import {
 } from "./monitor-session-registry";
 import { planTidyUp } from "./tidy-monitor-wall";
 
-export type MonitorPanelSize = "default" | "wide" | "large";
+export type MonitorPanelSize = "default" | "wide" | "tall" | "large";
 
-export const MONITOR_PANEL_SIZES: MonitorPanelSize[] = ["default", "wide", "large"];
+export const MONITOR_PANEL_SIZES: MonitorPanelSize[] = ["default", "wide", "tall", "large"];
 
 export type MonitorColumns = "auto" | 1 | 2 | 3;
 
@@ -82,6 +83,13 @@ export function useMonitorPanels() {
 	const panelsRef = useRef(panels);
 	panelsRef.current = panels;
 
+	// Starting a session takes a moment (spinning up an agent, launching a
+	// script); its place on the wall must come from when the user pressed
+	// "add", not from whichever request happens to resolve first. Reserving
+	// the slot up front — and holding it open until the request settles —
+	// keeps a run of quick presses in the order they were made.
+	const pendingStartsRef = useRef(0);
+
 	const commitLayout = useCallback(
 		(next: MonitorWallLayout) => {
 			saveWallLayout(next);
@@ -132,6 +140,9 @@ export function useMonitorPanels() {
 			sourceId: string;
 			resumeSessionId?: string;
 		}) => {
+			const order = nextWallOrder(loadWallLayout()) + pendingStartsRef.current;
+			pendingStartsRef.current += 1;
+
 			try {
 				const { runId } =
 					input.kind === "agent"
@@ -144,11 +155,13 @@ export function useMonitorPanels() {
 							)
 						: await globalThis.lazify.runScript(input.projectPath, input.sourceId);
 
-				setLayout(registerSession(runId));
+				setLayout(registerSession(runId, order));
 				await sync();
 				commitLayout({ ...loadWallLayout(), activeRunId: runId });
 			} catch {
 				await sync();
+			} finally {
+				pendingStartsRef.current -= 1;
 			}
 		},
 		[commitLayout, setLayout, sync],

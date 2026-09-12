@@ -32,7 +32,12 @@ const WEB_CAPABILITIES: DriverCapability[] = [
 	"url",
 	"screenshot",
 	"runtimeErrors",
+	"dragDrop",
+	"uploadFile",
 ];
+
+/** Enough intermediate mouse moves for a drag to register with both native HTML5 dnd and pointer-based dnd libraries. */
+const DRAG_STEPS = 12;
 
 const VIEWPORT_WIDTH = 1280;
 const VIEWPORT_HEIGHT = 900;
@@ -108,6 +113,7 @@ export class WebDiagnosticDriver implements DiagnosticDriver {
 		await this.cdp.send("Runtime.enable");
 		await this.cdp.send("Network.enable");
 		await this.cdp.send("Page.enable");
+		await this.cdp.send("DOM.enable");
 	}
 
 	async launch(options: LaunchOptions): Promise<void> {
@@ -205,6 +211,65 @@ export class WebDiagnosticDriver implements DiagnosticDriver {
 		if (!history.canGoBack()) throw new InfrastructureError("There is no page to go back to");
 
 		history.goBack();
+	}
+
+	async dragDrop(source: ElementSelector, target: ElementSelector): Promise<void> {
+		const from = await this.requireElement({ selector: source, scrollIntoView: true });
+		const to = await this.requireElement({ selector: target, scrollIntoView: true });
+
+		// Real mouse-event sequence, not a JS-dispatched DragEvent: Chromium starts
+		// native HTML5 drag-and-drop from raw input the same way it would for a
+		// person, and pointer-based dnd libraries (sortable lists, kanban boards)
+		// only ever listen for mouse events in the first place.
+		await this.cdp?.send("Input.dispatchMouseEvent", { type: "mouseMoved", x: from.x, y: from.y });
+		await this.cdp?.send("Input.dispatchMouseEvent", {
+			type: "mousePressed",
+			x: from.x,
+			y: from.y,
+			button: "left",
+			clickCount: 1,
+		});
+
+		for (let step = 1; step <= DRAG_STEPS; step += 1) {
+			await this.cdp?.send("Input.dispatchMouseEvent", {
+				type: "mouseMoved",
+				x: from.x + ((to.x - from.x) * step) / DRAG_STEPS,
+				y: from.y + ((to.y - from.y) * step) / DRAG_STEPS,
+				button: "left",
+			});
+		}
+
+		await this.cdp?.send("Input.dispatchMouseEvent", {
+			type: "mouseReleased",
+			x: to.x,
+			y: to.y,
+			button: "left",
+			clickCount: 1,
+		});
+	}
+
+	async uploadFile(selector: ElementSelector, filePath: string): Promise<void> {
+		const expression = `(${PAGE_LOCATOR_SOURCE})(${JSON.stringify({ selector, returnNode: true })})`;
+		const evaluated = await this.cdp?.send<{ result?: { objectId?: string } }>("Runtime.evaluate", {
+			expression,
+			returnByValue: false,
+		});
+
+		const objectId = evaluated?.result?.objectId;
+		if (!objectId) {
+			throw new InfrastructureError(`No element matched ${describeSelector(selector)}`);
+		}
+
+		try {
+			// DOM.requestNode resolves nothing until the DOM domain has synced to
+			// the current document — it resets on every navigation, so this has
+			// to happen here, not once in connect().
+			await this.cdp!.send("DOM.getDocument");
+			const { nodeId } = await this.cdp!.send<{ nodeId: number }>("DOM.requestNode", { objectId });
+			await this.cdp!.send("DOM.setFileInputFiles", { files: [filePath], nodeId });
+		} finally {
+			await this.cdp?.send("Runtime.releaseObject", { objectId }).catch(() => undefined);
+		}
 	}
 
 	async isVisible(selector: ElementSelector): Promise<boolean> {
