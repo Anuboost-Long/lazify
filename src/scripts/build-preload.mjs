@@ -17,7 +17,6 @@ const options = {
 	entryPoints: [
 		path.join(root, "src/preload/index.ts"),
 		path.join(root, "src/preload/browser-gesture.ts"),
-		path.join(root, "src/preload/diagnostics-recorder.ts"),
 	],
 	outdir: path.join(root, "dist-electron/preload"),
 	bundle: true,

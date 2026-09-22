@@ -53,8 +53,14 @@ export class AttentionDetector {
   /**
    * @param onTurnDone Called once per turn, when an agent that was working goes
    * quiet without a prompt on screen — it finished what it was asked for.
+   * @param onBusyChange Called on every busy/idle transition, so callers can
+   * hold something — like a power-save blocker — for as long as any agent is
+   * actually working.
    */
-  constructor(private readonly onTurnDone?: (runId: string) => void) {}
+  constructor(
+    private readonly onTurnDone?: (runId: string) => void,
+    private readonly onBusyChange?: (runId: string, busy: boolean) => void,
+  ) {}
 
   /** Registers a session to watch. Only agent runs should be tracked. */
   track(runId: string): void {
@@ -69,7 +75,12 @@ export class AttentionDetector {
 
   forget(runId: string): void {
     const session = this.sessions.get(runId);
-    if (session) this.clearTimers(session);
+    if (session) {
+      this.clearTimers(session);
+      // The run ended (exit, crash) while still marked busy — nothing else
+      // will flip it back off, so report it here or a busy hold leaks forever.
+      if (session.busy) this.onBusyChange?.(runId, false);
+    }
 
     this.sessions.delete(runId);
   }
@@ -135,6 +146,7 @@ export class AttentionDetector {
     // Read from the *incoming* chunk, never the tail, which keeps a working
     // status line long after the work stopped.
     if (showsWork(visible)) {
+      if (!session.busy) this.onBusyChange?.(runId, true);
       session.busy = true;
       // Re-armed below if the window still reads finished, so the countdown
       // measures time since the last sign of work.
@@ -214,6 +226,7 @@ export class AttentionDetector {
     this.clearTimers(session);
 
     session.busy = false;
+    this.onBusyChange?.(runId, false);
     // The turn is over, so the working status line in the window is history.
     // Dropping it keeps stale text out of the next turn's decisions.
     session.tail = "";

@@ -8,6 +8,7 @@ import { AttentionDetector } from "./agents/attention-detector";
 import { Autopilot, type AutopilotAnswered } from "./agents/autopilot";
 import type { AutopilotHold } from "./agents/autopilot-policy";
 import { isAutopilotActive } from "./agents/autopilot-store";
+import { AwakeGuard } from "./agents/awake-guard";
 import { clearAgentSessionDirs } from "./agents/session-lint";
 import { buildAppMenu } from "./app-menu";
 import { installBrowserPermissionPolicy } from "./browser/browser-permissions";
@@ -56,7 +57,11 @@ const commandRunner = new CommandRunner(
 const workflowEngine = new WorkflowEngine(commandRunner, (event) =>
 	emitToRenderer("lazify:workflow-progress", event),
 );
-const attentionDetector = new AttentionDetector((runId) => emitTurnDone(runId));
+const awakeGuard = new AwakeGuard();
+const attentionDetector = new AttentionDetector(
+	(runId) => emitTurnDone(runId),
+	(runId, busy) => awakeGuard.setBusy(runId, busy),
+);
 
 const emitAttention = (runId: string, waiting: boolean, hold: AutopilotHold | null = null) => {
 	const session = ptyRunner.getSessions().find((entry) => entry.runId === runId);

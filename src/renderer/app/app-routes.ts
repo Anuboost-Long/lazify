@@ -16,7 +16,6 @@ export const appRoute = {
 	tools: "/tools",
 	toolsPromptBuilder: "/tools/prompt-builder",
 	toolsApiStudio: "/tools/api-studio",
-	toolsDiagnostics: "/tools/diagnostics",
 	toolsDmgCompiler: "/tools/dmg-compiler",
 	toolsEnvironment: "/tools/environment",
 	dmgCompiler: "/dmg-compiler",

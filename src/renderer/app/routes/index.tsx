@@ -10,9 +10,6 @@ const ApiStudioRoute = lazy(async () => ({
 	default: (await import("./ApiStudioRoute")).ApiStudioRoute,
 }));
 const BrowserRoute = lazy(async () => ({ default: (await import("./BrowserRoute")).BrowserRoute }));
-const DiagnosticsRoute = lazy(async () => ({
-	default: (await import("./DiagnosticsRoute")).DiagnosticsRoute,
-}));
 const DmgCompilerRoute = lazy(async () => ({
 	default: (await import("./DmgCompilerRoute")).DmgCompilerRoute,
 }));
@@ -88,7 +85,6 @@ export function AppRoutes() {
 				<Route path={appRoute.tools.slice(1)} element={<ToolsRoute />} />
 				<Route path={appRoute.toolsPromptBuilder.slice(1)} element={<PromptBuilderRoute />} />
 				<Route path={appRoute.toolsApiStudio.slice(1)} element={<ApiStudioRoute />} />
-				<Route path={appRoute.toolsDiagnostics.slice(1)} element={<DiagnosticsRoute />} />
 				<Route path={appRoute.toolsDmgCompiler.slice(1)} element={<DmgCompilerRoute />} />
 				{/* The tool moved under Tools; the old address still works. */}
 				<Route

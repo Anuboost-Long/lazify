@@ -8,6 +8,7 @@ import { PageHero } from "@renderer/shared/ui/PageHero";
 import { useTranslation } from "react-i18next";
 import { PageCrumb } from "@renderer/app/components/PageChrome";
 import { SearchInput } from "@renderer/shared/ui/form/SearchInput";
+import { ConfirmModal } from "@renderer/shared/ui/modal/ConfirmModal";
 
 interface TemplatesPageProps {
   importedTemplateOptions: ImportedTemplateOption[];
@@ -27,6 +28,7 @@ export function TemplatesPage({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [pendingDelete, setPendingDelete] = useState<{ id: string; name: string } | null>(null);
   const filteredTemplates = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
 
@@ -42,15 +44,19 @@ export function TemplatesPage({
     );
   }, [importedTemplateOptions, searchQuery]);
 
-  const handleDeleteFromCard = async (
+  const handleDeleteFromCard = (
     event: React.MouseEvent,
     templateId: string,
     templateName: string
   ) => {
     event.stopPropagation();
+    setPendingDelete({ id: templateId, name: templateName });
+  };
 
-    const confirmed = globalThis.confirm(t(translation.Templates.RemoveConfirm, { name: templateName }));
-    if (!confirmed) return;
+  const confirmDelete = async () => {
+    if (!pendingDelete) return;
+    const { id: templateId, name: templateName } = pendingDelete;
+    setPendingDelete(null);
 
     try {
       setDeletingId(templateId);
@@ -181,6 +187,20 @@ export function TemplatesPage({
           )}
         </>
       )}
+
+      <ConfirmModal
+        open={pendingDelete !== null}
+        title={t(translation.Templates.RemoveTemplate)}
+        description={
+          pendingDelete
+            ? t(translation.Templates.RemoveConfirm, { name: pendingDelete.name })
+            : undefined
+        }
+        confirmLabel={t(translation.GlobalTerm.Delete)}
+        destructive
+        onConfirm={() => void confirmDelete()}
+        onCancel={() => setPendingDelete(null)}
+      />
     </div>
   );
 }
