@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { createElement } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -33,7 +33,9 @@ beforeEach(() => {
       setZoom: vi.fn().mockResolvedValue(1),
       stepZoom: vi.fn().mockResolvedValue(1),
       resetZoom: vi.fn().mockResolvedValue(1),
-      onZoomChanged: vi.fn().mockReturnValue(() => undefined)
+      onZoomChanged: vi.fn().mockReturnValue(() => undefined),
+      keepAwake: vi.fn().mockResolvedValue(true),
+      setKeepAwake: vi.fn((enabled: boolean) => Promise.resolve(enabled))
     }
   });
 });
@@ -95,5 +97,20 @@ describe("settings that are not appearance", () => {
 
     expect(screen.queryByRole("button", { name: "Zed" })).toBeNull();
     expect(globalThis.localStorage.getItem("lazify-file-opens-in")).toBe("app");
+  });
+
+  it("shows keeping the computer awake as stored, and saves turning it off", async () => {
+    render(createElement(SettingsPage));
+
+    await userEvent.click(screen.getByRole("button", { name: /settings\.behavior/i }));
+
+    const row = screen.getByText(/settings\.keep_awake$/i).parentElement?.parentElement as HTMLElement;
+    const toggle = within(row).getByRole("switch");
+
+    await waitFor(() => expect(toggle.getAttribute("aria-checked")).toBe("true"));
+    await userEvent.click(toggle);
+
+    expect(globalThis.lazify.setKeepAwake).toHaveBeenCalledWith(false);
+    expect(toggle.getAttribute("aria-checked")).toBe("false");
   });
 });
