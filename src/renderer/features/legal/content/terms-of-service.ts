@@ -2,15 +2,14 @@ import { translation } from "@renderer/i18n/translation";
 import type { LegalDocument } from "./types";
 
 /**
- * Template terms of service for Lazify. Bracketed [PLACEHOLDERS] must be filled
- * in, and the document should be reviewed by qualified legal counsel before you
- * rely on it. It is not legal advice.
+ * Terms of service for Lazify. Kept in step with website/lib/legal-documents.ts.
+ * Not yet reviewed by legal counsel, and it is not legal advice.
  */
 export const termsOfService: LegalDocument = {
   slug: "terms-of-service",
   icon: "journal-page",
   titleKey: translation.Settings.TermsOfService,
-  effectiveDate: "24 July 2026",
+  effectiveDate: "24 September 2026",
   summary:
     "These Terms of Service govern your use of Lazify. By installing or using the App, you agree to them. Please read them carefully, especially the disclaimers and limitation of liability.",
   sections: [
@@ -100,7 +99,7 @@ export const termsOfService: LegalDocument = {
       blocks: [
         {
           kind: "paragraph",
-          text: "TO THE MAXIMUM EXTENT PERMITTED BY LAW, WE WILL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, OR FOR ANY LOSS OF DATA, PROFITS, OR BUSINESS, ARISING OUT OF OR RELATED TO YOUR USE OF THE APP. OUR TOTAL LIABILITY FOR ANY CLAIM RELATING TO THE APP WILL NOT EXCEED [AMOUNT, e.g. the greater of the amount you paid for the App in the prior twelve months or USD 50].",
+          text: "TO THE MAXIMUM EXTENT PERMITTED BY LAW, WE WILL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, OR FOR ANY LOSS OF DATA, PROFITS, OR BUSINESS, ARISING OUT OF OR RELATED TO YOUR USE OF THE APP. OUR TOTAL LIABILITY FOR ANY CLAIM RELATING TO THE APP WILL NOT EXCEED THE GREATER OF THE AMOUNT YOU PAID FOR THE APP IN THE TWELVE MONTHS BEFORE THE CLAIM OR USD 50. NOTHING IN THESE TERMS EXCLUDES, RESTRICTS, OR MODIFIES ANY RIGHT OR REMEDY YOU HAVE UNDER ANY CONSUMER PROTECTION LAW OR OTHER LAW THAT CANNOT LAWFULLY BE EXCLUDED.",
         },
       ],
     },
@@ -127,7 +126,7 @@ export const termsOfService: LegalDocument = {
       blocks: [
         {
           kind: "paragraph",
-          text: "These Terms are governed by the laws of [JURISDICTION], without regard to its conflict-of-laws rules. Any dispute will be resolved in the courts located in [VENUE], unless applicable law requires otherwise.",
+          text: "These Terms are governed by the laws of the Kingdom of Cambodia, without regard to its conflict-of-laws rules. Any dispute will be resolved in the courts of Phnom Penh, Cambodia, unless applicable law requires otherwise.",
         },
       ],
     },
