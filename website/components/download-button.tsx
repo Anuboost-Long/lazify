@@ -28,12 +28,12 @@ export function DownloadButton({
       href={href}
       className={clsx(
         "group inline-flex min-h-12 items-center justify-center gap-3 rounded-xl",
-        primary ? "bg-emerald-300 text-[#07110d]" : "bg-white/[.05] text-white",
+        primary ? "bg-emerald-300 text-[#07110d]" : "bg-white/5 text-white",
         "border",
         primary ? "border-emerald-300" : "border-white/12",
         "px-5 py-3 text-sm font-bold",
         "transition-[transform,background-color] hover:-translate-y-0.5",
-        !primary && "hover:bg-white/[.09]",
+        !primary && "hover:bg-white/9",
         className,
       )}
     >
@@ -48,7 +48,7 @@ export function DownloadButton({
         {hint ? (
           <span
             className={clsx(
-              "font-mono text-[9px] font-medium uppercase tracking-wider whitespace-nowrap",
+              "text-xs font-medium whitespace-nowrap",
               primary ? "text-[#07110d]/55" : "text-stone-500",
             )}
           >
