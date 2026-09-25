@@ -36,8 +36,18 @@ export function curlFrom(
 }
 
 function securityHeaders(route: SavedRoute): RequestHeader[] {
+	// More than one scheme (bearer, oauth2, a project-wide policy…) routinely
+	// names the same header — one sample header, not one per scheme.
+	const seen = new Set<string>();
+
 	return route.security
 		.filter((scheme) => scheme.location === "header")
+		.filter((scheme) => {
+			const key = scheme.parameterName.toLowerCase();
+			if (seen.has(key)) return false;
+			seen.add(key);
+			return true;
+		})
 		.map((scheme) => ({
 			name: scheme.parameterName,
 			value: scheme.kind === "bearer" ? "Bearer <token>" : `<${scheme.schemeName}>`,

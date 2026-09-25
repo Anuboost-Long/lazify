@@ -53,6 +53,9 @@ export const agentsApi = {
 		ipcRenderer.invoke("lazify:set-autopilot", enabled),
 	setAutopilotProject: (projectPath: string, enabled: boolean): Promise<AutopilotSettings> =>
 		ipcRenderer.invoke("lazify:set-autopilot-project", projectPath, enabled),
+	keepAwake: (): Promise<boolean> => ipcRenderer.invoke("lazify:keep-awake"),
+	setKeepAwake: (enabled: boolean): Promise<boolean> =>
+		ipcRenderer.invoke("lazify:set-keep-awake", enabled),
 	getAgentUsage: (sinceIso?: string, agentIds?: string[]): Promise<AgentUsageReport> =>
 		ipcRenderer.invoke("lazify:agent-usage", sinceIso, agentIds),
 	setAgentBudget: (agentId: string, weeklyTokens: number): Promise<Record<string, number>> =>

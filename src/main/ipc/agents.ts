@@ -13,6 +13,7 @@ import { saveClipboardImageToTempFile } from "../agents/clipboard-image";
 import { addCustomAgent, removeCustomAgent } from "../agents/custom-agents-store";
 import type { CustomAgentInput } from "../agents/custom-agents-store";
 import { hideRun } from "../agents/hidden-runs";
+import { readKeepAwake, saveKeepAwake } from "../agents/keep-awake-store";
 import { prepareSessionLint } from "../agents/session-lint";
 import type { IpcContext } from "./context";
 
@@ -58,6 +59,13 @@ export function registerAgentHandlers(ctx: IpcContext) {
 		async (_event, projectPath: string, enabled: boolean) =>
 			setAutopilotProject(projectPath, enabled),
 	);
+
+	ipcMain.handle("lazify:keep-awake", async () => readKeepAwake());
+
+	ipcMain.handle("lazify:set-keep-awake", async (_event, enabled: boolean) => {
+		ctx.awakeGuard.setEnabled(enabled);
+		return saveKeepAwake(enabled);
+	});
 
 	// Agents are plain interactive CLIs: run them in a PTY and let xterm render.
 	// Input, resize, and teardown reuse the existing pty-write/resize/stop-script channels.

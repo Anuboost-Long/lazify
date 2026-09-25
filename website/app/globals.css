@@ -47,19 +47,6 @@ em {
   text-wrap: balance;
 }
 
-.hero-grid {
-  background-image:
-    linear-gradient(to bottom, transparent 0%, transparent 76%, var(--background) 100%),
-    linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
-  background-size: 100% 100%, 44px 44px, 44px 44px;
-}
-
-.hero-glow {
-  background: radial-gradient(circle, rgba(52, 211, 153, 0.14), transparent 64%);
-  filter: blur(20px);
-}
-
 .product-shadow {
   box-shadow:
     0 50px 120px rgba(0, 0, 0, 0.62),
@@ -84,14 +71,6 @@ em {
   background:
     linear-gradient(90deg, rgba(4, 10, 9, 0.98) 0%, rgba(4, 10, 9, 0.78) 27%, rgba(4, 10, 9, 0.08) 62%),
     linear-gradient(0deg, rgba(4, 10, 9, 0.72), transparent 42%);
-}
-
-.showcase-grid {
-  background-image:
-    linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
-  background-size: 42px 42px;
-  mask-image: linear-gradient(90deg, black, transparent 72%);
 }
 
 .showcase-scene {
@@ -466,29 +445,6 @@ em {
   }
 }
 
-.workspace-pattern {
-  background-color: #081121;
-  background-image:
-    linear-gradient(105deg, transparent 0 28%, rgba(56, 189, 248, 0.05) 28.1%, transparent 28.25%),
-    radial-gradient(circle at 86% 16%, transparent 0 62px, rgba(56, 189, 248, 0.05) 63px, transparent 64px);
-}
-
-.review-viewport {
-  mask-image: linear-gradient(to right, transparent, black 7%, black 93%, transparent);
-}
-
-.review-track {
-  animation: review-slide 48s linear infinite;
-}
-
-.eyebrow {
-  color: var(--accent);
-  font-family: "SFMono-Regular", "Cascadia Code", monospace;
-  font-size: 0.625rem;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-}
-
 .reveal {
   animation: reveal 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
@@ -510,22 +466,12 @@ em {
   }
 }
 
-@keyframes review-slide {
-  to {
-    transform: translateX(calc(-50% - 0.5rem));
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
   }
 
   .reveal {
-    animation: none;
-  }
-
-  .review-track {
     animation: none;
   }
 

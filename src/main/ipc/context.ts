@@ -2,6 +2,7 @@ import type { BrowserWindow } from "electron";
 
 import type { AttentionDetector } from "../agents/attention-detector";
 import type { Autopilot } from "../agents/autopilot";
+import type { AwakeGuard } from "../agents/awake-guard";
 import type { AutopilotHold } from "../agents/autopilot-policy";
 import type { CommandRunner } from "../command-runner";
 import type { PtyRunner } from "../pty-runner";
@@ -17,4 +18,5 @@ export interface IpcContext {
   ptyRunner: PtyRunner;
   autopilot: Autopilot;
   attentionDetector: AttentionDetector;
+  awakeGuard: AwakeGuard;
 }

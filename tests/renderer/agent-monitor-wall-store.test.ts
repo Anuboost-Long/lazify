@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 
 import {
   loadWallLayout,
+  nextWallOrder,
   pruneLayout,
   registerSession,
   saveWallLayout,
@@ -103,7 +104,8 @@ describe("Live monitor wall layout", () => {
       layout({ refs: { "run-1": { runId: "run-1", size: "large", order: 0 } } }),
     );
 
-    const next = registerSession("run-2");
+    const order = nextWallOrder(loadWallLayout());
+    const next = registerSession("run-2", order);
 
     expect(next.refs["run-2"]).toEqual({ runId: "run-2", size: "default", order: 1 });
     // Whoever started it, it is on the wall from here on.
@@ -115,11 +117,27 @@ describe("Live monitor wall layout", () => {
       layout({ refs: { "run-1": { runId: "run-1", size: "wide", order: 4 } } }),
     );
 
-    expect(registerSession("run-1").refs["run-1"]).toEqual({
+    expect(registerSession("run-1", nextWallOrder(loadWallLayout())).refs["run-1"]).toEqual({
       runId: "run-1",
       size: "wide",
       order: 4,
     });
+  });
+
+  it("keeps click order even when an earlier press resolves last", () => {
+    saveWallLayout(layout({ refs: { "run-1": { runId: "run-1", size: "default", order: 0 } } }));
+
+    // Two presses reserve their spot before either request settles.
+    const firstPressOrder = nextWallOrder(loadWallLayout());
+    const secondPressOrder = firstPressOrder + 1;
+
+    // The second press's request resolves first, but it must not steal the
+    // first press's slot.
+    registerSession("run-3", secondPressOrder);
+    registerSession("run-2", firstPressOrder);
+
+    expect(loadWallLayout().refs["run-2"].order).toBe(1);
+    expect(loadWallLayout().refs["run-3"].order).toBe(2);
   });
 
   it("prunes placements for runs that are no longer alive", () => {

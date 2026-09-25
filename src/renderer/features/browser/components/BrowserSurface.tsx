@@ -12,10 +12,13 @@ import UiIcon, { type UiIconName } from "@renderer/shared/ui/icons/UiIcon";
 import { BlockedPopupNotice } from "./BlockedPopupNotice";
 import { BrowserGuest, type GuestStatus } from "./BrowserGuest";
 import { BrowserStartPage } from "./BrowserStartPage";
+import { HistoryButton } from "./HistoryButton";
+import { HistoryPage } from "./HistoryPage";
 import { LazyShieldPanel } from "./LazyShieldPanel";
 import { SendToAgentButton } from "./SendToAgentButton";
 import { SwipeNavigationIndicator } from "./SwipeNavigationIndicator";
 import { useBlockedPopups } from "../hooks/use-blocked-popups";
+import { useBrowserHistory } from "../hooks/use-browser-history";
 import { useBrowserTabs, type BrowserTab } from "../hooks/use-browser-tabs";
 import { useLazyShield } from "../hooks/use-lazy-shield";
 import { useSwipeProgress } from "../hooks/use-swipe-progress";
@@ -84,6 +87,7 @@ export function BrowserSurface({ visible }: Readonly<BrowserSurfaceProps>) {
     activeId,
     setActiveId,
     openTab,
+    openHistoryTab,
     closeTab,
     reorderTab,
     patchTab,
@@ -92,6 +96,7 @@ export function BrowserSurface({ visible }: Readonly<BrowserSurfaceProps>) {
 
   const shield = useLazyShield();
   const popups = useBlockedPopups();
+  const { recordVisit } = useBrowserHistory();
   const swipe = useSwipeProgress();
   const pagePip = usePictureInPicture("browser");
   const [statuses, setStatuses] = useState<Record<string, GuestStatus>>({});
@@ -145,8 +150,9 @@ export function BrowserSurface({ visible }: Readonly<BrowserSurfaceProps>) {
   const handleNavigate = useCallback(
     (tabId: string, url: string, title: string) => {
       patchTab(tabId, { currentUrl: url, ...(title ? { title } : {}) });
+      recordVisit(url, title);
     },
-    [patchTab]
+    [patchTab, recordVisit]
   );
 
   const status = statuses[activeId] ?? EMPTY_STATUS;
@@ -248,6 +254,8 @@ export function BrowserSurface({ visible }: Readonly<BrowserSurfaceProps>) {
               >
                 {statuses[tab.id]?.loading ? (
                   <UiIcon name="refresh-circle" className="h-3.5 w-3.5 animate-spin text-accent" />
+                ) : tab.page === "history" ? (
+                  <UiIcon name="history" className="h-3.5 w-3.5 text-muted" />
                 ) : (
                   <UiIcon name="globe" className="h-3.5 w-3.5 text-muted" />
                 )}
@@ -296,6 +304,11 @@ export function BrowserSurface({ visible }: Readonly<BrowserSurfaceProps>) {
           label={t(status.loading ? translation.Browser.Stop : translation.GlobalTerm.Refresh)}
           disabled={!status.ready}
           onClick={() => drive((view) => (status.loading ? view.stop() : view.reload()))}
+        />
+
+        <HistoryButton
+          onOpenUrl={(url) => openTab(url)}
+          onExpand={() => openHistoryTab(t(translation.Browser.History))}
         />
 
         <input
@@ -405,9 +418,19 @@ export function BrowserSurface({ visible }: Readonly<BrowserSurfaceProps>) {
         ))}
 
         {activeTab && !activeTab.url ? (
-          <div className="absolute inset-0 z-10 bg-bg">
-            <BrowserStartPage onGo={navigateActive} />
-          </div>
+          activeTab.page === "history" ? (
+            <HistoryPage
+              onClose={() => closeTab(activeTab.id)}
+              onOpenUrl={(url) => {
+                openTab(url);
+                closeTab(activeTab.id);
+              }}
+            />
+          ) : (
+            <div className="absolute inset-0 z-10 bg-bg">
+              <BrowserStartPage onGo={navigateActive} />
+            </div>
+          )
         ) : null}
 
         <SwipeNavigationIndicator

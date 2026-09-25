@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 
+import { parameterNameForSecurity } from "@main/api-studio/environment";
 import { addedFields, fieldKey } from "@main/api-studio/runner/build-request";
 import { translation } from "@renderer/i18n/translation";
 import type { BodyEditor, ScriptEditor } from "../hooks/use-request-draft";
@@ -82,6 +83,42 @@ function headerFields(route: SavedRoute, requiredLabel: string): RequestField[] 
   }));
 }
 
+/**
+ * A route's auth requirements, shown and edited the same way as any other
+ * field — the user decides what fills them, in by typing a literal value or
+ * linking to an environment variable with `{{Name}}`, instead of the app
+ * silently guessing which variable to use.
+ */
+function securityFields(
+  route: SavedRoute,
+  requiredLabel: string,
+  location: "header" | "query" | "cookie"
+): RequestField[] {
+  // More than one scheme (bearer, oauth2, an inherited project-wide policy…)
+  // routinely rides the same header, so more than one security entry can name
+  // the same parameter — one field to fill in, not one per scheme. Names
+  // differing only in case are the same header, same as elsewhere in this app.
+  const seen = new Set<string>();
+  const names = route.security
+    .filter((security) => security.location === location)
+    .map((security) => parameterNameForSecurity(security))
+    .filter((name): name is string => name.length > 0)
+    .filter((name) => {
+      const lower = name.toLowerCase();
+      if (seen.has(lower)) return false;
+      seen.add(lower);
+      return true;
+    });
+
+  return names.map((name) => ({
+    key: fieldKey(location, name),
+    label: name,
+    meta: [requiredLabel, "auth"],
+    detail: null,
+    placeholder: `{{${name}}}`
+  }));
+}
+
 export function RequestDetails({
   route,
   tab,
@@ -102,15 +139,20 @@ export function RequestDetails({
   const requiredLabel = t(translation.ApiStudio.Required);
 
   switch (tab) {
-    case "params":
+    case "params": {
+      const declared = withRepeats(parameterFields(route, requiredLabel), fields);
+      const declaredKeys = new Set(declared.map((field) => field.key.toLowerCase()));
+      const auth = [
+        ...securityFields(route, requiredLabel, "query"),
+        ...securityFields(route, requiredLabel, "cookie")
+      ].filter((field) => !declaredKeys.has(field.key.toLowerCase()));
+
       return (
         <RequestFieldRows
-          fields={[
-            ...withRepeats(parameterFields(route, requiredLabel), fields),
-            ...addedRows(route, fields, "query")
-          ]}
+          fields={[...declared, ...auth, ...addedRows(route, fields, "query")]}
           values={fields}
           readOnly={readOnly}
+          variableNames={known.variableNames}
           onChange={onFieldChange}
           onRename={onRenameField}
           onRemove={onRemoveField}
@@ -118,15 +160,20 @@ export function RequestDetails({
           onAdd={onAddField ? () => onAddField("query") : undefined}
         />
       );
-    case "headers":
+    }
+    case "headers": {
+      const declared = withRepeats(headerFields(route, requiredLabel), fields);
+      const declaredKeys = new Set(declared.map((field) => field.key.toLowerCase()));
+      const auth = securityFields(route, requiredLabel, "header").filter(
+        (field) => !declaredKeys.has(field.key.toLowerCase())
+      );
+
       return (
         <RequestFieldRows
-          fields={[
-            ...withRepeats(headerFields(route, requiredLabel), fields),
-            ...addedRows(route, fields, "header")
-          ]}
+          fields={[...declared, ...auth, ...addedRows(route, fields, "header")]}
           values={fields}
           readOnly={readOnly}
+          variableNames={known.variableNames}
           onChange={onFieldChange}
           onRename={onRenameField}
           onRemove={onRemoveField}
@@ -134,6 +181,7 @@ export function RequestDetails({
           onAdd={onAddField ? () => onAddField("header") : undefined}
         />
       );
+    }
     case "body":
       return <RequestBodyPanel body={route.requestBody ?? null} editor={body} readOnly={readOnly} />;
     case "scripts":

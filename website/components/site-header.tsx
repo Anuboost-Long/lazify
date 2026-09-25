@@ -29,7 +29,6 @@ export function SiteHeader() {
         <a href="#top" className="flex items-center gap-2.5" aria-label="Lazify home">
           <BrandIcon size={30} className="rounded-[7px]" />
           <span className="text-[15px] font-semibold tracking-[-0.02em] text-white">Lazify</span>
-          <span className="rounded-full border border-emerald-300/20 bg-emerald-300/10 px-2 py-0.5 font-mono text-[9px] uppercase tracking-wider text-emerald-200">Desktop</span>
         </a>
 
         <div className="hidden items-center gap-8 md:flex">

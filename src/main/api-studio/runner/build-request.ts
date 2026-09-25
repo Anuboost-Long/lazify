@@ -1,9 +1,4 @@
-import {
-	baseUrlVariableFor,
-	resolveVariable,
-	variableNameForHeader,
-	variableNameForSecurity,
-} from "../environment";
+import { baseUrlVariableFor, parameterNameForSecurity, resolveVariable } from "../environment";
 import { environmentPolicy } from "../rules/environment-policy";
 import type { ApiHeader, ApiVariable, SavedRoute } from "../types";
 import { encodeBody, MULTIPART_MEDIA_TYPE } from "./encode-body";
@@ -57,6 +52,40 @@ export function repeatKey(key: string, taken: Iterable<string>): string {
 	}
 }
 
+/**
+ * What a freshly-opened route's fields start out as: one `{{Name}}` suggestion
+ * per required header and per security requirement, in the exact casing the
+ * project's own code uses. It's a starting point, not a resolution — the user
+ * can accept it, point it at a different variable, or type a literal value.
+ */
+export function defaultFieldsForRoute(route: Pick<SavedRoute, "headers" | "security">): Record<string, string> {
+	const fields: Record<string, string> = {};
+
+	for (const header of route.headers) {
+		if (environmentPolicy.headers.onlyRequired && !header.required) continue;
+
+		fields[fieldKey("header", header.name)] = `{{${header.name}}}`;
+	}
+
+	// Names differing only in case are the same header (bearer, oauth2, and a
+	// project-wide policy routinely all name "Authorization"), so the first
+	// casing seen wins rather than each scheme claiming its own field.
+	const seenSecurityKeys = new Set<string>();
+
+	for (const security of route.security) {
+		const name = parameterNameForSecurity(security);
+		if (!name) continue;
+
+		const key = fieldKey(security.location, name);
+		if (seenSecurityKeys.has(key.toLowerCase())) continue;
+		seenSecurityKeys.add(key.toLowerCase());
+
+		fields[key] = `{{${name}}}`;
+	}
+
+	return fields;
+}
+
 function keysFor(
 	fields: Record<string, string>,
 	location: RequestFieldLocation,
@@ -85,16 +114,31 @@ function enteredAll(
 		.map((value) => interpolate(value, input.variables, input.values));
 }
 
+/**
+ * A security requirement is just another field the user fills in — same
+ * `{{name}}` linking as a header or query param, nothing resolved behind
+ * their back from a guessed environment key.
+ */
 function securityValues(input: RequestDraftInput): AppliedValue[] {
-	return input.route.security.flatMap((security) => {
-		const value = resolveVariable(input.variables, input.values, variableNameForSecurity(security));
+	// More than one scheme (bearer, oauth2, a project-wide policy…) routinely
+	// names the same header — one field, one value, so it is sent once.
+	const seen = new Set<string>();
 
+	return input.route.security.flatMap((security) => {
+		const parameterName = parameterNameForSecurity(security);
+		if (!parameterName) return [];
+
+		const key = `${security.location}:${parameterName.toLowerCase()}`;
+		if (seen.has(key)) return [];
+		seen.add(key);
+
+		const value = entered(input, security.location, parameterName);
 		if (!value) return [];
 
 		return [
 			{
 				location: security.location,
-				parameterName: security.parameterName,
+				parameterName,
 				authScheme: environmentPolicy.security[security.kind].authScheme,
 				value,
 			},
@@ -103,16 +147,7 @@ function securityValues(input: RequestDraftInput): AppliedValue[] {
 }
 
 function headerValue(input: RequestDraftInput, header: ApiHeader): string {
-	const typed = entered(input, "header", header.name);
-	if (typed) return typed;
-
-	const fromEnvironment = resolveVariable(
-		input.variables,
-		input.values,
-		variableNameForHeader(header.name),
-	);
-
-	return fromEnvironment ?? header.value ?? "";
+	return entered(input, "header", header.name) || header.value || "";
 }
 
 function withScheme(scheme: string, value: string) {
@@ -131,6 +166,17 @@ export function addedFields(
 					.filter((parameter) => parameter.location === location)
 					.map((parameter) => parameter.name),
 	);
+
+	// A security requirement's field lives in the same `location:name`
+	// namespace as a declared header/param — without excluding it here too, it
+	// would be sent both by `securityValues()` and, a second time, as if the
+	// user had added it themselves.
+	for (const security of input.route.security) {
+		if (security.location !== location) continue;
+
+		const name = parameterNameForSecurity(security);
+		if (name) declared.add(name);
+	}
 
 	return Object.entries(input.fields)
 		.filter(([key]) => key.startsWith(`${location}:`))

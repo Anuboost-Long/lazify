@@ -148,13 +148,48 @@ export function customVariableFor(key: string, name: string, secret = false): Cu
 	return { key, name, secret };
 }
 
+/**
+ * What a route needs, in the casing its own code uses — the label a user
+ * reads, never the camelCased key those labels are stored under internally.
+ * More than one scheme (bearer, oauth2, a project-wide policy…) routinely
+ * names the same header, so names are deduped case-insensitively — one chip
+ * per header, not one per scheme that happens to ride it.
+ */
 export function variablesForRoute(route: RouteEnvironmentSource): string[] {
-	return [
+	const names = [
 		baseUrlVariableFor(route),
-		...route.security.map(variableNameForSecurity),
+		...route.security.map(
+			(security) => parameterNameForSecurity(security) || variableNameForSecurity(security),
+		),
 		...route.headers
 			.filter((header) => header.required || !environmentPolicy.headers.onlyRequired)
-			.map((header) => variableNameForHeader(header.name)),
+			.map((header) => header.name),
+	];
+
+	const seen = new Set<string>();
+
+	return names.filter((name) => {
+		const lower = name.toLowerCase();
+		if (seen.has(lower)) return false;
+		seen.add(lower);
+		return true;
+	});
+}
+
+/**
+ * Every name a `{{...}}` reference could resolve — one per variable, never
+ * both its display name and its own storage key, which would offer the same
+ * variable twice under two different spellings.
+ */
+export function suggestableVariableNames(
+	variables: ApiVariable[],
+	values: Record<string, string>,
+): string[] {
+	return [
+		...variables.map((variable) => variable.name),
+		...Object.keys(values).filter(
+			(key) => !variables.some((variable) => variable.key === key || variable.name === key),
+		),
 	];
 }
 

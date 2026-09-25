@@ -21,18 +21,21 @@ const CELLS = ["top-left", "top-right", "bottom-left", "bottom-right"] as const;
 const SIZE_CELLS: Record<MonitorPanelSize, boolean[]> = {
 	default: [true, false, false, false],
 	wide: [true, true, false, false],
+	tall: [true, false, true, false],
 	large: [true, true, true, true],
 };
 
 const SIZE_LABEL: Record<MonitorPanelSize, string> = {
 	default: translation.Agents.MonitorSizeDefault,
 	wide: translation.Agents.MonitorSizeWide,
+	tall: translation.Agents.MonitorSizeTall,
 	large: translation.Agents.MonitorSizeLarge,
 };
 
 const SIZE_DESC: Record<MonitorPanelSize, string> = {
 	default: translation.Agents.MonitorSizeDefaultDesc,
 	wide: translation.Agents.MonitorSizeWideDesc,
+	tall: translation.Agents.MonitorSizeTallDesc,
 	large: translation.Agents.MonitorSizeLargeDesc,
 };
 

@@ -1,6 +1,7 @@
 export {
   addedFields,
   buildRequest,
+  defaultFieldsForRoute,
   fieldKey,
   fieldNameOf,
   hostOf,

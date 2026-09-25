@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { ArrowLeft, Coffee, Heart, ScanLine, Sparkles } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { BrandIcon } from "@/components/brand-icon";
@@ -9,18 +9,10 @@ export const metadata: Metadata = {
   description: "Scan the KHQR code to buy the Lazify maintainer a coffee and help keep the project going.",
 };
 
-const reasons = [
-  { icon: Coffee, text: "Fuels late-night debugging sessions" },
-  { icon: Sparkles, text: "Keeps new features shipping" },
-  { icon: Heart, text: "Goes straight to the person building this" },
-];
-
 export default function DonatePage() {
   return (
-    <main className="hero-grid relative min-h-screen overflow-hidden bg-[#08100e] px-5 pb-20 pt-6 text-stone-100 sm:px-8">
-      <div className="hero-glow pointer-events-none absolute left-1/2 top-0 h-[720px] w-[960px] -translate-x-1/2" />
-
-      <header className="relative mx-auto flex max-w-6xl items-center justify-between border-b border-white/10 pb-6">
+    <main className="min-h-screen bg-[#08100e] px-5 pb-20 pt-6 text-stone-100 sm:px-8">
+      <header className="mx-auto flex max-w-6xl items-center justify-between border-b border-white/10 pb-6">
         <Link href="/" className="flex items-center gap-2.5 text-sm font-semibold text-white">
           <BrandIcon size={30} className="rounded-lg" /> Lazify
         </Link>
@@ -29,64 +21,42 @@ export default function DonatePage() {
         </Link>
       </header>
 
-      <div className="relative mx-auto mt-16 max-w-3xl text-center">
-        <div className="reveal reveal-1 mx-auto mb-7 inline-flex items-center gap-2 rounded-full border border-emerald-300/20 bg-emerald-300/[.06] px-3 py-1.5 font-mono text-[10px] uppercase tracking-[.18em] text-emerald-200">
-          <Heart size={12} className="text-emerald-300" />
-          Support the project
+      <div className="mx-auto mt-16 grid max-w-6xl gap-12 lg:mt-24 lg:grid-cols-[minmax(0,1fr)_auto] lg:gap-20">
+        <div className="max-w-2xl">
+          <h1 className="reveal reveal-1 text-balance font-display text-[clamp(2.6rem,6vw,4.6rem)] font-semibold leading-[1.02] tracking-[-.01em] text-[#f4f3ed]">
+            If Lazify saves you time, consider saving me a coffee.
+          </h1>
+
+          <p className="reveal reveal-2 mt-8 text-base leading-8 text-stone-400 sm:text-lg">
+            Lazify is built and maintained by one developer, and it stays free to download. Donations pay for
+            the time that goes into new features and fixes.
+          </p>
+
+          <ol className="reveal reveal-3 mt-10 space-y-4 border-t border-white/10 pt-8 text-base leading-7 text-stone-300">
+            <li>1. Open any bank app that supports KHQR.</li>
+            <li>2. Scan the code and send whatever feels right.</li>
+          </ol>
+
+          <p className="reveal reveal-3 mt-10 text-sm leading-7 text-stone-500">
+            If you&apos;d rather not donate, a star on GitHub or a note about what&apos;s broken helps just as much.
+          </p>
         </div>
 
-        <h1 className="reveal reveal-2 text-balance font-display text-[clamp(2.6rem,6vw,4.6rem)] font-semibold leading-[1.02] tracking-[-.01em] text-[#f4f3ed]">
-          If Lazify saves you time,
-          <span className="mt-2 block text-emerald-300">consider saving me a coffee.</span>
-        </h1>
-
-        <p className="reveal reveal-3 mx-auto mt-6 max-w-xl text-balance text-base leading-7 text-stone-400">
-          Lazify is built and maintained independently. Every donation—big or small—goes directly toward keeping it free, fast, and actively developed. Thank you for even considering it.
-        </p>
-      </div>
-
-      <div className="reveal reveal-4 relative mx-auto mt-14 max-w-2xl">
-        <div className="relative overflow-hidden rounded-[30px] border border-emerald-300/20 bg-[#0c1813] p-8 shadow-2xl shadow-black/40 sm:p-12">
-          <div className="pointer-events-none absolute -right-16 -top-16 opacity-[.08]"><BrandIcon size={280} /></div>
-
-          <div className="relative grid gap-10 sm:grid-cols-[auto_1fr] sm:items-center">
-            <div className="mx-auto">
-              <div className="rounded-[26px] bg-white p-3 shadow-[0_0_0_1px_rgba(255,255,255,.06),0_30px_70px_-20px_rgba(52,211,153,0.35)] sm:p-4">
-                <Image
-                  src="/donate-qr.jpg"
-                  alt="KHQR payment code for Kimlong Ly"
-                  width={903}
-                  height={1270}
-                  className="h-auto w-[220px] rounded-2xl sm:w-[260px]"
-                  priority
-                />
-              </div>
-              <p className="mt-4 flex items-center justify-center gap-1.5 font-mono text-[9px] uppercase tracking-[.16em] text-stone-500">
-                <ScanLine size={12} className="text-emerald-300" /> Scan with any KHQR-enabled bank app
-              </p>
-            </div>
-
-            <div className="text-center sm:text-left">
-              <p className="eyebrow">Send appreciation</p>
-              <h2 className="mt-3 font-display text-2xl font-semibold text-white">Kimlong Ly</h2>
-              <p className="mt-4 text-sm leading-7 text-stone-300">
-                Open your banking app, scan the code, and send whatever feels right. No amount is too small—every bit helps keep Lazify moving forward.
-              </p>
-
-              <ul className="mt-6 space-y-3">
-                {reasons.map(({ icon: Icon, text }) => (
-                  <li key={text} className="flex items-center justify-center gap-2.5 text-sm text-stone-400 sm:justify-start">
-                    <Icon size={15} className="shrink-0 text-emerald-300" /> {text}
-                  </li>
-                ))}
-              </ul>
-            </div>
+        <figure className="reveal reveal-4 justify-self-center lg:justify-self-end">
+          <div className="rounded-3xl bg-white p-3 sm:p-4">
+            <Image
+              src="/donate-qr.jpg"
+              alt="KHQR payment code for Kimlong Ly"
+              width={903}
+              height={1270}
+              className="h-auto w-60 rounded-2xl sm:w-72"
+              priority
+            />
           </div>
-        </div>
-
-        <p className="reveal reveal-5 mt-8 text-center text-sm leading-7 text-stone-500">
-          Whether you donate or not, thank you for using Lazify. Every download, star, and bit of feedback matters just as much. 🌱
-        </p>
+          <figcaption className="mt-4 text-center text-sm text-stone-400">
+            Paid to <span className="font-semibold text-white">Kimlong Ly</span>
+          </figcaption>
+        </figure>
       </div>
     </main>
   );

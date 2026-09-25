@@ -16,9 +16,21 @@ import type { AppPageId } from "@renderer/app/app-sidebar.constant";
 const STORAGE_KEY = "lazify-route-memory";
 
 /** Pages with sub-routes worth returning to, and the address they branch from. */
-const REMEMBERED_PAGES: Array<{ id: AppPageId; root: string }> = [
-  { id: "workspace", root: appRoute.workspace },
-  { id: "tools", root: appRoute.tools }
+const REMEMBERED_PAGES: Array<{ id: AppPageId; root: string; isValid: (pathname: string) => boolean }> = [
+  { id: "workspace", root: appRoute.workspace, isValid: (p) => p.startsWith(`${appRoute.workspace}/project/`) },
+  {
+    id: "tools",
+    root: appRoute.tools,
+    isValid: (p) =>
+      (
+        [
+          appRoute.toolsPromptBuilder,
+          appRoute.toolsApiStudio,
+          appRoute.toolsDmgCompiler,
+          appRoute.toolsEnvironment
+        ] as string[]
+      ).includes(p)
+  }
 ];
 
 type RouteMemory = Partial<Record<AppPageId, string>>;
@@ -70,9 +82,10 @@ export function useRouteMemory() {
    */
   const recall = useCallback(
     (targetPath: string) => {
-      const pageId = pageOfRoot(targetPath);
+      const page = REMEMBERED_PAGES.find((entry) => entry.root === targetPath);
+      const stored = page && memory[page.id];
 
-      return (pageId && memory[pageId]) || targetPath;
+      return (stored && page.isValid(stored) && stored) || targetPath;
     },
     [memory]
   );

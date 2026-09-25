@@ -68,14 +68,22 @@ function headersFor(route: SavedRoute): PostmanHeader[] {
 		description: header.description ?? undefined,
 	}));
 
-	for (const security of route.security) {
-		const value = reference(variableNameForSecurity(security));
-		const scheme = environmentPolicy.security[security.kind].authScheme;
+	// More than one scheme (bearer, oauth2, a project-wide policy…) routinely
+	// names the same header — one exported header, not one per scheme.
+	const seenKeys = new Set<string>();
 
+	for (const security of route.security) {
 		if (security.location !== "header") continue;
 
+		const value = reference(variableNameForSecurity(security));
+		const scheme = environmentPolicy.security[security.kind].authScheme;
+		const key = scheme ? "Authorization" : security.parameterName;
+
+		if (seenKeys.has(key.toLowerCase())) continue;
+		seenKeys.add(key.toLowerCase());
+
 		headers.push({
-			key: scheme ? "Authorization" : security.parameterName,
+			key,
 			value: scheme ? `${scheme} ${value}` : value,
 		});
 	}

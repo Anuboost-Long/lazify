@@ -65,8 +65,11 @@ export function NodeVersionModal({ open, onClose, onSelect }: Readonly<NodeVersi
 		setState("install-done");
 	}, []);
 
-	const handleUseSession = useCallback(() => {
+	const handleUseSession = useCallback(async () => {
 		if (!selected) return;
+		setApplying("session");
+		await globalThis.lazify.nvmUse(selected);
+		setApplying(null);
 		onSelect?.(selected);
 		onClose();
 	}, [selected, onSelect, onClose]);
@@ -75,6 +78,9 @@ export function NodeVersionModal({ open, onClose, onSelect }: Readonly<NodeVersi
 		if (!selected) return;
 		setApplying("default");
 		await globalThis.lazify.nvmSetDefault(selected);
+		// `nvm alias default` only changes what future shells start with —
+		// applying it to this already-running process needs `nvm use` too.
+		await globalThis.lazify.nvmUse(selected);
 		setApplying(null);
 		onSelect?.(selected);
 		onClose();
@@ -348,7 +354,7 @@ export function NodeVersionModal({ open, onClose, onSelect }: Readonly<NodeVersi
 							<div className="flex flex-1 items-center gap-2">
 								<button
 									type="button"
-									onClick={handleUseSession}
+									onClick={() => void handleUseSession()}
 									disabled={!selected || !!applying}
 									className={clsx(
 										"flex-1 rounded-[16px] border border-transparent bg-accent px-4 py-2.5",
@@ -357,11 +363,22 @@ export function NodeVersionModal({ open, onClose, onSelect }: Readonly<NodeVersi
 										"disabled:cursor-not-allowed disabled:opacity-50",
 									)}
 								>
-									{t(translation.NodeVersionModal.UseOnce)}
+									{applying === "session" ? (
+										<Typography
+											as="span"
+											variant="body"
+											className="flex items-center justify-center gap-2 text-inherit"
+										>
+											<UiIcon name="refresh-circle" className="h-3.5 w-3.5 animate-spin" />
+											{t(translation.NodeVersionModal.Applying)}
+										</Typography>
+									) : (
+										t(translation.NodeVersionModal.UseOnce)
+									)}
 								</button>
 								<button
 									type="button"
-									onClick={handleSetDefault}
+									onClick={() => void handleSetDefault()}
 									disabled={!selected || !!applying}
 									className={clsx(
 										"relative flex-1 overflow-hidden rounded-[16px] border border-accent/25 bg-transparent px-4 py-2.5",

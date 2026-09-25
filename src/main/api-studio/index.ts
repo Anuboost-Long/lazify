@@ -14,6 +14,7 @@ export {
   deriveEnvironmentVariables,
   withCustomVariables,
   resolveVariable,
+  suggestableVariableNames,
   variableNameForHeader,
   variableNameForSecurity,
   variablesForRoute
@@ -37,6 +38,7 @@ export type {
 } from "./request-store";
 export {
   buildRequest,
+  defaultFieldsForRoute,
   encodeBody,
   fieldKey,
   isFormMediaType,
