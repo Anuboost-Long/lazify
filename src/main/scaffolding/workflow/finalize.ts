@@ -55,7 +55,7 @@ export async function finalizeProject(
 
 		const dependencyResult = await installPackagesWithAutoFix(ctx, {
 			workflowId,
-			packageManager: choosePackageManager(projectPath),
+			packageManager: await choosePackageManager(projectPath),
 			projectPath,
 			packages: template.postInstallDependencies,
 		});
@@ -113,7 +113,7 @@ export async function finalizeProject(
 
 		const dependencyResult = await installPackagesWithAutoFix(ctx, {
 			workflowId,
-			packageManager: choosePackageManager(projectPath),
+			packageManager: await choosePackageManager(projectPath),
 			projectPath,
 			packages: packagePlan.dependencies,
 			dev: false,
@@ -145,7 +145,7 @@ export async function finalizeProject(
 
 		const devDependencyResult = await installPackagesWithAutoFix(ctx, {
 			workflowId,
-			packageManager: choosePackageManager(projectPath),
+			packageManager: await choosePackageManager(projectPath),
 			projectPath,
 			packages: packagePlan.devDependencies,
 			dev: true,
@@ -249,7 +249,7 @@ export async function finalizeStarterProject(
 	});
 
 	const installResult = await ctx.commandRunner.runCommand({
-		command: choosePackageManager(projectPath),
+		command: await choosePackageManager(projectPath),
 		args: ["install"],
 		cwd: projectPath,
 	});

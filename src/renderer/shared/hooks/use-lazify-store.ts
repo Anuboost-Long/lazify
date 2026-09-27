@@ -78,22 +78,7 @@ export function useLazifyStore() {
 	);
 
 	const bootstrap = useCallback(async () => {
-		const [env, templates] = await Promise.all([
-			globalThis.lazify.checkEnvironment(),
-			globalThis.lazify.listTemplates(),
-		]);
-
-		setEnvironment({
-			nodeVersion: env.nodeVersion,
-			npmVersion: env.binaries.npm.version ?? "missing",
-			yarnVersion: env.binaries.yarn.version ?? "missing",
-		});
-
-		setStatusMessage(
-			env.issues.length === 0 ? "Environment checks passed. Lazify is ready." : env.issues.join(" "),
-		);
-
-		setWorkflowStatus(env.issues.length === 0 ? "idle" : "error");
+		const templates = await globalThis.lazify.listTemplates();
 
 		if (templates.length > 0) {
 			setTemplateOptions(
@@ -107,13 +92,23 @@ export function useLazifyStore() {
 		}
 
 		await refreshImportedTemplates();
-	}, [
-		refreshImportedTemplates,
-		setEnvironment,
-		setStatusMessage,
-		setTemplateOptions,
-		setWorkflowStatus,
-	]);
+	}, [refreshImportedTemplates, setTemplateOptions]);
+
+	const checkEnvironmentReadiness = useCallback(async () => {
+		const env = await globalThis.lazify.checkEnvironment();
+
+		setEnvironment({
+			nodeVersion: env.nodeVersion,
+			npmVersion: env.binaries.npm.version ?? "missing",
+			yarnVersion: env.binaries.yarn.version ?? "missing",
+		});
+
+		setStatusMessage(
+			env.issues.length === 0 ? "Environment checks passed. Lazify is ready." : env.issues.join(" "),
+		);
+
+		setWorkflowStatus(env.issues.length === 0 ? "idle" : "error");
+	}, [setEnvironment, setStatusMessage, setWorkflowStatus]);
 
 	const bindEvents = useCallback(() => {
 		const stopLogs = globalThis.lazify.onLog((entry) => {
@@ -298,6 +293,7 @@ export function useLazifyStore() {
 		updateProjectNodeVersion,
 		pickProjectDirectory,
 		bootstrap,
+		checkEnvironmentReadiness,
 		refreshToolScan,
 		refreshSingleTool,
 		refreshImportedTemplates,

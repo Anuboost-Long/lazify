@@ -50,16 +50,24 @@ export function saveWallLayout(layout: MonitorWallLayout) {
 	} catch {}
 }
 
-export function registerSession(runId: string): MonitorWallLayout {
+/** The place right after the last panel currently on record, ignoring any corrupt entry. */
+export function nextWallOrder(layout: MonitorWallLayout): number {
+	const highest = Object.values(layout.refs).reduce(
+		(max, ref) => Math.max(max, Number.isFinite(ref.order) ? ref.order : -1),
+		-1,
+	);
+	return highest + 1;
+}
+
+export function registerSession(runId: string, order: number): MonitorWallLayout {
 	const layout = loadWallLayout();
 	if (layout.refs[runId]) return layout;
 
-	const highest = Object.values(layout.refs).reduce((max, ref) => Math.max(max, ref.order), -1);
 	const next: MonitorWallLayout = {
 		...layout,
 		refs: {
 			...layout.refs,
-			[runId]: { runId, size: "default", order: highest + 1 },
+			[runId]: { runId, size: "default", order },
 		},
 	};
 

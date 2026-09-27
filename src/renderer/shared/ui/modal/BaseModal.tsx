@@ -74,6 +74,8 @@ export function BaseModal({
         open ? "pointer-events-auto" : "pointer-events-none",
         overlayClassName
       )}
+      aria-hidden={!open}
+      {...(!open && { inert: "" })}
     >
       {cancellable ? (
         <button

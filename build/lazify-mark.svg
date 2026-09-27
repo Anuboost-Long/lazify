@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="32 32 200 200" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">Lazify</title>
+  <desc id="desc">A continuous folded ribbon forming an open run symbol.</desc>
+  <path d="M78 50L206 114C218 120 218 136 206 142L78 206C70 210 60 204 60 195V132L92 148V163L160 128L92 93V124L60 108V61C60 52 70 46 78 50Z" fill="currentColor"/>
+</svg>

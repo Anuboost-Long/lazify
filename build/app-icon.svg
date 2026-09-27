@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 256 256" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">Lazify application icon</title>
+  <desc id="desc">A continuous folded ribbon forms an open run symbol, bringing a workflow into one action.</desc>
+  <defs>
+    <linearGradient id="emerald" x1="60" y1="50" x2="192" y2="206" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#5EEAD4"/>
+      <stop offset="0.5" stop-color="#10B981"/>
+      <stop offset="1" stop-color="#059669"/>
+    </linearGradient>
+  </defs>
+  <rect x="8" y="8" width="240" height="240" rx="52" fill="#0B1220"/>
+  <path d="M78 50L206 114C218 120 218 136 206 142L78 206C70 210 60 204 60 195V132L92 148V163L160 128L92 93V124L60 108V61C60 52 70 46 78 50Z" fill="url(#emerald)"/>
+</svg>

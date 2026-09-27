@@ -8,7 +8,7 @@ export async function createProject(
 	payload: CreateProjectPayload,
 ): Promise<WorkflowResult> {
 	const workflowId = `create-${Date.now()}`;
-	const environment = scanEnvironment();
+	const environment = await scanEnvironment();
 
 	if (environment.issues.length > 0) {
 		throw new Error(environment.issues.join(" "));

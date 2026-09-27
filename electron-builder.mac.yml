@@ -28,7 +28,20 @@ afterPack: ./src/scripts/mac-after-pack.mjs
 files:
   - dist/**/*
   - dist-electron/**/*
-  - node_modules/**/*
+  - node_modules/node-pty/**/*
+  - node_modules/node-addon-api/**/*
+  - node_modules/prettier/**/*
+  - node_modules/electron-updater/**/*
+  - node_modules/builder-util-runtime/**/*
+  - node_modules/{debug,ms,fs-extra,graceful-fs,jsonfile,universalify,js-yaml,argparse,lazy-val,lodash.escaperegexp,lodash.isequal,semver,tiny-typed-emitter}/**/*
+  - node_modules/@ghostery/**/*
+  - node_modules/@remusao/**/*
+  - node_modules/{tldts-core,tldts-experimental,undici,unzipper,bluebird,duplexer2,readable-stream,core-util-is,inherits,isarray,process-nextick-args,safe-buffer,string_decoder,util-deprecate,node-int64}/**/*
+  - "!node_modules/@fontsource*/**/*"
+  - "!node_modules/@xterm/**/*"
+  - "!node_modules/{clsx,i18next,iconoir-react,jotai,react,react-dom,react-i18next,react-router,react-router-dom,shiki,typescript}/**/*"
+  - "!node_modules/{@babel,@shikijs,@types,@ungap}/**/*"
+  - "!node_modules/{ccount,character-entities-html4,character-entities-legacy,comma-separated-tokens,cookie,dequal,devlop,hast-util-to-html,hast-util-whitespace,html-parse-stringify,html-void-elements,js-tokens,loose-envify,mdast-util-to-hast,micromark-util-character,micromark-util-encode,micromark-util-sanitize-uri,micromark-util-symbol,micromark-util-types,oniguruma-parser,oniguruma-to-es,property-information,regex,regex-recursion,regex-utilities,scheduler,space-separated-tokens,stringify-entities,trim-lines,unist-util-is,unist-util-position,unist-util-stringify-position,unist-util-visit,unist-util-visit-parents,use-sync-external-store,vfile,vfile-message,zwitch}/**/*"
   - package.json
 
 # Templates and the icon are bundled as plain files in the resources folder —

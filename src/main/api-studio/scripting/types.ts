@@ -1,4 +1,5 @@
 import type { ApiRequestDraft, ApiResponseSummary } from "../runner/types";
+import type { EnvironmentVariableKey } from "./environment-handle";
 
 export interface RouteScripts {
   pre: string;
@@ -35,6 +36,7 @@ export interface ScriptedRunInput {
   scripts: RouteScripts;
   values: Record<string, string>;
   globalName?: string;
+  variables?: EnvironmentVariableKey[];
 }
 
 export interface ApiRunOutcome {

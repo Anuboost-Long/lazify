@@ -84,6 +84,20 @@ function KnockoutSvg({
 	);
 }
 
+/**
+ * A plain filled dot — the universal "record" indicator (voice memos, screen
+ * recorders, video calls). Kept apart from the line/solid pairs above: it has
+ * no line counterpart of its own, since a hollow circle reads as nothing in
+ * particular and the whole point is that this glyph doesn't mean "run".
+ */
+export function RecordDot(props: SVGProps<SVGSVGElement>) {
+	return (
+		<SolidSvg {...props}>
+			<circle cx="12" cy="12" r="7" />
+		</SolidSvg>
+	);
+}
+
 export function FolderSolid(props: SVGProps<SVGSVGElement>) {
 	return (
 		<KnockoutSvg maskName="folder-solid" detail={<path d="M2 11H22" />} {...props}>

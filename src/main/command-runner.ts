@@ -196,11 +196,11 @@ export class CommandRunner {
 		return true;
 	}
 
-	runCommand(request: CommandRequest): Promise<CommandResult> {
+	async runCommand(request: CommandRequest): Promise<CommandResult> {
 		const { command, args, cwd } = request;
 		const commandId = `${Date.now()}-${randomBytes(3).toString("hex")}`;
 
-		ensureCommandAvailable(command);
+		await ensureCommandAvailable(command);
 
 		this.emitLog({
 			id: commandId,

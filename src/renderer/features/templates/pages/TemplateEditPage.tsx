@@ -7,6 +7,7 @@ import type {
 } from "@renderer/shared/types/lazify";
 import { BodyText, OverlineText, PillText } from "@renderer/shared/typography";
 import { TextInput } from "@renderer/shared/ui/form/FormInput";
+import { ConfirmModal } from "@renderer/shared/ui/modal/ConfirmModal";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -34,6 +35,7 @@ export function TemplateEditPage({
   const [busy, setBusy] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   useEffect(() => {
     setDraftName(template?.name ?? "");
@@ -70,11 +72,7 @@ export function TemplateEditPage({
 
   const handleDelete = async () => {
     if (!template) return;
-
-    const confirmed = globalThis.confirm(
-      t(translation.Templates.RemoveConfirm, { name: template.name }),
-    );
-    if (!confirmed) return;
+    setConfirmingDelete(false);
 
     try {
       setBusy(true);
@@ -146,7 +144,7 @@ export function TemplateEditPage({
                 <button
                   type="button"
                   disabled={busy}
-                  onClick={() => void handleDelete()}
+                  onClick={() => setConfirmingDelete(true)}
                   className="inline-flex items-center justify-center rounded-[16px] border border-error/30 bg-error/10 px-4 py-3 text-sm font-semibold text-error hover:border-error/60 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {t(translation.Templates.RemoveTemplate)}
@@ -184,6 +182,18 @@ export function TemplateEditPage({
           </div>
         </>
       ) : null}
+
+      <ConfirmModal
+        open={confirmingDelete}
+        title={t(translation.Templates.RemoveTemplate)}
+        description={
+          template ? t(translation.Templates.RemoveConfirm, { name: template.name }) : undefined
+        }
+        confirmLabel={t(translation.GlobalTerm.Delete)}
+        destructive
+        onConfirm={() => void handleDelete()}
+        onCancel={() => setConfirmingDelete(false)}
+      />
     </div>
   );
 }

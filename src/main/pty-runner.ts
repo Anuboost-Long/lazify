@@ -57,6 +57,7 @@ interface PtyEntry {
 
 export class PtyRunner {
 	private readonly entries = new Map<string, PtyEntry>();
+	private readonly observers = new Set<DataEmitter>();
 	private readonly nodePty = loadNodePty();
 
 	readonly available: boolean;
@@ -127,7 +128,10 @@ export class PtyRunner {
 				entry.backlogBytes -= entry.backlog.shift()!.length;
 			}
 
-			this.emitData({ runId, data, seq: entry.seq });
+			const event: PtyDataEvent = { runId, data, seq: entry.seq };
+
+			this.emitData(event);
+			for (const observe of this.observers) observe(event);
 		});
 
 		instance.onExit(({ exitCode }) => {
@@ -142,6 +146,14 @@ export class PtyRunner {
 
 		this.emitStatus({ runId, scriptName, status: "running", exitCode: null });
 		return runId;
+	}
+
+	observe(listener: DataEmitter): () => void {
+		this.observers.add(listener);
+
+		return () => {
+			this.observers.delete(listener);
+		};
 	}
 
 	getSessions(): PtySessionInfo[] {

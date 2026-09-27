@@ -60,7 +60,7 @@ export function PhotoPreview({
 				aria-modal="true"
 			>
 				<div className="flex h-12 shrink-0 items-center border-b border-white/10 px-4 sm:px-5">
-					<span className="font-mono text-[9px] uppercase tracking-[.18em] text-stone-400">
+					<span className="text-xs text-stone-400">
 						Screenshot preview
 					</span>
 					<button

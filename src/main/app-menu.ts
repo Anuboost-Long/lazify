@@ -1,9 +1,16 @@
-import { Menu, app, type BrowserWindow, type MenuItemConstructorOptions } from "electron";
+import { Menu, app, systemPreferences, type BrowserWindow, type MenuItemConstructorOptions } from "electron";
 
 import { resetZoom, stepZoom } from "./window-zoom";
 
 export function buildAppMenu(windowOf: () => BrowserWindow | null) {
   const onMac = process.platform === "darwin";
+
+  if (onMac) {
+    // macOS auto-injects "Start Dictation" and "Emoji & Symbols" into any Edit menu
+    // with a Paste item; these keys are Apple's documented opt-out.
+    systemPreferences.setUserDefault("NSDisabledDictationMenuItem", "boolean", true);
+    systemPreferences.setUserDefault("NSDisabledCharacterPaletteMenuItem", "boolean", true);
+  }
 
   const appMenu: MenuItemConstructorOptions[] = onMac
     ? [

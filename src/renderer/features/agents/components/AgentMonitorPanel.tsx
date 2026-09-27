@@ -15,12 +15,14 @@ import { AgentThemeNotice } from "./AgentThemeNotice";
 const SIZE_SPAN: Record<MonitorPanelSize, string> = {
 	default: "",
 	wide: "md:col-span-2",
+	tall: "row-span-2",
 	large: "md:col-span-2 row-span-2",
 };
 
 const SIZE_LABEL: Record<MonitorPanelSize, string> = {
 	default: translation.Agents.MonitorSizeDefault,
 	wide: translation.Agents.MonitorSizeWide,
+	tall: translation.Agents.MonitorSizeTall,
 	large: translation.Agents.MonitorSizeLarge,
 };
 

@@ -5,8 +5,8 @@ import { scanEnvironment } from "../../environment/scanner";
 import type { CommandBinary } from "../../environment/scanner";
 import type { TemplateDefinition } from "../harmonizer";
 
-export function resolveTemplateCommand(template: TemplateDefinition): CommandBinary {
-	const scan = scanEnvironment();
+export async function resolveTemplateCommand(template: TemplateDefinition): Promise<CommandBinary> {
+	const scan = await scanEnvironment();
 	const supportedCommands = Object.keys(template.createCommands) as CommandBinary[];
 
 	if (

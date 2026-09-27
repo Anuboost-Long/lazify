@@ -1,7 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { BASE_URL_VARIABLE, resolveVariable } from "@main/api-studio/environment";
-import { buildRequest, hostOf, isLocalUrl, repeatKey } from "@main/api-studio/runner/build-request";
+import {
+	buildRequest,
+	defaultFieldsForRoute,
+	hostOf,
+	isLocalUrl,
+	repeatKey,
+} from "@main/api-studio/runner/build-request";
 import {
 	isFormMediaType,
 	MULTIPART_MEDIA_TYPE,
@@ -129,7 +135,7 @@ export function useRequestDraft(
 		const seedJson = saved?.json ?? formattedJson(declaredBody);
 		const seedEntries = saved?.entries ?? entriesFromJson(declaredBody);
 		const seedMode = saved?.mode ?? declaredMode;
-		const seedFields = saved?.fields ?? {};
+		const seedFields = saved?.fields ?? (route ? defaultFieldsForRoute(route) : {});
 		const seedScripts = saved?.scripts ?? NO_SCRIPTS;
 
 		setMode(seedMode);
@@ -245,6 +251,7 @@ export function useRequestDraft(
 				scripts,
 				values,
 				globalName: scriptGlobal,
+				variables,
 			});
 
 			setScriptRuns({ pre: result.pre, post: result.post });

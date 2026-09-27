@@ -2,75 +2,79 @@ import { BrandIcon } from "@/components/brand-icon";
 import { DownloadSection } from "@/components/download";
 import { DownloadButton } from "@/components/download-button";
 import { ProductWindow } from "@/components/product-window";
+import { ScreenshotCrop } from "@/components/screenshot-crop";
 import { SiteHeader } from "@/components/site-header";
 import { site } from "@/lib/site";
 import clsx from "clsx";
-import {
-	ArrowRight,
-	Bot,
-	Boxes,
-	Code2,
-	Eye,
-	GitBranch,
-	Heart,
-	MonitorPlay,
-	ShieldCheck,
-	Terminal,
-	TerminalSquare,
-	Wrench,
-} from "lucide-react";
+import { Terminal } from "lucide-react";
 
-const capabilities = [
+/** One real task, in the order it happens — which is why these are numbered. */
+const taskSteps = [
 	{
-		icon: Bot,
-		title: "Agents that work where your code lives",
+		title: "Start the dev server",
 		description:
-			"Run Codex, Claude, or your own CLI agent inside the project it is changing. Conversations, files, diffs, and usage stay in one place.",
+			"Every script in package.json gets a Run button. The output stays attached to the project, not a stray terminal tab.",
+		crop: {
+			src: "/showcase/project-scripts.png",
+			alt: "The scripts list for a project, each with a Run button",
+			x: 0.325,
+			y: 0.092,
+			w: 0.64,
+			h: 0.5,
+		},
 	},
 	{
-		icon: MonitorPlay,
-		title: "Run and preview without leaving",
+		title: "Hand the code to an agent",
 		description:
-			"Launch your dev script, detect its local port, and inspect the result beside the agent doing the work.",
+			"Select the lines that matter and send them to Claude or Codex. The agent is already running in that project's folder.",
+		crop: {
+			src: "/showcase/code-to-agent.png",
+			alt: "Selected code in the editor with a Send to agent button",
+			x: 0.325,
+			y: 0.1,
+			w: 0.44,
+			h: 0.42,
+		},
 	},
 	{
-		icon: GitBranch,
-		title: "Review every change with context",
+		title: "Watch both at once",
 		description:
-			"Read files, inspect session diffs, switch branches, and understand what changed before anything ships.",
+			"The live monitor puts the dev server and every agent session side by side, so you see the fix land while it's being made.",
+		crop: {
+			src: "/showcase/live-monitor.png",
+			alt: "The live monitor showing a dev server and Claude side by side",
+			x: 0.07,
+			y: 0.185,
+			w: 0.59,
+			h: 0.405,
+		},
 	},
 ];
 
-const workspaceFeatures = [
+const extras = [
 	{
-		icon: TerminalSquare,
-		label: "Integrated terminals",
-		detail: "Agents and scripts stay scoped to the right project.",
+		label: "Usage limits",
+		detail: "How much of your Claude and Codex limits is left, and when each one resets.",
 	},
 	{
-		icon: Eye,
-		label: "Live localhost preview",
-		detail: "See the product update while the task is still running.",
+		label: "Stays awake",
+		detail: "Your Mac won't sleep while an agent is mid-turn, so a long run doesn't stall overnight.",
 	},
 	{
-		icon: Boxes,
-		label: "Reusable project templates",
-		detail: "Start from maintained stacks or save your own baseline.",
+		label: "Environment variables",
+		detail: "Edit .env entries with the values masked until you choose to reveal them.",
 	},
 	{
-		icon: Wrench,
-		label: "Local environment tools",
-		detail: "Runtimes, package managers, dependencies, and ports—visible.",
+		label: "Project health",
+		detail: "Outdated packages and security advisories, listed and ready to hand to an agent.",
 	},
 	{
-		icon: ShieldCheck,
-		label: "Bounded autopilot",
-		detail: "Routine prompts move forward; risky decisions still wait for you.",
+		label: "Built-in browser",
+		detail: "Docs, GitHub, and your localhost preview open beside the project they belong to.",
 	},
 	{
-		icon: Code2,
-		label: "Files and diffs",
-		detail: "Open paths from agent output and inspect the exact source.",
+		label: "Templates",
+		detail: "Start a project from Next.js, Vite, Expo, or React Native, or save your own setup.",
 	},
 ];
 
@@ -79,26 +83,19 @@ export default function Home() {
 		<main id="top" className="overflow-hidden bg-[#08100e] text-stone-100">
 			<SiteHeader />
 
-			<section className="hero-grid relative px-5 pb-24 pt-40 sm:px-8 lg:pt-48">
-				<div className="hero-glow pointer-events-none absolute left-1/2 top-0 h-[720px] w-[960px] -translate-x-1/2" />
-				<div className="relative mx-auto max-w-7xl">
-					<div className="mx-auto max-w-5xl text-center">
-						<div className="reveal reveal-1 mb-7 inline-flex items-center gap-2 rounded-full border border-emerald-300/20 bg-emerald-300/[.06] px-3 py-1.5 font-mono text-[10px] uppercase tracking-[.18em] text-emerald-200">
-							<span className="h-1.5 w-1.5 rounded-full bg-emerald-300 shadow-[0_0_12px_#6ee7b7]" />
-							Desktop workspace for developers
-						</div>
-
-						<h1 className="reveal reveal-2 text-balance font-display text-[clamp(3.4rem,8vw,7.4rem)] font-semibold leading-[.94] tracking-[.005em] text-[#f4f3ed]">
-							Build, run, and review.
-							<span className="mt-2 block text-emerald-300">All in Lazify.</span>
+			<section className="px-5 pb-24 pt-36 sm:px-8 lg:pt-44">
+				<div className="mx-auto max-w-7xl">
+					<div className="max-w-4xl">
+						<h1 className="reveal reveal-1 text-balance font-display text-[clamp(2.9rem,6.6vw,6.2rem)] font-semibold leading-[.96] tracking-[-.01em] text-[#f4f3ed]">
+							Run Claude and Codex inside the project they&apos;re changing.
 						</h1>
 
-						<p className="reveal reveal-3 mx-auto mt-8 max-w-2xl text-balance text-base leading-7 text-stone-400 sm:text-lg">
-							One desktop command center for your projects, coding agents, terminals, live previews,
-							templates, and local development tools.
+						<p className="reveal reveal-2 mt-8 max-w-2xl text-base leading-7 text-stone-400 sm:text-lg sm:leading-8">
+							Lazify is a desktop app that gives each project one window: its agents, its dev scripts, a
+							browser, and the code. You watch the work happen instead of hunting for the right terminal.
 						</p>
 
-						<div className="reveal reveal-4 mt-9 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center">
+						<div className="reveal reveal-3 mt-9 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
 							<DownloadButton href={site.macDownloads[0].href} primary>
 								Download for macOS
 							</DownloadButton>
@@ -106,150 +103,98 @@ export default function Home() {
 								href="#download"
 								className={clsx(
 									"inline-flex min-h-12 items-center justify-center gap-3 rounded-xl",
-									"bg-white/[.05] text-white",
+									"bg-white/5 text-white",
 									"border border-white/12",
 									"px-5 py-3 text-sm font-bold",
-									"transition-[transform,background-color] hover:-translate-y-0.5 hover:bg-white/[.09]",
+									"transition-[transform,background-color] hover:-translate-y-0.5 hover:bg-white/9",
 								)}
 							>
 								<Terminal size={16} className="opacity-70" /> Install from Terminal
 							</a>
 						</div>
-						<p className="reveal reveal-4 mt-4 font-mono text-[9px] uppercase tracking-[.14em] text-stone-600">
-							Apple Silicon &amp; Intel · Windows coming soon
+						<p className="reveal reveal-3 mt-4 text-xs text-stone-500">
+							For Apple Silicon and Intel Macs. Windows is on the way.
 						</p>
 					</div>
 
-					<div id="product" className="reveal reveal-5 scroll-mt-28 pt-20 sm:pt-24">
+					<div id="product" className="reveal reveal-4 scroll-mt-28 pt-16 sm:pt-20">
 						<ProductWindow />
-						<div className="mt-5 flex flex-col items-center justify-between gap-3 font-mono text-[9px] uppercase tracking-[.16em] text-stone-400 sm:flex-row">
-							<span>Explore the actual Lazify workspace</span>
-							<span>Swipe · Arrow keys · Scene controls</span>
-						</div>
 					</div>
 				</div>
 			</section>
 
 			<section
 				id="features"
-				className="scroll-mt-24 border-y border-white/[.08] bg-[#0b1411] px-5 py-28 sm:px-8 lg:py-36"
+				className="scroll-mt-24 border-y border-white/8 bg-[#0b1411] px-5 py-24 sm:px-8 lg:py-32"
 			>
 				<div className="mx-auto max-w-7xl">
-					<div className="max-w-3xl">
-						<p className="eyebrow">One place to ship from</p>
-						<h2 className="mt-6 font-display text-5xl font-semibold leading-[1.02] tracking-[-.015em] text-[#f4f3ed] sm:text-7xl">
-							Your development loop,
-							<br />
-							connected.
-						</h2>
-						<p className="mt-7 max-w-xl text-sm leading-7 text-stone-400">
-							Lazify does not replace your stack. It gives every part of that stack a shared workspace, so
-							less time disappears between windows.
-						</p>
-					</div>
+					<h2 className="max-w-3xl font-display text-4xl font-semibold leading-[1.02] tracking-[-.015em] text-[#f4f3ed] sm:text-6xl">
+						One task, start to finish
+					</h2>
+					<p className="mt-6 max-w-xl text-base leading-7 text-stone-400">
+						Fixing a bug usually means a terminal for the server, another for the agent, and an editor
+						somewhere in between. Here&apos;s the same job in Lazify.
+					</p>
 
-					<div className="mt-16 space-y-4">
-						{capabilities.map((capability, index) => {
-							const Icon = capability.icon;
-							return (
-								<article
-									key={capability.title}
-									className={clsx(
-										"grid items-start gap-6 rounded-2xl sm:grid-cols-[64px_1fr] sm:items-center",
-										"bg-white/[.025]",
-										"border border-white/10",
-										"p-6 sm:p-8",
-									)}
-								>
-									<div className="flex h-14 w-14 items-center justify-center rounded-xl border border-emerald-300/20 bg-emerald-300/[.07] text-emerald-300">
-										<Icon size={22} strokeWidth={1.5} />
-									</div>
-									<div className="grid gap-3 lg:grid-cols-[.85fr_1.15fr] lg:items-center lg:gap-12">
-										<div>
-											<span className="font-mono text-[9px] text-emerald-300/70">0{index + 1}</span>
-											<h3 className="mt-2 max-w-md font-display text-2xl font-semibold leading-tight text-white">
-												{capability.title}
-											</h3>
-										</div>
-										<p className="max-w-2xl text-base leading-7 text-stone-300">{capability.description}</p>
-									</div>
-								</article>
-							);
-						})}
-					</div>
+					<ol className="mt-16">
+						{taskSteps.map((step, index) => (
+							<li
+								key={step.title}
+								className="grid gap-8 border-t border-white/10 py-12 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-16 lg:py-16"
+							>
+								<div className="lg:pt-2">
+									<span className="font-display text-5xl font-semibold leading-none text-emerald-300">
+										{index + 1}
+									</span>
+									<h3 className="mt-6 font-display text-2xl font-semibold leading-tight text-white sm:text-3xl">
+										{step.title}
+									</h3>
+									<p className="mt-4 max-w-md text-base leading-7 text-stone-400">{step.description}</p>
+								</div>
+								<ScreenshotCrop {...step.crop} />
+							</li>
+						))}
+					</ol>
 				</div>
 			</section>
 
-			<section className="border-b border-white/[.08] bg-[#08100e] px-5 py-28 text-stone-100 sm:px-8 lg:py-36">
+			<section className="px-5 py-24 sm:px-8 lg:py-32">
 				<div className="mx-auto max-w-7xl">
-					<div className="max-w-3xl">
-						<p className="eyebrow">Everything close at hand</p>
-						<h2 className="mt-6 font-display text-5xl font-semibold leading-[1.02] tracking-[-.015em] text-[#f4f3ed] sm:text-6xl">
-							A complete workspace,
-							<br />
-							without the clutter.
-						</h2>
-						<p className="mt-7 max-w-xl text-base leading-7 text-stone-400">
-							A local-first workspace built around the way projects actually move—from setup to agent task
-							to running result to reviewed change.
-						</p>
-					</div>
-
-					<div className="mt-14 grid gap-4 md:grid-cols-2">
-						{workspaceFeatures.map((feature) => {
-							const Icon = feature.icon;
-							return (
-								<div
-									key={feature.label}
-									className="rounded-2xl border border-white/10 bg-white/[.025] p-6 sm:p-7"
-								>
-									<Icon size={20} strokeWidth={1.6} className="text-emerald-300" />
-									<h3 className="mt-6 font-display text-xl font-semibold text-white">{feature.label}</h3>
-									<p className="mt-3 max-w-md text-[15px] leading-7 text-stone-400">{feature.detail}</p>
-								</div>
-							);
-						})}
-					</div>
+					<h2 className="max-w-3xl font-display text-3xl font-semibold leading-tight text-[#f4f3ed] sm:text-4xl">
+						Also in the window
+					</h2>
+					<dl className="mt-12 grid gap-x-12 sm:grid-cols-2 lg:grid-cols-3">
+						{extras.map((extra) => (
+							<div key={extra.label} className="border-t border-white/10 py-6">
+								<dt className="font-semibold text-white">{extra.label}</dt>
+								<dd className="mt-2 text-[15px] leading-7 text-stone-400">{extra.detail}</dd>
+							</div>
+						))}
+					</dl>
 				</div>
 			</section>
 
 			<DownloadSection />
 
-			<section className="px-5 pb-4 pt-2 sm:px-8">
-				<a
-					href="/donate"
-					className={clsx(
-						"mx-auto flex max-w-7xl flex-col items-center gap-4 rounded-2xl sm:flex-row sm:justify-between",
-						"border border-rose-300/20 bg-rose-300/[.05]",
-						"px-6 py-6 text-center sm:px-8 sm:text-left",
-						"transition-colors hover:bg-rose-300/[.09]",
-					)}
-				>
-					<div className="flex items-center gap-4">
-						<div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-rose-300/25 bg-rose-300/10 text-rose-300">
-							<Heart size={18} strokeWidth={1.8} />
-						</div>
-						<div>
-							<p className="font-display text-lg font-semibold text-white">Enjoying Lazify?</p>
-							<p className="mt-0.5 text-sm text-stone-400">
-								Support the person building it—scan a KHQR code and send a coffee.
-							</p>
-						</div>
-					</div>
-					<span className="inline-flex items-center gap-2 rounded-xl border border-rose-300/30 px-4 py-2 text-xs font-semibold text-rose-200">
-						Donate <ArrowRight size={13} />
-					</span>
-				</a>
+			<section className="px-5 py-16 sm:px-8">
+				<div className="mx-auto max-w-7xl">
+					<p className="max-w-2xl text-base leading-7 text-stone-400">
+						Lazify is built by one developer and is free to download. If it saves you time, you can{" "}
+						<a
+							href="/donate"
+							className="text-rose-200 underline decoration-rose-300/40 underline-offset-4 hover:decoration-rose-200"
+						>
+							send a coffee with KHQR
+						</a>.
+					</p>
+				</div>
 			</section>
 
 			<footer className="px-5 pb-10 pt-6 sm:px-8">
-				<div className="mx-auto flex max-w-7xl flex-col gap-6 border-t border-white/[.08] pt-8 sm:flex-row sm:items-center sm:justify-between">
+				<div className="mx-auto flex max-w-7xl flex-col gap-6 border-t border-white/8 pt-8 sm:flex-row sm:items-center sm:justify-between">
 					<div className="flex items-center gap-2.5 text-sm font-semibold">
 						<BrandIcon size={28} className="rounded-lg" /> Lazify
 					</div>
-					<p className="font-mono text-[9px] uppercase tracking-[.15em] text-stone-600">
-						The desktop workspace for shipping software.
-					</p>
 					<div className="flex flex-wrap items-center gap-5 text-xs text-stone-500">
 						<a href="#product" className="hover:text-white">
 							Product

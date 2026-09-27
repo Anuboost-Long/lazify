@@ -13,9 +13,6 @@ interface SidebarHeaderProps {
 	onToggleSidebar: () => void;
 }
 
-const LOGO_COLOR = "rgb(var(--color-text-muted))";
-const LOGO_BOLT_COLOR = "rgb(var(--color-accent))";
-
 /**
  * The brand mark at the top of the rail, in the three shapes it takes: a static
  * mark in compact mode, the expand button when collapsed, and the full name with
@@ -33,7 +30,7 @@ export function SidebarHeader({
 			/* Compact: static brand mark, matches nav item size */
 			return (
 				<div className="flex w-full items-center justify-center rounded-xl bg-accent/15 py-3">
-					<Logo size={20} color={LOGO_COLOR} boltColor={LOGO_BOLT_COLOR} />
+					<Logo size={20} />
 				</div>
 			);
 		}
@@ -52,7 +49,7 @@ export function SidebarHeader({
 						)}
 						aria-label={t(translation.Sidebar.Open)}
 					>
-						<Logo size={20} color={LOGO_COLOR} boltColor={LOGO_BOLT_COLOR} />
+						<Logo size={20} />
 					</button>
 				</Tooltip>
 			);
@@ -62,7 +59,7 @@ export function SidebarHeader({
 		return (
 			<>
 				<div className="flex min-w-0 flex-1 items-center gap-2.5 pl-2">
-					<Logo size={20} color={LOGO_COLOR} boltColor={LOGO_BOLT_COLOR} className="shrink-0" />
+					<Logo size={20} className="shrink-0" />
 					<div className="min-w-0">
 						<CardTitle className="text-sm">{t(translation.Sidebar.AppName)}</CardTitle>
 						<BodyText className="text-xs text-muted">{t(translation.Sidebar.AppSubtitle)}</BodyText>

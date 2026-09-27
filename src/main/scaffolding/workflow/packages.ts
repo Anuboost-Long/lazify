@@ -18,14 +18,14 @@ export async function installPackage(
 	payload: InstallPackagePayload,
 ): Promise<WorkflowResult> {
 	const workflowId = `install-${Date.now()}`;
-	const environment = scanEnvironment();
+	const environment = await scanEnvironment();
 
 	if (environment.issues.length > 0) {
 		throw new Error(environment.issues.join(" "));
 	}
 
 	const projectPath = path.resolve(resolveUserPath(payload.baseDirectory), payload.projectName);
-	const packageManager = choosePackageManager(projectPath);
+	const packageManager = await choosePackageManager(projectPath);
 
 	if (!fs.existsSync(projectPath)) {
 		throw new Error(`Project path does not exist: ${projectPath}`);
@@ -86,7 +86,7 @@ export async function addProjectPackage(
 		throw new Error(`Project path does not exist: ${payload.projectPath}`);
 	}
 
-	const packageManager = choosePackageManager(payload.projectPath);
+	const packageManager = await choosePackageManager(payload.projectPath);
 
 	ctx.emitProgress({
 		workflowId,
@@ -137,7 +137,7 @@ export async function installProjectDependencies(
 		throw new Error(`Project path does not exist: ${projectPath}`);
 	}
 
-	const packageManager = choosePackageManager(projectPath);
+	const packageManager = await choosePackageManager(projectPath);
 
 	ctx.emitProgress({
 		workflowId,
@@ -178,7 +178,7 @@ export async function removeProjectPackage(
 		throw new Error(`Project path does not exist: ${payload.projectPath}`);
 	}
 
-	const packageManager = choosePackageManager(payload.projectPath);
+	const packageManager = await choosePackageManager(payload.projectPath);
 
 	ctx.emitProgress({
 		workflowId,

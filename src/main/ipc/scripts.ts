@@ -42,7 +42,7 @@ export function registerScriptHandlers(ctx: IpcContext) {
 		rows: number,
 	): Promise<{ runId: string; ptyAvailable: boolean }> => {
 		const dotnetLaunch = await resolveDotnetLaunch(projectPath, scriptName);
-		const packageManager = choosePackageManager(projectPath);
+		const packageManager = await choosePackageManager(projectPath);
 		// If this dev script's port is already taken, step up to the next free one.
 		// The dotnet CLI takes neither the flag nor PORT, so it opts out.
 		const { extraArgs, env } = dotnetLaunch

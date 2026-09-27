@@ -55,12 +55,8 @@ export function ProductWindow() {
           <span className="ml-4 font-display text-xs font-semibold tracking-[.08em] text-stone-300">
             Lazify
           </span>
-          <span className="ml-3 hidden font-mono text-[9px] uppercase tracking-[.18em] text-stone-600 sm:inline">
-            Interactive workspace tour
-          </span>
-          <span className="ml-auto font-mono text-[9px] tracking-[.16em] text-stone-500">
-            {String(index + 1).padStart(2, "0")} /{" "}
-            {String(scenes.length).padStart(2, "0")}
+          <span className="ml-auto text-xs tabular-nums text-stone-500">
+            {index + 1} of {scenes.length}
           </span>
         </div>
 
@@ -77,7 +73,6 @@ export function ProductWindow() {
             />
           </div>
           <div className="showcase-vignette absolute inset-0" />
-          <div className="showcase-grid absolute inset-0" />
 
           <div key={scene.id} className="showcase-scene absolute inset-0">
             <SceneImage scene={scene} index={index} onPreview={setPreview} />
@@ -85,7 +80,7 @@ export function ProductWindow() {
               className="showcase-copy absolute bottom-7 left-5 right-5 z-20 md:bottom-[9%] md:left-[5%] md:right-auto md:w-[32%]"
               aria-live="polite"
             >
-              <div className="flex items-center gap-2 font-mono text-[9px] uppercase tracking-[.2em] text-[var(--scene-accent)]">
+              <div className="flex items-center gap-2 text-sm font-medium text-(--scene-accent)">
                 <Icon size={13} strokeWidth={1.6} /> {scene.label}
               </div>
               <h2 className="mt-3 text-balance font-display text-[clamp(1.8rem,3.1vw,3.25rem)] font-semibold leading-[.98] tracking-[-.025em] text-[#f4f3ed]">
@@ -133,7 +128,7 @@ export function ProductWindow() {
               onClick={() => showScene(sceneIndex)}
             />
           ))}
-          <span className="ml-3 hidden font-mono text-[8px] uppercase tracking-[.16em] text-stone-600 sm:block">
+          <span className="ml-3 hidden text-xs text-stone-500 sm:block">
             Swipe or use arrow keys
           </span>
         </div>

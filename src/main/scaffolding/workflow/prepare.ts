@@ -39,7 +39,7 @@ export async function prepareProject(
 	payload: CreateProjectPayload,
 ): Promise<PrepareProjectResult> {
 	const workflowId = `create-${Date.now()}`;
-	const environment = scanEnvironment();
+	const environment = await scanEnvironment();
 
 	if (environment.issues.length > 0) {
 		throw new Error(environment.issues.join(" "));
@@ -54,7 +54,9 @@ export async function prepareProject(
 	const destinationPath = path.resolve(baseDirectory, payload.name);
 
 	if (fs.existsSync(destinationPath)) {
-		throw new Error(`Project path already exists: ${destinationPath}`);
+		throw new Error(
+			`A project already exists at ${destinationPath}. Open it from Workspace instead of creating a new one.`,
+		);
 	}
 
 	const stagingRoot = await fsPromises.mkdtemp(path.join(os.tmpdir(), "lazify-project-"));
@@ -77,7 +79,7 @@ export async function prepareProject(
 	let createCommand: CommandBinary;
 
 	try {
-		createCommand = resolveTemplateCommand(template);
+		createCommand = await resolveTemplateCommand(template);
 	} catch (error) {
 		await fsPromises.rm(stagingRoot, { recursive: true, force: true });
 		throw error;
@@ -297,7 +299,7 @@ export async function createProjectFromImportedTemplate(
 			message: "Installing project dependencies.",
 		});
 
-		const packageManager = choosePackageManager(projectPath);
+		const packageManager = await choosePackageManager(projectPath);
 		const installResult = await runPlainInstall(ctx, { workflowId, packageManager, projectPath });
 
 		if (!installResult.success) {
@@ -336,7 +338,9 @@ export async function materializePrepared(
 	prepared: PreparedProject,
 ): Promise<void> {
 	if (fs.existsSync(prepared.destinationPath)) {
-		throw new Error(`Project path already exists: ${prepared.destinationPath}`);
+		throw new Error(
+			`A project already exists at ${prepared.destinationPath}. Open it from Workspace instead of creating a new one.`,
+		);
 	}
 
 	await fsPromises.mkdir(path.dirname(prepared.destinationPath), { recursive: true });

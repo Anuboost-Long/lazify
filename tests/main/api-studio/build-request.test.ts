@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
 	buildRequest,
 	customVariableFor,
+	defaultFieldsForRoute,
 	deriveEnvironmentVariables,
 	fieldKey,
 	isLocalUrl,
@@ -109,7 +110,7 @@ describe("building a request from a discovered route", () => {
 		expect(draft.url).toBe("http://localhost:5000/users?page=2");
 	});
 
-	it("carries a bearer token from the environment in the Authorization header", () => {
+	it("carries a bearer token the field links to the environment with {{Name}}", () => {
 		const open = route({
 			security: [
 				{
@@ -121,7 +122,9 @@ describe("building a request from a discovered route", () => {
 			],
 		});
 
-		const draft = draftFor(open, { ...LOCAL, authorization: "abc.def" });
+		const draft = draftFor(open, { ...LOCAL, authorization: "abc.def" }, {
+			[fieldKey("header", "Authorization")]: "{{Authorization}}",
+		});
 
 		expect(draft.headers).toContainEqual({ name: "Authorization", value: "Bearer abc.def" });
 	});
@@ -138,37 +141,97 @@ describe("building a request from a discovered route", () => {
 			],
 		});
 
-		const draft = draftFor(open, { ...LOCAL, authorization: "Bearer abc.def" });
+		const draft = draftFor(open, { ...LOCAL, authorization: "Bearer abc.def" }, {
+			[fieldKey("header", "Authorization")]: "{{Authorization}}",
+		});
 
 		expect(draft.headers).toContainEqual({ name: "Authorization", value: "Bearer abc.def" });
 	});
 
-	it("sends an api key wherever its scheme declares it", () => {
+	it("sends an api key wherever its scheme declares it, once the field links to it", () => {
 		const open = route({
 			security: [
 				{ kind: "apiKey", schemeName: "apiKey", location: "query", parameterName: "api_key" },
 			],
 		});
 
-		const draft = draftFor(open, { ...LOCAL, apiKey: "k-1" });
+		const draft = draftFor(open, { ...LOCAL, apiKey: "k-1" }, {
+			[fieldKey("query", "api_key")]: "{{apiKey}}",
+		});
 
 		expect(draft.url).toBe("http://localhost:5000/users/{id}?api_key=k-1");
 	});
 
-	it("fills a required header from the environment and lets a typed value win", () => {
+	it("sends one Authorization header, not one per scheme that names it", () => {
+		const open = route({
+			security: [
+				{
+					kind: "bearer",
+					schemeName: "bearerAuth",
+					location: "header",
+					parameterName: "Authorization",
+				},
+				{
+					kind: "oauth2",
+					schemeName: "oauth2Auth",
+					location: "header",
+					parameterName: "Authorization",
+				},
+			],
+		});
+
+		const draft = draftFor(open, { ...LOCAL, authorization: "abc.def" }, {
+			[fieldKey("header", "Authorization")]: "{{Authorization}}",
+		});
+
+		expect(draft.headers.filter((header) => header.name === "Authorization")).toEqual([
+			{ name: "Authorization", value: "Bearer abc.def" },
+		]);
+	});
+
+	it("sends nothing for a security requirement whose field was never linked", () => {
+		const open = route({
+			security: [
+				{
+					kind: "bearer",
+					schemeName: "bearerAuth",
+					location: "header",
+					parameterName: "Authorization",
+				},
+			],
+		});
+
+		const draft = draftFor(open, { ...LOCAL, authorization: "abc.def" });
+
+		expect(draft.headers).not.toContainEqual(
+			expect.objectContaining({ name: "Authorization" }),
+		);
+	});
+
+	it("resolves a required header through an explicit {{Name}} link, and lets a typed value win", () => {
 		const open = route({
 			headers: [{ name: "X-Tenant", value: null, required: true, description: null }],
 		});
 
-		expect(draftFor(open, { ...LOCAL, xTenant: "acme" }).headers).toContainEqual({
-			name: "X-Tenant",
-			value: "acme",
-		});
+		expect(
+			draftFor(open, { ...LOCAL, xTenant: "acme" }, { [fieldKey("header", "X-Tenant")]: "{{X-Tenant}}" })
+				.headers,
+		).toContainEqual({ name: "X-Tenant", value: "acme" });
 
 		expect(
 			draftFor(open, { ...LOCAL, xTenant: "acme" }, { [fieldKey("header", "X-Tenant")]: "beta" })
 				.headers,
 		).toContainEqual({ name: "X-Tenant", value: "beta" });
+	});
+
+	it("sends nothing for a required header whose field was never linked", () => {
+		const open = route({
+			headers: [{ name: "X-Tenant", value: null, required: true, description: null }],
+		});
+
+		expect(draftFor(open, { ...LOCAL, xTenant: "acme" }).headers).not.toContainEqual(
+			expect.objectContaining({ name: "X-Tenant" }),
+		);
 	});
 
 	it("interpolates environment values written into a field or a body", () => {
@@ -412,5 +475,58 @@ describe("building a request from a discovered route", () => {
 		expect(isLocalUrl("http://127.0.0.1:8080/users")).toBe(true);
 		expect(isLocalUrl("https://api.example.com/users")).toBe(false);
 		expect(isLocalUrl("/users")).toBe(false);
+	});
+});
+
+describe("the fields a freshly-opened route starts with", () => {
+	it("suggests a {{Name}} link per required header and security requirement, in their own casing", () => {
+		const open = route({
+			headers: [
+				{ name: "X-Tenant", value: null, required: true, description: null },
+				{ name: "X-Debug", value: null, required: false, description: null },
+			],
+			security: [
+				{
+					kind: "bearer",
+					schemeName: "bearerAuth",
+					location: "header",
+					parameterName: "Authorization",
+				},
+			],
+		});
+
+		expect(defaultFieldsForRoute(open)).toEqual({
+			[fieldKey("header", "X-Tenant")]: "{{X-Tenant}}",
+			[fieldKey("header", "Authorization")]: "{{Authorization}}",
+		});
+	});
+
+	it("suggests one field, not one per scheme, when several security entries name the same header", () => {
+		const open = route({
+			security: [
+				{
+					kind: "bearer",
+					schemeName: "bearerAuth",
+					location: "header",
+					parameterName: "Authorization",
+				},
+				{
+					kind: "oauth2",
+					schemeName: "oauth2Auth",
+					location: "header",
+					parameterName: "Authorization",
+				},
+				{
+					kind: "openIdConnect",
+					schemeName: "oidcAuth",
+					location: "header",
+					parameterName: "Authorization",
+				},
+			],
+		});
+
+		expect(defaultFieldsForRoute(open)).toEqual({
+			[fieldKey("header", "Authorization")]: "{{Authorization}}",
+		});
 	});
 });

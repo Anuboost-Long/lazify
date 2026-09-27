@@ -1,7 +1,10 @@
 import fs from "node:fs";
 import path from "node:path";
-import { spawnSync } from "node:child_process";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
 import { normalizeRuntimePath } from "./runtime-path";
+
+const execFileAsync = promisify(execFile);
 
 export type PackageManager = "npm" | "yarn";
 export type CommandBinary = PackageManager | "npx";
@@ -24,38 +27,42 @@ function getNodeMajor(version: string): number {
   return Number(version.replace(/^v/, "").split(".")[0] ?? 0);
 }
 
-function inspectBinary(name: CommandBinary | "node", args: string[] = ["--version"]): BinaryStatus {
+async function inspectBinary(
+  name: CommandBinary | "node",
+  args: string[] = ["--version"]
+): Promise<BinaryStatus> {
   normalizeRuntimePath();
 
-  const result = spawnSync(name, args, {
-    encoding: "utf8",
-    timeout: 5000,
-    shell: process.platform === "win32"
-  });
+  try {
+    const result = await execFileAsync(name, args, {
+      encoding: "utf8",
+      timeout: 5000,
+      shell: process.platform === "win32"
+    });
 
-  if (result.error || result.status !== 0) {
+    return {
+      name,
+      available: true,
+      version: (result.stdout || result.stderr).trim() || null
+    };
+  } catch {
     return {
       name,
       available: false,
       version: null
     };
   }
-
-  return {
-    name,
-    available: true,
-    version: (result.stdout || result.stderr).trim() || null
-  };
 }
 
-export function scanEnvironment(): EnvironmentScan {
+export async function scanEnvironment(): Promise<EnvironmentScan> {
   const nodeVersion = process.version;
-  const binaries = {
-    node: inspectBinary("node"),
-    npm: inspectBinary("npm"),
-    yarn: inspectBinary("yarn"),
-    npx: inspectBinary("npx")
-  };
+  const [node, npm, yarn, npx] = await Promise.all([
+    inspectBinary("node"),
+    inspectBinary("npm"),
+    inspectBinary("yarn"),
+    inspectBinary("npx")
+  ]);
+  const binaries = { node, npm, yarn, npx };
 
   const issues: string[] = [];
 
@@ -74,8 +81,8 @@ export function scanEnvironment(): EnvironmentScan {
   };
 }
 
-export function ensureCommandAvailable(command: string): void {
-  const scan = scanEnvironment();
+export async function ensureCommandAvailable(command: string): Promise<void> {
+  const scan = await scanEnvironment();
 
   if (scan.issues.length > 0) {
     throw new Error(scan.issues.join(" "));
@@ -94,8 +101,8 @@ export function ensureCommandAvailable(command: string): void {
   }
 }
 
-export function choosePackageManager(projectPath?: string): PackageManager {
-  const scan = scanEnvironment();
+export async function choosePackageManager(projectPath?: string): Promise<PackageManager> {
+  const scan = await scanEnvironment();
 
   if (projectPath) {
     const yarnLockPath = path.join(projectPath, "yarn.lock");

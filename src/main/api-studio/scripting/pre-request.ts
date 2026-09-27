@@ -1,6 +1,7 @@
 import { interpolate } from "../runner/interpolate";
 import type { ApiRequestDraft } from "../runner/types";
 import { createEnvironmentHandle } from "./environment-handle";
+import type { EnvironmentVariableKey } from "./environment-handle";
 import { createRecorder } from "./recorder";
 import { createRequestHandle } from "./request-handle";
 import { runInSandbox } from "./sandbox";
@@ -26,8 +27,9 @@ export function runPreRequest(
 	draft: ApiRequestDraft,
 	values: Record<string, string>,
 	globalName?: string,
+	variables: EnvironmentVariableKey[] = [],
 ): PreRequestResult {
-	const environment = createEnvironmentHandle(values);
+	const environment = createEnvironmentHandle(values, variables);
 	const request = createRequestHandle(draft, true);
 	const recorder = createRecorder();
 	const startedAt = Date.now();

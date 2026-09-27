@@ -8,8 +8,10 @@ import {
 	buildRequest,
 	deriveEnvironmentVariables,
 	scanProjectRoutes,
+	suggestableVariableNames,
 	variablesForRoute,
 } from "../../../src/main/api-studio";
+import type { ApiVariable } from "../../../src/main/api-studio/types";
 
 let projectPath: string;
 
@@ -149,7 +151,30 @@ describe("the environment derived from a collection", () => {
 		expect(variablesForRoute(routes.find((route) => route.path === "/health")!)).toEqual(["baseUrl"]);
 		expect(
 			variablesForRoute(routes.find((route) => route.method === "GET" && route.path === "/orders")!),
-		).toEqual(["baseUrl", "authorization", "xTenant"]);
+		).toEqual(["baseUrl", "Authorization", "X-Tenant"]);
+	});
+
+	it("names Authorization once even when several schemes ride it", () => {
+		const open = {
+			servers: ["http://localhost:5000"],
+			headers: [],
+			security: [
+				{
+					kind: "bearer" as const,
+					schemeName: "bearerAuth",
+					location: "header" as const,
+					parameterName: "Authorization",
+				},
+				{
+					kind: "oauth2" as const,
+					schemeName: "oauth2Auth",
+					location: "header" as const,
+					parameterName: "Authorization",
+				},
+			],
+		};
+
+		expect(variablesForRoute(open)).toEqual(["baseUrl", "Authorization"]);
 	});
 
 	it("builds the request URL from a typed value, falling back to what the project declared", async () => {
@@ -164,5 +189,34 @@ describe("the environment derived from a collection", () => {
 
 		expect(urlWith({})).toBe("https://api.example.com/v1/health");
 		expect(urlWith({ baseUrl: "http://localhost:5000/" })).toBe("http://localhost:5000/health");
+	});
+});
+
+describe("what a variable link can suggest", () => {
+	function variable(over: Partial<ApiVariable> = {}): ApiVariable {
+		return {
+			key: "authorization",
+			name: "Authorization",
+			secret: true,
+			location: "header",
+			parameterName: "Authorization",
+			defaultValue: null,
+			routeCount: 1,
+			custom: false,
+			...over,
+		};
+	}
+
+	it("offers a declared variable's name once, not once per its name and its storage key", () => {
+		expect(suggestableVariableNames([variable()], { authorization: "abc.def" })).toEqual([
+			"Authorization",
+		]);
+	});
+
+	it("still offers a value with no declared variable behind it", () => {
+		expect(suggestableVariableNames([variable()], { authorization: "abc.def", stray: "x" })).toEqual([
+			"Authorization",
+			"stray",
+		]);
 	});
 });

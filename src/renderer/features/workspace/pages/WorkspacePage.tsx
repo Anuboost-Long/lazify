@@ -9,11 +9,15 @@ import {
   OverlineText,
   SectionTitle,
 } from "@renderer/shared/typography";
+import { SearchInput } from "@renderer/shared/ui/form/SearchInput";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 import { Toast } from "@renderer/shared/ui/toast/Toast";
-import { useState } from "react";
+import clsx from "clsx";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
+
+type ProjectSortKey = "recent" | "name";
 
 interface WorkspacePageProps {
   syncedProjects: SyncedWorkspaceProject[];
@@ -34,7 +38,32 @@ export function WorkspacePage({
     null,
   );
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortKey, setSortKey] = useState<ProjectSortKey>("recent");
   const hasSyncedProjects = syncedProjects.length > 0;
+
+  const sortOptions: Array<{ id: ProjectSortKey; label: string }> = [
+    { id: "recent", label: t(translation.Workspace.SortByRecent) },
+    { id: "name", label: t(translation.Workspace.SortByName) },
+  ];
+
+  const visibleProjects = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    const matched = query
+      ? syncedProjects.filter(
+          (project) =>
+            project.projectName.toLowerCase().includes(query) ||
+            project.projectPath.toLowerCase().includes(query),
+        )
+      : syncedProjects;
+
+    return [...matched].sort((a, b) =>
+      sortKey === "name"
+        ? a.projectName.localeCompare(b.projectName)
+        : new Date(b.lastSyncedAt).getTime() -
+          new Date(a.lastSyncedAt).getTime(),
+    );
+  }, [syncedProjects, searchQuery, sortKey]);
 
   const handleSyncProject = async (projectPath?: string | null) => {
     try {
@@ -118,23 +147,77 @@ export function WorkspacePage({
           ) : null}
 
           {hasSyncedProjects ? (
-            <div className="grid gap-4 xl:grid-cols-2">
-              {syncedProjects.map((project) => {
-                const isSyncing = syncingProjectPath === project.projectPath;
+            <>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <SearchInput
+                  size="md"
+                  className="sm:max-w-xs"
+                  label={t(translation.Workspace.SearchPlaceholder)}
+                  clearLabel={t(translation.GlobalTerm.ClearSearch)}
+                  value={searchQuery}
+                  onValueChange={setSearchQuery}
+                />
 
-                return (
-                  <SyncedProjectItem
-                    key={project.id}
-                    active={false}
-                    project={project}
-                    syncing={isSyncing}
-                    onOpen={(path) => navigate(getWorkspaceProjectRoute(path))}
-                    onRemove={onRemoveProject}
-                    onResync={(path) => void handleSyncProject(path)}
-                  />
-                );
-              })}
-            </div>
+                <div className="flex items-center gap-2 self-end sm:self-auto">
+                  <span className="text-xs font-semibold text-muted">
+                    {t(translation.Workspace.SortLabel)}
+                  </span>
+                  <div className="flex items-center gap-1.5 rounded-[14px] border border-border bg-bg p-1">
+                    {sortOptions.map((option) => (
+                      <button
+                        key={option.id}
+                        type="button"
+                        onClick={() => setSortKey(option.id)}
+                        className={clsx(
+                          "rounded-[10px] px-3 py-1 text-xs font-semibold transition-all duration-100",
+                          sortKey === option.id
+                            ? "bg-accentSoft text-accent"
+                            : "text-muted hover:text-text",
+                        )}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {visibleProjects.length > 0 ? (
+                <div className="grid gap-4 xl:grid-cols-2">
+                  {visibleProjects.map((project) => {
+                    const isSyncing =
+                      syncingProjectPath === project.projectPath;
+
+                    return (
+                      <SyncedProjectItem
+                        key={project.id}
+                        active={false}
+                        project={project}
+                        syncing={isSyncing}
+                        onOpen={(path) =>
+                          navigate(getWorkspaceProjectRoute(path))
+                        }
+                        onRemove={onRemoveProject}
+                        onResync={(path) => void handleSyncProject(path)}
+                      />
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="rounded-[28px] border border-dashed border-border bg-bg/70 px-6 py-10 text-center">
+                  <BodyText tone="muted">
+                    {t(translation.Workspace.NoSearchResults)}
+                  </BodyText>
+                  <button
+                    type="button"
+                    onClick={() => setSearchQuery("")}
+                    className="mt-3 text-sm font-semibold text-accent hover:underline"
+                  >
+                    {t(translation.GlobalTerm.ClearSearch)}
+                  </button>
+                </div>
+              )}
+            </>
           ) : (
             <div className="rounded-[28px] border border-dashed border-border bg-bg/70 px-6 py-10 text-center">
               <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-[22px] border border-border bg-soft text-accent">

@@ -37,6 +37,15 @@ export interface BrowserTab {
 	 * Enter on an unchanged address reload the way a browser should.
 	 */
 	navSeq: number;
+	/**
+	 * An internal view to show instead of a guest — only "history" exists so far.
+	 *
+	 * Kept off `url` on purpose: nothing routable should ever resolve to it, and
+	 * a tab carrying it has no guest at all, the same as one still on the start
+	 * page — which is what lets full-screen history sit on top of a real page
+	 * without a `<webview>` fighting it for the top layer.
+	 */
+	page?: "history";
 }
 
 interface StoredTab {
@@ -47,8 +56,8 @@ interface StoredTab {
 
 const newTabId = () => uniqueId("tab");
 
-function makeTab(url = "", title = ""): BrowserTab {
-	return { id: newTabId(), url, currentUrl: url, title, navSeq: 0 };
+function makeTab(url = "", title = "", page?: "history"): BrowserTab {
+	return { id: newTabId(), url, currentUrl: url, title, navSeq: 0, page };
 }
 
 function readStoredTabs(): BrowserTab[] {
@@ -97,11 +106,16 @@ export function useBrowserTabs() {
 			return;
 		}
 
-		const stored: StoredTab[] = tabs.map((tab) => ({
-			id: tab.id,
-			url: tab.currentUrl || tab.url,
-			title: tab.title,
-		}));
+		// An internal page like history is not a real address — restoring it as
+		// a blank tab that silently lost what it was would be worse than not
+		// restoring it at all.
+		const stored: StoredTab[] = tabs
+			.filter((tab) => !tab.page)
+			.map((tab) => ({
+				id: tab.id,
+				url: tab.currentUrl || tab.url,
+				title: tab.title,
+			}));
 		globalThis.localStorage.setItem(TABS_KEY, JSON.stringify(stored));
 	}, [restoreTabs, tabs]);
 
@@ -123,6 +137,28 @@ export function useBrowserTabs() {
 			return tab.id;
 		},
 		[searchEngine],
+	);
+
+	/**
+	 * Switches to the history tab, opening one if none is already there.
+	 *
+	 * Only one at a time — reopening it should find the tab you left, not pile
+	 * up another.
+	 */
+	const openHistoryTab = useCallback(
+		(title: string) => {
+			const existing = tabs.find((tab) => tab.page === "history");
+			if (existing) {
+				setActiveId(existing.id);
+				return existing.id;
+			}
+
+			const tab = makeTab("", title, "history");
+			setTabs((current) => [...current, tab]);
+			setActiveId(tab.id);
+			return tab.id;
+		},
+		[tabs],
 	);
 
 	const closeTab = useCallback((id: string) => {
@@ -185,6 +221,7 @@ export function useBrowserTabs() {
 		activeId: activeTab?.id ?? "",
 		setActiveId,
 		openTab,
+		openHistoryTab,
 		closeTab,
 		reorderTab,
 		patchTab,

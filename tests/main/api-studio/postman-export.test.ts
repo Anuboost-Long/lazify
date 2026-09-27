@@ -121,6 +121,31 @@ describe("exporting a collection Postman can read", () => {
 		expect(headers).toContainEqual({ key: "Authorization", value: "Bearer {{authorization}}" });
 	});
 
+	it("exports one Authorization header, not one per scheme that names it", () => {
+		const secured = route({
+			security: [
+				{
+					kind: "bearer",
+					schemeName: "bearerAuth",
+					location: "header",
+					parameterName: "Authorization",
+				},
+				{
+					kind: "oauth2",
+					schemeName: "oauth2Auth",
+					location: "header",
+					parameterName: "Authorization",
+				},
+			],
+		});
+
+		const headers = collectionOf([secured]).item[0].item[0].request.header;
+
+		expect(headers.filter((header) => header.key === "Authorization")).toEqual([
+			{ key: "Authorization", value: "Bearer {{authorization}}" },
+		]);
+	});
+
 	it("marks an optional query parameter disabled rather than dropping it", () => {
 		const listing = route({
 			path: "/users",

@@ -56,7 +56,7 @@ export function CopyCommand({
         aria-label={copied ? "Copied" : "Copy command"}
         className={clsx(
           "inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg",
-          "bg-white/[.06] hover:bg-white/[.12]",
+          "bg-white/6 hover:bg-white/12",
           "border border-white/10",
           "px-3 text-xs font-semibold text-stone-300 hover:text-white",
           "transition-colors",

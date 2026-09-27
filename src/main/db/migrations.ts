@@ -7,7 +7,7 @@ import type { DatabaseSync } from "node:sqlite";
  * so editing one leaves their database on a shape nothing will ever correct.
  */
 const MIGRATIONS: string[] = [
-  `
+	`
   CREATE TABLE prompt_presets (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
@@ -43,7 +43,7 @@ const MIGRATIONS: string[] = [
 
   CREATE INDEX context_entries_scope ON context_entries (scope, scope_key);
   `,
-  `
+	`
   CREATE TABLE tasks (
     id TEXT PRIMARY KEY,
     project_path TEXT NOT NULL,
@@ -79,7 +79,7 @@ const MIGRATIONS: string[] = [
 
   CREATE INDEX task_agent_runs_task ON task_agent_runs (task_id, started_at DESC);
   `,
-  `
+	`
   -- Context is typed: each kind carries its own JSON shape, so a rule reads as
   -- strength, action, condition and reason rather than as a free sentence the
   -- prompt has to hope was written well.
@@ -93,7 +93,7 @@ const MIGRATIONS: string[] = [
      SET payload = json_object('key', context_key, 'value', context_value)
    WHERE kind = 'fact' AND payload = '';
   `,
-  `
+	`
   -- Every move a task makes, and who made it.
   --
   -- The task row carries where a task is now; this carries how it got there.
@@ -110,17 +110,46 @@ const MIGRATIONS: string[] = [
   );
 
   CREATE INDEX task_status_events_task ON task_status_events (task_id, id);
-  `
+  `,
+	`
+  -- One execution of a diagnostic flow. Steps and evidence ride along as JSON
+  -- because they are only ever read back as a whole run; screenshots and the
+  -- terminal transcript stay on disk under artifact_dir and are referenced by
+  -- path rather than stored here.
+  CREATE TABLE diagnostic_runs (
+    id TEXT PRIMARY KEY,
+    project_path TEXT NOT NULL,
+    project_name TEXT NOT NULL DEFAULT '',
+    flow_name TEXT NOT NULL,
+    flow_path TEXT NOT NULL DEFAULT '',
+    branch TEXT NOT NULL DEFAULT '',
+    commit_sha TEXT NOT NULL DEFAULT '',
+    platform TEXT NOT NULL DEFAULT 'web',
+    target_url TEXT NOT NULL DEFAULT '',
+    target_app_id TEXT NOT NULL DEFAULT '',
+    target_device TEXT NOT NULL DEFAULT '',
+    state TEXT NOT NULL,
+    started_at TEXT NOT NULL,
+    ended_at TEXT,
+    duration_ms INTEGER NOT NULL DEFAULT 0,
+    failure_summary TEXT NOT NULL DEFAULT '',
+    artifact_dir TEXT NOT NULL DEFAULT '',
+    steps TEXT NOT NULL DEFAULT '[]',
+    evidence TEXT NOT NULL DEFAULT '[]'
+  );
+
+  CREATE INDEX diagnostic_runs_project ON diagnostic_runs (project_path, started_at DESC);
+  `,
 ];
 
 export function runMigrations(db: DatabaseSync): void {
-  const [{ user_version: applied }] = db.prepare("PRAGMA user_version").all() as Array<{
-    user_version: number;
-  }>;
+	const [{ user_version: applied }] = db.prepare("PRAGMA user_version").all() as Array<{
+		user_version: number;
+	}>;
 
-  for (let step = applied; step < MIGRATIONS.length; step += 1) {
-    db.exec(MIGRATIONS[step]);
-    // Pragmas take no parameters, and the value is a loop counter.
-    db.exec(`PRAGMA user_version = ${step + 1}`);
-  }
+	for (let step = applied; step < MIGRATIONS.length; step += 1) {
+		db.exec(MIGRATIONS[step]);
+		// Pragmas take no parameters, and the value is a loop counter.
+		db.exec(`PRAGMA user_version = ${step + 1}`);
+	}
 }
