@@ -1,10 +1,10 @@
 import type { RefObject } from "react";
 
 import { useInterfaceSettings } from "@renderer/shared/hooks/use-interface-settings";
+import { RainWater } from "@renderer/shared/ui/rain-water/RainWater";
 
 import { CursorBackdrop } from "./backdrops/CursorBackdrop";
 import { GridBackdrop } from "./backdrops/GridBackdrop";
-import { PulseBackdrop } from "./backdrops/PulseBackdrop";
 import { ShapesBackdrop } from "./backdrops/ShapesBackdrop";
 import type { DesktopBackdrop as BackdropId } from "./use-desktop-personalization";
 
@@ -21,10 +21,10 @@ export function DesktopBackdrop({ backdrop, surface }: Readonly<DesktopBackdropP
 			return <ShapesBackdrop />;
 		case "grid":
 			return <GridBackdrop still={reduceMotion} />;
-		case "pulse":
-			return <PulseBackdrop still={reduceMotion} />;
 		case "cursor":
 			return <CursorBackdrop surface={surface} still={reduceMotion} />;
+		case "rain":
+			return <RainWater still={reduceMotion} />;
 		default:
 			return null;
 	}

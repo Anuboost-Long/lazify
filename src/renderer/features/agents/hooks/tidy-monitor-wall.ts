@@ -1,3 +1,5 @@
+import type { ReadingShape } from "@renderer/shared/terminal/terminal-pool";
+
 import type { MonitorPanel, MonitorPanelSize } from "./use-monitor-panels";
 
 /**
@@ -20,133 +22,204 @@ const INVOLVED = 0.25;
 const MAX_ENLARGED_PANELS = 3;
 
 export interface TidyPlan {
-	order: string[];
-	sizes: Record<string, MonitorPanelSize>;
+  order: string[];
+  sizes: Record<string, MonitorPanelSize>;
 }
 
 export interface TidyInput {
-	panels: MonitorPanel[];
-	waitingRunIds: string[];
-	/** How much has scrolled out of sight — used to rank, never to size. */
-	overflowScreens: (runId: string) => number;
-	/** How much room the visible output needs, from 0 to 1. */
-	readingDemand: (runId: string) => number;
-	/** How much of what ran was plumbing, from 0 to 1. */
-	routineWork: (runId: string) => number;
-	/**
-	 * Columns the wall actually has right now, which is a fact about the window
-	 * rather than a setting — the same layout is three columns on a desktop and
-	 * one on a laptop in a split.
-	 */
-	columns: number;
+  panels: MonitorPanel[];
+  waitingRunIds: string[];
+  /** How much has scrolled out of sight — used to rank, never to size. */
+  overflowScreens: (runId: string) => number;
+  /** Which way the visible output needs room: rows for prose, columns for structure. */
+  readingShape: (runId: string) => ReadingShape;
+  /** How much of what ran was plumbing, from 0 to 1. */
+  routineWork: (runId: string) => number;
+  /**
+   * Columns the wall actually has right now, which is a fact about the window
+   * rather than a setting — the same layout is three columns on a desktop and
+   * one on a laptop in a split.
+   */
+  columns: number;
 }
 
 /** Most of what ran was plumbing — pushing, installing, moving files about. */
 const ROUTINE = 0.6;
 
+const SPAN: Record<MonitorPanelSize, { width: number; height: number }> = {
+  default: { width: 1, height: 1 },
+  wide: { width: 2, height: 1 },
+  tall: { width: 1, height: 2 },
+  large: { width: 2, height: 2 }
+};
+
+/** What a panel settles for when the grid has no room for what it earned. */
+const FALLBACK: Record<MonitorPanelSize, MonitorPanelSize[]> = {
+  default: ["default"],
+  wide: ["wide", "default"],
+  tall: ["tall", "default"],
+  large: ["large", "tall", "default"]
+};
+
 /**
  * Hands out sizes that actually tile, filling the wall left to right.
  *
- * A panel two columns wide cannot start in the last column of a row: the grid
- * pushes it down and leaves the cell it skipped empty. A tall panel is worse,
- * because it eats into the row below as well. So a size is only granted when
- * the space is there, and a panel that cannot have what it earned takes a
- * single cell and fills the gap instead of opening one.
+ * The grid places each panel at the first free cell after the previous one, and
+ * a panel that does not fit there is pushed on, leaving the cells it skipped
+ * empty. So the grid is walked cell by cell as it will be drawn, and a size is
+ * only granted when it fits at that free cell. A panel two rows high also has
+ * to leave a neighbour in the row below that someone can fill: if too few
+ * panels are left to close the gaps beside it, it keeps to one row.
  *
  * With one column nothing can span, which is also what the panel's own
  * breakpoints do — the size is carried but not drawn.
  */
-function openRow(columns: number) {
-	let free = columns;
-	let takenBelow = 0;
+function openGrid(columns: number) {
+  const taken = new Set<string>();
+  const cell = (row: number, column: number) => `${row}:${column}`;
+  let row = 0;
+  let column = 0;
 
-	const advance = (span: number) => {
-		free -= span;
+  const skipTaken = () => {
+    while (taken.has(cell(row, column))) {
+      column += 1;
+      if (column >= columns) {
+        column = 0;
+        row += 1;
+      }
+    }
+  };
 
-		while (free <= 0) {
-			free = columns - takenBelow;
-			takenBelow = 0;
-		}
-	};
+  const fits = ({ width, height }: { width: number; height: number }) => {
+    if (column + width > columns) return false;
 
-	return {
-		place(size: MonitorPanelSize): MonitorPanelSize {
-			const granted = columns < 2 || free < 2 ? "default" : size;
+    for (let down = 0; down < height; down += 1) {
+      for (let across = 0; across < width; across += 1) {
+        if (taken.has(cell(row + down, column + across))) return false;
+      }
+    }
 
-			if (granted === "large") takenBelow += 2;
+    return true;
+  };
 
-			advance(granted === "default" ? 1 : 2);
+  /** Cells left open around a two-row panel, in its first row and the one under it. */
+  const gapsBeside = ({ width }: { width: number }) => {
+    let gaps = 0;
 
-			return granted;
-		},
-	};
+    for (let across = column + width; across < columns; across += 1) {
+      if (!taken.has(cell(row, across))) gaps += 1;
+    }
+    for (let across = 0; across < columns; across += 1) {
+      const underSpan = across >= column && across < column + width;
+      if (!underSpan && !taken.has(cell(row + 1, across))) gaps += 1;
+    }
+
+    return gaps;
+  };
+
+  return {
+    place(size: MonitorPanelSize, remaining: number): MonitorPanelSize {
+      skipTaken();
+
+      const granted =
+        columns < 2
+          ? "default"
+          : (FALLBACK[size].find((candidate) => {
+              const span = SPAN[candidate];
+              if (!fits(span)) return false;
+              return span.height === 1 || gapsBeside(span) <= remaining;
+            }) ?? "default");
+
+      const span = SPAN[granted];
+      for (let down = 0; down < span.height; down += 1) {
+        for (let across = 0; across < span.width; across += 1) {
+          taken.add(cell(row + down, column + across));
+        }
+      }
+
+      return granted;
+    }
+  };
 }
 
 function attentionRank(runId: string, waiting: Set<string>) {
-	return waiting.has(runId) ? 0 : 1;
+  return waiting.has(runId) ? 0 : 1;
 }
 
 function kindRank(panel: MonitorPanel) {
-	if (panel.exited) return 2;
+  if (panel.exited) return 2;
 
-	return panel.kind === "agent" ? 0 : 1;
+  return panel.kind === "agent" ? 0 : 1;
 }
 
 export function planTidyUp({
-	panels,
-	waitingRunIds,
-	overflowScreens,
-	readingDemand,
-	routineWork,
-	columns,
+  panels,
+  waitingRunIds,
+  overflowScreens,
+  readingShape,
+  routineWork,
+  columns
 }: TidyInput): TidyPlan {
-	const waiting = new Set(waitingRunIds);
+  const waiting = new Set(waitingRunIds);
 
-	/**
-	 * Errands sink below real work. Only when there is nothing to read on them,
-	 * though — a push that was rejected, or an install that failed, is an errand
-	 * that has become the most interesting thing on the wall.
-	 */
-	const errandRank = (runId: string) =>
-		routineWork(runId) >= ROUTINE && readingDemand(runId) < INVOLVED ? 1 : 0;
+  // Either reason alone earns the space; a panel with both is not twice as bad.
+  const readingDemand = (runId: string) => {
+    const { wrapped, structured } = readingShape(runId);
+    return Math.max(wrapped, structured);
+  };
 
-	const ranked = [...panels].sort((left, right) => {
-		const byAttention = attentionRank(left.runId, waiting) - attentionRank(right.runId, waiting);
-		if (byAttention !== 0) return byAttention;
+  /**
+   * Errands sink below real work. Only when there is nothing to read on them,
+   * though — a push that was rejected, or an install that failed, is an errand
+   * that has become the most interesting thing on the wall.
+   */
+  const errandRank = (runId: string) =>
+    routineWork(runId) >= ROUTINE && readingDemand(runId) < INVOLVED ? 1 : 0;
 
-		const byKind = kindRank(left) - kindRank(right);
-		if (byKind !== 0) return byKind;
+  const ranked = [...panels].sort((left, right) => {
+    const byAttention = attentionRank(left.runId, waiting) - attentionRank(right.runId, waiting);
+    if (byAttention !== 0) return byAttention;
 
-		const byErrand = errandRank(left.runId) - errandRank(right.runId);
-		if (byErrand !== 0) return byErrand;
+    const byKind = kindRank(left) - kindRank(right);
+    if (byKind !== 0) return byKind;
 
-		return overflowScreens(right.runId) - overflowScreens(left.runId);
-	});
+    const byErrand = errandRank(left.runId) - errandRank(right.runId);
+    if (byErrand !== 0) return byErrand;
 
-	const sizes: Record<string, MonitorPanelSize> = {};
-	let enlarged = 0;
+    return overflowScreens(right.runId) - overflowScreens(left.runId);
+  });
 
-	/** What the panel has earned, before the grid gets a say. */
-	const wanted = (panel: MonitorPanel, index: number): MonitorPanelSize => {
-		if (panel.exited) return "default";
+  const sizes: Record<string, MonitorPanelSize> = {};
+  let enlarged = 0;
 
-		const demand = readingDemand(panel.runId);
+  /** What the panel has earned, before the grid gets a say. */
+  const wanted = (panel: MonitorPanel, index: number): MonitorPanelSize => {
+    if (panel.exited) return "default";
 
-		if (demand < INVOLVED || enlarged >= MAX_ENLARGED_PANELS) return "default";
+    const { wrapped, structured } = readingShape(panel.runId);
 
-		// Two rows go to the one panel being read, and only when what is on it
-		// genuinely fills them.
-		return index === 0 && demand >= DEEP ? "large" : "wide";
-	};
+    if (Math.max(wrapped, structured) < INVOLVED || enlarged >= MAX_ENLARGED_PANELS)
+      return "default";
 
-	const row = openRow(columns);
+    // Prose reads fine narrow, it just runs long — so it goes tall. Only text
+    // laid out in columns needs the width, and it goes wide.
+    if (structured < INVOLVED) return "tall";
+    if (wrapped < INVOLVED) return "wide";
 
-	ranked.forEach((panel, index) => {
-		const size = row.place(wanted(panel, index));
+    // Both at once earns both only for the one panel being read, and only on
+    // a wall of three columns or more; on two, large is the whole wall and
+    // tall beside a stack of defaults reads better.
+    return index === 0 && columns >= 3 && Math.min(wrapped, structured) >= DEEP ? "large" : "tall";
+  };
 
-		sizes[panel.runId] = size;
-		if (size !== "default") enlarged += 1;
-	});
+  const grid = openGrid(columns);
 
-	return { order: ranked.map((panel) => panel.runId), sizes };
+  ranked.forEach((panel, index) => {
+    const size = grid.place(wanted(panel, index), ranked.length - index - 1);
+
+    sizes[panel.runId] = size;
+    if (size !== "default") enlarged += 1;
+  });
+
+  return { order: ranked.map((panel) => panel.runId), sizes };
 }

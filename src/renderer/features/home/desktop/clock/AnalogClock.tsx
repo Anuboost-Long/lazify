@@ -30,7 +30,7 @@ export function AnalogClock({ now, className }: Readonly<AnalogClockProps>) {
 			viewBox="0 0 100 100"
 			role="img"
 			aria-label={now.toLocaleTimeString()}
-			className={clsx("h-full w-full", className)}
+			className={clsx("block", className)}
 		>
 			<circle cx="50" cy="50" r="47" className="fill-none stroke-border" strokeWidth="0.6" />
 

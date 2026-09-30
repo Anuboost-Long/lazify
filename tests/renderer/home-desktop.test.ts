@@ -6,6 +6,7 @@ import { createElement } from "react";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { balancedRows } from "../../src/renderer/features/home/desktop/widgets/DesktopWidgets";
 import { HomePage } from "../../src/renderer/features/home/pages/HomePage";
 
 vi.mock("react-i18next", async (importOriginal) => ({
@@ -124,6 +125,7 @@ describe("customizing the desktop", () => {
 		expect(screen.getByRole("region", { name: "home.customize" })).toBeTruthy();
 
 		await userEvent.click(screen.getByRole("button", { name: "home.backdrop_grid" }));
+		await userEvent.click(screen.getByRole("button", { name: "home.customize_widgets" }));
 		await userEvent.click(screen.getByRole("button", { name: "home.widget_tasks" }));
 
 		const stored = JSON.parse(localStorage.getItem("lazify-desktop-personalization") ?? "{}");
@@ -212,5 +214,85 @@ describe("windows outliving the page", () => {
 		cleanup();
 		renderHome(null);
 		expect(screen.queryByRole("region", { name: "home.your_tasks" })).toBeNull();
+	});
+});
+
+describe("arranging the desktop", () => {
+	const openCustomize = () => userEvent.click(screen.getByRole("button", { name: /home.customize/ }));
+	const stored = () => JSON.parse(localStorage.getItem("lazify-desktop-personalization") ?? "{}");
+
+	it("hides a shortcut and moves another, but never hides its own way back", async () => {
+		renderHome(null);
+		await openCustomize();
+		await userEvent.click(screen.getByRole("button", { name: "home.customize_tab_desktop" }));
+
+		const shown = screen.getAllByRole("checkbox", { name: "home.shortcut_show" });
+		expect((shown.at(-1) as HTMLInputElement).disabled).toBe(true);
+
+		await userEvent.click(shown[0]);
+		expect(screen.queryByRole("button", { name: /home.tasks_window/ })).toBeNull();
+
+		await userEvent.click(screen.getAllByRole("button", { name: "home.shortcut_move_down" })[0]);
+		expect(stored().shortcutOrder.slice(0, 2)).toEqual(["projects", "tasks"]);
+
+		await userEvent.click(screen.getAllByRole("button", { name: "home.shortcut_move_up" })[1]);
+		await userEvent.click(screen.getAllByRole("checkbox", { name: "home.shortcut_show" })[0]);
+		expect(screen.getByRole("button", { name: /home.tasks_window/ })).toBeTruthy();
+	});
+
+	it("puts everything but the clock away in focus mode, and Esc brings it back", async () => {
+		renderHome(null);
+		await openCustomize();
+		await userEvent.click(screen.getByRole("button", { name: "home.customize_tab_desktop" }));
+
+		await userEvent.click(screen.getByRole("checkbox", { name: "home.customize_focus" }));
+		expect(screen.queryByRole("region", { name: "home.customize" })).toBeNull();
+		expect(screen.queryByRole("button", { name: /home.tasks_window/ })).toBeNull();
+		expect(screen.getByRole("button", { name: "home.focus_leave" })).toBeTruthy();
+
+		await userEvent.keyboard("{Escape}");
+		expect(screen.getByRole("button", { name: /home.tasks_window/ })).toBeTruthy();
+		expect(screen.getByRole("region", { name: "home.customize" })).toBeTruthy();
+	});
+
+	it("saves a look and switches back to it in one click", async () => {
+		renderHome(null);
+		await openCustomize();
+		await userEvent.click(screen.getByRole("button", { name: "home.backdrop_rain" }));
+
+		await userEvent.type(screen.getByRole("textbox", { name: "home.look_name_placeholder" }), "Calm");
+		await userEvent.click(screen.getByRole("button", { name: /home.look_save/ }));
+		await userEvent.click(screen.getByRole("button", { name: "home.backdrop_grid" }));
+
+		await userEvent.click(screen.getByRole("button", { name: "Calm" }));
+		expect(stored().backdrop).toBe("rain");
+		expect(stored().looks.map((look: { name: string }) => look.name)).toEqual(["Calm"]);
+
+		await userEvent.click(screen.getByRole("button", { name: "home.look_delete" }));
+		expect(stored().looks).toEqual([]);
+	});
+
+	it("greets above the clock once the greeting is on", async () => {
+		renderHome(null);
+		await openCustomize();
+		await userEvent.click(screen.getByRole("button", { name: "home.customize_clock" }));
+
+		await userEvent.click(screen.getByRole("checkbox", { name: "home.greeting_show" }));
+		expect(screen.getByText(/^home\.greeting_(morning|afternoon|evening)$/)).toBeTruthy();
+
+		await userEvent.click(screen.getByRole("checkbox", { name: "home.greeting_show" }));
+	});
+});
+
+describe("widget rows", () => {
+	it("splits widgets into even rows of at most three", () => {
+		const sizes = (count: number) =>
+			balancedRows(Array.from({ length: count }, (_, index) => index)).map((row) => row.length);
+
+		expect(sizes(3)).toEqual([3]);
+		expect(sizes(4)).toEqual([2, 2]);
+		expect(sizes(5)).toEqual([3, 2]);
+		expect(sizes(6)).toEqual([3, 3]);
+		expect(sizes(7)).toEqual([3, 2, 2]);
 	});
 });

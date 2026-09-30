@@ -35,7 +35,7 @@ const TITLE_BAR_HEIGHT = 38;
 const DEFAULTS: Record<FixedWindowId, { width: number; height: number; offset: number }> = {
 	tasks: { width: 760, height: 520, offset: 0 },
 	projects: { width: 400, height: 480, offset: 1 },
-	customize: { width: 420, height: 460, offset: 2 },
+	customize: { width: 460, height: 520, offset: 2 },
 };
 
 const AGENT_WINDOW = { width: 620, height: 460 };

@@ -186,7 +186,7 @@ export function HomePage({
 	};
 
 	const renderWindow = (id: DesktopWindowId) => {
-		if (id === "customize") return <CustomizePanel />;
+		if (id === "customize") return <CustomizePanel shortcuts={shortcuts} />;
 
 		if (agentRunId(id)) {
 			return <LiveAgentPanel session={findSession(id)} onOpenAgents={openAgents} />;
@@ -234,7 +234,12 @@ export function HomePage({
 					openTasks: tasks.filter((task) => task.status !== "done").length,
 					doneTasks: tasks.filter((task) => task.status === "done").length,
 					projectCount: projects.length,
+					runningAgents: liveAgents.length,
+					waitingAgents: liveAgents.filter((session) => session.waiting).length,
+					activeProjectPath,
 				}}
+				onOpenAgents={startAgents}
+				onOpenProject={(projectPath) => navigate(getWorkspaceProjectRoute(projectPath))}
 				requestedWindow={requestedWindow}
 				onWindowOpened={clearWindowRequest}
 				renderWindow={renderWindow}

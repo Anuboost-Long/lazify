@@ -1,12 +1,15 @@
 import clsx from "clsx";
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 
+import { translation } from "@renderer/i18n/translation";
 import type { UiIconName } from "@renderer/shared/ui/icons/UiIcon";
 
 import { DesktopClock } from "./clock/DesktopClock";
 import { DesktopIcon } from "./DesktopIcon";
 import { DesktopBackdrop } from "./personalize/DesktopBackdrop";
 import {
+	arrangeShortcuts,
 	useDesktopPersonalization,
 	type DesktopIconPlacement,
 } from "./personalize/use-desktop-personalization";
@@ -45,6 +48,8 @@ interface HomeDesktopProps {
 	shortcuts: DesktopShortcut[];
 	windowTitle: (id: DesktopWindowId) => DesktopWindowTitle;
 	widgetData: DesktopWidgetData;
+	onOpenAgents: () => void;
+	onOpenProject: (projectPath: string) => void;
 	requestedWindow?: DesktopWindowId | null;
 	onWindowOpened?: () => void;
 	renderWindow: (id: DesktopWindowId) => ReactNode;
@@ -54,12 +59,15 @@ export function HomeDesktop({
 	shortcuts,
 	windowTitle,
 	widgetData,
+	onOpenAgents,
+	onOpenProject,
 	requestedWindow,
 	onWindowOpened,
 	renderWindow,
 }: Readonly<HomeDesktopProps>) {
+	const { t } = useTranslation();
 	const surfaceRef = useRef<HTMLDivElement>(null);
-	const { personalization } = useDesktopPersonalization();
+	const { personalization, update } = useDesktopPersonalization();
 	const [bounds, setBounds] = useState<DesktopBounds>({ width: 1200, height: 720 });
 	const desktop = useDesktopWindows(bounds);
 
@@ -87,8 +95,25 @@ export function HomeDesktop({
 		onWindowOpened?.();
 	}, [onWindowOpened, openWindow, requestedWindow]);
 
+	const { focus } = personalization;
+
+	useEffect(() => {
+		if (!focus) return;
+
+		const onKeyDown = (event: KeyboardEvent) => {
+			if (event.key === "Escape") update({ focus: false });
+		};
+
+		globalThis.addEventListener("keydown", onKeyDown);
+		return () => globalThis.removeEventListener("keydown", onKeyDown);
+	}, [focus, update]);
+
 	const { frontmost } = desktop;
 	const placement = personalization.icons;
+	const dockVisible = !focus && desktop.windows.length > 0;
+	const visibleShortcuts = arrangeShortcuts(shortcuts, personalization.shortcutOrder).filter(
+		(shortcut) => !personalization.hiddenShortcuts.includes(shortcut.id),
+	);
 
 	const shortcutIcons = (stacked: boolean) => (
 		<div
@@ -97,7 +122,7 @@ export function HomeDesktop({
 				stacked ? "flex-col items-center" : "flex-wrap items-start justify-center",
 			)}
 		>
-			{shortcuts.map((shortcut) => (
+			{visibleShortcuts.map((shortcut) => (
 				<DesktopIcon
 					key={shortcut.id}
 					label={shortcut.label}
@@ -120,21 +145,56 @@ export function HomeDesktop({
 		>
 			<DesktopBackdrop backdrop={personalization.backdrop} surface={surfaceRef} />
 
-			<div className="absolute inset-0 flex flex-col items-center justify-center gap-10 px-6">
-				<DesktopClock />
+			{/* `m-auto` rather than `justify-center`: it centres while the content fits, and scrolls instead of clipping the top once it does not. */}
+			<div
+				style={dockVisible ? { paddingBottom: DOCK_HEIGHT } : undefined}
+				className="absolute inset-0 flex overflow-y-auto px-6 py-8"
+			>
+				<div className="m-auto flex w-full flex-col items-center gap-8">
+					<DesktopClock
+						size={personalization.clockSize}
+						greeting={personalization.greeting}
+						name={personalization.name}
+						secondZone={personalization.secondZone}
+					/>
 
-				<DesktopWidgets widgets={personalization.widgets} data={widgetData} />
+					{focus ? null : (
+						<>
+							<DesktopWidgets
+								widgets={personalization.widgets}
+								data={widgetData}
+								onOpenAgents={onOpenAgents}
+								onOpenProject={onOpenProject}
+							/>
 
-				{placement === "center" ? shortcutIcons(false) : null}
+							{placement === "center" ? shortcutIcons(false) : null}
+						</>
+					)}
+				</div>
 			</div>
 
-			{placement === "center" ? null : (
+			{focus ? (
+				<button
+					type="button"
+					onClick={() => update({ focus: false })}
+					className={clsx(
+						"absolute bottom-6 left-1/2 -translate-x-1/2 rounded-lg px-3 py-1.5",
+						"text-xs font-semibold text-muted opacity-40",
+						"transition-opacity hover:opacity-100",
+						"focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accentSoft",
+					)}
+				>
+					{t(translation.Home.FocusLeave)}
+				</button>
+			) : null}
+
+			{focus || placement === "center" ? null : (
 				<div className={clsx("absolute", PLACEMENT_CLASS[placement])}>
 					{shortcutIcons(placement !== "top")}
 				</div>
 			)}
 
-			{desktop.windows.map((window) => (
+			{(focus ? [] : desktop.windows).map((window) => (
 				<DesktopWindow
 					key={window.id}
 					title={windowTitle(window.id).title}
@@ -159,7 +219,7 @@ export function HomeDesktop({
 				</DesktopWindow>
 			))}
 
-			{desktop.windows.length > 0 ? (
+			{dockVisible ? (
 				<DesktopDock
 					items={desktop.windows.map((window) => ({
 						id: window.id,
