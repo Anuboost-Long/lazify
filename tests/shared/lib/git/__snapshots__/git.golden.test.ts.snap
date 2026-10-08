@@ -1,0 +1,595 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`git golden > runs the same scenario on a real repository > changes in a plain folder 1`] = `[]`;
+
+exports[`git golden > runs the same scenario on a real repository > changes in a plain folder after edits 1`] = `
+[
+  {
+    "absolutePath": "<repo>/index.js",
+    "additions": 2,
+    "deletions": 1,
+    "path": "index.js",
+    "statusLabel": "Modified",
+    "untracked": false,
+  },
+  {
+    "absolutePath": "<repo>/added.txt",
+    "additions": 1,
+    "deletions": 0,
+    "path": "added.txt",
+    "statusLabel": "Untracked",
+    "untracked": true,
+  },
+]
+`;
+
+exports[`git golden > runs the same scenario on a real repository > checkout 1`] = `
+{
+  "message": "",
+  "success": true,
+}
+`;
+
+exports[`git golden > runs the same scenario on a real repository > checkout a missing branch 1`] = `
+{
+  "message": "error: pathspec 'nope' did not match any file(s) known to git",
+  "success": false,
+}
+`;
+
+exports[`git golden > runs the same scenario on a real repository > checkout refused by local changes 1`] = `
+{
+  "message": "error: Your local changes to the following files would be overwritten by checkout:
+	src/new-name.ts
+Please commit your changes or stash them before you switch branches.
+Aborting",
+  "success": false,
+}
+`;
+
+exports[`git golden > runs the same scenario on a real repository > clean status 1`] = `
+{
+  "branch": "main",
+  "branches": [
+    "feature",
+    "main",
+  ],
+  "entries": [],
+  "hasUncommittedChanges": false,
+  "isGitRepo": true,
+  "projectPath": "<repo>",
+  "remoteUrl": null,
+  "repoRoot": "<repo>",
+}
+`;
+
+exports[`git golden > runs the same scenario on a real repository > commit 1`] = `
+{
+  "message": "",
+  "success": true,
+}
+`;
+
+exports[`git golden > runs the same scenario on a real repository > commit without a message 1`] = `
+{
+  "message": "A commit message is required.",
+  "success": false,
+}
+`;
+
+exports[`git golden > runs the same scenario on a real repository > diff in a plain folder 1`] = `
+"diff --git a/index.js b/index.js
+new file mode 100644
+index 0000000..296d549
+--- /dev/null
++++ b/index.js
+@@ -0,0 +1 @@
++console.log(1);
+"
+`;
+
+exports[`git golden > runs the same scenario on a real repository > diff in a plain folder after edits 1`] = `
+"diff --git a/index.js b/index.js
+index 296d549..45885c0 100644
+--- a/index.js
++++ b/index.js
+@@ -1 +1,2 @@
+-console.log(1);
++console.log(2);
++console.log(3);
+"
+`;
+
+exports[`git golden > runs the same scenario on a real repository > diff of a binary file 1`] = `
+"diff --git a/logo.png b/logo.png
+index 6cb81c2..47a4375 100644
+Binary files a/logo.png and b/logo.png differ
+"
+`;
+
+exports[`git golden > runs the same scenario on a real repository > diff of a missing file 1`] = `""`;
+
+exports[`git golden > runs the same scenario on a real repository > diff of a modified file 1`] = `
+"diff --git a/src/app.ts b/src/app.ts
+index 087a5d9..537ea84 100644
+--- a/src/app.ts
++++ b/src/app.ts
+@@ -1,2 +1,3 @@
+ export const name = "demo";
+-export const answer = 41;
++export const answer = 42;
++export const extra = true;
+"
+`;
+
+exports[`git golden > runs the same scenario on a real repository > diff of an untracked file 1`] = `
+"diff --git a/notes/todo.md b/notes/todo.md
+new file mode 100644
+index 0000000..4cb29ea
+--- /dev/null
++++ b/notes/todo.md
+@@ -0,0 +1,3 @@
++one
++two
++three
+"
+`;
+
+exports[`git golden > runs the same scenario on a real repository > dirty status 1`] = `
+{
+  "branch": "main",
+  "branches": [
+    "feature",
+    "main",
+  ],
+  "entries": [
+    {
+      "absolutePath": "<repo>/README.md",
+      "path": "README.md",
+      "stagedStatus": "M",
+      "statusLabel": "Modified",
+      "unstagedStatus": " ",
+    },
+    {
+      "absolutePath": "<repo>/logo.png",
+      "path": "logo.png",
+      "stagedStatus": " ",
+      "statusLabel": "Modified",
+      "unstagedStatus": "M",
+    },
+    {
+      "absolutePath": "<repo>/src/app.ts",
+      "path": "src/app.ts",
+      "stagedStatus": " ",
+      "statusLabel": "Modified",
+      "unstagedStatus": "M",
+    },
+    {
+      "absolutePath": "<repo>/src/new-name.ts",
+      "path": "src/new-name.ts",
+      "stagedStatus": "R",
+      "statusLabel": "Renamed",
+      "unstagedStatus": " ",
+    },
+    {
+      "absolutePath": "<repo>/-n.txt",
+      "path": "-n.txt",
+      "stagedStatus": "?",
+      "statusLabel": "Untracked",
+      "unstagedStatus": "?",
+    },
+    {
+      "absolutePath": "<repo>/notes/empty.txt",
+      "path": "notes/empty.txt",
+      "stagedStatus": "?",
+      "statusLabel": "Untracked",
+      "unstagedStatus": "?",
+    },
+    {
+      "absolutePath": "<repo>/notes/todo.md",
+      "path": "notes/todo.md",
+      "stagedStatus": "?",
+      "statusLabel": "Untracked",
+      "unstagedStatus": "?",
+    },
+  ],
+  "hasUncommittedChanges": true,
+  "isGitRepo": true,
+  "projectPath": "<repo>",
+  "remoteUrl": null,
+  "repoRoot": "<repo>",
+}
+`;
+
+exports[`git golden > runs the same scenario on a real repository > discard tracked and untracked 1`] = `
+{
+  "message": "",
+  "success": true,
+}
+`;
+
+exports[`git golden > runs the same scenario on a real repository > full-file diff 1`] = `
+"diff --git a/src/app.ts b/src/app.ts
+index 087a5d9..537ea84 100644
+--- a/src/app.ts
++++ b/src/app.ts
+@@ -1,2 +1,3 @@
+ export const name = "demo";
+-export const answer = 41;
++export const answer = 42;
++export const extra = true;
+"
+`;
+
+exports[`git golden > runs the same scenario on a real repository > pull without a remote 1`] = `
+{
+  "message": "fatal: 'origin' does not appear to be a git repository
+fatal: Could not read from remote repository.
+
+Please make sure you have the correct access rights
+and the repository exists.",
+  "success": false,
+}
+`;
+
+exports[`git golden > runs the same scenario on a real repository > push without a remote 1`] = `
+{
+  "message": "fatal: No configured push destination.
+Either specify the URL from the command-line or configure a remote repository using
+
+    git remote add <name> <url>
+
+and then push using the remote name
+
+    git push <name>",
+  "success": false,
+}
+`;
+
+exports[`git golden > runs the same scenario on a real repository > stage a flag-like name 1`] = `
+{
+  "message": "",
+  "success": true,
+}
+`;
+
+exports[`git golden > runs the same scenario on a real repository > stage a missing path 1`] = `
+{
+  "message": "fatal: pathspec 'missing.txt' did not match any files",
+  "success": false,
+}
+`;
+
+exports[`git golden > runs the same scenario on a real repository > stage nothing 1`] = `
+{
+  "message": "",
+  "success": true,
+}
+`;
+
+exports[`git golden > runs the same scenario on a real repository > status after commit 1`] = `
+{
+  "branch": "main",
+  "branches": [
+    "feature",
+    "main",
+  ],
+  "entries": [
+    {
+      "absolutePath": "<repo>/logo.png",
+      "path": "logo.png",
+      "stagedStatus": " ",
+      "statusLabel": "Modified",
+      "unstagedStatus": "M",
+    },
+    {
+      "absolutePath": "<repo>/notes/empty.txt",
+      "path": "notes/empty.txt",
+      "stagedStatus": "?",
+      "statusLabel": "Untracked",
+      "unstagedStatus": "?",
+    },
+  ],
+  "hasUncommittedChanges": true,
+  "isGitRepo": true,
+  "projectPath": "<repo>",
+  "remoteUrl": null,
+  "repoRoot": "<repo>",
+}
+`;
+
+exports[`git golden > runs the same scenario on a real repository > status after discard 1`] = `
+{
+  "branch": "main",
+  "branches": [
+    "feature",
+    "main",
+  ],
+  "entries": [
+    {
+      "absolutePath": "<repo>/-n.txt",
+      "path": "-n.txt",
+      "stagedStatus": "A",
+      "statusLabel": "Added",
+      "unstagedStatus": " ",
+    },
+    {
+      "absolutePath": "<repo>/README.md",
+      "path": "README.md",
+      "stagedStatus": "M",
+      "statusLabel": "Modified",
+      "unstagedStatus": " ",
+    },
+    {
+      "absolutePath": "<repo>/logo.png",
+      "path": "logo.png",
+      "stagedStatus": " ",
+      "statusLabel": "Modified",
+      "unstagedStatus": "M",
+    },
+    {
+      "absolutePath": "<repo>/src/new-name.ts",
+      "path": "src/new-name.ts",
+      "stagedStatus": "R",
+      "statusLabel": "Renamed",
+      "unstagedStatus": " ",
+    },
+    {
+      "absolutePath": "<repo>/notes/empty.txt",
+      "path": "notes/empty.txt",
+      "stagedStatus": "?",
+      "statusLabel": "Untracked",
+      "unstagedStatus": "?",
+    },
+  ],
+  "hasUncommittedChanges": true,
+  "isGitRepo": true,
+  "projectPath": "<repo>",
+  "remoteUrl": null,
+  "repoRoot": "<repo>",
+}
+`;
+
+exports[`git golden > runs the same scenario on a real repository > status after staging 1`] = `
+{
+  "branch": "main",
+  "branches": [
+    "feature",
+    "main",
+  ],
+  "entries": [
+    {
+      "absolutePath": "<repo>/-n.txt",
+      "path": "-n.txt",
+      "stagedStatus": "A",
+      "statusLabel": "Added",
+      "unstagedStatus": " ",
+    },
+    {
+      "absolutePath": "<repo>/README.md",
+      "path": "README.md",
+      "stagedStatus": "M",
+      "statusLabel": "Modified",
+      "unstagedStatus": " ",
+    },
+    {
+      "absolutePath": "<repo>/logo.png",
+      "path": "logo.png",
+      "stagedStatus": " ",
+      "statusLabel": "Modified",
+      "unstagedStatus": "M",
+    },
+    {
+      "absolutePath": "<repo>/src/app.ts",
+      "path": "src/app.ts",
+      "stagedStatus": "M",
+      "statusLabel": "Modified",
+      "unstagedStatus": " ",
+    },
+    {
+      "absolutePath": "<repo>/src/new-name.ts",
+      "path": "src/new-name.ts",
+      "stagedStatus": "R",
+      "statusLabel": "Renamed",
+      "unstagedStatus": " ",
+    },
+    {
+      "absolutePath": "<repo>/notes/empty.txt",
+      "path": "notes/empty.txt",
+      "stagedStatus": "?",
+      "statusLabel": "Untracked",
+      "unstagedStatus": "?",
+    },
+    {
+      "absolutePath": "<repo>/notes/todo.md",
+      "path": "notes/todo.md",
+      "stagedStatus": "?",
+      "statusLabel": "Untracked",
+      "unstagedStatus": "?",
+    },
+  ],
+  "hasUncommittedChanges": true,
+  "isGitRepo": true,
+  "projectPath": "<repo>",
+  "remoteUrl": null,
+  "repoRoot": "<repo>",
+}
+`;
+
+exports[`git golden > runs the same scenario on a real repository > status from a subfolder 1`] = `
+{
+  "branch": "main",
+  "branches": [
+    "feature",
+    "main",
+  ],
+  "entries": [
+    {
+      "absolutePath": "<repo>/README.md",
+      "path": "README.md",
+      "stagedStatus": "M",
+      "statusLabel": "Modified",
+      "unstagedStatus": " ",
+    },
+    {
+      "absolutePath": "<repo>/logo.png",
+      "path": "logo.png",
+      "stagedStatus": " ",
+      "statusLabel": "Modified",
+      "unstagedStatus": "M",
+    },
+    {
+      "absolutePath": "<repo>/src/app.ts",
+      "path": "src/app.ts",
+      "stagedStatus": " ",
+      "statusLabel": "Modified",
+      "unstagedStatus": "M",
+    },
+    {
+      "absolutePath": "<repo>/src/new-name.ts",
+      "path": "src/new-name.ts",
+      "stagedStatus": "R",
+      "statusLabel": "Renamed",
+      "unstagedStatus": " ",
+    },
+    {
+      "absolutePath": "<repo>/-n.txt",
+      "path": "-n.txt",
+      "stagedStatus": "?",
+      "statusLabel": "Untracked",
+      "unstagedStatus": "?",
+    },
+    {
+      "absolutePath": "<repo>/notes/empty.txt",
+      "path": "notes/empty.txt",
+      "stagedStatus": "?",
+      "statusLabel": "Untracked",
+      "unstagedStatus": "?",
+    },
+    {
+      "absolutePath": "<repo>/notes/todo.md",
+      "path": "notes/todo.md",
+      "stagedStatus": "?",
+      "statusLabel": "Untracked",
+      "unstagedStatus": "?",
+    },
+  ],
+  "hasUncommittedChanges": true,
+  "isGitRepo": true,
+  "projectPath": "<repo>/src",
+  "remoteUrl": null,
+  "repoRoot": "<repo>",
+}
+`;
+
+exports[`git golden > runs the same scenario on a real repository > status of a plain folder 1`] = `
+{
+  "branch": null,
+  "branches": [],
+  "entries": [],
+  "hasUncommittedChanges": false,
+  "isGitRepo": false,
+  "projectPath": "<repo>",
+  "remoteUrl": null,
+  "repoRoot": null,
+}
+`;
+
+exports[`git golden > runs the same scenario on a real repository > status on feature 1`] = `
+{
+  "branch": "feature",
+  "branches": [
+    "feature",
+    "main",
+  ],
+  "entries": [
+    {
+      "absolutePath": "<repo>/logo.png",
+      "path": "logo.png",
+      "stagedStatus": " ",
+      "statusLabel": "Modified",
+      "unstagedStatus": "M",
+    },
+    {
+      "absolutePath": "<repo>/notes/empty.txt",
+      "path": "notes/empty.txt",
+      "stagedStatus": "?",
+      "statusLabel": "Untracked",
+      "unstagedStatus": "?",
+    },
+  ],
+  "hasUncommittedChanges": true,
+  "isGitRepo": true,
+  "projectPath": "<repo>",
+  "remoteUrl": null,
+  "repoRoot": "<repo>",
+}
+`;
+
+exports[`git golden > runs the same scenario on a real repository > unstage 1`] = `
+{
+  "message": "",
+  "success": true,
+}
+`;
+
+exports[`git golden > runs the same scenario on a real repository > working changes 1`] = `
+[
+  {
+    "absolutePath": "<repo>/README.md",
+    "additions": 0,
+    "deletions": 1,
+    "path": "README.md",
+    "statusLabel": "Modified",
+    "untracked": false,
+  },
+  {
+    "absolutePath": "<repo>/logo.png",
+    "additions": 0,
+    "deletions": 0,
+    "path": "logo.png",
+    "statusLabel": "Modified",
+    "untracked": false,
+  },
+  {
+    "absolutePath": "<repo>/src/app.ts",
+    "additions": 2,
+    "deletions": 1,
+    "path": "src/app.ts",
+    "statusLabel": "Modified",
+    "untracked": false,
+  },
+  {
+    "absolutePath": "<repo>/src/new-name.ts",
+    "additions": 0,
+    "deletions": 0,
+    "path": "src/new-name.ts",
+    "statusLabel": "Renamed",
+    "untracked": false,
+  },
+  {
+    "absolutePath": "<repo>/-n.txt",
+    "additions": 1,
+    "deletions": 0,
+    "path": "-n.txt",
+    "statusLabel": "Untracked",
+    "untracked": true,
+  },
+  {
+    "absolutePath": "<repo>/notes/empty.txt",
+    "additions": 0,
+    "deletions": 0,
+    "path": "notes/empty.txt",
+    "statusLabel": "Untracked",
+    "untracked": true,
+  },
+  {
+    "absolutePath": "<repo>/notes/todo.md",
+    "additions": 3,
+    "deletions": 0,
+    "path": "notes/todo.md",
+    "statusLabel": "Untracked",
+    "untracked": true,
+  },
+]
+`;

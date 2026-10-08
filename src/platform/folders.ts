@@ -25,3 +25,36 @@ export function projectReader(root: string): ProjectReader {
 		},
 	};
 }
+
+export function readSmallText(path: string, maxBytes: number): Promise<string> {
+	return desktop.folders.readText(path, { maxBytes });
+}
+
+export async function appDataPath(): Promise<string> {
+	return (await desktop.folders.appFolder("data")).path;
+}
+
+export function pathExists(path: string): Promise<boolean> {
+	return desktop.folders.exists(path);
+}
+
+export function createFolder(path: string): Promise<void> {
+	return desktop.folders.createFolder(path);
+}
+
+export function writeTextFile(path: string, text: string): Promise<void> {
+	return desktop.folders.writeText(path, text);
+}
+
+export async function listFolderNames(path: string): Promise<string[]> {
+	try {
+		return (await desktop.folders.list(path)).map((entry) => entry.name);
+	} catch (error) {
+		if (isNotFound(error)) return [];
+		throw error;
+	}
+}
+
+export function deletePath(path: string): Promise<void> {
+	return desktop.folders.delete(path);
+}

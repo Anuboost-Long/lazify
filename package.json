@@ -26,6 +26,7 @@
     "@chain/cli": "file:../chain-sdk/packages/cli",
     "@tailwindcss/vite": "^4",
     "@tauri-apps/cli": "^2",
+    "@types/node": "^22.20.5",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
     "@vitejs/plugin-react": "^6.0.2",

@@ -47,8 +47,8 @@ terminal and an agent session survive a UI reload and reattach.
 | [004](tickets/004-terminal-sessions.md) | Terminal sessions: Electron's `PtyRunner` on `desktop.terminal` | **Done.** Survives a real reload |
 | [005](tickets/005-scripts.md) | Scripts: list, run, stop, restart, sessions with ports; package manager, .NET, dev-port stepping | **Done.** Two Vite servers side by side in the real app |
 | [006](tickets/006-commands.md) | One-shot commands: Electron's `CommandRunner` on `process-runner`, with prompt answering | **Done.** Real git command and a real y/N prompt in the app |
-| 007 | Git: status, diff and actions over 006, parsing kept app-level | Next |
-| 008 | Agents: launch and resume an agent CLI in a terminal session; reattach after reload (second half of the exit criterion) | Queued |
+| [007](tickets/007-git.md) | Git: status, changes, diffs and actions; shadow repos for plain folders | **Done.** 30 results match Electron on real repositories |
+| 008 | Agents: launch and resume an agent CLI in a terminal session; reattach after reload (second half of the exit criterion) | Next |
 | 009 | Projects: folder picker, grants, file tree and watch over `desktop.folders` | Queued |
 
 ## Chain SDK requests
@@ -60,4 +60,5 @@ terminal and an agent session survive a UI reload and reattach.
 | 03 | [Process working directory and environment](../chain-sdk-requests/03-process-working-directory-and-environment.md) | Git, packages, formatting, scaffolding, DMG | Shipped on macOS 2026-10-09; Windows not verified |
 | 04 | [Terminal sessions](../chain-sdk-requests/04-terminal-sessions.md) | Scripts, agents, monitor, Phase 4 exit | Shipped on macOS 2026-10-09; Windows not verified |
 | 05 | [Local port availability](../chain-sdk-requests/05-local-port-availability.md) | Dev-port injection, .NET restart wait (ticket 005) | Shipped on macOS 2026-10-09, as `desktop.ports` |
+| 06 | [App-owned folders](../chain-sdk-requests/06-app-owned-folders.md) | Shadow repos for agent change review (ticket 007), project staging, pasted images, extensions | Shipped on macOS 2026-10-09, as `desktop.folders.appFolder` |
 | later | Data import, transcript reads (see Mneme's request 11), notifications, keep-awake, keychain, ports, LSP stdin, archive unpacking, embedded browser view, updater, menu, zoom | Later slices | Written when the slice is next |
