@@ -77,7 +77,7 @@ and understand failures without the old app.
 
 | Ticket | Scope | Status |
 | --- | --- | --- |
-| [015](tickets/015-renderer-foundation.md) | Whole renderer ported and compiling; `globalThis.lazify` bridge over `src/platform/` | **Done in build and tests.** App run waits on a `chain dev` restart |
+| [015](tickets/015-renderer-foundation.md) | Whole renderer ported and compiling; `globalThis.lazify` bridge over `src/platform/` | **Done.** All 13 pages render in the app; unported groups say so |
 | 016 | App shell, settings, theme and language persistence, Home | Next |
 | 017 | Open a project: picker, project list, file tree, preview, search | Queued |
 | 018 | Scripts pane and terminal, with reattach after reload | Queued |

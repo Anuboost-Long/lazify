@@ -1,4 +1,4 @@
-# 015 — Renderer foundation (Phase 4 / Done in build and tests, app run pending)
+# 015 — Renderer foundation (Phase 4 / Done)
 
 **Read this whole ticket before touching code.** The Electron app's whole
 React renderer is ported into this repo (D-1: port as it is, redesign
@@ -63,8 +63,6 @@ those highlights don't render in Electron either.
 - The import screen's text isn't translated (Khmer, Chinese).
 - Electron's renderer tests (`tests/renderer`) aren't ported yet; each
   slice brings its own.
-- The app hasn't been looked at running: that needs `chain dev` restarted
-  (see ticket 009's note).
 
 ## Acceptance checklist and evidence
 
@@ -72,4 +70,19 @@ those highlights don't render in Electron either.
 - [x] `CI=true npm test` passes (261 tests), including ticket 001's golden
       fixture through `context-types`
 - [x] `vite build` succeeds
-- [ ] The app opens on Home in `chain dev`, and the sidebar's pages render
+- [x] The app opens on Home in `chain dev`, and every page renders
+- [ ] A visual comparison with Electron, page by page (with the slices)
+
+## Verification log
+
+- 2026-10-09, macOS arm64, `chain dev` (rebuilt after `chain update`),
+  driven with `chain inspect`. After a reload the app opened on `#/home`
+  titled "Lazify" with the sidebar. Visiting all 13 routes (Home,
+  Workspace, Agents, Browser, Templates, Settings, Tools, Prompt Builder,
+  API Studio, Environment, DMG compiler, New project, Import): each
+  rendered, with no uncaught errors. The only rejections were the
+  expected "not available yet" ones: `autopilotSettings` (Agents),
+  `listPromptPresets` (Prompt Builder), `listListeningProcesses` and
+  `scanTools` (Environment), `checkEnvironment` (New project). `/import`
+  showed "No Lazify data to import", because this `chain dev` started
+  before the profile was declared read-only; it needs a restart.
