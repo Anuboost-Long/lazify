@@ -1,9 +1,9 @@
-# 002 — Stack detection (Phase 1 / Done, real folders blocked on request 01)
+# 002 — Stack detection (Phase 1 / Done)
 
 **Read this whole ticket before touching code.** Done on 2026-10-09: the
 ported detection reproduces the Electron app's results for 19 of 28 project
 folders, and deliberately improves the other 9 (see "Different by design").
-It runs on an in-memory folder until Chain can read real ones.
+It reads real project folders through Chain's `desktop.folders`.
 
 ## Goal
 
@@ -23,10 +23,11 @@ Swift and so on) and to suggest its install, dev, build and test commands.
   SwiftUI, UIKit with CocoaPods, a loose file), invalid `package.json` and an
   empty folder.
 - Electron's `command-builder` and `package-json-reader` tests are ported.
-- **Blocked:** reading a real project folder needs
-  [request 01](../../chain-sdk-requests/01-project-folder-access.md) (list,
-  read text, exists). When it ships, add a `ProjectReader` backed by it in
-  `src/platform/`.
+- `src/platform/folders.ts` provides `projectReader(root)`, a
+  `ProjectReader` over `desktop.folders` (shipped for
+  [request 01](../../chain-sdk-requests/01-project-folder-access.md)). A
+  missing file (`NOT_FOUND`) reads as `null`; every other error is passed
+  on. Callers need a folder grant covering `root`.
 
 ## Source-of-truth references
 
@@ -108,7 +109,8 @@ projects screens.
 - [x] Mutation check: changing one reason string fails the matching case
 - [x] `npm run typecheck` passes; `vite build` succeeds
 - [x] Electron app untouched (`git status` clean)
-- [ ] A real folder detected through Chain (waits on request 01)
+- [x] Six real project folders detected through `desktop.folders` in the
+      running app, matching Electron except for the approved differences
 
 ## Not removed
 
@@ -139,3 +141,11 @@ check with `CI=true npm test`.
 - 2026-10-09, macOS arm64. Detection improved (see "Different by design").
   `CI=true npx vitest run`: 70 passed, 9 skipped. The Electron fixture file
   is unchanged.
+- 2026-10-09, macOS arm64, `chain dev` with six of the owner's projects
+  temporarily declared read-only in `package.json` (reverted afterwards).
+  `detectProjectStack(projectReader(path))` was run in the app through
+  `chain inspect`, and Electron's `detectProjectStack` on the same folders
+  in Node. lazify (Electron), chain-sdk (unknown), Infinity_MobileApp (Expo)
+  and Infinity_Health_Api (ASP.NET) match. lazify-chain and mneme are Vite
+  apps: Chain says `react-vite` 0.95, Electron said `react-next` 0.85 with
+  `npx next start`. 15–53 ms per project.

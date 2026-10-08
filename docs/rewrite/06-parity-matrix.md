@@ -12,7 +12,7 @@ An untested OS is `Not tested`, never `Pass`.
 | --- | --- | --- | --- | --- | --- | --- |
 | Launch and recovery | | | | | | Not started |
 | Navigation/settings | | | | | | Not started |
-| Projects | Fixture recorded at `c9abefc` | Stack detection only: [ticket 002](tickets/002-stack-detection.md), 19 of 28 golden cases match; 9 are Different by design (approved 2026-10-09: React stacks no longer detected as Next.js). Real folders wait on request 01 | Partial | Not tested | Not tested | Not started |
+| Projects | Fixture recorded at `c9abefc` | Stack detection only: [ticket 002](tickets/002-stack-detection.md), 19 of 28 golden cases match; 9 are Different by design (approved 2026-10-09: React stacks no longer detected as Next.js). Verified on six real projects through `desktop.folders` | Partial | Not tested | Not tested | Not started |
 | Workspace files | | | | | | Not started |
 | Git | | | | | | Not started |
 | Scripts and terminal | | | | | | Not started |
