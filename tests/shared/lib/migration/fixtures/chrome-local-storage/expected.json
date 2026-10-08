@@ -1,0 +1,8 @@
+{
+  "lazify-workspace-projects": "[{\"id\":\"/Users/dev/Work/shop\",\"projectName\":\"shop\",\"projectPath\":\"/Users/dev/Work/shop\",\"stack\":\"react-vite\",\"framework\":\"react\",\"metaFramework\":\"vite\",\"packageManager\":\"npm\",\"confidence\":0.95,\"lastSyncedAt\":\"2026-10-01T10:00:00.000Z\"},{\"id\":\"/Users/dev/Work/日本語-app\",\"projectName\":\"日本語-app\",\"projectPath\":\"/Users/dev/Work/日本語-app\",\"stack\":\"dotnet\",\"framework\":\"dotnet\",\"metaFramework\":\"aspnet\",\"packageManager\":\"dotnet\",\"confidence\":0.9,\"lastSyncedAt\":\"2026-10-02T10:00:00.000Z\"}]",
+  "lazify-active-project": "/Users/dev/Work/shop",
+  "lazify-project-directory": "/Users/dev/Work",
+  "lazify-theme": "dark",
+  "lazify-language": "km",
+  "lazify-note": "Ünïcödé café — ✓"
+}

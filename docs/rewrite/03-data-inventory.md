@@ -98,9 +98,9 @@ height, script tabs, run-script overrides, desktop windows, note, focus timer
 and personalisation, API Studio panel state, and collapsed projects. Find them
 with `grep -rn 'const .*KEY = "lazify-' src/renderer`.
 
-Migration path, to decide: add an Electron-side **export** of these keys into
-a JSON file the Chain app imports. Reading Chromium's LevelDB from outside is
-fragile and should not be the plan.
+Migration path, decided 2026-10-09: read the backup copy of Chromium's
+LevelDB with the Chain app's own reader (ticket 013), pinned by fixtures from
+a real Chrome. The Electron app is not changed.
 
 ## 5. Bundled resources
 
