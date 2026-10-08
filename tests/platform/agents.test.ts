@@ -26,12 +26,30 @@ const QUESTION = "Do you want to proceed?\n1. Yes\n2. No";
 
 let fake = createFakeTerminal();
 let files: Record<string, string> = {};
+let focused = true;
+let notifications: Array<{ id: string; title: string; body?: string }> = [];
+let bounces = 0;
+const clickHandlers = new Set<(id: string) => void>();
 const onPath = new Set(["claude"]);
 
 vi.mock("@chain/sdk", () => ({
 	desktop: {
 		get terminal() {
 			return fake.api;
+		},
+		attention: {
+			isFocused: async () => focused,
+			notify: async (options: { id: string; title: string; body?: string }) => {
+				notifications.push(options);
+				return { outcome: "shown" };
+			},
+			requestAttention: async () => {
+				bounces += 1;
+			},
+			onNotificationClick: (handler: (id: string) => void) => {
+				clickHandlers.add(handler);
+				return () => clickHandlers.delete(handler);
+			},
 		},
 	},
 }));
@@ -61,6 +79,10 @@ const load = async () => ({ agents: await import("@/platform/agents"), scripts: 
 beforeEach(() => {
 	fake = createFakeTerminal();
 	files = {};
+	focused = true;
+	notifications = [];
+	bounces = 0;
+	clickHandlers.clear();
 	vi.resetModules();
 });
 
@@ -219,5 +241,53 @@ describe("platform agents", () => {
 		await new Promise((resolve) => setTimeout(resolve, 0));
 
 		expect(await agents.isAgentRun(runId)).toBe(false);
+	});
+
+	it("doesn't notify while the window has focus", async () => {
+		const { agents } = await load();
+		await agents.openAgentTerminal("claude", "/work/web");
+
+		fake.print("t1", QUESTION);
+		await new Promise((resolve) => setTimeout(resolve, 0));
+
+		expect(notifications).toEqual([]);
+		expect(bounces).toBe(0);
+	});
+
+	it("notifies and bounces once when an agent waits in the background", async () => {
+		const { agents } = await load();
+		const { runId } = await agents.openAgentTerminal("claude", "/work/web");
+		focused = false;
+
+		fake.print("t1", QUESTION);
+		await new Promise((resolve) => setTimeout(resolve, 0));
+
+		expect(notifications).toEqual([
+			{ id: `agent-waiting:${runId}`, title: "Claude needs you", body: "web is waiting for a response." },
+		]);
+		expect(bounces).toBe(1);
+	});
+
+	it("notifies when a turn ends in the background, and a click opens that run", async () => {
+		vi.useFakeTimers();
+		const { agents } = await load();
+		const focusedRuns: unknown[] = [];
+		agents.onAgentFocus((event) => focusedRuns.push(event));
+		const { runId } = await agents.openAgentTerminal("claude", "/work/web");
+		focused = false;
+
+		fake.print("t1", WORKING_FRAME);
+		vi.advanceTimersByTime(400);
+		fake.print("t1", IDLE_FRAME);
+		await vi.advanceTimersByTimeAsync(30_000);
+
+		expect(notifications).toEqual([
+			{ id: `agent-done:${runId}`, title: "Claude is done", body: "web finished the task you gave it." },
+		]);
+
+		for (const handler of clickHandlers) handler(`agent-waiting:${runId}`);
+		expect(focusedRuns).toEqual([]);
+		for (const handler of clickHandlers) handler(`agent-done:${runId}`);
+		expect(focusedRuns).toEqual([{ runId, projectPath: "/work/web" }]);
 	});
 });

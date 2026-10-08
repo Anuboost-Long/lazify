@@ -20,7 +20,7 @@ Each request:
 | 04 | [Interactive terminal sessions that outlive a page reload](04-terminal-sessions.md) | Shipped on macOS 2026-10-09, as `desktop.terminal` |
 | 05 | [Tell the app whether a local TCP port is free](05-local-port-availability.md) | Shipped on macOS 2026-10-09, as `desktop.ports` |
 | 06 | [Folders the app owns, with real paths its processes can use](06-app-owned-folders.md) | Shipped on macOS 2026-10-09, as `desktop.folders.appFolder` |
-| 07 | [Get the user's attention when the app is in the background](07-attention-alerts.md) | Sent to chain-sdk 2026-10-09 |
+| 07 | [Get the user's attention when the app is in the background](07-attention-alerts.md) | Shipped on macOS 2026-10-09, as `desktop.attention`; click path unverified |
 
 Overlap with Mneme: request 01's read-only allow-list design fork would also
 answer Mneme's request 11 (`external-file-read`).

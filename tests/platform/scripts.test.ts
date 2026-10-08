@@ -15,6 +15,7 @@ vi.mock("@chain/sdk", () => ({
 			return fake.api;
 		},
 		ports: { isFree: async (port: number) => !busyPorts.has(port) },
+		attention: { onNotificationClick: () => () => undefined },
 	},
 }));
 

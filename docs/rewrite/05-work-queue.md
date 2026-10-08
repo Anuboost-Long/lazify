@@ -62,5 +62,5 @@ terminal and an agent session survive a UI reload and reattach.
 | 04 | [Terminal sessions](../chain-sdk-requests/04-terminal-sessions.md) | Scripts, agents, monitor, Phase 4 exit | Shipped on macOS 2026-10-09; Windows not verified |
 | 05 | [Local port availability](../chain-sdk-requests/05-local-port-availability.md) | Dev-port injection, .NET restart wait (ticket 005) | Shipped on macOS 2026-10-09, as `desktop.ports` |
 | 06 | [App-owned folders](../chain-sdk-requests/06-app-owned-folders.md) | Shadow repos for agent change review (ticket 007), project staging, pasted images, extensions | Shipped on macOS 2026-10-09, as `desktop.folders.appFolder` |
-| 07 | [Attention alerts](../chain-sdk-requests/07-attention-alerts.md) | Agent waiting and turn-done notifications (ticket 008) | Sent 2026-10-09 |
+| 07 | [Attention alerts](../chain-sdk-requests/07-attention-alerts.md) | Agent waiting and turn-done notifications (ticket 008) | Shipped on macOS 2026-10-09, as `desktop.attention`; click path unverified |
 | later | Data import, transcript reads (see Mneme's request 11), notifications, keep-awake, keychain, ports, LSP stdin, archive unpacking, embedded browser view, updater, menu, zoom | Later slices | Written when the slice is next |

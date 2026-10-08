@@ -1,3 +1,5 @@
+import { desktop } from "@chain/sdk";
+
 import { getAgentDefinition, listAgents as listRegisteredAgents, resumeArgs } from "@/shared/lib/agents/agent-registry";
 import type { AgentDescriptor } from "@/shared/lib/agents/agent-registry";
 import { AttentionDetector } from "@/shared/lib/agents/attention-detector";
@@ -26,6 +28,16 @@ const AGENT_TAG = "agent";
 const runs = new Map<string, AgentRunEvent & { hidden: boolean }>();
 const attentionListeners = new Set<(event: AgentAttentionEvent) => void>();
 const doneListeners = new Set<(event: AgentRunEvent) => void>();
+const focusListeners = new Set<(event: { runId: string; projectPath: string }) => void>();
+
+const DONE_NOTIFICATION = "agent-done:";
+
+async function alertWhenAway(id: string, title: string, body: string) {
+	if (await desktop.attention.isFocused()) return;
+
+	await desktop.attention.notify({ id, title, body });
+	await desktop.attention.requestAttention();
+}
 
 const describe = (runId: string): AgentRunEvent | null => {
 	const run = runs.get(runId);
@@ -39,6 +51,10 @@ const emitAttention = (runId: string, waiting: boolean) => {
 	if (!run) return;
 
 	for (const listener of attentionListeners) listener({ ...run, waiting, hold: null });
+
+	if (waiting) {
+		void alertWhenAway(`agent-waiting:${runId}`, `${run.agentLabel} needs you`, `${run.projectName} is waiting for a response.`);
+	}
 };
 
 const detector = new AttentionDetector((runId) => {
@@ -46,6 +62,12 @@ const detector = new AttentionDetector((runId) => {
 	if (!run) return;
 
 	for (const listener of doneListeners) listener(run);
+
+	void alertWhenAway(
+		`${DONE_NOTIFICATION}${runId}`,
+		`${run.agentLabel} is done`,
+		`${run.projectName} finished the task you gave it.`,
+	);
 });
 
 const remember = (runId: string, projectPath: string, agentLabel: string, hidden: boolean) =>
@@ -61,6 +83,16 @@ let watching: Promise<void> | null = null;
 
 function watchAgents(): Promise<void> {
 	watching ??= (async () => {
+		desktop.attention.onNotificationClick((id) => {
+			if (!id.startsWith(DONE_NOTIFICATION)) return;
+
+			const runId = id.slice(DONE_NOTIFICATION.length);
+			const run = runs.get(runId);
+			if (!run) return;
+
+			for (const listener of focusListeners) listener({ runId, projectPath: run.projectPath });
+		});
+
 		onPtyData(({ runId, data }) => {
 			const waiting = detector.push(runId, data);
 			if (waiting !== null) emitAttention(runId, waiting);
@@ -157,3 +189,6 @@ export const onAgentAttention = (callback: (event: AgentAttentionEvent) => void)
 	subscribe(attentionListeners, callback);
 
 export const onAgentDone = (callback: (event: AgentRunEvent) => void) => subscribe(doneListeners, callback);
+
+export const onAgentFocus = (callback: (event: { runId: string; projectPath: string }) => void) =>
+	subscribe(focusListeners, callback);

@@ -1,4 +1,4 @@
-# 008 — Agents: launch, attention, reattach (Phase 2 / Done, alerts wait on request 07)
+# 008 — Agents: launch, attention, reattach (Phase 2 / Done)
 
 **Read this whole ticket before touching code.** Done on 2026-10-09: agent CLIs
 run in Chain terminal sessions, the "waiting for you" and "turn done"
@@ -26,9 +26,14 @@ agent waits for an answer or finishes its turn.
   `attention-detector.ts`, `prompt-parser.ts`, `autopilot-policy.ts`,
   `autopilot.ts` (logic only, wired in a later ticket), `agent-registry.ts`,
   `custom-agents-store.ts`.
-- **Waiting on [request 07](../../chain-sdk-requests/07-attention-alerts.md):**
-  the system notification and Dock bounce when the window isn't focused, and
-  clicking a notification to open the run (`onAgentFocus`).
+- Background alerts use `desktop.attention`, shipped for
+  [request 07](../../chain-sdk-requests/07-attention-alerts.md). As in
+  Electron, when the window isn't focused, a waiting agent ("Claude needs
+  you") or a finished turn ("Claude is done") shows a notification and
+  bounces the Dock once. Clicking a "done" notification raises
+  `onAgentFocus` with the run, after Chain has brought the window forward.
+  Notifications only work in a `chain build` app; under `chain dev`,
+  `notify()` reports `unavailable`.
 
 ## Source-of-truth references
 
@@ -99,8 +104,12 @@ agent waits for an answer or finishes its turn.
       `location.reload()` it was found again as a waiting agent; answering
       from the reloaded page cleared the attention and the agent printed
       `chose 1`; stopping it left no process
-- [ ] Notifications and Dock bounce when the window isn't focused
-      (request 07)
+- [x] Headless: no alert while focused; one notification and one bounce
+      when waiting in the background; a "done" notification whose click
+      opens the run, while a "waiting" one's click doesn't
+- [ ] Notifications in a built app: permission prompt, notification,
+      bounce, and a click that focuses the window and opens the run (needs
+      a person; chain-sdk has not seen the click path succeed yet)
 
 ## Not removed
 

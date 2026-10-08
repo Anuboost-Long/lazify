@@ -4,6 +4,7 @@ use std::time::Duration;
 
 use tauri::{Emitter, Manager};
 
+mod attention;
 mod browser;
 mod dev_inspector;
 mod folders;
@@ -1328,13 +1329,16 @@ pub fn run() {
         .manage(window::WindowState::default())
         .manage(folders::FoldersState::default())
         .manage(terminal::TerminalState::default())
+        .manage(attention::AttentionState::default())
         .on_window_event(|window, event| {
             window::on_window_event(window, event);
             folders::on_window_event(window, event);
+            attention::on_window_event(window, event);
         })
         .manage(pdf::PdfState::default())
         .setup(|_app| {
             window::setup(_app)?;
+            attention::setup(_app);
             _app.manage(dev_inspector::InspectorState::default());
             #[cfg(feature = "chain-dev-inspector")]
             dev_inspector::start(_app.handle().clone());
@@ -1386,6 +1390,10 @@ pub fn run() {
             process_runner_write,
             process_runner_close_stdin,
             ports_is_free,
+            attention::attention_is_focused,
+            attention::attention_request,
+            attention::attention_permission,
+            attention::attention_notify,
             terminal::terminal_start,
             terminal::terminal_list,
             terminal::terminal_backlog,
