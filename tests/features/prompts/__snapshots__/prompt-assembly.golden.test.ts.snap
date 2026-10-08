@@ -1,0 +1,788 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`prompt assembly golden output > builtin-api 1`] = `
+{
+  "presetId": "builtin-api",
+  "prompt": "You are working on the API of Demo.
+
+Task:
+Add dark mode to the settings page.
+
+Description:
+Add dark mode to the settings page.
+
+Requirements:
+- Respect the system theme.
+- Add a theme toggle.
+- Persist the choice.
+
+Additional Context:
+Design is in Figma.
+
+Priority:
+Start with this before other outstanding work.
+
+Deadline:
+2026-11-01
+
+Project Context:
+- Framework: Next.js 15
+- To run the tests: \`npm test\`
+- src/app — the routes
+
+Global Rules:
+- Use pnpm (preferred).
+
+Project Rules:
+- Edit generated files (forbidden), when touching i18n — make:lang rewrites them.
+- Keep diffs small (required).
+
+Instructions:
+- Read the neighboring endpoints first and follow the same shape.
+- Do not change an existing request or response contract unless the task says to.
+- Keep validation, authentication and permission checks at least as strict as they are now.
+- Return the error shape this API already returns, with the status codes it already uses.
+- Keep the client-side types in step with the contract, in the same change.
+
+When finished:
+- State the route, its inputs and its outputs.
+- Say whether anything about an existing contract changed, and what calls it.
+- List the files you changed.
+- Describe how you exercised the endpoint.
+
+Where these instructions conflict, the task above takes precedence.
+",
+  "usedEntryIds": [
+    "entry-1",
+    "entry-2",
+    "entry-3",
+    "entry-4",
+    "entry-5",
+    "entry-6",
+    "entry-7",
+    "entry-8",
+  ],
+}
+`;
+
+exports[`prompt assembly golden output > builtin-bug-fix 1`] = `
+{
+  "presetId": "builtin-bug-fix",
+  "prompt": "You are fixing a bug in Demo.
+
+Issue:
+Add dark mode to the settings page.
+
+Description:
+Add dark mode to the settings page.
+
+Requirements:
+- Respect the system theme.
+- Add a theme toggle.
+- Persist the choice.
+
+Additional Context:
+Design is in Figma.
+
+Priority:
+Start with this before other outstanding work.
+
+Deadline:
+2026-11-01
+
+Project Context:
+- Framework: Next.js 15
+- To run the tests: \`npm test\`
+- src/app — the routes
+
+Global Rules:
+- Use pnpm (preferred).
+
+Project Rules:
+- Edit generated files (forbidden), when touching i18n — make:lang rewrites them.
+- Keep diffs small (required).
+- Add a regression test (required).
+
+Instructions:
+- Reproduce or understand the issue first.
+- Identify the underlying cause before modifying code.
+- Do not apply unrelated changes.
+- Prefer the smallest safe fix.
+- Preserve existing behavior outside the affected area.
+- Check related code for the same mistake.
+
+When finished:
+- Explain the root cause.
+- Explain the fix.
+- List the files you changed.
+- Describe how you verified the fix.
+
+Where these instructions conflict, the task above takes precedence.
+",
+  "usedEntryIds": [
+    "entry-1",
+    "entry-2",
+    "entry-3",
+    "entry-4",
+    "entry-5",
+    "entry-6",
+    "entry-7",
+    "entry-8",
+    "entry-11",
+  ],
+}
+`;
+
+exports[`prompt assembly golden output > builtin-code-review 1`] = `
+{
+  "presetId": "builtin-code-review",
+  "prompt": "You are reviewing a change in Demo.
+
+Under review:
+Add dark mode to the settings page.
+
+Description:
+Add dark mode to the settings page.
+
+Requirements:
+- Respect the system theme.
+- Add a theme toggle.
+- Persist the choice.
+
+Additional Context:
+Design is in Figma.
+
+Priority:
+Start with this before other outstanding work.
+
+Deadline:
+2026-11-01
+
+Project Context:
+- Framework: Next.js 15
+- To run the tests: \`npm test\`
+- src/app — the routes
+
+Global Rules:
+- Use pnpm (preferred).
+
+Project Rules:
+- Edit generated files (forbidden), when touching i18n — make:lang rewrites them.
+- Keep diffs small (required).
+
+Instructions:
+- Read the change and the code around it before judging any of it.
+- Look for what breaks first: wrong results, unhandled failures, lost data, races.
+- Then what was missed: edge cases, error paths, permission and validation gaps.
+- Then what could be simpler, reusing what the project already has.
+- Say what is actually wrong. Do not pad the review with things that are fine.
+- Do not modify the code — this is a review, and the fix is someone else's call.
+
+Return, worst first:
+- The file and line.
+- What is wrong, in one sentence.
+- The input or state that makes it go wrong.
+- What you would do instead.
+
+Where these instructions conflict, the task above takes precedence.
+",
+  "usedEntryIds": [
+    "entry-1",
+    "entry-2",
+    "entry-3",
+    "entry-4",
+    "entry-5",
+    "entry-6",
+    "entry-7",
+    "entry-8",
+  ],
+}
+`;
+
+exports[`prompt assembly golden output > builtin-database 1`] = `
+{
+  "presetId": "builtin-database",
+  "prompt": "You are changing the data layer of Demo.
+
+Task:
+Add dark mode to the settings page.
+
+Description:
+Add dark mode to the settings page.
+
+Requirements:
+- Respect the system theme.
+- Add a theme toggle.
+- Persist the choice.
+
+Additional Context:
+Design is in Figma.
+
+Priority:
+Start with this before other outstanding work.
+
+Deadline:
+2026-11-01
+
+Project Context:
+- Framework: Next.js 15
+- To run the tests: \`npm test\`
+- src/app — the routes
+
+Global Rules:
+- Use pnpm (preferred).
+
+Project Rules:
+- Edit generated files (forbidden), when touching i18n — make:lang rewrites them.
+- Keep diffs small (required).
+
+Instructions:
+- Read the existing schema and migrations before writing anything.
+- Add a new migration rather than editing one that has already shipped.
+- Keep the change reversible, or say plainly why it cannot be.
+- Preserve existing data: never drop or rewrite a column the task did not ask about.
+- Update the code and types that read the changed shape, in the same change.
+- Follow the naming and indexing conventions already in the schema.
+
+When finished:
+- Show the migration and explain what it does to existing rows.
+- List the files you changed.
+- Describe how you verified the migration runs, and runs again cleanly.
+
+Where these instructions conflict, the task above takes precedence.
+",
+  "usedEntryIds": [
+    "entry-1",
+    "entry-2",
+    "entry-3",
+    "entry-4",
+    "entry-5",
+    "entry-6",
+    "entry-7",
+    "entry-8",
+  ],
+}
+`;
+
+exports[`prompt assembly golden output > builtin-documentation 1`] = `
+{
+  "presetId": "builtin-documentation",
+  "prompt": "You are writing documentation for Demo.
+
+Task:
+Add dark mode to the settings page.
+
+Description:
+Add dark mode to the settings page.
+
+Requirements:
+- Respect the system theme.
+- Add a theme toggle.
+- Persist the choice.
+
+Additional Context:
+Design is in Figma.
+
+Priority:
+Start with this before other outstanding work.
+
+Deadline:
+2026-11-01
+
+Project Context:
+- Framework: Next.js 15
+- To run the tests: \`npm test\`
+- src/app — the routes
+
+Global Rules:
+- Use pnpm (preferred).
+
+Project Rules:
+- Edit generated files (forbidden), when touching i18n — make:lang rewrites them.
+- Keep diffs small (required).
+
+Instructions:
+- Read the code before describing it: document what it does, not what it should do.
+- Follow the voice, structure and formatting of the surrounding documents.
+- Do not invent options, flags, commands or behavior — verify each one in the code.
+- Show the commands and examples that actually run in this project.
+- Update what is already written rather than adding a second account beside it.
+- Do not change code to match the documentation without being asked.
+
+When finished:
+- List the files you wrote or changed.
+- Say which claims you verified against the code, and how.
+- Name anything you could not confirm, rather than filling the gap.
+
+Where these instructions conflict, the task above takes precedence.
+",
+  "usedEntryIds": [
+    "entry-1",
+    "entry-2",
+    "entry-3",
+    "entry-4",
+    "entry-5",
+    "entry-6",
+    "entry-7",
+    "entry-8",
+  ],
+}
+`;
+
+exports[`prompt assembly golden output > builtin-general 1`] = `
+{
+  "presetId": "builtin-general",
+  "prompt": "You are working on Demo.
+
+Task:
+Add dark mode to the settings page.
+
+Description:
+Add dark mode to the settings page.
+
+Requirements:
+- Respect the system theme.
+- Add a theme toggle.
+- Persist the choice.
+
+Additional Context:
+Design is in Figma.
+
+Priority:
+Start with this before other outstanding work.
+
+Deadline:
+2026-11-01
+
+Project Context:
+- Framework: Next.js 15
+- To run the tests: \`npm test\`
+- src/app — the routes
+
+Global Rules:
+- Use pnpm (preferred).
+
+Project Rules:
+- Edit generated files (forbidden), when touching i18n — make:lang rewrites them.
+- Keep diffs small (required).
+
+Before making changes:
+- Inspect the relevant existing code.
+- Understand how the current implementation works.
+
+While implementing:
+- Reuse existing functionality where appropriate.
+- Avoid unnecessary dependencies.
+- Keep changes focused on the requested task.
+- Preserve unrelated functionality.
+
+When finished:
+- Verify the implementation.
+- List the files you changed.
+- Summarize what was done.
+
+Where these instructions conflict, the task above takes precedence.
+",
+  "usedEntryIds": [
+    "entry-1",
+    "entry-2",
+    "entry-3",
+    "entry-4",
+    "entry-5",
+    "entry-6",
+    "entry-7",
+    "entry-8",
+  ],
+}
+`;
+
+exports[`prompt assembly golden output > builtin-new-feature 1`] = `
+{
+  "presetId": "builtin-new-feature",
+  "prompt": "You are implementing a new feature in Demo.
+
+Task:
+Add dark mode to the settings page.
+
+Description:
+Add dark mode to the settings page.
+
+Requirements:
+- Respect the system theme.
+- Add a theme toggle.
+- Persist the choice.
+
+Additional Context:
+Design is in Figma.
+
+Priority:
+Start with this before other outstanding work.
+
+Deadline:
+2026-11-01
+
+Project Context:
+- Framework: Next.js 15
+- To run the tests: \`npm test\`
+- src/app — the routes
+
+Global Rules:
+- Use pnpm (preferred).
+
+Project Rules:
+- Edit generated files (forbidden), when touching i18n — make:lang rewrites them.
+- Keep diffs small (required).
+
+Implementation Instructions:
+- Inspect the existing implementation before making changes.
+- Follow the project's existing architecture.
+- Reuse existing components and services where appropriate.
+- Avoid unnecessary dependencies.
+- Keep the implementation modular.
+- Preserve existing functionality.
+
+When finished:
+- Verify the feature works.
+- Check for obvious regressions.
+- List the files you changed.
+- Summarize the implementation.
+
+Where these instructions conflict, the task above takes precedence.
+",
+  "usedEntryIds": [
+    "entry-1",
+    "entry-2",
+    "entry-3",
+    "entry-4",
+    "entry-5",
+    "entry-6",
+    "entry-7",
+    "entry-8",
+  ],
+}
+`;
+
+exports[`prompt assembly golden output > builtin-refactor 1`] = `
+{
+  "presetId": "builtin-refactor",
+  "prompt": "Refactor the following area of Demo.
+
+Task:
+Add dark mode to the settings page.
+
+Description:
+Add dark mode to the settings page.
+
+Requirements:
+- Respect the system theme.
+- Add a theme toggle.
+- Persist the choice.
+
+Additional Context:
+Design is in Figma.
+
+Priority:
+Start with this before other outstanding work.
+
+Deadline:
+2026-11-01
+
+Project Context:
+- Framework: Next.js 15
+- To run the tests: \`npm test\`
+- src/app — the routes
+
+Global Rules:
+- Use pnpm (preferred).
+
+Project Rules:
+- Edit generated files (forbidden), when touching i18n — make:lang rewrites them.
+- Keep diffs small (required).
+
+Instructions:
+- Preserve existing external behavior exactly.
+- Improve maintainability.
+- Avoid unnecessary abstraction.
+- Follow existing project conventions.
+- Do not introduce dependencies unless required.
+- Do not mix behavior changes into the refactor.
+
+When finished:
+- List the files you changed.
+- Explain what was improved.
+- Mention any behavior that changed, and why it had to.
+
+Where these instructions conflict, the task above takes precedence.
+",
+  "usedEntryIds": [
+    "entry-1",
+    "entry-2",
+    "entry-3",
+    "entry-4",
+    "entry-5",
+    "entry-6",
+    "entry-7",
+    "entry-8",
+  ],
+}
+`;
+
+exports[`prompt assembly golden output > builtin-research 1`] = `
+{
+  "presetId": "builtin-research",
+  "prompt": "Investigate the following topic for Demo.
+
+Question:
+Add dark mode to the settings page.
+
+Description:
+Add dark mode to the settings page.
+
+Requirements:
+- Respect the system theme.
+- Add a theme toggle.
+- Persist the choice.
+
+Additional Context:
+Design is in Figma.
+
+Priority:
+Start with this before other outstanding work.
+
+Deadline:
+2026-11-01
+
+Project Context:
+- Framework: Next.js 15
+- To run the tests: \`npm test\`
+- src/app — the routes
+
+Global Rules:
+- Use pnpm (preferred).
+
+Project Rules:
+- Edit generated files (forbidden), when touching i18n — make:lang rewrites them.
+- Keep diffs small (required).
+
+Instructions:
+- Inspect the existing project before recommending anything.
+- Compare the reasonable implementation options.
+- Explain the tradeoffs that actually matter here.
+- Prefer solutions compatible with the current architecture.
+- Do not modify code unless explicitly asked to.
+
+Return:
+- Findings
+- Recommended approach
+- Alternatives considered
+- Risks or limitations
+
+Where these instructions conflict, the task above takes precedence.
+",
+  "usedEntryIds": [
+    "entry-1",
+    "entry-2",
+    "entry-3",
+    "entry-4",
+    "entry-5",
+    "entry-6",
+    "entry-7",
+    "entry-8",
+  ],
+}
+`;
+
+exports[`prompt assembly golden output > builtin-testing 1`] = `
+{
+  "presetId": "builtin-testing",
+  "prompt": "You are writing tests for Demo.
+
+Task:
+Add dark mode to the settings page.
+
+Description:
+Add dark mode to the settings page.
+
+Requirements:
+- Respect the system theme.
+- Add a theme toggle.
+- Persist the choice.
+
+Additional Context:
+Design is in Figma.
+
+Priority:
+Start with this before other outstanding work.
+
+Deadline:
+2026-11-01
+
+Project Context:
+- Framework: Next.js 15
+- To run the tests: \`npm test\`
+- src/app — the routes
+
+Global Rules:
+- Use pnpm (preferred).
+
+Project Rules:
+- Edit generated files (forbidden), when touching i18n — make:lang rewrites them.
+- Keep diffs small (required).
+
+Instructions:
+- Read the existing tests first and follow their layout, naming and helpers.
+- Test the behavior a user or caller depends on, not the implementation's internals.
+- Cover the edge cases that actually break: empty, missing, duplicate, out of order, failure.
+- Make each test able to fail — check it fails before the fix and passes after.
+- Do not weaken an assertion or delete a test to make a suite go green.
+- Do not change the code under test unless the task asked for it.
+
+When finished:
+- List the tests you added and what each one pins down.
+- Report the run: what passed, what failed, what you skipped and why.
+- Name anything you could not cover.
+
+Where these instructions conflict, the task above takes precedence.
+",
+  "usedEntryIds": [
+    "entry-1",
+    "entry-2",
+    "entry-3",
+    "entry-4",
+    "entry-5",
+    "entry-6",
+    "entry-7",
+    "entry-8",
+  ],
+}
+`;
+
+exports[`prompt assembly golden output > builtin-ui-ux 1`] = `
+{
+  "presetId": "builtin-ui-ux",
+  "prompt": "You are working on the interface of Demo.
+
+Task:
+Add dark mode to the settings page.
+
+Description:
+Add dark mode to the settings page.
+
+Requirements:
+- Respect the system theme.
+- Add a theme toggle.
+- Persist the choice.
+
+Additional Context:
+Design is in Figma.
+
+Priority:
+Start with this before other outstanding work.
+
+Deadline:
+2026-11-01
+
+Project Context:
+- Framework: Next.js 15
+- To run the tests: \`npm test\`
+- src/app — the routes
+
+Global Rules:
+- Use pnpm (preferred).
+
+Project Rules:
+- Edit generated files (forbidden), when touching i18n — make:lang rewrites them.
+- Keep diffs small (required).
+
+Instructions:
+- Read the surrounding screens first and match them: spacing, typography, tone.
+- Reuse the existing components and design tokens rather than new one-off styles.
+- Keep every state covered: loading, empty, error, and the ordinary one.
+- Keep it usable by keyboard, and label controls for screen readers.
+- Do not change behavior that was not asked about.
+
+When finished:
+- Describe what the user now sees and does.
+- List the files you changed.
+- Note any state you could not exercise.
+
+Where these instructions conflict, the task above takes precedence.
+",
+  "usedEntryIds": [
+    "entry-1",
+    "entry-2",
+    "entry-3",
+    "entry-4",
+    "entry-5",
+    "entry-6",
+    "entry-7",
+    "entry-8",
+  ],
+}
+`;
+
+exports[`prompt assembly golden output > falls back to the default preset for an unknown id 1`] = `"builtin-general"`;
+
+exports[`prompt assembly golden output > renders a bare task: named, normal priority, no deadline, no context 1`] = `
+{
+  "presetId": "builtin-general",
+  "prompt": "You are working on Demo.
+
+Task:
+Dark mode
+
+Before making changes:
+- Inspect the relevant existing code.
+- Understand how the current implementation works.
+
+While implementing:
+- Reuse existing functionality where appropriate.
+- Avoid unnecessary dependencies.
+- Keep changes focused on the requested task.
+- Preserve unrelated functionality.
+
+When finished:
+- Verify the implementation.
+- List the files you changed.
+- Summarize what was done.
+
+Where these instructions conflict, the task above takes precedence.
+",
+  "usedEntryIds": [],
+}
+`;
+
+exports[`prompt assembly golden output > renders each context line 1`] = `
+[
+  "Framework: Next.js 15",
+  "To run the tests: \`npm test\`",
+  "src/app — the routes",
+  "Edit generated files (forbidden), when touching i18n — make:lang rewrites them.",
+  "Keep diffs small (required).",
+  "",
+  "Use pnpm (preferred).",
+  "Os: macOS",
+  "Switched off: never shown",
+  "Other project: never shown",
+  "Add a regression test (required).",
+  "Fallback to rule (required).",
+]
+`;
+
+exports[`prompt assembly golden output > renders nothing without a preset 1`] = `
+{
+  "presetId": null,
+  "prompt": "",
+  "usedEntryIds": [],
+}
+`;
+
+exports[`prompt assembly golden output > suggests presets by keyword 1`] = `
+[
+  "builtin-bug-fix",
+  "builtin-refactor",
+  "builtin-new-feature",
+  null,
+  null,
+]
+`;

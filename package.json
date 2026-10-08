@@ -9,26 +9,29 @@
     "preview": "vite preview",
     "tauri": "tauri",
     "dev:web": "vite",
-    "build:web": "tsc && vite build"
+    "build:web": "tsc && vite build",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit -p . && tsc --noEmit -p tsconfig.test.json"
   },
   "dependencies": {
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
+    "@chain/sdk": "file:../chain-sdk/packages/sdk",
     "@tauri-apps/api": "^2",
     "@tauri-apps/plugin-opener": "^2",
-    "@chain/sdk": "file:../chain-sdk/packages/sdk",
-    "react-router-dom": "^7",
-    "clsx": "^2"
+    "clsx": "^2",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-router-dom": "^7"
   },
   "devDependencies": {
+    "@chain/cli": "file:../chain-sdk/packages/cli",
+    "@tailwindcss/vite": "^4",
+    "@tauri-apps/cli": "^2",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
     "@vitejs/plugin-react": "^6.0.2",
+    "tailwindcss": "^4",
     "typescript": "~6.0.3",
     "vite": "^8.0.16",
-    "@tauri-apps/cli": "^2",
-    "tailwindcss": "^4",
-    "@tailwindcss/vite": "^4",
-    "@chain/cli": "file:../chain-sdk/packages/cli"
+    "vitest": "^5.0.3"
   }
 }

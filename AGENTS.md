@@ -85,6 +85,21 @@ This is the scaffold produced by `chain init`:
   (`.chain/native/tauri.conf.json`'s `bundle.icon` already points there —
   no config change needed to use them).
 
+## Tests and parity
+
+- Vitest (`npm test`), with tests under `tests/` mirroring `src/`. It
+  differs from Mneme's `node --test` on purpose: the Electron app's tests
+  and snapshots are Vitest, so they port almost unchanged.
+- Logic ported from the Electron app is pinned by a **golden fixture
+  recorded from the Electron code**, never from the copy
+  (`docs/rewrite/04-architecture-decisions.md`, A-4). Run `CI=true npm test`
+  to check parity: with `CI` set, Vitest will not write snapshots. Never run
+  `vitest -u` on a golden fixture. A deliberate change means re-recording it
+  from Electron and noting the difference in `docs/rewrite/06-parity-matrix.md`.
+- `npm run typecheck` checks the app and the tests.
+- The rewrite plan, tickets and Chain SDK requests live in `docs/rewrite/`
+  and `docs/chain-sdk-requests/`. Start from `docs/rewrite/README.md`.
+
 ## Feature development workflow
 
 When implementing application features:
