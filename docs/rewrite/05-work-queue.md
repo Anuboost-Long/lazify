@@ -36,8 +36,8 @@ Ordered smallest-safe-first. Each item becomes a ticket in `tickets/` (format:
 
 | # | Request | Unblocks | Status |
 | --- | --- | --- | --- |
-| 01 | [Project folder access](../chain-sdk-requests/01-project-folder-access.md) | Projects, workspace, env files, templates | Sent 2026-10-09 |
-| 02 | [File change events](../chain-sdk-requests/02-file-change-events.md) | Live sync, API docs drafts, agent activity | Sent 2026-10-09 |
-| 03 | [Process working directory and environment](../chain-sdk-requests/03-process-working-directory-and-environment.md) | Git, packages, formatting, scaffolding, DMG | Sent 2026-10-09 |
-| 04 | [Terminal sessions](../chain-sdk-requests/04-terminal-sessions.md) | Scripts, agents, monitor, Phase 4 exit | Sent 2026-10-09 |
+| 01 | [Project folder access](../chain-sdk-requests/01-project-folder-access.md) | Projects, workspace, env files, templates | Shipped on macOS 2026-10-09; Windows not verified |
+| 02 | [File change events](../chain-sdk-requests/02-file-change-events.md) | Live sync, API docs drafts, agent activity | Shipped on macOS 2026-10-09; Windows not verified |
+| 03 | [Process working directory and environment](../chain-sdk-requests/03-process-working-directory-and-environment.md) | Git, packages, formatting, scaffolding, DMG | Shipped on macOS 2026-10-09; Windows not verified |
+| 04 | [Terminal sessions](../chain-sdk-requests/04-terminal-sessions.md) | Scripts, agents, monitor, Phase 4 exit | Shipped on macOS 2026-10-09; Windows not verified |
 | later | Data import, transcript reads (see Mneme's request 11), notifications, keep-awake, keychain, ports, LSP stdin, archive unpacking, embedded browser view, updater, menu, zoom | Later slices | Written when the slice is next |
