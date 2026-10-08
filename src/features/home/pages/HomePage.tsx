@@ -1,69 +1,331 @@
-import { desktop } from "@chain/sdk";
-import type { PlatformInfo } from "@chain/sdk";
-import clsx from "clsx";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 
-import chainIcon from "../../../../asset/app-icon.svg";
+import type { Task, TaskStatus } from "@/shared/lib/tasks/types";
+import { appRoute, getAgentsRoute, getWorkspaceProjectRoute } from "@/app/app-routes";
+import { translation } from "@/i18n/translation";
+import type { SyncedWorkspaceProject } from "@/shared/types/lazify";
+import { ProjectPickerModal } from "@/shared/ui/project-picker/ProjectPickerModal";
 
-type Status =
-  { kind: "loading" } | { kind: "ready"; info: PlatformInfo } | { kind: "error"; message: string };
+import { useLiveAgentSessions } from "../../agents/hooks/use-live-agent-sessions";
+import { usePromptPresets } from "../../prompts";
+import { DeleteTaskConfirm } from "../../tasks/components/DeleteTaskConfirm";
+import { SendTaskModal } from "../../tasks/components/SendTaskModal";
+import { TaskDetailModal } from "../../tasks/components/TaskDetailModal";
+import { LiveAgentPanel } from "../components/LiveAgentPanel";
+import { ProjectsPanel } from "../components/ProjectsPanel";
+import { TasksPanel, type TaskFilter } from "../components/TasksPanel";
+import { WatchAgentsModal } from "../components/WatchAgentsModal";
+import { HomeDesktop, type DesktopShortcut, type DesktopWindowTitle } from "../desktop/HomeDesktop";
+import { CustomizePanel } from "../desktop/personalize/CustomizePanel";
+import {
+	agentRunId,
+	agentWindowId,
+	type DesktopWindowId,
+	type FixedWindowId,
+} from "../desktop/windows/window-frame";
 
-export default function HomePage() {
-  const [status, setStatus] = useState<Status>({ kind: "loading" });
+interface HomePageProps {
+	projects: SyncedWorkspaceProject[];
+	activeProjectPath: string | null;
+	onActiveProjectChange: (projectPath: string) => void;
+}
 
-  useEffect(() => {
-    desktop.platform
-      .getInfo()
-      .then((info) => setStatus({ kind: "ready", info }))
-      .catch((error: unknown) =>
-        setStatus({
-          kind: "error",
-          message: typeof error === "string" ? error : JSON.stringify(error, null, 2)
-        })
-      );
-  }, []);
+const NEXT_STATUS: Record<TaskStatus, TaskStatus> = {
+	todo: "doing",
+	doing: "done",
+	done: "todo",
+};
 
-  return (
-    <main className="mx-auto flex max-w-lg flex-col items-center gap-4 px-4 py-16 text-center">
-      <img src={chainIcon} width={72} height={72} alt="Chain" className="rounded-xl" />
-      <h1 className="text-xl font-semibold">Welcome to your Chain app</h1>
-      <p className="text-sm text-chain-navy/70 dark:text-chain-cream/70">
-        Chain is a cross-platform desktop framework: a shared React + TypeScript UI, a Rust
-        coordination layer (<span className="font-medium">Chain Core</span>), and a native runtime
-        underneath (<span className="font-medium">Tauri</span> today). Your app calls one stable API
-        — <code className="font-mono">desktop.*</code> — and Chain handles the platform differences
-        underneath it.
-      </p>
-      <p className="text-sm text-chain-navy/60 dark:text-chain-cream/60">
-        The card below calls <code className="font-mono">desktop.platform.getInfo()</code> through{" "}
-        <code className="font-mono">@chain/sdk</code>, all the way down to Rust and back, to prove
-        this app can actually reach the framework.
-      </p>
+/**
+ * Where the app opens: a clock, a few icons, and nothing else until you ask.
+ *
+ * The dashboard did not go anywhere — tasks and projects are the same panels
+ * they always were, moved inside windows you open, move and close. What the
+ * screen says when you have not asked for anything is the time.
+ */
+export function HomePage({
+	projects,
+	activeProjectPath,
+	onActiveProjectChange,
+}: Readonly<HomePageProps>) {
+	const { t } = useTranslation();
+	const navigate = useNavigate();
+	const { presets } = usePromptPresets();
+	const { sessions: liveAgents } = useLiveAgentSessions();
 
-      <section
-        className={clsx(
-          "w-full rounded-lg border p-4 text-left",
-          status.kind === "loading" &&
-            "border-chain-navy/15 text-chain-navy/60 dark:border-chain-cream/15 dark:text-chain-cream/60",
-          status.kind === "ready" && "border-chain-lime",
-          status.kind === "error" && "border-red-500/60 text-red-600 dark:text-red-400"
-        )}
-      >
-        {status.kind === "loading" && <span>Checking platform…</span>}
-        {status.kind === "ready" && (
-          <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 font-mono text-sm">
-            <dt className="text-chain-navy/60 dark:text-chain-cream/60">OS</dt>
-            <dd className="text-right">{status.info.os}</dd>
-            <dt className="text-chain-navy/60 dark:text-chain-cream/60">Arch</dt>
-            <dd className="text-right">{status.info.arch}</dd>
-            <dt className="text-chain-navy/60 dark:text-chain-cream/60">Runtime</dt>
-            <dd className="text-right">{status.info.runtimeVersion}</dd>
-          </dl>
-        )}
-        {status.kind === "error" && (
-          <pre className="whitespace-pre-wrap font-mono text-xs">{status.message}</pre>
-        )}
-      </section>
-    </main>
-  );
+	const [tasks, setTasks] = useState<Task[]>([]);
+	const [watchChoice, setWatchChoice] = useState(false);
+	const [requestedWindow, setRequestedWindow] = useState<DesktopWindowId | null>(null);
+	const [filter, setFilter] = useState<TaskFilter>("open");
+	const [pickingProject, setPickingProject] = useState(false);
+	const [sending, setSending] = useState<Task | null>(null);
+	// One editor for both jobs: a task to work on, or null to write a new one in
+	// the project it is being added to.
+	const [editor, setEditor] = useState<{ task: Task | null; projectPath: string } | null>(null);
+	const opened = editor?.task ?? null;
+	const [deleting, setDeleting] = useState<Task | null>(null);
+
+	const clearWindowRequest = useCallback(() => setRequestedWindow(null), []);
+
+	const refresh = useCallback(async () => {
+		setTasks(await globalThis.lazify.listAllTasks());
+	}, []);
+
+	useEffect(() => {
+		void refresh();
+	}, [refresh]);
+
+	const projectNames = useMemo(
+		() => Object.fromEntries(projects.map((project) => [project.projectPath, project.projectName])),
+		[projects],
+	);
+
+	const shown = filter === "open" ? tasks.filter((task) => task.status !== "done") : tasks;
+
+	const cycle = async (task: Task) => {
+		await globalThis.lazify.setTaskStatus(task.id, NEXT_STATUS[task.status]);
+		await refresh();
+	};
+
+	const removeTask = async (task: Task) => {
+		setDeleting(null);
+		await globalThis.lazify.deleteTask(task.id);
+		setEditor((current) => (current?.task?.id === task.id ? null : current));
+		await refresh();
+	};
+
+	const startNewTask = () => {
+		if (projects.length === 0) {
+			navigate(appRoute.workspace);
+			return;
+		}
+
+		if (activeProjectPath) setEditor({ task: null, projectPath: activeProjectPath });
+		else setPickingProject(true);
+	};
+
+	const openAgents = (projectPath: string) => {
+		onActiveProjectChange(projectPath);
+		navigate(getAgentsRoute(projectPath));
+	};
+
+	const leaveForAgents = () =>
+		activeProjectPath ? openAgents(activeProjectPath) : navigate(appRoute.agents);
+
+	const startAgents = () => {
+		if (liveAgents.length === 0) {
+			leaveForAgents();
+			return;
+		}
+
+		setWatchChoice(true);
+	};
+
+	const shortcuts: DesktopShortcut[] = [
+		{
+			id: "tasks",
+			label: t(translation.Home.TasksWindow),
+			icon: "journal-page",
+			windowId: "tasks",
+		},
+		{
+			id: "projects",
+			label: t(translation.Home.ProjectsWindow),
+			icon: "folder",
+			windowId: "projects",
+		},
+		{
+			id: "agents",
+			label: t(translation.Navigation.Agents),
+			icon: "code",
+			onSelect: startAgents,
+		},
+		{
+			id: "workspace",
+			label: t(translation.Navigation.Workspace),
+			icon: "multi-window",
+			onSelect: () => navigate(appRoute.workspace),
+		},
+		{
+			id: "settings",
+			label: t(translation.Navigation.Settings),
+			icon: "settings",
+			onSelect: () => navigate(appRoute.settings),
+		},
+		{
+			id: "customize",
+			label: t(translation.Home.Customize),
+			icon: "sparks",
+			windowId: "customize",
+		},
+	];
+
+	const fixedWindowTitles: Record<FixedWindowId, DesktopWindowTitle> = {
+		tasks: { title: t(translation.Home.YourTasks), icon: "journal-page" },
+		projects: { title: t(translation.Agents.Projects), icon: "folder" },
+		customize: { title: t(translation.Home.Customize), icon: "sparks" },
+	};
+
+	const findSession = (id: DesktopWindowId) => {
+		const runId = agentRunId(id);
+		return runId ? (liveAgents.find((session) => session.runId === runId) ?? null) : null;
+	};
+
+	const windowTitle = (id: DesktopWindowId): DesktopWindowTitle => {
+		const runId = agentRunId(id);
+		if (!runId) return fixedWindowTitles[id as FixedWindowId];
+
+		const session = findSession(id);
+
+		return {
+			title: session ? session.label : t(translation.Home.AgentsWindow),
+			icon: "radar",
+		};
+	};
+
+	const renderWindow = (id: DesktopWindowId) => {
+		if (id === "customize") return <CustomizePanel shortcuts={shortcuts} />;
+
+		if (agentRunId(id)) {
+			return <LiveAgentPanel session={findSession(id)} onOpenAgents={openAgents} />;
+		}
+
+		if (id === "tasks") {
+			return (
+				<TasksPanel
+					tasks={tasks}
+					shown={shown}
+					filter={filter}
+					projectNames={projectNames}
+					onFilterChange={setFilter}
+					onAddTask={startNewTask}
+					onOpenTask={(task) => setEditor({ task, projectPath: task.projectPath })}
+					onCycleStatus={(task) => void cycle(task)}
+					onSendPrompt={setSending}
+					onOpenAgents={(task) => openAgents(task.projectPath)}
+					onDeleteTask={setDeleting}
+				/>
+			);
+		}
+
+		return (
+			<ProjectsPanel
+				projects={projects}
+				tasks={tasks}
+				activeProjectPath={activeProjectPath}
+				onOpenProject={(projectPath) => {
+					onActiveProjectChange(projectPath);
+					navigate(getWorkspaceProjectRoute(projectPath));
+				}}
+				onOpenWorkspace={() => navigate(appRoute.workspace)}
+			/>
+		);
+	};
+
+	return (
+		<>
+			<HomeDesktop
+				shortcuts={shortcuts}
+				windowTitle={windowTitle}
+				widgetData={{
+					now: new Date(),
+					openTasks: tasks.filter((task) => task.status !== "done").length,
+					doneTasks: tasks.filter((task) => task.status === "done").length,
+					projectCount: projects.length,
+					runningAgents: liveAgents.length,
+					waitingAgents: liveAgents.filter((session) => session.waiting).length,
+					activeProjectPath,
+				}}
+				onOpenAgents={startAgents}
+				onOpenProject={(projectPath) => navigate(getWorkspaceProjectRoute(projectPath))}
+				requestedWindow={requestedWindow}
+				onWindowOpened={clearWindowRequest}
+				renderWindow={renderWindow}
+			/>
+
+			<WatchAgentsModal
+				open={watchChoice}
+				sessions={liveAgents}
+				onWatch={(runId) => {
+					setWatchChoice(false);
+					setRequestedWindow(agentWindowId(runId));
+				}}
+				onOpenAgents={() => {
+					setWatchChoice(false);
+					leaveForAgents();
+				}}
+				onClose={() => setWatchChoice(false)}
+			/>
+
+			<TaskDetailModal
+				open={editor !== null}
+				task={opened}
+				projects={projects}
+				projectPath={editor?.projectPath ?? ""}
+				projectName={
+					editor ? (projectNames[editor.projectPath] ?? editor.projectPath.split("/").at(-1) ?? "") : ""
+				}
+				presets={presets}
+				onSetStatus={(status) => {
+					if (!editor?.task) return;
+					void globalThis.lazify.setTaskStatus(editor.task.id, status).then(refresh);
+					setEditor({ ...editor, task: { ...editor.task, status } });
+				}}
+				onDeleteTask={() => setDeleting(opened)}
+				onSaveTask={(input) => {
+					if (!editor) return;
+
+					if (editor.task) {
+						void globalThis.lazify.updateTask(editor.task.id, input).then(refresh);
+						return;
+					}
+
+					// Saved for the first time: the pane stays open on the task that now
+					// exists, so its status, history and agents are there to use.
+					void globalThis.lazify.createTask(input).then((created) => {
+						setEditor({ task: created, projectPath: created.projectPath });
+						void refresh();
+					});
+				}}
+				onSent={() => {
+					setEditor(null);
+					void refresh();
+				}}
+				onClose={() => setEditor(null)}
+			/>
+
+			<DeleteTaskConfirm
+				task={deleting}
+				onConfirm={(task) => void removeTask(task)}
+				onCancel={() => setDeleting(null)}
+			/>
+
+			<SendTaskModal
+				open={sending !== null}
+				task={sending}
+				onSent={(session) => {
+					// Sending starts the task, so the list is asked again on the way out.
+					void refresh();
+					// Follow the prompt: the paste lands when that terminal is on screen.
+					openAgents(session.projectPath);
+				}}
+				onClose={() => setSending(null)}
+			/>
+
+			<ProjectPickerModal
+				open={pickingProject}
+				projects={projects}
+				selectedPath={activeProjectPath ?? ""}
+				title={translation.PromptBuilder.ChooseProject}
+				emptyMessage={translation.Tasks.SyncFirst}
+				onSelect={(projectPath) => {
+					onActiveProjectChange(projectPath);
+					setEditor({ task: null, projectPath });
+				}}
+				onClose={() => setPickingProject(false)}
+			/>
+		</>
+	);
 }

@@ -1,4 +1,4 @@
-import type { ContextPayload, ContextTypeId } from "./context-render";
+import type { ContextPayload, ContextTypeId } from "./context-types";
 
 export type ContextScope = "global" | "project";
 

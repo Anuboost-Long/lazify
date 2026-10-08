@@ -69,6 +69,20 @@ templates, settings, API collections, and safely recoverable project links.
 | [013](tickets/013-project-list.md) | Project list and `lazify-*` settings from Chromium's LevelDB in the backup (owner chose this over an Electron export) | **Done.** Real profile: 12 projects, 19 settings recovered |
 | [014](tickets/014-first-launch-import.md) | First-launch import screen, the import itself, and the project list with access states | **Built.** Waits on the owner's first run after a `chain dev` restart |
 
+## Phase 4 — smallest vertical slice
+
+D-1: port Lazify's renderer as it is. Exit criterion: a user can open a
+project, run a command, give an agent a task, reload the app, reconnect,
+and understand failures without the old app.
+
+| Ticket | Scope | Status |
+| --- | --- | --- |
+| [015](tickets/015-renderer-foundation.md) | Whole renderer ported and compiling; `globalThis.lazify` bridge over `src/platform/` | **Done in build and tests.** App run waits on a `chain dev` restart |
+| 016 | App shell, settings, theme and language persistence, Home | Next |
+| 017 | Open a project: picker, project list, file tree, preview, search | Queued |
+| 018 | Scripts pane and terminal, with reattach after reload | Queued |
+| 019 | Agents page: launch, give a task (Prompt Builder and tasks storage), reattach | Queued |
+
 ## Chain SDK requests
 
 | # | Request | Unblocks | Status |

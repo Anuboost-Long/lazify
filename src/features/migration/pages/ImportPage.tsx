@@ -14,21 +14,21 @@ interface ImportPageProps {
 
 const primaryButton = clsx(
 	"inline-flex h-9 items-center rounded-md",
-	"bg-chain-lime",
-	"text-sm font-medium text-chain-navy",
+	"bg-accent",
+	"text-sm font-medium text-white",
 	"px-4",
-	"hover:brightness-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-chain-navy dark:focus-visible:outline-chain-cream disabled:opacity-60",
+	"hover:bg-accentHover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:opacity-60",
 );
 
 const secondaryButton = clsx(
 	"inline-flex h-9 items-center rounded-md",
-	"border border-chain-navy/15 dark:border-chain-cream/15",
-	"text-sm font-medium",
+	"border border-border",
+	"text-sm font-medium text-text",
 	"px-4",
-	"hover:bg-chain-navy/5 dark:hover:bg-chain-cream/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-chain-navy dark:focus-visible:outline-chain-cream",
+	"hover:bg-text/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent",
 );
 
-const muted = "text-chain-navy/60 dark:text-chain-cream/60";
+const muted = "text-muted";
 
 function Summary({ offer }: Readonly<{ offer: ImportOffer }>) {
 	const { database, jsonStores, folders } = offer.report;
@@ -44,7 +44,7 @@ function Summary({ offer }: Readonly<{ offer: ImportOffer }>) {
 	];
 
 	return (
-		<dl className="divide-y divide-chain-navy/10 border-y border-chain-navy/10 dark:divide-chain-cream/10 dark:border-chain-cream/10">
+		<dl className="divide-y divide-border border-y border-border">
 			{rows.map(([label, value]) => (
 				<div key={label} className="flex items-center justify-between py-2.5 text-sm">
 					<dt className={muted}>{label}</dt>
@@ -95,7 +95,7 @@ function Projects({
 					Lazify can only open folders you allow. Choose your project folders once; you can select several at a time.
 				</p>
 			</div>
-			<ul className="divide-y divide-chain-navy/10 border-y border-chain-navy/10 dark:divide-chain-cream/10 dark:border-chain-cream/10">
+			<ul className="divide-y divide-border border-y border-border">
 				{result.projects.map((project) => {
 					const status = projectStatus(project, granted);
 
@@ -139,7 +139,7 @@ export default function ImportPage({
 			return <main className={clsx("mx-auto max-w-xl text-sm", muted, "px-4 py-12")}>Looking for your Lazify data…</main>;
 		case "none":
 			return (
-				<main className="mx-auto max-w-xl space-y-4 px-4 py-12">
+				<main className="mx-auto max-w-xl text-text space-y-4 px-4 py-12">
 					<h1 className="text-xl font-semibold">No Lazify data to import</h1>
 					<p className={clsx("text-sm", muted)}>There's nothing from the Lazify desktop app on this Mac.</p>
 					<button type="button" className={primaryButton} onClick={onContinue}>
@@ -153,7 +153,7 @@ export default function ImportPage({
 			const importing = state.kind === "importing";
 
 			return (
-				<main className="mx-auto max-w-xl space-y-6 px-4 py-12">
+				<main className="mx-auto max-w-xl text-text space-y-6 px-4 py-12">
 					<div className="space-y-2">
 						<h1 className="text-xl font-semibold">Import your Lazify data</h1>
 						<p className={clsx("text-sm", muted)}>
@@ -182,7 +182,7 @@ export default function ImportPage({
 		}
 		case "done":
 			return (
-				<main className="mx-auto max-w-xl space-y-8 px-4 py-12">
+				<main className="mx-auto max-w-xl text-text space-y-8 px-4 py-12">
 					<div className="space-y-2">
 						<h1 className="text-xl font-semibold">Imported</h1>
 						<p className={clsx("text-sm", muted)}>

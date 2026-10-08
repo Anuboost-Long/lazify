@@ -1,0 +1,73 @@
+import { useTranslation } from "react-i18next";
+
+import { translation } from "@/i18n/translation";
+import type {
+  FileSearchEntry,
+  FileSearchResult,
+} from "@/shared/lib/fuzzy/file-search";
+import { CaptionText, MonoText } from "@/shared/typography";
+import UiIcon from "@/shared/ui/icons/UiIcon";
+import { getFileVisual } from "@/shared/ui/project-tree/core/project-tree-visuals";
+import { CommandPalette, HighlightedText } from "./CommandPalette";
+import { useFileQuickOpen, type QuickOpenTreeNode } from "./useFileQuickOpen";
+
+interface FileQuickOpenProps {
+  tree: readonly QuickOpenTreeNode[];
+  onOpenFile: (entry: FileSearchEntry) => void;
+}
+
+function splitMatch(result: FileSearchResult) {
+  const { path, name } = result.entry;
+  const nameStart = path.length - name.length;
+  const dir = path.slice(0, nameStart);
+
+  const dirPositions: number[] = [];
+  const namePositions: number[] = [];
+  for (const position of result.positions) {
+    if (position < nameStart) dirPositions.push(position);
+    else namePositions.push(position - nameStart);
+  }
+
+  return { dir, name, dirPositions, namePositions };
+}
+
+export function FileQuickOpen({ tree, onOpenFile }: Readonly<FileQuickOpenProps>) {
+  const { t } = useTranslation();
+  const quickOpen = useFileQuickOpen(tree, onOpenFile);
+
+  return (
+    <CommandPalette<FileSearchResult>
+      open={quickOpen.open}
+      query={quickOpen.query}
+      placeholder={t(translation.CommandPalette.SearchFilesPlaceholder)}
+      emptyLabel={t(translation.CommandPalette.NoMatchingFiles)}
+      items={quickOpen.results}
+      getKey={(result) => result.entry.id}
+      onQueryChange={quickOpen.setQuery}
+      onSelect={(result) => quickOpen.select(result.entry)}
+      onClose={quickOpen.close}
+      renderItem={(result) => {
+        const { dir, name, dirPositions, namePositions } = splitMatch(result);
+        const visual = getFileVisual(name);
+
+        return (
+          <>
+            <UiIcon name={visual.icon} className={`h-4 w-4 shrink-0 ${visual.color}`} />
+            <MonoText as="span" className="shrink-0 truncate text-sm text-text">
+              <HighlightedText text={name} positions={namePositions} />
+            </MonoText>
+            {dir ? (
+              <CaptionText as="span" tone="muted" className="min-w-0 flex-1 truncate text-xs">
+                <HighlightedText
+                  text={dir}
+                  positions={dirPositions}
+                  matchClassName="text-accent/80"
+                />
+              </CaptionText>
+            ) : null}
+          </>
+        );
+      }}
+    />
+  );
+}

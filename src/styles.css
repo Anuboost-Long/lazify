@@ -1,0 +1,542 @@
+@import '@fontsource-variable/manrope' layer(base);
+@import '@fontsource/chakra-petch/500.css' layer(base);
+@import '@fontsource/chakra-petch/600.css' layer(base);
+@import '@fontsource/chakra-petch/700.css' layer(base);
+
+@import 'tailwindcss';
+
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+@theme {
+  --color-bg: rgb(var(--lz-bg));
+  --color-soft: rgb(var(--lz-bg-soft));
+  --color-terminal: rgb(var(--lz-terminal));
+  --color-text: rgb(var(--lz-text));
+  --color-muted: rgb(var(--lz-text-muted));
+  --color-accent: rgb(var(--lz-accent));
+  --color-accentHover: rgb(var(--lz-accent-hover));
+  --color-accentSoft: var(--lz-accent-soft);
+  --color-border: var(--lz-border);
+  --color-success: rgb(var(--lz-success));
+  --color-warning: rgb(var(--lz-warning));
+  --color-error: rgb(var(--lz-error));
+
+  --shadow-panel: 0 2px 8px rgba(6, 24, 16, 0.08);
+  --shadow-glow:
+    0 0 0 1px rgb(var(--lz-accent) / 0.24),
+    0 4px 12px rgb(var(--lz-accent) / 0.14);
+
+  --radius-shell: 28px;
+
+  --leading-khmer: 1.75;
+
+  --font-display: var(--lz-font-display);
+  --font-body: var(--font-ui);
+  --font-mono: SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  --background-image-grid:
+    linear-gradient(
+      to right,
+      rgb(var(--lz-accent) / 0.08) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      to bottom,
+      rgb(var(--lz-accent) / 0.08) 1px,
+      transparent 1px
+    );
+
+  --animate-drift: drift 14s ease-in-out infinite;
+  --animate-fadeIn: fadeIn 420ms ease-out forwards;
+  --animate-pulseLine: pulseLine 2.6s ease-in-out infinite;
+
+  @keyframes fadeIn {
+    0% {
+      opacity: 0;
+      transform: translate3d(0, 12px, 0);
+    }
+    100% {
+      opacity: 1;
+      transform: translate3d(0, 0, 0);
+    }
+  }
+  @keyframes drift {
+    0%,
+    100% {
+      transform: translate3d(0, 0, 0) scale(1);
+    }
+    50% {
+      transform: translate3d(12px, -16px, 0) scale(1.03);
+    }
+  }
+  @keyframes pulseLine {
+    0%,
+    100% {
+      opacity: 0.4;
+    }
+    50% {
+      opacity: 1;
+    }
+  }
+}
+
+/*
+  The default border color has changed to `currentcolor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
+  }
+}
+
+@keyframes toast-drain {
+	from {
+		transform: scaleX(1);
+	}
+	to {
+		transform: scaleX(0);
+	}
+}
+
+/* ─────────────────────────────────────────────
+   BASE (dark theme + emerald accent)
+   ───────────────────────────────────────────── */
+:root {
+	--font-ui: "Google Sans", "Avenir Next", "Segoe UI", sans-serif;
+	--lz-font-display: var(--font-ui);
+
+	--lz-bg: 11 18 32;
+	--lz-bg-soft: 17 24 39;
+
+	/* The terminal's own surface, and the gutter around it, so a terminal reads
+     as one panel rather than a canvas laid on a differently coloured tray.
+     Kept in step with XTermPanel's theme background. */
+	--lz-terminal: 17 24 39;
+
+	--lz-text: 229 231 235;
+	--lz-text-muted: 156 163 175;
+
+	--lz-accent: 16 185 129;
+	--lz-accent-hover: 5 150 105;
+	--lz-accent-soft: rgba(16, 185, 129, 0.1);
+
+	--lz-border: rgba(255, 255, 255, 0.08);
+
+	--lz-success: 34 197 94;
+	--lz-warning: 245 158 11;
+	--lz-error: 244 63 94;
+
+	/* Syntax colours, following VS Code's Dark+ palette. */
+	--code-plain: #d4d4d4;
+	--code-comment: #6a9955;
+	--code-string: #ce9178;
+	--code-number: #b5cea8;
+	--code-keyword: #c586c0;
+	--code-type: #4ec9b0;
+	--code-function: #dcdcaa;
+	--code-property: #9cdcfe;
+	--code-punctuation: #d4d4d4;
+	--code-tag: #569cd6;
+	--code-attribute: #9cdcfe;
+}
+
+:root:lang(en) {
+	--font-ui: "Manrope Variable", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+	--lz-font-display: "Chakra Petch", "Manrope Variable", sans-serif;
+}
+
+/* ─────────────────────────────────────────────
+   DARK THEME — NON-EMERALD ACCENT OVERRIDES
+   (specificity 0,1,1 — same as light theme rule
+   below, so must come BEFORE light theme block)
+   ───────────────────────────────────────────── */
+[data-desktop-tint="emerald"] {
+	--lz-accent: 16 185 129;
+	--lz-accent-hover: 5 150 105;
+	--lz-accent-soft: rgba(16, 185, 129, 0.1);
+}
+:root[data-theme="light"] [data-desktop-tint="emerald"] {
+	--lz-accent: 4 120 87;
+	--lz-accent-hover: 6 95 70;
+	--lz-accent-soft: rgba(4, 120, 87, 0.08);
+}
+
+:root[data-accent="sky"],
+[data-desktop-tint="sky"] {
+	--lz-accent: 14 165 233;
+	--lz-accent-hover: 2 132 199;
+	--lz-accent-soft: rgba(14, 165, 233, 0.1);
+}
+:root[data-accent="violet"],
+[data-desktop-tint="violet"] {
+	--lz-accent: 139 92 246;
+	--lz-accent-hover: 124 58 237;
+	--lz-accent-soft: rgba(139, 92, 246, 0.1);
+}
+:root[data-accent="rose"],
+[data-desktop-tint="rose"] {
+	--lz-accent: 244 63 94;
+	--lz-accent-hover: 225 29 72;
+	--lz-accent-soft: rgba(244, 63, 94, 0.1);
+}
+:root[data-accent="amber"],
+[data-desktop-tint="amber"] {
+	--lz-accent: 245 158 11;
+	--lz-accent-hover: 217 119 6;
+	--lz-accent-soft: rgba(245, 158, 11, 0.1);
+}
+:root[data-accent="cyan"],
+[data-desktop-tint="cyan"] {
+	--lz-accent: 6 182 212;
+	--lz-accent-hover: 8 145 178;
+	--lz-accent-soft: rgba(6, 182, 212, 0.1);
+}
+:root[data-accent="pink"],
+[data-desktop-tint="pink"] {
+	--lz-accent: 236 72 153;
+	--lz-accent-hover: 219 39 119;
+	--lz-accent-soft: rgba(236, 72, 153, 0.1);
+}
+:root[data-accent="indigo"],
+[data-desktop-tint="indigo"] {
+	--lz-accent: 99 102 241;
+	--lz-accent-hover: 79 70 229;
+	--lz-accent-soft: rgba(99, 102, 241, 0.1);
+}
+
+/* ─────────────────────────────────────────────
+   LIGHT THEME — EMERALD (default accent)
+   (specificity 0,1,1 — comes after dark accent
+   overrides, so emerald-light always takes over
+   for non-accent + light combos)
+   ───────────────────────────────────────────── */
+:root[data-theme="light"] {
+	--lz-bg: 243 244 246;
+	--lz-bg-soft: 255 255 255;
+
+	/* Light, but off the paper-white of --lz-bg-soft: a terminal is read for
+     minutes at a time, and white at full brightness is what makes eyes ache.
+     It sits with the page rather than under it, and the gap it keeps is to the
+     white chrome around it — that edge is what makes the panel findable. */
+	--lz-terminal: 241 243 247;
+
+	--lz-text: 17 24 39;
+	--lz-text-muted: 55 65 81;
+
+	--lz-accent: 4 120 87;
+	--lz-accent-hover: 6 95 70;
+	--lz-accent-soft: rgba(4, 120, 87, 0.08);
+
+	--lz-border: rgba(0, 0, 0, 0.14);
+
+	--lz-success: 22 163 74;
+	--lz-warning: 215 119 6;
+	--lz-error: 225 29 72;
+
+	/* Syntax colours, following VS Code's Light+ palette. */
+	--code-plain: #1f2328;
+	--code-comment: #008000;
+	--code-string: #a31515;
+	--code-number: #098658;
+	--code-keyword: #af00db;
+	--code-type: #267f99;
+	--code-function: #795e26;
+	--code-property: #001080;
+	--code-punctuation: #1f2328;
+	--code-tag: #800000;
+	--code-attribute: #e50000;
+}
+
+/* ─────────────────────────────────────────────
+   LIGHT THEME — NON-EMERALD ACCENT OVERRIDES
+   (specificity 0,2,1 — always beats the single-
+   attribute rules above)
+   ───────────────────────────────────────────── */
+:root[data-accent="sky"][data-theme="light"],
+:root[data-theme="light"] [data-desktop-tint="sky"] {
+	--lz-accent: 2 132 199;
+	--lz-accent-hover: 3 105 161;
+	--lz-accent-soft: rgba(2, 132, 199, 0.08);
+}
+:root[data-accent="violet"][data-theme="light"],
+:root[data-theme="light"] [data-desktop-tint="violet"] {
+	--lz-accent: 109 40 217;
+	--lz-accent-hover: 91 33 182;
+	--lz-accent-soft: rgba(109, 40, 217, 0.08);
+}
+:root[data-accent="rose"][data-theme="light"],
+:root[data-theme="light"] [data-desktop-tint="rose"] {
+	--lz-accent: 190 18 60;
+	--lz-accent-hover: 159 18 57;
+	--lz-accent-soft: rgba(190, 18, 60, 0.08);
+}
+:root[data-accent="amber"][data-theme="light"],
+:root[data-theme="light"] [data-desktop-tint="amber"] {
+	--lz-accent: 180 83 9;
+	--lz-accent-hover: 146 64 14;
+	--lz-accent-soft: rgba(180, 83, 9, 0.08);
+}
+:root[data-accent="cyan"][data-theme="light"],
+:root[data-theme="light"] [data-desktop-tint="cyan"] {
+	--lz-accent: 14 116 144;
+	--lz-accent-hover: 21 94 117;
+	--lz-accent-soft: rgba(14, 116, 144, 0.08);
+}
+:root[data-accent="pink"][data-theme="light"],
+:root[data-theme="light"] [data-desktop-tint="pink"] {
+	--lz-accent: 190 24 93;
+	--lz-accent-hover: 157 23 77;
+	--lz-accent-soft: rgba(190, 24, 93, 0.08);
+}
+:root[data-accent="indigo"][data-theme="light"],
+:root[data-theme="light"] [data-desktop-tint="indigo"] {
+	--lz-accent: 67 56 202;
+	--lz-accent-hover: 55 48 163;
+	--lz-accent-soft: rgba(67, 56, 202, 0.08);
+}
+
+/* ─────────────────────────────────────────────
+   GLOBALS
+   ───────────────────────────────────────────── */
+html,
+body,
+#root {
+	min-height: 100%;
+}
+
+body {
+	margin: 0;
+	font-family: var(--font-ui);
+	background: rgb(var(--lz-bg));
+	color: rgb(var(--lz-text));
+}
+
+* {
+	box-sizing: border-box;
+}
+
+*::selection {
+	background: rgb(var(--lz-accent) / 0.28);
+}
+
+i[class^="devicon-"],
+i[class*=" devicon-"] {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	line-height: 1;
+}
+
+::-webkit-scrollbar {
+	width: 0;
+	height: 0;
+	display: none;
+}
+
+::-webkit-scrollbar-track {
+	background: rgba(6, 17, 12, 0.45);
+}
+
+:root[data-theme="light"] ::-webkit-scrollbar-track {
+	background: rgba(0, 0, 0, 0.06);
+}
+
+::-webkit-scrollbar-thumb {
+	border: 3px solid transparent;
+	border-radius: 999px;
+	background: rgb(var(--lz-accent) / 0.35);
+	background-clip: content-box;
+}
+
+* {
+	scrollbar-width: none;
+	-ms-overflow-style: none;
+}
+
+.scroll-visible {
+	scrollbar-width: thin;
+	scrollbar-color: rgb(var(--lz-accent) / 0.35) transparent;
+	overscroll-behavior: contain;
+}
+
+input[type="search"]::-webkit-search-cancel-button {
+	-webkit-appearance: none;
+	appearance: none;
+	display: none;
+}
+
+/* ─────────────────────────────────────────────
+   KHMER
+   Letter-spacing pulls the clusters apart, so the
+   script never takes tracking. Two selectors deep
+   to outrank any tracking-* utility.
+   ───────────────────────────────────────────── */
+:root:lang(kh),
+:root:lang(kh) * {
+	letter-spacing: normal;
+}
+
+/* ─────────────────────────────────────────────
+   ACCENT-AWARE UTILITY CLASS OVERRIDES
+   These come after @tailwind utilities so they
+   win via cascade (same specificity, later pos).
+   ───────────────────────────────────────────── */
+
+/* Override Tailwind's hardcoded emerald shadow-glow */
+.shadow-glow {
+	box-shadow:
+		0 0 0 1px rgb(var(--lz-accent) / 0.24),
+		0 4px 12px rgb(var(--lz-accent) / 0.14);
+}
+
+/* Override Tailwind's hardcoded emerald bg-grid */
+.bg-grid {
+	background-image:
+		linear-gradient(to right, rgb(var(--lz-accent) / 0.08) 1px, transparent 1px),
+		linear-gradient(to bottom, rgb(var(--lz-accent) / 0.08) 1px, transparent 1px);
+}
+
+/* Card gradient backgrounds used in active/selected states */
+.bg-accent-gradient-135 {
+	background: linear-gradient(135deg, rgb(var(--lz-accent) / 0.1), rgba(255, 255, 255, 0.02));
+}
+.bg-accent-gradient-180 {
+	background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgb(var(--lz-accent) / 0.04));
+}
+.bg-accent-gradient-140 {
+	background: linear-gradient(140deg, rgb(var(--lz-accent) / 0.07) 0%, transparent 55%);
+}
+
+/* Icon glow used inside group elements */
+.shadow-accent-icon {
+	box-shadow: 0 0 10px rgb(var(--lz-accent) / 0.22);
+}
+.group:hover .shadow-accent-icon {
+	box-shadow: 0 0 14px rgb(var(--lz-accent) / 0.34);
+}
+
+/* Named accent card shadows (replace arbitrary Tailwind shadow values) */
+.shadow-accent-sm {
+	box-shadow: 0 2px 8px rgb(var(--lz-accent) / 0.12);
+}
+.shadow-accent-md {
+	box-shadow: 0 3px 10px rgb(var(--lz-accent) / 0.08);
+}
+.shadow-accent-lg {
+	box-shadow: 0 3px 10px rgb(var(--lz-accent) / 0.16);
+}
+
+/* ─────────────────────────────────────────────
+   CODE FIND MATCHES
+   Painted through the CSS Custom Highlight API,
+   so the highlighter's own spans are untouched.
+   ───────────────────────────────────────────── */
+::highlight(code-find) {
+	background-color: rgb(var(--lz-warning) / 0.35);
+}
+
+::highlight(code-find-active) {
+	background-color: rgb(var(--lz-warning) / 0.75);
+	color: rgb(11 18 32);
+}
+
+/* ─────────────────────────────────────────────
+   CODE QUALITY FINDINGS
+   The underline an editor puts under a smell:
+   the code keeps its own colours, and only the
+   decoration says something is here.
+   ───────────────────────────────────────────── */
+::highlight(code-diagnostic) {
+	text-decoration: underline wavy rgb(var(--lz-warning) / 0.9);
+	text-underline-offset: 3px;
+}
+
+/* ─────────────────────────────────────────────
+   REDUCE MOTION
+   ───────────────────────────────────────────── */
+:root[data-reduce-motion="true"] *,
+:root[data-reduce-motion="true"] *::before,
+:root[data-reduce-motion="true"] *::after {
+	animation-duration: 0.01ms !important;
+	animation-iteration-count: 1 !important;
+	transition-duration: 0.01ms !important;
+	scroll-behavior: auto !important;
+}
+
+/* ─────────────────────────────────────────────
+   API STUDIO RICH TEXT
+   The document builder's fields are contentEditable,
+   so the tags a browser writes need house styling.
+   ───────────────────────────────────────────── */
+.doc-rich-text p {
+	margin: 0 0 0.5em;
+}
+
+.doc-rich-text p:last-child {
+	margin-bottom: 0;
+}
+
+.doc-rich-text ul,
+.doc-rich-text ol {
+	margin: 0 0 0.5em;
+	padding-left: 1.15rem;
+}
+
+.doc-rich-text ul {
+	list-style: disc;
+}
+
+.doc-rich-text ol {
+	list-style: decimal;
+}
+
+.doc-rich-text h4 {
+	margin: 0.6em 0 0.3em;
+	font-size: 0.8125rem;
+	font-weight: 600;
+}
+
+.doc-rich-text a {
+	color: rgb(var(--lz-accent));
+	text-decoration: underline;
+}
+
+.doc-rich-text code {
+	border-radius: 0.25rem;
+	background: rgb(var(--lz-text) / 0.07);
+	padding: 0 0.25rem;
+	font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.doc-rich-text pre code {
+	border: 0;
+	background: none;
+	padding: 0;
+	font-size: inherit;
+}
+
+.doc-rich-text pre {
+	margin: 0 0 0.5em;
+	border-radius: 0.375rem;
+	background: rgb(var(--lz-text) / 0.05);
+	padding: 0.5rem 0.625rem;
+	font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+	font-size: 0.6875rem;
+	white-space: pre-wrap;
+}
+
+.doc-rich-text blockquote {
+	margin: 0 0 0.5em;
+	border-left: 2px solid var(--lz-border);
+	padding-left: 0.625rem;
+	color: rgb(var(--lz-text-muted));
+}

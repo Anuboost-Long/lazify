@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { assemblePrompt, findPreset } from "@/features/prompts/lib/assemble";
 import { BUILTIN_PRESETS } from "@/features/prompts/lib/builtin-presets";
-import { renderContext } from "@/features/prompts/lib/context-render";
+import { renderContext } from "@/features/prompts/lib/context-types";
 import { suggestPreset } from "@/features/prompts/lib/preset-suggester";
 import type {
 	BuildPromptInput,

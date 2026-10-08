@@ -1,4 +1,4 @@
-import { contextRenderer, renderContext } from "./context-render";
+import { contextType, renderContext } from "./context-types";
 import type { ContextEntry } from "./types";
 
 /**
@@ -22,7 +22,7 @@ export function selectEntries(
 
 function lines(entries: ContextEntry[], section: "context" | "rules"): string {
   return entries
-    .filter((entry) => contextRenderer(entry.type).section === section)
+    .filter((entry) => contextType(entry.type).section === section)
     .map((entry) => renderContext(entry.type, entry.payload))
     .filter(Boolean)
     .map((line) => `- ${line}`)

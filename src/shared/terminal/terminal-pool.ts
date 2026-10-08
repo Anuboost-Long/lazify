@@ -1,0 +1,529 @@
+import { FitAddon } from "@xterm/addon-fit";
+import { Terminal } from "@xterm/xterm";
+
+import { registerTerminalPaste } from "@/shared/lib/terminal-paste";
+
+import { attachClipboardPaste } from "./clipboard-paste";
+import { forgetColorScheme, reportSchemeChange, watchColorScheme } from "./color-scheme-notify";
+import { registerFileLinks, type FileLinkHandlers } from "./file-link-provider";
+import { endRestart, isRestarting } from "./session-restart";
+import { terminalTheme } from "./terminal-theme";
+
+/**
+ * How many terminals with no mount point are kept alive before the oldest is
+ * disposed. A detached terminal is what lets a run keep its scrollback across a
+ * route change; without a cap they would accumulate for the life of the app.
+ */
+const MAX_DETACHED = 8;
+
+export interface PooledTerminal {
+  runId: string;
+  shared: boolean;
+  links: FileLinkHandlers;
+}
+
+interface Entry extends PooledTerminal {
+  term: Terminal | null;
+  fit: FitAddon | null;
+  holder: HTMLDivElement;
+  mounts: HTMLElement[];
+  replayed: boolean;
+  pending: { data: string; seq?: number }[];
+  detachedAt: number;
+  openObserver: ResizeObserver | null;
+  sizeObserver: ResizeObserver | null;
+  firstFit: number | null;
+  disposers: (() => void)[];
+  /** Keyed by run rather than by terminal, so a restart has to re-register it. */
+  pasteDisposer: (() => void) | null;
+}
+
+const entriesByRun = new Map<string, Entry[]>();
+
+let stopPtyData: (() => void) | null = null;
+let stopSessionKilled: (() => void) | null = null;
+let currentTheme = "dark";
+
+function allEntries() {
+  return [...entriesByRun.values()].flat();
+}
+
+const writeToSession = (runId: string, data: string) => globalThis.lazify.ptyWrite(runId, data);
+
+function ensureListeners() {
+  if (stopPtyData) return;
+
+  stopPtyData = globalThis.lazify.onPtyData((event) => {
+    const entries = entriesByRun.get(event.runId);
+    if (!entries) return;
+
+    entries.forEach((entry) => {
+      if (entry.term && entry.replayed) {
+        entry.term.write(event.data);
+        return;
+      }
+
+      entry.pending.push({ data: event.data, seq: event.seq });
+    });
+  });
+
+  stopSessionKilled = globalThis.lazify.onSessionKilled((event) => {
+    // A restart kills the old session on purpose; its terminal is about to be
+    // handed the new one.
+    if (isRestarting(event.runId)) return;
+
+    disposeRun(event.runId);
+  });
+}
+
+function owner(entry: Entry) {
+  return entry.mounts.at(-1) ?? null;
+}
+
+function fitToOwner(entry: Entry) {
+  const { term, fit } = entry;
+  if (!term || !fit) return;
+  if (entry.holder.offsetWidth === 0 || entry.holder.offsetHeight === 0) return;
+
+  try {
+    fit.fit();
+    globalThis.lazify.ptyResize(entry.runId, term.cols, term.rows);
+  } catch {
+    // the holder may have been detached between observation and callback
+  }
+}
+
+/**
+ * Replay what the session already printed, so a terminal built after the run
+ * started shows the transcript. Live chunks are held aside from the moment the
+ * pool starts listening, then flushed after the backlog and matched by
+ * sequence, so nothing is lost or duplicated in the round-trip.
+ *
+ * Deliberately after the first fit: the backlog was produced at the session's
+ * own width, and replaying it into an unmeasured 80-column buffer would rewrap
+ * every line.
+ */
+function replayBacklog(entry: Entry) {
+  const term = entry.term;
+  if (!term) return;
+
+  void globalThis.lazify
+    .ptyBacklog(entry.runId)
+    .then(({ data, seq }) => {
+      if (data) term.write(data);
+
+      entry.pending
+        .filter((chunk) => chunk.seq === undefined || chunk.seq > seq)
+        .forEach((chunk) => term.write(chunk.data));
+    })
+    .catch(() => {
+      entry.pending.forEach((chunk) => term.write(chunk.data));
+    })
+    .finally(() => {
+      entry.pending = [];
+      entry.replayed = true;
+    });
+}
+
+/**
+ * xterm measures its character cell against the live DOM when it opens, and an
+ * element inside a closed panel measures zero — leaving a terminal whose cell
+ * size is 0 and which therefore paints nothing, however often it is fitted
+ * afterwards. So the terminal is not built at all until the holder reports a
+ * real box to measure against.
+ */
+function buildWhenMeasurable(entry: Entry) {
+  if (entry.term || !owner(entry)) return;
+
+  if (entry.holder.offsetWidth > 0 && entry.holder.offsetHeight > 0) {
+    buildTerminal(entry);
+    return;
+  }
+
+  if (entry.openObserver) return;
+
+  entry.openObserver = new ResizeObserver(() => {
+    if (entry.holder.offsetWidth === 0 || entry.holder.offsetHeight === 0) return;
+
+    entry.openObserver?.disconnect();
+    entry.openObserver = null;
+    buildTerminal(entry);
+  });
+
+  entry.openObserver.observe(entry.holder);
+}
+
+function buildTerminal(entry: Entry) {
+  if (entry.term) return;
+
+  const term = new Terminal({
+    cursorBlink: true,
+    fontFamily: '"JetBrains Mono", "Fira Code", Menlo, Consolas, monospace',
+    fontSize: 12.5,
+    // Block-drawing output (Expo QR codes, progress bars, box UIs) relies on
+    // glyphs touching edge to edge, so rows and columns get no extra gap.
+    lineHeight: 1,
+    letterSpacing: 0,
+    theme: terminalTheme(currentTheme),
+    scrollback: 10_000,
+    allowTransparency: false,
+    convertEol: false
+  });
+
+  const fit = new FitAddon();
+  term.loadAddon(fit);
+  term.open(entry.holder);
+
+  entry.term = term;
+  entry.fit = fit;
+
+  term.onData((data) => globalThis.lazify.ptyWrite(entry.runId, data));
+  entry.disposers.push(
+    watchColorScheme(
+      term,
+      () => entry.runId,
+      () => currentTheme,
+      writeToSession
+    ),
+    registerFileLinks(term, entry.links),
+    attachClipboardPaste(entry.holder, term)
+  );
+
+  // The app-level paste bridge addresses one run, so only the shared terminal
+  // claims it — a private instance would silently take over the delivery.
+  if (entry.shared) {
+    entry.pasteDisposer = registerTerminalPaste(entry.runId, (text) => term.paste(text));
+  }
+
+  entry.sizeObserver = new ResizeObserver(() => fitToOwner(entry));
+  entry.sizeObserver.observe(entry.holder);
+
+  entry.firstFit = requestAnimationFrame(() => {
+    entry.firstFit = null;
+    fitToOwner(entry);
+    replayBacklog(entry);
+  });
+}
+
+function createEntry(runId: string, shared: boolean): Entry {
+  ensureListeners();
+
+  const holder = document.createElement("div");
+  holder.className = "h-full w-full";
+  holder.style.minHeight = "0";
+
+  return {
+    runId,
+    shared,
+    links: {},
+    term: null,
+    fit: null,
+    holder,
+    mounts: [],
+    replayed: false,
+    pending: [],
+    detachedAt: 0,
+    openObserver: null,
+    sizeObserver: null,
+    firstFit: null,
+    disposers: [],
+    pasteDisposer: null
+  };
+}
+
+function disposeEntry(entry: Entry) {
+  if (entry.firstFit !== null) cancelAnimationFrame(entry.firstFit);
+
+  entry.firstFit = null;
+  entry.openObserver?.disconnect();
+  entry.sizeObserver?.disconnect();
+  entry.disposers.forEach((dispose) => dispose());
+  entry.pasteDisposer?.();
+  entry.pasteDisposer = null;
+  entry.term?.dispose();
+  entry.term = null;
+  entry.fit = null;
+  entry.holder.remove();
+
+  const remaining = (entriesByRun.get(entry.runId) ?? []).filter(
+    (candidate) => candidate !== entry
+  );
+
+  if (remaining.length === 0) entriesByRun.delete(entry.runId);
+  else entriesByRun.set(entry.runId, remaining);
+}
+
+function evictDetached() {
+  const detached = allEntries()
+    .filter((entry) => entry.mounts.length === 0)
+    .sort((left, right) => left.detachedAt - right.detachedAt);
+
+  detached.slice(0, Math.max(0, detached.length - MAX_DETACHED)).forEach(disposeEntry);
+}
+
+export function disposeRun(runId: string) {
+  endRestart(runId);
+  forgetColorScheme(runId);
+  (entriesByRun.get(runId) ?? []).slice().forEach(disposeEntry);
+}
+
+/**
+ * Points the terminals of one run at another.
+ *
+ * Restarting an agent is necessarily a new process — a running one cannot be
+ * told to change its colours — but it does not have to be a new terminal. What
+ * is on screen stays on screen: same instance, same scrollback, same place,
+ * with the next session writing into it.
+ */
+export function rebindRun(fromRunId: string, toRunId: string) {
+  const entries = entriesByRun.get(fromRunId) ?? [];
+
+  endRestart(fromRunId);
+  forgetColorScheme(fromRunId);
+
+  if (entries.length === 0) return;
+
+  entriesByRun.delete(fromRunId);
+  entriesByRun.set(toRunId, [...(entriesByRun.get(toRunId) ?? []), ...entries]);
+
+  entries.forEach((entry) => {
+    entry.runId = toRunId;
+
+    // Whatever the new session printed while it was being started is still in
+    // its backlog, so it is replayed the way a freshly built terminal would.
+    entry.replayed = false;
+    entry.pending = [];
+
+    const term = entry.term;
+
+    if (!term) return;
+
+    if (entry.shared) {
+      entry.pasteDisposer?.();
+      entry.pasteDisposer = registerTerminalPaste(toRunId, (text) => term.paste(text));
+    }
+
+    // The session was spawned at a default size, and this terminal is whatever
+    // size it already was.
+    fitToOwner(entry);
+    replayBacklog(entry);
+  });
+}
+
+export function acquire(runId: string, shared = true): PooledTerminal {
+  const existing = entriesByRun.get(runId) ?? [];
+
+  if (shared) {
+    const reusable = existing.find((entry) => entry.shared);
+    if (reusable) return reusable;
+  }
+
+  const entry = createEntry(runId, shared);
+  entriesByRun.set(runId, [...existing, entry]);
+
+  return entry;
+}
+
+export function attach(pooled: PooledTerminal, container: HTMLElement) {
+  const entry = pooled as Entry;
+
+  if (!entry.mounts.includes(container)) entry.mounts.push(container);
+
+  const target = owner(entry);
+  if (target && entry.holder.parentElement !== target) target.appendChild(entry.holder);
+
+  buildWhenMeasurable(entry);
+  fitToOwner(entry);
+}
+
+export function detach(pooled: PooledTerminal, container: HTMLElement) {
+  const entry = pooled as Entry;
+
+  entry.mounts = entry.mounts.filter((mount) => mount !== container);
+
+  const target = owner(entry);
+
+  // Handed back rather than dropped: the workspace tab stays mounted behind the
+  // monitor wall, so when the wall lets go the tab is still there to show it.
+  if (target) {
+    target.appendChild(entry.holder);
+    buildWhenMeasurable(entry);
+    fitToOwner(entry);
+    return;
+  }
+
+  entry.holder.remove();
+  entry.detachedAt = Date.now();
+  evictDetached();
+}
+
+export function focusTerminal(pooled: PooledTerminal) {
+  (pooled as Entry).term?.focus();
+}
+
+export function overflowScreens(runId: string) {
+  const entry = (entriesByRun.get(runId) ?? []).find((candidate) => candidate.term);
+  const term = entry?.term;
+  if (!term || term.rows === 0) return 0;
+
+  return term.buffer.active.baseY / term.rows;
+}
+
+/** Diffs, tables, trees, stack traces — text laid out in columns rather than sentences. */
+const STRUCTURED_LINE = /[│┃┆┊├└┌┐┘─━╭╮╰╯]|\t| \| |^[+-]\s|^\s{4,}\S/;
+
+/** Below this a line would still read fine in a narrow panel. */
+const WIDE_LINE_RATIO = 0.6;
+
+/** Fewer written lines than this is a simple task, whatever they contain. */
+const MIN_LINES_TO_JUDGE = 6;
+
+export interface ReadingShape {
+  /** Share of lines running the full width: prose being read, which wants height. */
+  wrapped: number;
+  /** Share of lines laid out in columns: diffs, tables, traces, which want width. */
+  structured: number;
+}
+
+/**
+ * How the panel's visible output needs room, each share from 0 to 1.
+ *
+ * Not how much has been printed — that is `overflowScreens`, and the two often
+ * disagree. An installer prints thousands of short lines and needs no room at
+ * all; a diff prints forty and is unreadable in a narrow column. Prose reflows
+ * to whatever width it is given, so long lines ask for more rows to read, while
+ * lines carrying structure break when they wrap and ask for more columns. Only
+ * what is on screen is measured, because that is what someone is being asked
+ * to read.
+ */
+export function readingShape(runId: string): ReadingShape {
+  const entry = (entriesByRun.get(runId) ?? []).find((candidate) => candidate.term);
+  const term = entry?.term;
+  if (!term || term.rows === 0 || term.cols === 0) return { wrapped: 0, structured: 0 };
+
+  const buffer = term.buffer.active;
+  let written = 0;
+  let wide = 0;
+  let structured = 0;
+
+  for (let row = buffer.viewportY; row < buffer.viewportY + term.rows; row += 1) {
+    const text = buffer.getLine(row)?.translateToString(true) ?? "";
+
+    if (!text.trim()) continue;
+
+    written += 1;
+    if (text.length >= term.cols * WIDE_LINE_RATIO) wide += 1;
+    if (STRUCTURED_LINE.test(text)) structured += 1;
+  }
+
+  if (written < MIN_LINES_TO_JUDGE) return { wrapped: 0, structured: 0 };
+
+  return { wrapped: wide / written, structured: structured / written };
+}
+
+/** A line where something was invoked: a shell prompt, or an agent's tool call. */
+const COMMAND_LINE = /^[\s⏺●○◆▪•*-]*(?:[$%>#❯➜]\s+|(?:Bash|Shell|Run|Exec|Command)\s*\(\s*)(.+)/;
+
+/** Plumbing: worth doing, never worth reading. */
+const ROUTINE_COMMANDS = new Set([
+  "git",
+  "npm",
+  "yarn",
+  "pnpm",
+  "bun",
+  "npx",
+  "ls",
+  "ll",
+  "cd",
+  "pwd",
+  "cat",
+  "echo",
+  "mkdir",
+  "rmdir",
+  "rm",
+  "cp",
+  "mv",
+  "touch",
+  "which",
+  "whoami",
+  "export",
+  "source",
+  "clear",
+  "open",
+  "code"
+]);
+
+const LEADING_WORD = /^\w+/;
+
+/** The command a line runs, looking past a `sudo` that only carries it. */
+function invokedCommand(line: string): string | null {
+  const first = LEADING_WORD.exec(line)?.[0] ?? null;
+
+  if (first !== "sudo") return first;
+
+  return LEADING_WORD.exec(line.slice("sudo".length).trimStart())?.[0] ?? null;
+}
+
+/** One command says nothing about a session; a handful is a pattern. */
+const MIN_COMMANDS_TO_JUDGE = 2;
+
+/**
+ * How much of what ran here is plumbing, from 0 to 1.
+ *
+ * A panel pushing a branch or installing packages is doing something real, but
+ * nobody needs to watch it — and it should not sit above an agent working
+ * through a problem just because it printed more. So the commands on screen are
+ * weighed against each other: a session that is `git status`, `git add`, `git
+ * commit`, `git push` scores 1, while one running a test suite scores 0.
+ *
+ * Deliberately blind to output. Whether the result deserves attention is what
+ * `readingShape` answers, and a routine command that fails loudly is still
+ * worth reading — so this never demotes a panel on its own.
+ */
+export function routineWork(runId: string) {
+  const entry = (entriesByRun.get(runId) ?? []).find((candidate) => candidate.term);
+  const term = entry?.term;
+  if (!term || term.rows === 0) return 0;
+
+  const buffer = term.buffer.active;
+  let commands = 0;
+  let routine = 0;
+
+  for (let row = buffer.viewportY; row < buffer.viewportY + term.rows; row += 1) {
+    const invoked = COMMAND_LINE.exec(buffer.getLine(row)?.translateToString(true) ?? "")?.[1];
+
+    if (!invoked) continue;
+
+    commands += 1;
+    const command = invokedCommand(invoked.trim());
+
+    if (command && ROUTINE_COMMANDS.has(command)) routine += 1;
+  }
+
+  if (commands < MIN_COMMANDS_TO_JUDGE) return 0;
+
+  return routine / commands;
+}
+
+export function setTerminalTheme(resolvedTheme: string) {
+  currentTheme = resolvedTheme;
+
+  allEntries().forEach((entry) => {
+    if (!entry.term) return;
+
+    entry.term.options.theme = terminalTheme(resolvedTheme);
+  });
+
+  // Repainting the canvas only changes what the terminal draws. A TUI paints
+  // its own colours, chosen from what the terminal told it at startup, so the
+  // ones that asked to be kept up to date are told the scheme has changed.
+  reportSchemeChange(resolvedTheme, writeToSession);
+}
+
+export function stopTerminalPool() {
+  allEntries().forEach(disposeEntry);
+  stopPtyData?.();
+  stopSessionKilled?.();
+  stopPtyData = null;
+  stopSessionKilled = null;
+}

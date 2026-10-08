@@ -1,0 +1,75 @@
+import clsx from "clsx";
+import { useTranslation } from "react-i18next";
+
+import { translation } from "@/i18n/translation";
+import { CardTitle } from "@/shared/typography";
+import { Tooltip } from "@/shared/ui/Tooltip";
+import UiIcon from "@/shared/ui/icons/UiIcon";
+import type { SidebarView } from "./types";
+
+interface WorkbenchToolOverlayProps {
+  views: SidebarView[];
+  activeId: string | null;
+  onClose: () => void;
+}
+
+export function WorkbenchToolOverlay({
+  views,
+  activeId,
+  onClose,
+}: Readonly<WorkbenchToolOverlayProps>) {
+  const { t } = useTranslation();
+  const active = views.find((view) => view.id === activeId) ?? null;
+  const open = active !== null;
+
+  return (
+    <div
+      aria-hidden={!open}
+      className={clsx(
+        "absolute inset-0 z-20 flex flex-col bg-bg",
+        "transition-transform duration-200 ease-out",
+        open ? "translate-x-0" : "pointer-events-none translate-x-full",
+      )}
+    >
+      <div className="flex h-9 shrink-0 items-center gap-2 border-b border-border bg-soft pl-4 pr-2">
+        {active ? (
+          <UiIcon name={active.icon} className="h-4 w-4 shrink-0 text-accent" />
+        ) : null}
+        <CardTitle className="min-w-0 flex-1 truncate text-sm">
+          {active?.label}
+        </CardTitle>
+
+        {active?.actions ? (
+          <div className="flex shrink-0 items-center gap-1">
+            {active.actions}
+          </div>
+        ) : null}
+
+        <Tooltip content={t(translation.GlobalTerm.Close)} side="bottom">
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label={t(translation.GlobalTerm.Close)}
+            className={clsx(
+              "flex h-7 w-7 shrink-0 items-center justify-center rounded-md",
+              "text-muted transition-colors hover:bg-text/10 hover:text-text",
+            )}
+          >
+            <UiIcon name="xmark" className="h-4 w-4" />
+          </button>
+        </Tooltip>
+      </div>
+
+      <div className="min-h-0 flex-1 overflow-y-auto">
+        {views.map((view) => (
+          <div
+            key={view.id}
+            className={clsx(view.id === activeId ? "" : "hidden")}
+          >
+            {view.content}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}

@@ -33,23 +33,21 @@ This is the scaffold produced by `chain init`:
   it via the `TAURI_APP_PATH` env var, so running `tauri dev`/`tauri
   build` directly (instead of through `chain`) won't find it.
 - Tailwind CSS v4, wired through `@tailwindcss/vite` in `vite.config.ts`.
-  `src/App.css` defines the `chain-navy`/`chain-lime`/`chain-cream` theme
-  tokens (matched to `asset/app-icon.svg`) via a Tailwind `@theme` block —
-  use them as plain classes (`bg-chain-navy`, `text-chain-lime`, ...),
-  don't reach for arbitrary-value brackets or a different palette without
-  a reason. Add custom CSS there only when a utility class genuinely
-  can't express it.
+  `src/styles.css` is the ported Lazify renderer's stylesheet: its `@theme`
+  block defines Lazify's tokens (`bg`, `soft`, `text`, `muted`, `accent`,
+  `border`, `success`, `warning`, `error`, …), backed by raw `--lz-*`
+  values that switch with `data-theme` and `data-accent`. Use them as plain
+  classes (`bg-soft`, `text-muted`, `border-border`). The renderer was moved
+  from Tailwind 3 with Tailwind's upgrade tool (ticket 015).
 - Imports from another folder start at `src/` with `@/`
   (`@/features/home/pages/HomePage`); imports in the same folder stay `./`.
   The alias is set in `tsconfig.json` (`paths`) and `vite.config.ts`
   (`resolve.alias`), and both must agree.
-- Routing via `react-router-dom`'s data router, split into husks and
-  content. This is the same layering as Mneme and as the Electron Lazify
-  renderer (`../lazify/src/renderer`), so ported screens move across
-  folder for folder:
-  - `src/router.tsx` — `createBrowserRouter` route tree. Add new
-    top-level routes here as siblings; nest under a parent route only when
-    routes genuinely share layout beyond `RootLayout`.
+- The UI is the Electron Lazify renderer, ported folder for folder (D-1,
+  ticket 015). Routing is the renderer's: a `HashRouter`
+  (`src/app/router.tsx`) around the `<Routes>` tree in
+  `src/routes/index.tsx`, inside `AppShell`. Paths live in
+  `src/app/app-routes.ts`.
   - `src/routes/` — one husk per route (`HomeRoute.tsx`). A route owns
     the wiring only (`useParams`, data loading, app-wide state) and renders
     nothing but its feature's page.
@@ -61,24 +59,26 @@ This is the scaffold produced by `chain init`:
   - `src/platform/` — the **only** code that calls `@chain/sdk`. Each file
     wraps one capability (filesystem, processes, terminals, storage) behind
     an app-shaped function. Features never import `@chain/sdk` directly,
-    so a capability change touches one file. (The scaffold's home page
-    still calls `desktop.platform` directly; it is a placeholder.)
-  - `src/app/` — the app shell's own pieces (`NavBar`), used only by
-    `src/layouts/RootLayout.tsx`.
-  - `src/layouts/RootLayout.tsx` — shared chrome (`NavBar` + `<Outlet/>`).
+    so a capability change touches one file.
+  - `src/platform/lazify.ts` is the `globalThis.lazify` bridge the ported
+    renderer calls, typed by `src/platform/lazify-api.ts` (Electron's 217
+    preload members, generated from its source). Ported groups map to
+    `src/platform/` functions; the rest reject with "<name> isn't
+    available in Lazify Chain yet" (subscriptions return a no-op
+    unsubscribe). Porting a group means replacing its stubs there.
+  - `src/app/` — the renderer's app shell (`AppShell`, sidebar, router).
+  - Electron main-process code the renderer needs lives in
+    `src/shared/lib/<same path as src/main>`. Files there that only hold
+    types extracted from a Node module are stand-ins until that module is
+    ported with its feature.
   - Porting map from Electron Lazify: `src/renderer/features/X` →
     `src/features/X`, `src/renderer/shared` → `src/shared`,
-    `src/renderer/app/routes` → `src/routes`, the `@renderer/` alias → `@/`.
+    `src/renderer/app/routes` → `src/routes`, the `@renderer/` alias → `@/`,
+    `@main/X` → `@/shared/lib/X` (prompts in `@/features/prompts/lib`).
     Anything that called `window.lazify.*` goes through `src/platform/`
     instead.
-  - `src/App.tsx` just renders `<RouterProvider router={router} />`;
-    `src/main.tsx` is untouched from `create-tauri-app`'s default.
-    This is standard in-window SPA routing, not Tauri's multi-window API —
-    multiple native windows are a different pattern (separate OS-level
-    windows, not in-page navigation) and would be a deliberate later choice
-    if this app ever needs genuinely separate windows, not a default.
-- `src/features/home/pages/HomePage.tsx` calls `desktop.platform.getInfo()` to prove the
-  app can reach the Chain SDK end to end.
+  - This is in-window routing, not Tauri's multi-window API. Separate OS
+    windows would be a deliberate later choice.
 - Chain's placeholder branding: `asset/app-icon.svg` (used in the nav
   bar) and `asset/icons/` (the full desktop icon set), also copied into
   `.chain/native/icons/` where Tauri's bundler actually reads them from
@@ -138,7 +138,7 @@ depends on — **commit it to git, don't delete or gitignore it**.
 
 ## Next steps
 
-- [ ] Replace `Home`/`About` with real screens — this scaffold's pages
+- [x] Replace `Home`/`About` with real screens — this scaffold's pages
       are placeholders, not a design to keep.
 - [ ] Do not add capabilities here speculatively. A capability only gets
       built in `chain-sdk` when this app has a real requirement for it

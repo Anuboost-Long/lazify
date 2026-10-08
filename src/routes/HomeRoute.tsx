@@ -1,5 +1,14 @@
-import HomePage from "@/features/home/pages/HomePage";
+import { HomePage } from "@/features/home/pages/HomePage";
+import { useLazifyStore } from "@/shared/hooks/use-lazify-store";
 
-export default function HomeRoute() {
-  return <HomePage />;
+export function HomeRoute() {
+  const { syncedWorkspaceProjects, activeProjectPath, setActiveProjectPath } = useLazifyStore();
+
+  return (
+    <HomePage
+      projects={syncedWorkspaceProjects}
+      activeProjectPath={activeProjectPath}
+      onActiveProjectChange={setActiveProjectPath}
+    />
+  );
 }
