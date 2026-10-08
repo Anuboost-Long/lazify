@@ -14,10 +14,10 @@ Each request:
 
 | # | Request | Status |
 | --- | --- | --- |
-| 01 | [Work inside folders the user chose](01-project-folder-access.md) | Draft, not sent |
-| 02 | [Tell the app when files in a folder change](02-file-change-events.md) | Draft, not sent (lower priority) |
-| 03 | [Run a process in a chosen folder, with extra environment variables](03-process-working-directory-and-environment.md) | Draft, not sent |
-| 04 | [Interactive terminal sessions that outlive a page reload](04-terminal-sessions.md) | Draft, not sent |
+| 01 | [Work inside folders the user chose](01-project-folder-access.md) | Sent to chain-sdk 2026-10-09 |
+| 02 | [Tell the app when files in a folder change](02-file-change-events.md) | Sent to chain-sdk 2026-10-09 (lower priority) |
+| 03 | [Run a process in a chosen folder, with extra environment variables](03-process-working-directory-and-environment.md) | Sent to chain-sdk 2026-10-09 |
+| 04 | [Interactive terminal sessions that outlive a page reload](04-terminal-sessions.md) | Sent to chain-sdk 2026-10-09 |
 
 Overlap with Mneme: request 01's read-only allow-list design fork would also
 answer Mneme's request 11 (`external-file-read`).

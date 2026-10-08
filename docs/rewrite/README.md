@@ -12,7 +12,7 @@ Read first:
    the scope, phases and parity gates, plus the agent execution playbook.
    Its hard prohibitions apply to every change.
 2. [`04-architecture-decisions.md`](04-architecture-decisions.md): Chain SDK
-   is the target. Read what is decided, what is proposed, and what is waiting
+   is the target. Read what is decided and what is waiting
    on the owner.
 3. [`05-work-queue.md`](05-work-queue.md): what is next.
 
@@ -22,7 +22,7 @@ Read first:
 | [01-capability-inventory](01-capability-inventory.md) | Each area mapped to its Electron source and the Chain capability it needs | First pass |
 | [02-contract-manifest](02-contract-manifest.md) | All 217 preload members, generated from source | First pass (no schemas yet) |
 | [03-data-inventory](03-data-inventory.md) | SQLite, app JSON, project `.lazify/`, renderer `localStorage` | First pass (no record schemas yet) |
-| [04-architecture-decisions](04-architecture-decisions.md) | Accepted, proposed and open decisions | Waiting on the owner |
+| [04-architecture-decisions](04-architecture-decisions.md) | Accepted and open decisions | D-3, D-4, D-6, D-7 open (later phases) |
 | [05-work-queue](05-work-queue.md) | Extraction tickets and Chain requests, in order | Active |
 | [06-parity-matrix](06-parity-matrix.md) | Old-versus-new release gate | All rows `Not started` |
 | [07-test-matrix](07-test-matrix.md) | Tests mapped to parity rows | Not started |

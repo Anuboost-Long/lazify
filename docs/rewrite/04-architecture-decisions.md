@@ -56,6 +56,10 @@ Accepted 2026-10-09 by the owner.
   is unused and was not deleted.
 - `chain init` always runs `git init`, even inside an existing repository.
   Worth reporting to chain-sdk.
+- **Amended 2026-10-09 by the owner:** on GitHub, this repo is not its own
+  repository. Its history is pushed to the `lazify-chain` branch of the
+  Electron repo (`Anuboost-Long/lazify`), with no shared history with
+  Electron's `main`. Locally the two stay separate folders as above (P-2).
 
 ### A-4 Shared logic is copied, with parity proven by golden fixtures
 
@@ -71,29 +75,57 @@ design" in `06-parity-matrix.md`.
 Trade-off accepted: two implementations exist until the Electron app is
 retired. A fix made to one during that time must be made to the other too.
 
-## Proposed
-
 ### P-2 Branches
 
-- Electron repo: no rewrite branches. `main` keeps shipping.
-- This repo: `main` stays runnable. Each ticket gets a short-lived branch,
-  `feat/<ticket>-<slice>`, merged by pull request.
+Accepted 2026-10-09 by the owner, amended to match A-3's GitHub hosting.
+
+- Electron repo: its own branches are untouched and `main` keeps shipping.
+  The one rewrite branch there is `lazify-chain`, which is this repo's
+  `main`.
+- This repo: `main` stays runnable and tracks `origin/lazify-chain`. Each
+  ticket gets a short-lived local branch, `feat/<ticket>-<slice>`, pushed as
+  `chain/<ticket>-<slice>` and merged into `lazify-chain` by pull request.
+  The `chain/` prefix keeps rewrite branches apart from Electron's, and
+  `lazify-chain/…` can't be used because a branch already has that name.
 
 ### P-3 Data separation
+
+Accepted 2026-10-09 by the owner.
 
 The Chain app uses its own data directory. It imports from a **copy** of the
 Electron `<userData>` and never writes to it. Project-local `.lazify/` files
 are shared by both apps, so their formats are frozen (see
 `03-data-inventory.md` §3).
 
+### D-1 Port the renderer, then redesign
+
+Decided 2026-10-09 by the owner. Lazify's React renderer is ported into this
+repo as it is, to reach parity. Screens are redesigned one at a time after
+cutover, each as its own ticket with its own parity evidence.
+
+### D-2 The first Chain release is macOS-only
+
+Decided 2026-10-09 by the owner. Windows and Linux users stay on the Electron
+app until Chain is verified on those platforms. Until then both apps ship.
+
+### D-5 The Electron app can always open its profile
+
+Decided 2026-10-09 by the owner. Following from P-3, the Electron profile is
+never written by the Chain app, so a user can go back to Electron at any time.
+
+### D-8 Import offered on first launch
+
+Decided 2026-10-09 by the owner. On first run, the Chain app finds the
+Electron profile, backs up a copy, and offers to import it. It shows what it
+found and imports only after the user confirms. Projects whose folders can't
+be found are listed for the user to fix. The import is also available later
+from Settings. See `08-migration-ledger.md`.
+
 ## Open — owner decisions
 
 | ID | Decision | Blocks |
 | --- | --- | --- |
-| D-1 | Keep Lazify's React renderer and port it into this repo (recommended), or redesign screens | Phase 4 |
-| D-2 | Platforms for the first Chain release. Chain is macOS-only verified, while Lazify ships Windows and Linux. Either cutover waits for Chain's Windows and Linux verification, or the first Chain release is macOS-only | Phase 4 exit, Phase 7 |
 | D-3 | Embedded browser: keep it (needs an embedded guest-view capability plus a security review) or leave it out of the first release | Phase 6 browser slice |
 | D-4 | First-release scope: auto-update, custom extension install, DMG compiler, which agent CLIs | Phase 5–7 |
-| D-5 | Data window: must the Electron app still open a profile after the Chain app has run? (Recommended: yes. The Chain app never writes to the Electron profile) | Phase 3 |
 | D-6 | Signing, notarisation and update-feed ownership for Chain builds | Phase 7 |
 | D-7 | API Studio secrets: move from plaintext JSON to a keychain capability in the Chain app? | API Studio slice |

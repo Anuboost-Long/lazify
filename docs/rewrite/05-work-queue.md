@@ -8,7 +8,8 @@ Ordered smallest-safe-first. Each item becomes a ticket in `tickets/` (format:
 - [x] Dossier skeleton, with the Electron baseline and its pre-existing test failure recorded
 - [x] First-pass `01` capability map, `02` contract manifest (generated) and
       `03` data inventory
-- [x] Chain SDK requests 01–04 drafted in `../chain-sdk-requests/`
+- [x] Chain SDK requests 01–04 drafted in `../chain-sdk-requests/`, and sent to the
+      chain-sdk session on 2026-10-09 in the order 01, 03, 04, 02
 - [x] The owner's in-progress Electron work committed separately (PR #12 in the Electron repo)
 - [x] Chain app scaffolded as its own repo, `lazify-chain` (A-3), and
       arranged like Mneme
@@ -20,7 +21,7 @@ Ordered smallest-safe-first. Each item becomes a ticket in `tickets/` (format:
       port 1420. The command exited 1 but left `chain dev`, Vite and two app
       processes running. Separately, `chain init` runs `git init` even
       inside an existing repository
-- [ ] Owner: approve or amend P-2 and P-3 and answer D-1, D-2 and D-5
+- [x] Owner: approved P-2 (amended) and P-3, and decided D-1, D-2, D-5 and D-8
       (`04-architecture-decisions.md`)
 
 ## Phase 1 — port pure logic (A-4: copy, proven by golden fixtures)
@@ -35,8 +36,8 @@ Ordered smallest-safe-first. Each item becomes a ticket in `tickets/` (format:
 
 | # | Request | Unblocks | Status |
 | --- | --- | --- | --- |
-| 01 | [Project folder access](../chain-sdk-requests/01-project-folder-access.md) | Projects, workspace, env files, templates | Draft, not sent |
-| 02 | [File change events](../chain-sdk-requests/02-file-change-events.md) | Live sync, API docs drafts, agent activity | Draft, not sent |
-| 03 | [Process working directory and environment](../chain-sdk-requests/03-process-working-directory-and-environment.md) | Git, packages, formatting, scaffolding, DMG | Draft, not sent |
-| 04 | [Terminal sessions](../chain-sdk-requests/04-terminal-sessions.md) | Scripts, agents, monitor, Phase 4 exit | Draft, not sent |
+| 01 | [Project folder access](../chain-sdk-requests/01-project-folder-access.md) | Projects, workspace, env files, templates | Sent 2026-10-09 |
+| 02 | [File change events](../chain-sdk-requests/02-file-change-events.md) | Live sync, API docs drafts, agent activity | Sent 2026-10-09 |
+| 03 | [Process working directory and environment](../chain-sdk-requests/03-process-working-directory-and-environment.md) | Git, packages, formatting, scaffolding, DMG | Sent 2026-10-09 |
+| 04 | [Terminal sessions](../chain-sdk-requests/04-terminal-sessions.md) | Scripts, agents, monitor, Phase 4 exit | Sent 2026-10-09 |
 | later | Data import, transcript reads (see Mneme's request 11), notifications, keep-awake, keychain, ports, LSP stdin, archive unpacking, embedded browser view, updater, menu, zoom | Later slices | Written when the slice is next |
