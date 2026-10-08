@@ -22,7 +22,7 @@ An untested OS is `Not tested`, never `Pass`.
 | Tasks | | | | | | Not started |
 | Starter projects | | | | | | Not started |
 | Imported templates | | | | | | Not started |
-| Dependencies | | | | | | Not started |
+| Dependencies | Fixture recorded at `c9abefc` | Version matching only: [ticket 003](tickets/003-package-version-matching.md), 10 of 10 golden cases; identical to Electron on two real projects. Search, install and audit not ported | Partial | Not tested | Not tested | Not started |
 | Environment files | | | | | | Not started |
 | Developer environment | | | | | | Not started |
 | Formatting and code quality | | | | | | Not started |

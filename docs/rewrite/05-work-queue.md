@@ -30,7 +30,7 @@ Ordered smallest-safe-first. Each item becomes a ticket in `tickets/` (format:
 | --- | --- | --- | --- |
 | [001](tickets/001-prompt-assembly.md) | **Done.** Prompt assembly into `src/features/prompts/lib/` | `assemblePrompt` and its helpers import nothing from Node or Electron. The fixture was recorded from the Electron code on 2026-10-09 | `tests/main/prompt-builder.test.ts`, `prompt-presets-and-context.test.ts` |
 | [002](tickets/002-stack-detection.md) | **Done.** Stack detection into `src/shared/lib/stack-detection/`, reading real folders through `src/platform/folders.ts` | 28 golden cases recorded from Electron; 9 deliberately improved (React stacks were detected as Next.js, see ticket) | `tests/brain/command-builder.test.ts`, `package-json-reader.test.ts` |
-| 003 | Package version matching (`semver-utils`, `version-matcher` decisions) | Pure logic. Registry fetches use `desktop.http` through `src/platform` | **None.** Record characterisation fixtures from Electron first |
+| [003](tickets/003-package-version-matching.md) | **Done.** Package version matching into `src/shared/lib/package-version-matcher/`, registry calls through `src/platform/registry.ts` | 10 golden cases recorded from Electron against a fake registry; identical to Electron on two real projects | **None** in Electron; characterisation fixture added |
 
 ## Chain SDK requests
 
