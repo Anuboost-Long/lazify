@@ -39,36 +39,38 @@ export function AgentMonitorWall({
 	onOpenConsole,
 }: Readonly<AgentMonitorWallProps>) {
 	return (
-		<AgentMonitorGrid
-			projects={projects}
-			panels={monitor.panels}
-			onStart={monitor.start}
-			onClear={monitor.clear}
-			onSetSize={monitor.setSize}
-			onRename={monitor.rename}
-			onClearAll={monitor.clearAll}
-			onReorder={monitor.reorder}
-			onTidyUp={(columns) => monitor.tidyUp(waitingRunIds, columns)}
-			columns={monitor.columns}
-			onColumnsChange={monitor.setColumns}
-			waitingRunIds={waitingRunIds}
-			targetRunId={monitor.target?.runId ?? null}
-			onSelectPanel={monitor.setTarget}
-			rail={
-				<AgentMonitorRail
-					railTab={railTab}
-					onToggleRail={onToggleRail}
-					targetLabel={monitor.target?.projectName ?? null}
-					changeCount={changeCount}
-					activityUnread={activityUnread}
-					onPickPath={onPickPath}
-					onOpenConsole={onOpenConsole}
-				/>
-			}
-			availableAgents={availableAgents}
-			onCreateAgent={onCreateAgent}
-			onDeleteAgent={onDeleteAgent}
-			onExit={() => monitor.setMonitorMode(false)}
-		/>
+		<div className="-m-4 flex min-h-0 flex-1">
+			<AgentMonitorGrid
+				projects={projects}
+				panels={monitor.panels}
+				onStart={monitor.start}
+				onClear={monitor.clear}
+				onSetSize={monitor.setSize}
+				onRename={monitor.rename}
+				onClearAll={monitor.clearAll}
+				onReorder={monitor.reorder}
+				onTidyUp={(columns) => monitor.tidyUp(waitingRunIds, columns)}
+				columns={monitor.columns}
+				onColumnsChange={monitor.setColumns}
+				waitingRunIds={waitingRunIds}
+				targetRunId={monitor.target?.runId ?? null}
+				onSelectPanel={monitor.setTarget}
+				rail={
+					<AgentMonitorRail
+						railTab={railTab}
+						onToggleRail={onToggleRail}
+						targetLabel={monitor.target?.projectName ?? null}
+						changeCount={changeCount}
+						activityUnread={activityUnread}
+						onPickPath={onPickPath}
+						onOpenConsole={onOpenConsole}
+					/>
+				}
+				availableAgents={availableAgents}
+				onCreateAgent={onCreateAgent}
+				onDeleteAgent={onDeleteAgent}
+				onExit={() => monitor.setMonitorMode(false)}
+			/>
+		</div>
 	);
 }

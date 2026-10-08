@@ -41,6 +41,8 @@ export interface RailButtonProps {
   badge?: number;
 
   disabled?: boolean;
+
+  indicator?: "side" | "bottom";
 }
 
 export function RailButton({
@@ -51,9 +53,10 @@ export function RailButton({
   live,
   badge,
   disabled = false,
+  indicator = "side",
 }: Readonly<RailButtonProps>) {
   return (
-    <Tooltip content={label} side="left">
+    <Tooltip content={label} side={indicator === "bottom" ? "bottom" : "left"}>
       <button
         type="button"
         onClick={onClick}
@@ -70,7 +73,13 @@ export function RailButton({
       >
 
         {selected ? (
-          <span aria-hidden className="absolute inset-y-1 -right-2 w-0.5 rounded-full bg-accent" />
+          <span
+            aria-hidden
+            className={clsx(
+              "absolute rounded-full bg-accent",
+              indicator === "bottom" ? "inset-x-1 bottom-0 h-0.5" : "inset-y-1 -right-2 w-0.5"
+            )}
+          />
         ) : null}
 
         <UiIcon

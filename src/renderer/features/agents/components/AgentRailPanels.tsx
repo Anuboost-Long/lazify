@@ -163,7 +163,7 @@ export function AgentRailPanels({
       ) : null}
 
       {railTab === "files" ? (
-        <AgentRailPanelHost asModal={asModal} onClose={onCloseRail}>
+        <AgentRailPanelHost asModal={asModal} onClose={onCloseRail} height="fixed">
           <AgentFilesPanel
             variant={variant}
             projectPath={projectPath}
@@ -182,7 +182,7 @@ export function AgentRailPanels({
       ) : null}
 
       {railTab === "usage" ? (
-        <AgentRailPanelHost asModal={asModal} onClose={onCloseRail}>
+        <AgentRailPanelHost asModal={asModal} onClose={onCloseRail} size="wide">
           <AgentUsagePanel
             variant={variant}
             report={usageReport}

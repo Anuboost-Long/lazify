@@ -78,7 +78,9 @@ export function AgentTaskPanel({
 			<header className="flex items-center justify-between gap-2 border-b border-border px-3 py-2">
 				<div className="flex items-center gap-2">
 					<UiIcon name="check-circle" className="h-3.5 w-3.5 text-accent" />
-					<SectionTitle>{t(translation.Tasks.Title)}</SectionTitle>
+					<SectionTitle className={variant === "modal" ? "!text-sm leading-none" : undefined}>
+						{t(translation.Tasks.Title)}
+					</SectionTitle>
 					{sentId ? (
 						<CaptionText className="!text-accent">{t(translation.Tasks.PromptSent)}</CaptionText>
 					) : null}

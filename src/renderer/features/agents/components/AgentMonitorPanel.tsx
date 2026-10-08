@@ -63,11 +63,14 @@ export const AgentMonitorPanel = memo(function AgentMonitorPanel({
 }: Readonly<AgentMonitorPanelProps>) {
 	const { t } = useTranslation();
 	const { runId } = panel;
+	const resizeLabel = t(translation.Agents.MonitorResize, {
+		size: t(SIZE_LABEL[panel.size]),
+	});
 
 	const rootRef = useRef<HTMLDivElement>(null);
 
 	const borderTone = () => {
-		if (dropTarget || waiting) return "border-accent";
+		if (dropTarget) return "border-accent";
 		if (selected) return "border-accent/60";
 
 		return "border-border";
@@ -94,12 +97,11 @@ export const AgentMonitorPanel = memo(function AgentMonitorPanel({
 				onDrop(runId);
 			}}
 			className={clsx(
-				"flex h-full flex-col overflow-hidden rounded-xl bg-bg",
+				"flex h-full flex-col overflow-hidden rounded-md bg-terminal",
 				"border transition-colors duration-150",
 				allowSpan && SIZE_SPAN[panel.size],
 				dragging && "opacity-40",
 
-				waiting && "shadow-glow",
 				borderTone(),
 			)}
 		>
@@ -110,28 +112,19 @@ export const AgentMonitorPanel = memo(function AgentMonitorPanel({
 
 					event.dataTransfer.setData("text/plain", panel.id);
 					if (rootRef.current) {
-						event.dataTransfer.setDragImage(rootRef.current, 24, 16);
+						event.dataTransfer.setDragImage(rootRef.current, 20, 16);
 					}
 					onDragStart(runId);
 				}}
 				onDragEnd={onDragEnd}
 				title={t(translation.Agents.MonitorReorder)}
-				className={clsx(
-					"flex shrink-0 items-center gap-2",
-					"border-b border-border px-2.5 py-2",
-					"cursor-grab active:cursor-grabbing",
-				)}
+				className="flex min-h-12 shrink-0 cursor-grab items-center gap-2 border-b border-border bg-bg px-2.5 py-1.5 active:cursor-grabbing"
 			>
-				<div
-					className={clsx(
-						"flex h-6 w-6 shrink-0 items-center justify-center",
-						"rounded-lg border border-border bg-soft",
-					)}
-				>
+				<div className="flex h-5 w-5 shrink-0 items-center justify-center text-muted">
 					{panel.kind === "agent" ? (
 						<AgentGlyph agentId={panel.sourceId} className="h-3.5 w-3.5" />
 					) : (
-						<UiIcon name="play" className="h-3 w-3 text-muted" />
+						<UiIcon name="play" className="h-3 w-3" />
 					)}
 				</div>
 
@@ -151,15 +144,8 @@ export const AgentMonitorPanel = memo(function AgentMonitorPanel({
 				</button>
 
 				{waiting ? (
-					<span className="flex shrink-0 items-center gap-1.5">
-						<span aria-hidden className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" />
-						<CaptionText className="!text-accent">{t(translation.Agents.NeedsAttention)}</CaptionText>
-					</span>
-				) : null}
-
-				{selected && !waiting ? (
-					<CaptionText className="!text-accent shrink-0">
-						{t(translation.Agents.MonitorTarget)}
+					<CaptionText className="shrink-0 !text-accent">
+						{t(translation.Agents.NeedsAttention)}
 					</CaptionText>
 				) : null}
 
@@ -169,26 +155,24 @@ export const AgentMonitorPanel = memo(function AgentMonitorPanel({
 					</CaptionText>
 				) : null}
 
-				<IconButton
-					icon={panel.size === "large" ? "collapse" : "expand"}
-					title={t(translation.Agents.MonitorResize, {
-						size: t(SIZE_LABEL[panel.size]),
-					})}
-					aria-label={t(translation.Agents.MonitorResize, {
-						size: t(SIZE_LABEL[panel.size]),
-					})}
-					onClick={() => onPickSize(runId)}
-				/>
+				<div className="ml-auto flex shrink-0 items-center gap-0.5 border-l border-border pl-1">
+					<IconButton
+						icon={panel.size === "large" ? "collapse" : "expand"}
+						title={resizeLabel}
+						aria-label={resizeLabel}
+						onClick={() => onPickSize(runId)}
+					/>
 
-				<IconButton
-					icon="xmark"
-					title={t(translation.Agents.MonitorClearPanel)}
-					aria-label={t(translation.Agents.MonitorClearPanel)}
-					onClick={() => onClear(runId)}
-				/>
+					<IconButton
+						icon="xmark"
+						title={t(translation.Agents.MonitorClearPanel)}
+						aria-label={t(translation.Agents.MonitorClearPanel)}
+						onClick={() => onClear(runId)}
+					/>
+				</div>
 			</div>
 
-			<div className="flex min-h-0 flex-1 flex-col bg-terminal p-1.5">
+			<div className="flex min-h-0 flex-1 flex-col p-1">
 				<AgentThemeNotice session={panel} label={panel.displayName} compact />
 
 				<div className="min-h-0 flex-1">
