@@ -8,7 +8,7 @@
 use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, Mutex, OnceLock};
 
-use chain_core::folders::{self as core, Change, Entry, FolderWatch, Folders, FoldersError, Grant, GrantSource};
+use chain_core::folders::{self as core, AppFolder, Change, Entry, FolderWatch, Folders, FoldersError, Grant, GrantSource};
 use tauri::{Emitter, Manager, Runtime};
 
 #[derive(Default)]
@@ -43,9 +43,14 @@ pub fn folders<R: Runtime>(app: &tauri::AppHandle<R>) -> Result<Arc<Folders>, St
         Some(json) if !json.is_empty() => serde_json::from_str(json).map_err(|e| format!("CHAIN_READ_ONLY_FOLDERS: {e}"))?,
         _ => Vec::new(),
     };
-    let store = app.path().app_data_dir().map_err(|e| e.to_string())?.join("folder-grants.json");
+    let data_dir = app.path().app_data_dir().map_err(|e| e.to_string())?;
+    let temp_dir = app.path().temp_dir().map_err(|e| e.to_string())?.join(&app.config().identifier);
     let home = app.path().home_dir().ok();
-    let opened = Folders::open(&store, &declared, home.as_deref()).map_err(to_folders_command_error)?;
+    // The app's own folder is `app/` beside the grants file, never the data
+    // folder itself, so the app can't write its own grants.
+    let opened = Folders::open(&data_dir.join("folder-grants.json"), &declared, home.as_deref())
+        .and_then(|folders| folders.with_app_folders(&data_dir.join("app"), &temp_dir))
+        .map_err(to_folders_command_error)?;
     Ok(Arc::clone(state.folders.get_or_init(|| Arc::new(opened))))
 }
 
@@ -77,6 +82,11 @@ pub async fn folders_pick(
 #[tauri::command]
 pub fn folders_grants(app: tauri::AppHandle) -> Result<Vec<Grant>, String> {
     Ok(folders(&app)?.grants())
+}
+
+#[tauri::command]
+pub fn folders_app_folder(app: tauri::AppHandle, folder: AppFolder) -> Result<Grant, String> {
+    folders(&app)?.app_folder(folder).map_err(to_folders_command_error)
 }
 
 #[tauri::command]

@@ -1360,6 +1360,7 @@ pub fn run() {
             folders::folders_pick,
             folders::folders_grants,
             folders::folders_revoke,
+            folders::folders_app_folder,
             folders::folders_accept_drops,
             folders::folders_list,
             folders::folders_stat,

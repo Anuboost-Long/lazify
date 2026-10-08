@@ -19,6 +19,7 @@ Each request:
 | 03 | [Run a process in a chosen folder, with extra environment variables](03-process-working-directory-and-environment.md) | Shipped on macOS 2026-10-09, in `process-runner` |
 | 04 | [Interactive terminal sessions that outlive a page reload](04-terminal-sessions.md) | Shipped on macOS 2026-10-09, as `desktop.terminal` |
 | 05 | [Tell the app whether a local TCP port is free](05-local-port-availability.md) | Shipped on macOS 2026-10-09, as `desktop.ports` |
+| 06 | [Folders the app owns, with real paths its processes can use](06-app-owned-folders.md) | Shipped on macOS 2026-10-09, as `desktop.folders.appFolder` |
 
 Overlap with Mneme: request 01's read-only allow-list design fork would also
 answer Mneme's request 11 (`external-file-read`).
