@@ -93,3 +93,7 @@ export async function listFolderTree(path: string): Promise<FolderTreeEntry[]> {
 		size,
 	}));
 }
+
+export async function grantedFolderPaths(): Promise<string[]> {
+	return (await desktop.folders.grants()).filter((grant) => grant.kind === "folder").map((grant) => grant.path);
+}

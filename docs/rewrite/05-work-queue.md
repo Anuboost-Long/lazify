@@ -67,7 +67,7 @@ templates, settings, API collections, and safely recoverable project links.
 | [011](tickets/011-import-database.md) | Import the SQLite tables into Chain storage: same schema and ids, one transaction, safe to run twice, orphans skipped | **Done in tests.** Real profile waits on a `chain dev` restart |
 | [012](tickets/012-import-files.md) | Import JSON stores and user-owned folders. API Studio secrets held until D-7 | **Done in tests.** Real profile waits on a `chain dev` restart |
 | [013](tickets/013-project-list.md) | Project list and `lazify-*` settings from Chromium's LevelDB in the backup (owner chose this over an Electron export) | **Done.** Real profile: 12 projects, 19 settings recovered |
-| 014 | First-launch import flow and the "projects that can't be found" list | Next |
+| [014](tickets/014-first-launch-import.md) | First-launch import screen, the import itself, and the project list with access states | **Built.** Waits on the owner's first run after a `chain dev` restart |
 
 ## Chain SDK requests
 
