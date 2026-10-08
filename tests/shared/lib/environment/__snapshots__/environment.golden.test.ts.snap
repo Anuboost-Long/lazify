@@ -1,0 +1,741 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`dev-port golden > resolveBasePort 1`] = `
+[
+  [
+    "vite",
+    5173,
+  ],
+  [
+    "vite --port 4000",
+    4000,
+  ],
+  [
+    "vite --port=4100",
+    4100,
+  ],
+  [
+    "next dev -p 3001",
+    3001,
+  ],
+  [
+    "next dev",
+    3000,
+  ],
+  [
+    "PORT=8080 node server.js",
+    8080,
+  ],
+  [
+    "cross-env PORT=9000 react-scripts start",
+    9000,
+  ],
+  [
+    "react-scripts start",
+    3000,
+  ],
+  [
+    "ng serve",
+    4200,
+  ],
+  [
+    "npx @angular/cli serve",
+    4200,
+  ],
+  [
+    "astro dev",
+    4321,
+  ],
+  [
+    "nuxt dev",
+    3000,
+  ],
+  [
+    "remix dev",
+    3000,
+  ],
+  [
+    "gatsby develop",
+    8000,
+  ],
+  [
+    "expo start",
+    8081,
+  ],
+  [
+    "vue-cli-service serve",
+    8080,
+  ],
+  [
+    "webpack serve",
+    8080,
+  ],
+  [
+    "webpack-dev-server --mode development",
+    8080,
+  ],
+  [
+    "tsc -w",
+    null,
+  ],
+  [
+    "node index.js -p 80",
+    80,
+  ],
+  [
+    "",
+    null,
+  ],
+]
+`;
+
+exports[`dotnet-runner golden > console project without launch settings 1`] = `
+{
+  "launches": [
+    [
+      "dotnet:run",
+      {
+        "args": [
+          "run",
+          "--project",
+          "Tool.csproj",
+        ],
+        "command": "dotnet",
+      },
+    ],
+    [
+      "dotnet:watch",
+      {
+        "args": [
+          "watch",
+          "run",
+          "--project",
+          "Tool.csproj",
+        ],
+        "command": "dotnet",
+      },
+    ],
+    [
+      "dotnet:build",
+      {
+        "args": [
+          "build",
+          "Tool.csproj",
+        ],
+        "command": "dotnet",
+      },
+    ],
+    [
+      "dotnet:restore",
+      {
+        "args": [
+          "restore",
+          "Tool.csproj",
+        ],
+        "command": "dotnet",
+      },
+    ],
+    [
+      "dotnet:test",
+      {
+        "args": [
+          "test",
+          "Tool.csproj",
+        ],
+        "command": "dotnet",
+      },
+    ],
+    [
+      "dotnet:publish",
+      {
+        "args": [
+          "publish",
+          "Tool.csproj",
+          "-c",
+          "Release",
+        ],
+        "command": "dotnet",
+      },
+    ],
+    [
+      "dotnet:clean",
+      {
+        "args": [
+          "clean",
+          "Tool.csproj",
+        ],
+        "command": "dotnet",
+      },
+    ],
+    [
+      "dotnet:deploy",
+      null,
+    ],
+    [
+      "dev",
+      null,
+    ],
+  ],
+  "ports": [],
+  "scripts": {
+    "dotnet:build": "dotnet build Tool.csproj",
+    "dotnet:clean": "dotnet clean Tool.csproj",
+    "dotnet:publish": "dotnet publish Tool.csproj -c Release",
+    "dotnet:restore": "dotnet restore Tool.csproj",
+    "dotnet:run": "dotnet run --project Tool.csproj",
+    "dotnet:test": "dotnet test Tool.csproj",
+    "dotnet:watch": "dotnet watch run --project Tool.csproj",
+  },
+}
+`;
+
+exports[`dotnet-runner golden > not a dotnet project 1`] = `
+{
+  "launches": [
+    [
+      "dotnet:run",
+      null,
+    ],
+    [
+      "dotnet:watch",
+      null,
+    ],
+    [
+      "dotnet:build",
+      null,
+    ],
+    [
+      "dotnet:restore",
+      null,
+    ],
+    [
+      "dotnet:test",
+      null,
+    ],
+    [
+      "dotnet:publish",
+      null,
+    ],
+    [
+      "dotnet:clean",
+      null,
+    ],
+    [
+      "dotnet:deploy",
+      null,
+    ],
+    [
+      "dev",
+      null,
+    ],
+  ],
+  "ports": [],
+  "scripts": {},
+}
+`;
+
+exports[`dotnet-runner golden > project at the root 1`] = `
+{
+  "launches": [
+    [
+      "dotnet:run",
+      {
+        "args": [
+          "run",
+          "--project",
+          "Site.csproj",
+        ],
+        "command": "dotnet",
+      },
+    ],
+    [
+      "dotnet:watch",
+      {
+        "args": [
+          "watch",
+          "run",
+          "--project",
+          "Site.csproj",
+        ],
+        "command": "dotnet",
+      },
+    ],
+    [
+      "dotnet:build",
+      {
+        "args": [
+          "build",
+          "Site.csproj",
+        ],
+        "command": "dotnet",
+      },
+    ],
+    [
+      "dotnet:restore",
+      {
+        "args": [
+          "restore",
+          "Site.csproj",
+        ],
+        "command": "dotnet",
+      },
+    ],
+    [
+      "dotnet:test",
+      {
+        "args": [
+          "test",
+          "Site.csproj",
+        ],
+        "command": "dotnet",
+      },
+    ],
+    [
+      "dotnet:publish",
+      {
+        "args": [
+          "publish",
+          "Site.csproj",
+          "-c",
+          "Release",
+        ],
+        "command": "dotnet",
+      },
+    ],
+    [
+      "dotnet:clean",
+      {
+        "args": [
+          "clean",
+          "Site.csproj",
+        ],
+        "command": "dotnet",
+      },
+    ],
+    [
+      "dotnet:deploy",
+      null,
+    ],
+    [
+      "dev",
+      null,
+    ],
+  ],
+  "ports": [
+    8080,
+  ],
+  "scripts": {
+    "dotnet:build": "dotnet build Site.csproj",
+    "dotnet:clean": "dotnet clean Site.csproj",
+    "dotnet:publish": "dotnet publish Site.csproj -c Release",
+    "dotnet:restore": "dotnet restore Site.csproj",
+    "dotnet:run": "dotnet run --project Site.csproj",
+    "dotnet:test": "dotnet test Site.csproj",
+    "dotnet:watch": "dotnet watch run --project Site.csproj",
+  },
+}
+`;
+
+exports[`dotnet-runner golden > solution with a web project and BOM launch settings 1`] = `
+{
+  "launches": [
+    [
+      "dotnet:run",
+      {
+        "args": [
+          "run",
+          "--project",
+          "src/Shop.Api/Shop.Api.csproj",
+        ],
+        "command": "dotnet",
+      },
+    ],
+    [
+      "dotnet:watch",
+      {
+        "args": [
+          "watch",
+          "run",
+          "--project",
+          "src/Shop.Api/Shop.Api.csproj",
+        ],
+        "command": "dotnet",
+      },
+    ],
+    [
+      "dotnet:build",
+      {
+        "args": [
+          "build",
+          "Shop.sln",
+        ],
+        "command": "dotnet",
+      },
+    ],
+    [
+      "dotnet:restore",
+      {
+        "args": [
+          "restore",
+          "Shop.sln",
+        ],
+        "command": "dotnet",
+      },
+    ],
+    [
+      "dotnet:test",
+      {
+        "args": [
+          "test",
+          "Shop.sln",
+        ],
+        "command": "dotnet",
+      },
+    ],
+    [
+      "dotnet:publish",
+      {
+        "args": [
+          "publish",
+          "src/Shop.Api/Shop.Api.csproj",
+          "-c",
+          "Release",
+        ],
+        "command": "dotnet",
+      },
+    ],
+    [
+      "dotnet:clean",
+      {
+        "args": [
+          "clean",
+          "Shop.sln",
+        ],
+        "command": "dotnet",
+      },
+    ],
+    [
+      "dotnet:deploy",
+      null,
+    ],
+    [
+      "dev",
+      null,
+    ],
+  ],
+  "ports": [
+    5080,
+    7080,
+  ],
+  "scripts": {
+    "dotnet:build": "dotnet build Shop.sln",
+    "dotnet:clean": "dotnet clean Shop.sln",
+    "dotnet:publish": "dotnet publish src/Shop.Api/Shop.Api.csproj -c Release",
+    "dotnet:restore": "dotnet restore Shop.sln",
+    "dotnet:run": "dotnet run --project src/Shop.Api/Shop.Api.csproj",
+    "dotnet:test": "dotnet test Shop.sln",
+    "dotnet:watch": "dotnet watch run --project src/Shop.Api/Shop.Api.csproj",
+  },
+}
+`;
+
+exports[`dotnet-runner golden > solution with no project 1`] = `
+{
+  "launches": [
+    [
+      "dotnet:run",
+      {
+        "args": [
+          "run",
+        ],
+        "command": "dotnet",
+      },
+    ],
+    [
+      "dotnet:watch",
+      {
+        "args": [
+          "watch",
+          "run",
+        ],
+        "command": "dotnet",
+      },
+    ],
+    [
+      "dotnet:build",
+      {
+        "args": [
+          "build",
+          "Empty.sln",
+        ],
+        "command": "dotnet",
+      },
+    ],
+    [
+      "dotnet:restore",
+      {
+        "args": [
+          "restore",
+          "Empty.sln",
+        ],
+        "command": "dotnet",
+      },
+    ],
+    [
+      "dotnet:test",
+      {
+        "args": [
+          "test",
+          "Empty.sln",
+        ],
+        "command": "dotnet",
+      },
+    ],
+    [
+      "dotnet:publish",
+      {
+        "args": [
+          "publish",
+          "-c",
+          "Release",
+        ],
+        "command": "dotnet",
+      },
+    ],
+    [
+      "dotnet:clean",
+      {
+        "args": [
+          "clean",
+          "Empty.sln",
+        ],
+        "command": "dotnet",
+      },
+    ],
+    [
+      "dotnet:deploy",
+      null,
+    ],
+    [
+      "dev",
+      null,
+    ],
+  ],
+  "ports": [],
+  "scripts": {
+    "dotnet:build": "dotnet build Empty.sln",
+    "dotnet:clean": "dotnet clean Empty.sln",
+    "dotnet:publish": "dotnet publish -c Release",
+    "dotnet:restore": "dotnet restore Empty.sln",
+    "dotnet:run": "dotnet run",
+    "dotnet:test": "dotnet test Empty.sln",
+    "dotnet:watch": "dotnet watch run",
+  },
+}
+`;
+
+exports[`dotnet-runner golden > unreadable launch settings 1`] = `
+{
+  "launches": [
+    [
+      "dotnet:run",
+      {
+        "args": [
+          "run",
+          "--project",
+          "Api.csproj",
+        ],
+        "command": "dotnet",
+      },
+    ],
+    [
+      "dotnet:watch",
+      {
+        "args": [
+          "watch",
+          "run",
+          "--project",
+          "Api.csproj",
+        ],
+        "command": "dotnet",
+      },
+    ],
+    [
+      "dotnet:build",
+      {
+        "args": [
+          "build",
+          "Api.csproj",
+        ],
+        "command": "dotnet",
+      },
+    ],
+    [
+      "dotnet:restore",
+      {
+        "args": [
+          "restore",
+          "Api.csproj",
+        ],
+        "command": "dotnet",
+      },
+    ],
+    [
+      "dotnet:test",
+      {
+        "args": [
+          "test",
+          "Api.csproj",
+        ],
+        "command": "dotnet",
+      },
+    ],
+    [
+      "dotnet:publish",
+      {
+        "args": [
+          "publish",
+          "Api.csproj",
+          "-c",
+          "Release",
+        ],
+        "command": "dotnet",
+      },
+    ],
+    [
+      "dotnet:clean",
+      {
+        "args": [
+          "clean",
+          "Api.csproj",
+        ],
+        "command": "dotnet",
+      },
+    ],
+    [
+      "dotnet:deploy",
+      null,
+    ],
+    [
+      "dev",
+      null,
+    ],
+  ],
+  "ports": [],
+  "scripts": {
+    "dotnet:build": "dotnet build Api.csproj",
+    "dotnet:clean": "dotnet clean Api.csproj",
+    "dotnet:publish": "dotnet publish Api.csproj -c Release",
+    "dotnet:restore": "dotnet restore Api.csproj",
+    "dotnet:run": "dotnet run --project Api.csproj",
+    "dotnet:test": "dotnet test Api.csproj",
+    "dotnet:watch": "dotnet watch run --project Api.csproj",
+  },
+}
+`;
+
+exports[`ports golden > buildProcessTree and getDescendantPids on macOS 1`] = `
+{
+  "fromNext": [
+    70000,
+    70001,
+    70050,
+    70100,
+  ],
+  "fromVite": [
+    69000,
+    69016,
+  ],
+  "tree": [
+    [
+      1,
+      0,
+    ],
+    [
+      612,
+      1,
+    ],
+    [
+      69000,
+      1,
+    ],
+    [
+      69016,
+      69000,
+    ],
+    [
+      70000,
+      1,
+    ],
+    [
+      70001,
+      70000,
+    ],
+    [
+      70050,
+      70001,
+    ],
+    [
+      70100,
+      70050,
+    ],
+  ],
+  "unknown": [
+    123,
+  ],
+}
+`;
+
+exports[`ports golden > readCommandLines on macOS 1`] = `
+[
+  [
+    1,
+    "/sbin/launchd",
+  ],
+  [
+    612,
+    "/System/Library/CoreServices/ControlCenter.app/Contents/MacOS/ControlCenter",
+  ],
+  [
+    69016,
+    "node /Users/dev/lazify-chain/node_modules/.bin/vite",
+  ],
+  [
+    70001,
+    "node /Users/dev/shop/node_modules/.bin/next dev",
+  ],
+  [
+    70100,
+    "dotnet run --project src/Shop.Api/Shop.Api.csproj",
+  ],
+]
+`;
+
+exports[`ports golden > scanListeningPorts on macOS 1`] = `
+[
+  {
+    "address": "[::1]",
+    "command": "node",
+    "pid": 69016,
+    "port": 1420,
+  },
+  {
+    "address": "*",
+    "command": "node",
+    "pid": 70001,
+    "port": 3000,
+  },
+  {
+    "address": "127.0.0.1",
+    "command": "dotnet",
+    "pid": 70100,
+    "port": 5080,
+  },
+  {
+    "address": "*",
+    "command": "ControlCe",
+    "pid": 612,
+    "port": 7000,
+  },
+]
+`;

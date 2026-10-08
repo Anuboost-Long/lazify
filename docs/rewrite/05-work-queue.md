@@ -45,8 +45,8 @@ terminal and an agent session survive a UI reload and reattach.
 | Ticket | Scope | Status |
 | --- | --- | --- |
 | [004](tickets/004-terminal-sessions.md) | Terminal sessions: Electron's `PtyRunner` on `desktop.terminal` | **Done.** Survives a real reload |
-| 005 | Scripts: `listScripts`, `runScript`, `stopScript`, `restartScript`, `listSessions`, with package-manager choice. .NET launch and dev-port injection | Next |
-| 006 | One-shot commands: Electron's `command-runner` on `process-runner` with `cwd` and `env` | Queued |
+| [005](tickets/005-scripts.md) | Scripts: list, run, stop, restart, sessions with ports; package manager, .NET, dev-port stepping | **Done.** Two Vite servers side by side in the real app |
+| 006 | One-shot commands: Electron's `command-runner` on `process-runner` with `cwd` and `env` | Next |
 | 007 | Git: status, diff and actions over 006, parsing kept app-level | Queued |
 | 008 | Agents: launch and resume an agent CLI in a terminal session; reattach after reload (second half of the exit criterion) | Queued |
 | 009 | Projects: folder picker, grants, file tree and watch over `desktop.folders` | Queued |
@@ -59,4 +59,5 @@ terminal and an agent session survive a UI reload and reattach.
 | 02 | [File change events](../chain-sdk-requests/02-file-change-events.md) | Live sync, API docs drafts, agent activity | Shipped on macOS 2026-10-09; Windows not verified |
 | 03 | [Process working directory and environment](../chain-sdk-requests/03-process-working-directory-and-environment.md) | Git, packages, formatting, scaffolding, DMG | Shipped on macOS 2026-10-09; Windows not verified |
 | 04 | [Terminal sessions](../chain-sdk-requests/04-terminal-sessions.md) | Scripts, agents, monitor, Phase 4 exit | Shipped on macOS 2026-10-09; Windows not verified |
+| 05 | [Local port availability](../chain-sdk-requests/05-local-port-availability.md) | Dev-port injection, .NET restart wait (ticket 005) | Shipped on macOS 2026-10-09, as `desktop.ports` |
 | later | Data import, transcript reads (see Mneme's request 11), notifications, keep-awake, keychain, ports, LSP stdin, archive unpacking, embedded browser view, updater, menu, zoom | Later slices | Written when the slice is next |

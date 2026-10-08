@@ -15,7 +15,7 @@ An untested OS is `Not tested`, never `Pass`.
 | Projects | Fixture recorded at `c9abefc` | Stack detection only: [ticket 002](tickets/002-stack-detection.md), 19 of 28 golden cases match; 9 are Different by design (approved 2026-10-09: React stacks no longer detected as Next.js). Verified on six real projects through `desktop.folders` | Partial | Not tested | Not tested | Not started |
 | Workspace files | | | | | | Not started |
 | Git | | | | | | Not started |
-| Scripts and terminal | `src/main/pty-runner.ts` | Sessions only: [ticket 004](tickets/004-terminal-sessions.md), survives a real reload. Scripts not ported | Partial | Not tested | Not tested | Not started |
+| Scripts and terminal | `src/main/pty-runner.ts`; environment fixture at `c9abefc` | Sessions ([ticket 004](tickets/004-terminal-sessions.md), survives a real reload) and scripts ([ticket 005](tickets/005-scripts.md), two real Vite servers). Port check Different by design (stricter). Agent badges wait on ticket 008 | Partial | Not tested | Not tested | Not started |
 | Agents | | | | | | Not started |
 | Agent monitor | | | | | | Not started |
 | Prompt Builder | Fixture recorded at `c9abefc` | Prompt assembly only: [ticket 001](tickets/001-prompt-assembly.md), 16 of 16 golden cases. Storage and screens not ported | Partial | Not tested | Not tested | Not started |
