@@ -691,6 +691,18 @@ fn process_runner_close_stdin(state: tauri::State<ProcessRunnerState>, id: Strin
     }
 }
 
+// Bridges the ports capability contract (capabilities/ports in chain-sdk):
+// whether a dev server could bind a TCP port right now. Takes a u32, not a
+// u16, so 70000 reaches the range check instead of failing to deserialize.
+#[tauri::command]
+fn ports_is_free(port: u32) -> Result<bool, String> {
+    let port = u16::try_from(port)
+        .ok()
+        .filter(|p| *p != 0)
+        .ok_or_else(|| format!("INVALID_ARGUMENT: port must be between 1 and 65535, got {port}"))?;
+    chain_core::ports::is_free(port)
+}
+
 // Bridges the models capability contract (capabilities/models in
 // chain-sdk). Data-only model packs live in a `models/` sibling of
 // `files/` in this app's data directory; engines get them by id and paths
@@ -1372,6 +1384,7 @@ pub fn run() {
             process_runner_kill,
             process_runner_write,
             process_runner_close_stdin,
+            ports_is_free,
             terminal::terminal_start,
             terminal::terminal_list,
             terminal::terminal_backlog,

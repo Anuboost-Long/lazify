@@ -18,6 +18,7 @@ Each request:
 | 02 | [Tell the app when files in a folder change](02-file-change-events.md) | Shipped on macOS 2026-10-09, as `desktop.folders` `watch()` |
 | 03 | [Run a process in a chosen folder, with extra environment variables](03-process-working-directory-and-environment.md) | Shipped on macOS 2026-10-09, in `process-runner` |
 | 04 | [Interactive terminal sessions that outlive a page reload](04-terminal-sessions.md) | Shipped on macOS 2026-10-09, as `desktop.terminal` |
+| 05 | [Tell the app whether a local TCP port is free](05-local-port-availability.md) | Shipped on macOS 2026-10-09, as `desktop.ports` |
 
 Overlap with Mneme: request 01's read-only allow-list design fork would also
 answer Mneme's request 11 (`external-file-read`).
