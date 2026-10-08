@@ -29,6 +29,7 @@ export function AgentMonitorRail({
 }: Readonly<AgentMonitorRailProps>) {
   const { t } = useTranslation();
   const scoped = targetLabel !== null;
+  const horizontal = { indicator: "bottom" as const };
 
   const forTarget = (label: string) =>
     scoped ? `${label} — ${targetLabel}` : `${label} (${t(translation.Agents.MonitorNoTarget)})`;
@@ -36,8 +37,7 @@ export function AgentMonitorRail({
   return (
     <div
       className={clsx(
-        "flex h-full w-10 shrink-0 flex-col items-center gap-1",
-        "border-l border-border bg-soft py-2"
+        "flex shrink-0 items-center gap-1"
       )}
     >
       <RailButton
@@ -47,6 +47,7 @@ export function AgentMonitorRail({
         badge={changeCount}
         disabled={!scoped}
         onClick={() => onToggleRail("changes")}
+        {...horizontal}
       />
 
       <RailButton
@@ -55,6 +56,7 @@ export function AgentMonitorRail({
         selected={railTab === "git"}
         disabled={!scoped}
         onClick={() => onToggleRail("git")}
+        {...horizontal}
       />
 
       <RailButton
@@ -63,6 +65,7 @@ export function AgentMonitorRail({
         selected={railTab === "files"}
         disabled={!scoped}
         onClick={() => onToggleRail("files")}
+        {...horizontal}
       />
 
       <RailButton
@@ -71,6 +74,7 @@ export function AgentMonitorRail({
         selected={railTab === "env"}
         disabled={!scoped}
         onClick={() => onToggleRail("env")}
+        {...horizontal}
       />
 
       <RailButton
@@ -79,6 +83,7 @@ export function AgentMonitorRail({
         selected={railTab === "tasks"}
         disabled={!scoped}
         onClick={() => onToggleRail("tasks")}
+        {...horizontal}
       />
 
       <RailButton
@@ -87,6 +92,7 @@ export function AgentMonitorRail({
         selected={false}
         disabled={!scoped}
         onClick={onOpenConsole}
+        {...horizontal}
       />
 
       <RailButton
@@ -95,9 +101,10 @@ export function AgentMonitorRail({
         selected={false}
         disabled={!onPickPath}
         onClick={() => onPickPath?.()}
+        {...horizontal}
       />
 
-      <span aria-hidden className="my-1 h-px w-5 shrink-0 rounded-full bg-border" />
+      <span aria-hidden className="mx-1 h-5 w-px shrink-0 rounded-full bg-border" />
 
       <RailButton
         icon="bell"
@@ -105,6 +112,7 @@ export function AgentMonitorRail({
         selected={railTab === "activity"}
         badge={activityUnread}
         onClick={() => onToggleRail("activity")}
+        {...horizontal}
       />
 
       <RailButton
@@ -112,6 +120,7 @@ export function AgentMonitorRail({
         label={t(translation.Agents.Usage)}
         selected={railTab === "usage"}
         onClick={() => onToggleRail("usage")}
+        {...horizontal}
       />
     </div>
   );

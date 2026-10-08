@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { translation } from "@renderer/i18n/translation";
 import { useProjectFormatter } from "@renderer/shared/hooks/use-formatter";
 import type { AgentFileChange } from "@renderer/shared/types/lazify";
-import { MonoText, SmallText } from "@renderer/shared/typography";
+import { MonoText, SectionTitle, SmallText } from "@renderer/shared/typography";
 import { IconButton } from "@renderer/shared/ui/IconButton";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 
@@ -65,9 +65,15 @@ export function AgentChangesPanel({
 			<header className="flex items-center gap-1 border-b border-border px-2 py-1.5">
 				<UiIcon name="journal-page" className="ml-1 h-3.5 w-3.5 text-muted" />
 
-				<SmallText as="span" className="!text-text truncate">
-					{t(translation.Agents.SessionChanges)}
-				</SmallText>
+				{variant === "modal" ? (
+					<SectionTitle as="span" className="!text-sm leading-none truncate">
+						{t(translation.Agents.SessionChanges)}
+					</SectionTitle>
+				) : (
+					<SmallText as="span" className="!text-text truncate">
+						{t(translation.Agents.SessionChanges)}
+					</SmallText>
+				)}
 
 				{changes.length > 0 ? (
 					<SmallText as="span" className="!text-accent">

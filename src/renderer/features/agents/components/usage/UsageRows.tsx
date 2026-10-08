@@ -10,6 +10,7 @@ import type {
 } from "@renderer/shared/types/lazify";
 import { MonoText, SmallText } from "@renderer/shared/typography";
 import { IconButton } from "@renderer/shared/ui/IconButton";
+import { Tooltip } from "@renderer/shared/ui/Tooltip";
 
 import {
 	barToneClass,
@@ -21,7 +22,7 @@ import {
 
 export function Stat({ label, value }: Readonly<{ label: string; value: number }>) {
 	return (
-		<div className="min-w-0 flex-1">
+		<div className="min-w-0 flex-1 px-3 py-2 first:pl-0">
 			<SmallText as="span" className="!text-muted block truncate">
 				{label}
 			</SmallText>
@@ -32,22 +33,107 @@ export function Stat({ label, value }: Readonly<{ label: string; value: number }
 	);
 }
 
-export function Sparkline({ history }: Readonly<{ history: AgentUsageSummary["history"] }>) {
+type UsageHistory = AgentUsageSummary["history"];
+
+function usageTooltip(day: UsageHistory[number], tokensLabel: string): string {
+	return `${day.date} · ${formatTokens(day.total)} ${tokensLabel}`;
+}
+
+export function Sparkline({
+	history,
+	onExpand,
+}: Readonly<{ history: UsageHistory; onExpand?: () => void }>) {
+	const { t } = useTranslation();
 	const recent = history.slice(-14);
 	const peak = Math.max(...recent.map((day) => day.total), 1);
 
 	if (recent.length === 0) return null;
 
+	const chart = (
+		<>
+			<div className="flex w-11 shrink-0 flex-col justify-between border-r border-border pr-2 text-right">
+				<MonoText as="span" className="!text-muted text-[10px] leading-none">
+					{formatTokens(peak)}
+				</MonoText>
+				<MonoText as="span" className="!text-muted text-[10px] leading-none">
+					0
+				</MonoText>
+			</div>
+
+			<div className="flex min-w-0 flex-1 items-end gap-[2px]">
+				{recent.map((day) => (
+					<Tooltip
+						key={day.date}
+						content={usageTooltip(day, t(translation.Agents.Tokens))}
+					>
+						<div
+							className="h-full min-h-3 flex-1 rounded-sm bg-accent/60 hover:bg-accent"
+							style={{ height: `${Math.max((day.total / peak) * 100, 4)}%` }}
+						/>
+					</Tooltip>
+				))}
+			</div>
+		</>
+	);
+
+	if (!onExpand) return <div className="flex h-14 gap-2">{chart}</div>;
+
 	return (
-		<div className="flex h-7 items-end gap-[2px]">
-			{recent.map((day) => (
-				<div
-					key={day.date}
-					title={`${day.date} · ${formatTokens(day.total)}`}
-					className="flex-1 rounded-sm bg-accent/60"
-					style={{ height: `${Math.max((day.total / peak) * 100, 4)}%` }}
-				/>
-			))}
+		<button
+			type="button"
+			onClick={onExpand}
+			aria-label={t(translation.Agents.Usage)}
+			className="flex h-14 w-full gap-2 rounded outline-none transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-accent"
+		>
+			{chart}
+		</button>
+	);
+}
+
+export function UsageHistoryChart({ history }: Readonly<{ history: UsageHistory }>) {
+	const { t } = useTranslation();
+	const peak = Math.max(...history.map((day) => day.total), 1);
+	const ticks = Array.from({ length: 5 }, (_, index) => (peak * (4 - index)) / 4);
+	const dateLabels = [...new Set([0, Math.floor((history.length - 1) / 2), history.length - 1])]
+		.map((index) => history.at(index))
+		.filter((day): day is UsageHistory[number] => day !== undefined);
+
+	return (
+		<div className="min-w-0">
+			<div className="grid h-80 grid-cols-[3.5rem_minmax(0,1fr)] gap-3">
+				<div className="flex flex-col justify-between border-r border-border pr-2 text-right">
+					{ticks.map((tick) => (
+						<MonoText key={tick} as="span" className="!text-muted text-[10px] leading-none">
+							{formatTokens(tick)}
+						</MonoText>
+					))}
+				</div>
+
+				<div className="relative grid min-w-0 grid-flow-col auto-cols-fr items-end gap-px">
+					<div className="pointer-events-none absolute inset-0 flex flex-col justify-between">
+						{ticks.map((tick) => (
+							<div key={tick} className="border-t border-border/70" />
+						))}
+					</div>
+
+					{history.map((day) => (
+						<Tooltip key={day.date} content={usageTooltip(day, t(translation.Agents.Tokens))}>
+							<div
+								className="relative min-h-1 rounded-sm bg-accent/65 transition-colors hover:bg-accent"
+								style={{ height: `${Math.max((day.total / peak) * 100, day.total ? 1 : 0)}%` }}
+							/>
+						</Tooltip>
+					))}
+				</div>
+			</div>
+
+			<div className="ml-[4.25rem] mt-2 flex justify-between">
+				{dateLabels.map((day) => (
+					<MonoText key={day.date} as="span" className="!text-muted text-[10px]">
+						{new Date(`${day.date}T00:00:00`).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+					</MonoText>
+				))}
+			</div>
 		</div>
 	);
 }

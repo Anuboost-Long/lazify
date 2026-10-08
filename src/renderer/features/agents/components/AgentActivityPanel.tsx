@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
 import { translation } from "@renderer/i18n/translation";
-import { CaptionText, SmallText } from "@renderer/shared/typography";
+import { CaptionText, SectionTitle, SmallText } from "@renderer/shared/typography";
 import { IconButton } from "@renderer/shared/ui/IconButton";
 import UiIcon from "@renderer/shared/ui/icons/UiIcon";
 
@@ -85,9 +85,15 @@ export function AgentActivityPanel({
 			<header className="flex items-center gap-1 border-b border-border px-2 py-1.5">
 				<UiIcon name="bell" className="ml-1 h-3.5 w-3.5 text-muted" />
 
-				<SmallText as="span" className="!text-text truncate">
-					{t(translation.Agents.Activity)}
-				</SmallText>
+				{variant === "modal" ? (
+					<SectionTitle as="span" className="!text-sm leading-none truncate">
+						{t(translation.Agents.Activity)}
+					</SectionTitle>
+				) : (
+					<SmallText as="span" className="!text-text truncate">
+						{t(translation.Agents.Activity)}
+					</SmallText>
+				)}
 
 				<div className="ml-auto flex items-center">
 					{entries.length > 0 ? (

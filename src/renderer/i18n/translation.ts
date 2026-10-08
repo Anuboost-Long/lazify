@@ -117,6 +117,7 @@ export const translation = {
 		DiffNextChange: "agents.diff_next_change",
 		DiffTruncated: "agents.diff_truncated",
 		Usage: "agents.usage",
+		Tokens: "agents.tokens",
 		AllTime: "agents.all_time",
 		SessionTokens: "agents.session_tokens",
 		Today: "agents.today",

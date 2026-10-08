@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 
 import { translation } from "@renderer/i18n/translation";
 import type { SyncedWorkspaceProject } from "@renderer/shared/types/lazify";
-import { CardTitle, CaptionText } from "@renderer/shared/typography";
+import { CardTitle } from "@renderer/shared/typography";
 import { IconButton } from "@renderer/shared/ui/IconButton";
 
 import type { AgentDescriptor } from "../../../../main/agents/agent-registry";
@@ -159,24 +159,25 @@ export function AgentMonitorGrid({
 	const renamingPanel = panels.find((panel) => panel.runId === renamingRunId) ?? null;
 
 	return (
-		<div
-			className={clsx(
-				"flex min-h-0 flex-1 flex-col overflow-hidden",
-				"rounded-2xl border border-border bg-soft",
-			)}
-		>
+		<div className="flex min-h-0 flex-1 flex-col overflow-hidden">
 			<div
 				className={clsx(
-					"flex shrink-0 items-center justify-between gap-3",
-					"border-b border-border px-4 py-2.5",
+					"flex h-11 shrink-0 items-center gap-2 overflow-x-auto",
+					"border-b border-border px-1",
 				)}
 			>
-				<div className="flex min-w-0 flex-col">
+				<div className="flex shrink-0 items-center gap-2 px-2">
 					<CardTitle className="!text-text">{t(translation.Agents.LiveMonitor)}</CardTitle>
-					<CaptionText className="!text-muted">{t(translation.Agents.LiveMonitorDesc)}</CaptionText>
 				</div>
 
-				<div className="flex shrink-0 items-center gap-1">
+				<div className="flex shrink-0 items-center gap-1 border-l border-border pl-2">
+					<IconButton
+						icon="plus"
+						title={t(translation.Agents.MonitorAddPanel)}
+						aria-label={t(translation.Agents.MonitorAddPanel)}
+						onClick={openSetup}
+					/>
+
 					{panels.length > 1 ? (
 						<IconButton
 							icon="sparks"
@@ -195,7 +196,11 @@ export function AgentMonitorGrid({
 							onClick={() => setConfirmingClearAll(true)}
 						/>
 					) : null}
+				</div>
 
+				<div className="flex shrink-0 items-center border-l border-border pl-2">{rail}</div>
+
+				<div className="ml-auto flex shrink-0 items-center gap-1 border-l border-border pl-2">
 					<IconButton
 						icon="multi-window"
 						title={t(translation.Agents.MonitorLayout)}
@@ -212,38 +217,34 @@ export function AgentMonitorGrid({
 				</div>
 			</div>
 
-			<div className="flex min-h-0 flex-1">
-				<div className="min-h-0 flex-1 overflow-y-auto p-4">
-					<div ref={gridRef} className={clsx("grid gap-3 auto-rows-[22rem]", COLUMN_CLASS[columns])}>
-						{panels.map((panel) => (
-							<AgentMonitorPanel
-								key={panel.id}
-								panel={panel}
-								selected={panel.runId === targetRunId}
-								waiting={waitingRunIds.includes(panel.runId)}
+			<div className="min-h-0 flex-1 overflow-y-auto p-2">
+				<div ref={gridRef} className={clsx("grid gap-2 auto-rows-[22rem]", COLUMN_CLASS[columns])}>
+					{panels.map((panel) => (
+						<AgentMonitorPanel
+							key={panel.id}
+							panel={panel}
+							selected={panel.runId === targetRunId}
+							waiting={waitingRunIds.includes(panel.runId)}
 
-								allowSpan={columns !== 1}
-								onSelect={onSelectPanel}
-								onPickSize={openSizeChooser}
-								onRename={openRenameDialog}
-								onClear={onClear}
-								dragging={draggingId === panel.runId}
-								dropTarget={dropTargetId === panel.runId && draggingId !== panel.runId}
-								onDragStart={beginDrag}
-								onDragOver={markDropTarget}
-								onDragLeave={unmarkDropTarget}
-								onDrop={handleDrop}
-								onDragEnd={endDrag}
-							/>
-						))}
+							allowSpan={columns !== 1}
+							onSelect={onSelectPanel}
+							onPickSize={openSizeChooser}
+							onRename={openRenameDialog}
+							onClear={onClear}
+							dragging={draggingId === panel.runId}
+							dropTarget={dropTargetId === panel.runId && draggingId !== panel.runId}
+							onDragStart={beginDrag}
+							onDragOver={markDropTarget}
+							onDragLeave={unmarkDropTarget}
+							onDrop={handleDrop}
+							onDragEnd={endDrag}
+						/>
+					))}
 
-						{emptySlotNumbers.map((slot) => (
-							<AgentMonitorSlot key={`slot-${slot}`} index={slot} onAdd={openSetup} />
-						))}
-					</div>
+					{emptySlotNumbers.map((slot) => (
+						<AgentMonitorSlot key={`slot-${slot}`} index={slot} onAdd={openSetup} />
+					))}
 				</div>
-
-				{rail}
 			</div>
 
 			<MonitorModals
