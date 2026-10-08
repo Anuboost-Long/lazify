@@ -46,8 +46,8 @@ terminal and an agent session survive a UI reload and reattach.
 | --- | --- | --- |
 | [004](tickets/004-terminal-sessions.md) | Terminal sessions: Electron's `PtyRunner` on `desktop.terminal` | **Done.** Survives a real reload |
 | [005](tickets/005-scripts.md) | Scripts: list, run, stop, restart, sessions with ports; package manager, .NET, dev-port stepping | **Done.** Two Vite servers side by side in the real app |
-| 006 | One-shot commands: Electron's `command-runner` on `process-runner` with `cwd` and `env` | Next |
-| 007 | Git: status, diff and actions over 006, parsing kept app-level | Queued |
+| [006](tickets/006-commands.md) | One-shot commands: Electron's `CommandRunner` on `process-runner`, with prompt answering | **Done.** Real git command and a real y/N prompt in the app |
+| 007 | Git: status, diff and actions over 006, parsing kept app-level | Next |
 | 008 | Agents: launch and resume an agent CLI in a terminal session; reattach after reload (second half of the exit criterion) | Queued |
 | 009 | Projects: folder picker, grants, file tree and watch over `desktop.folders` | Queued |
 

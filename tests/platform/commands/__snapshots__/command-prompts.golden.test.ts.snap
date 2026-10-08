@@ -1,0 +1,215 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`detectCommandChoicePrompt golden > ANSI colours around a prompt 1`] = `
+{
+  "message": "? Overwrite?",
+  "options": [
+    {
+      "id": "yes",
+      "input": "y
+",
+      "label": "Yes",
+    },
+    {
+      "id": "no",
+      "input": "n
+",
+      "label": "No",
+    },
+  ],
+}
+`;
+
+exports[`detectCommandChoicePrompt golden > OSC title sequence 1`] = `
+{
+  "message": "Delete it?",
+  "options": [
+    {
+      "id": "yes",
+      "input": "y
+",
+      "label": "Yes",
+    },
+    {
+      "id": "no",
+      "input": "n
+",
+      "label": "No",
+    },
+  ],
+}
+`;
+
+exports[`detectCommandChoicePrompt golden > Y/n in brackets 1`] = `
+{
+  "message": "Proceed with installation?",
+  "options": [
+    {
+      "id": "yes",
+      "input": "y
+",
+      "label": "Yes",
+    },
+    {
+      "id": "no",
+      "input": "n
+",
+      "label": "No",
+    },
+  ],
+}
+`;
+
+exports[`detectCommandChoicePrompt golden > carriage returns redraw the line 1`] = `
+{
+  "message": "Replace config?",
+  "options": [
+    {
+      "id": "yes",
+      "input": "y
+",
+      "label": "Yes",
+    },
+    {
+      "id": "no",
+      "input": "n
+",
+      "label": "No",
+    },
+  ],
+}
+`;
+
+exports[`detectCommandChoicePrompt golden > confirmation after other output 1`] = `
+{
+  "message": "Continue?",
+  "options": [
+    {
+      "id": "yes",
+      "input": "y
+",
+      "label": "Yes",
+    },
+    {
+      "id": "no",
+      "input": "n
+",
+      "label": "No",
+    },
+  ],
+}
+`;
+
+exports[`detectCommandChoicePrompt golden > confirmation not on the last line 1`] = `null`;
+
+exports[`detectCommandChoicePrompt golden > confirmation with no question text 1`] = `
+{
+  "message": "Choose an option",
+  "options": [
+    {
+      "id": "yes",
+      "input": "y
+",
+      "label": "Yes",
+    },
+    {
+      "id": "no",
+      "input": "n
+",
+      "label": "No",
+    },
+  ],
+}
+`;
+
+exports[`detectCommandChoicePrompt golden > empty output 1`] = `null`;
+
+exports[`detectCommandChoicePrompt golden > more than thirty lines 1`] = `
+{
+  "message": "Keep going?",
+  "options": [
+    {
+      "id": "yes",
+      "input": "y
+",
+      "label": "Yes",
+    },
+    {
+      "id": "no",
+      "input": "n
+",
+      "label": "No",
+    },
+  ],
+}
+`;
+
+exports[`detectCommandChoicePrompt golden > no prompt 1`] = `null`;
+
+exports[`detectCommandChoicePrompt golden > numbered options with a question 1`] = `
+{
+  "message": "Which framework?",
+  "options": [
+    {
+      "id": "option-1",
+      "input": "1
+",
+      "label": "React",
+    },
+    {
+      "id": "option-2",
+      "input": "2
+",
+      "label": "Vue",
+    },
+    {
+      "id": "option-3",
+      "input": "3
+",
+      "label": "Svelte",
+    },
+  ],
+}
+`;
+
+exports[`detectCommandChoicePrompt golden > numbered options without a question 1`] = `
+{
+  "message": "Choose an option",
+  "options": [
+    {
+      "id": "option-1",
+      "input": "1
+",
+      "label": "Yes",
+    },
+    {
+      "id": "option-2",
+      "input": "2
+",
+      "label": "No",
+    },
+  ],
+}
+`;
+
+exports[`detectCommandChoicePrompt golden > only one numbered option 1`] = `null`;
+
+exports[`detectCommandChoicePrompt golden > plain y/N 1`] = `
+{
+  "message": "Overwrite existing files?",
+  "options": [
+    {
+      "id": "yes",
+      "input": "y
+",
+      "label": "Yes",
+    },
+    {
+      "id": "no",
+      "input": "n
+",
+      "label": "No",
+    },
+  ],
+}
+`;
