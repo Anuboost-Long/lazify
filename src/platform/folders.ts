@@ -34,6 +34,10 @@ export async function appDataPath(): Promise<string> {
 	return (await desktop.folders.appFolder("data")).path;
 }
 
+export async function appTempPath(): Promise<string> {
+	return (await desktop.folders.appFolder("temp")).path;
+}
+
 export function pathExists(path: string): Promise<boolean> {
 	return desktop.folders.exists(path);
 }
@@ -66,4 +70,26 @@ export async function readTextFile(path: string): Promise<string | null> {
 		if (isNotFound(error)) return null;
 		throw error;
 	}
+}
+
+export function readFileBytes(path: string): Promise<Uint8Array> {
+	return desktop.folders.readBytes(path);
+}
+
+export function writeFileBytes(path: string, bytes: Uint8Array): Promise<void> {
+	return desktop.folders.writeBytes(path, bytes);
+}
+
+export interface FolderTreeEntry {
+	path: string;
+	kind: "file" | "folder" | "symlink" | "other";
+	size: number;
+}
+
+export async function listFolderTree(path: string): Promise<FolderTreeEntry[]> {
+	return (await desktop.folders.list(path, { recursive: true })).map(({ path: entryPath, kind, size }) => ({
+		path: entryPath,
+		kind,
+		size,
+	}));
 }

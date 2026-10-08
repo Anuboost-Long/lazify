@@ -68,4 +68,18 @@ export const nodeFolders = {
 			return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
 		}),
 	readBytes: (target: string) => chainCall(target, async () => new Uint8Array(await fs.readFile(target))),
+	writeText: (target: string, text: string) => chainCall(target, () => fs.writeFile(target, text)),
+	writeBytes: (target: string, bytes: Uint8Array) => chainCall(target, () => fs.writeFile(target, bytes)),
+	createFolder: async (target: string) => {
+		await fs.mkdir(target, { recursive: true });
+	},
+	appFolder: async (kind: "data" | "temp") => ({
+		id: `app:${kind}`,
+		path: appFolders[kind],
+		kind: "folder" as const,
+		access: "readWrite" as const,
+		source: "app" as const,
+	}),
 };
+
+export const appFolders = { data: "/nonexistent-app-data", temp: "/nonexistent-app-temp" };
