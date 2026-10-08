@@ -20,3 +20,10 @@ The import is offered on first launch (D-8):
    found are listed for the user to fix.
 4. Settings keeps an "Import from Lazify" action for running it later.
    Running it again must not duplicate records.
+
+## Entries
+
+| # | Source | Destination | Idempotency | Validation | Recovery |
+| --- | --- | --- | --- | --- | --- |
+| [010](tickets/010-profile-inspector.md) | Electron profile, read-only | `<appFolder("data")>/electron-import/backups/<time>/` | Each run makes a new timestamped backup | Integrity check and row counts; manifest of every file | Delete the backup folder |
+| [011](tickets/011-import-database.md) | `lazify.db` in a backup, schema 1–5 | Chain storage, migrations 1–6 | `INSERT OR IGNORE` by id; ledger in `electron_imports` | Every source id present; `foreign_key_check`; `integrity_check`; orphans counted | Remove the Chain database and import again from the same backup |

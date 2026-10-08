@@ -64,8 +64,8 @@ templates, settings, API collections, and safely recoverable project links.
 | Ticket | Scope | Status |
 | --- | --- | --- |
 | [010](tickets/010-profile-inspector.md) | Find, inspect and back up the Electron profile | **Done in tests.** Real profile waits on a `chain dev` restart |
-| 011 | Import the SQLite tables into Chain storage: same schema and ids, one transaction, safe to run twice, integrity checked | Next |
-| 012 | Import JSON stores and user-owned folders (custom agents, settings, imported templates, API Studio). API Studio secrets wait on D-7 | Queued |
+| [011](tickets/011-import-database.md) | Import the SQLite tables into Chain storage: same schema and ids, one transaction, safe to run twice, orphans skipped | **Done in tests.** Real profile waits on a `chain dev` restart |
+| 012 | Import JSON stores and user-owned folders (custom agents, settings, imported templates, API Studio). API Studio secrets wait on D-7 | Next |
 | 013 | The project list, kept in Chromium `localStorage` | Needs an owner decision |
 | 014 | First-launch import flow and the "projects that can't be found" list | Queued |
 
