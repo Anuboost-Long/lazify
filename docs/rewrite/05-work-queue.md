@@ -32,6 +32,25 @@ Ordered smallest-safe-first. Each item becomes a ticket in `tickets/` (format:
 | [002](tickets/002-stack-detection.md) | **Done.** Stack detection into `src/shared/lib/stack-detection/`, reading real folders through `src/platform/folders.ts` | 28 golden cases recorded from Electron; 9 deliberately improved (React stacks were detected as Next.js, see ticket) | `tests/brain/command-builder.test.ts`, `package-json-reader.test.ts` |
 | [003](tickets/003-package-version-matching.md) | **Done.** Package version matching into `src/shared/lib/package-version-matcher/`, registry calls through `src/platform/registry.ts` | 10 golden cases recorded from Electron against a fake registry; identical to Electron on two real projects | **None** in Electron; characterisation fixture added |
 
+## Phase 2 — native platform layer
+
+Each `src/platform/` file offers the shape of one Electron preload group (or
+part of one) on top of Chain, so ported screens swap `window.lazify.<group>`
+for `@/platform/<group>`. Ordered by the Phase 4 slice: open a project, run
+a command, give an agent a task, reload, reconnect.
+
+Exit criterion: contract tests drive the platform layer headlessly; a
+terminal and an agent session survive a UI reload and reattach.
+
+| Ticket | Scope | Status |
+| --- | --- | --- |
+| [004](tickets/004-terminal-sessions.md) | Terminal sessions: Electron's `PtyRunner` on `desktop.terminal` | **Done.** Survives a real reload |
+| 005 | Scripts: `listScripts`, `runScript`, `stopScript`, `restartScript`, `listSessions`, with package-manager choice. .NET launch and dev-port injection | Next |
+| 006 | One-shot commands: Electron's `command-runner` on `process-runner` with `cwd` and `env` | Queued |
+| 007 | Git: status, diff and actions over 006, parsing kept app-level | Queued |
+| 008 | Agents: launch and resume an agent CLI in a terminal session; reattach after reload (second half of the exit criterion) | Queued |
+| 009 | Projects: folder picker, grants, file tree and watch over `desktop.folders` | Queued |
+
 ## Chain SDK requests
 
 | # | Request | Unblocks | Status |
