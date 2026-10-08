@@ -77,16 +77,14 @@ retired. A fix made to one during that time must be made to the other too.
 
 ### P-2 Branches
 
-Accepted 2026-10-09 by the owner, amended to match A-3's GitHub hosting.
+Accepted 2026-10-09 by the owner, amended the same day to one branch.
 
 - Electron repo: its own branches are untouched and `main` keeps shipping.
-  The one rewrite branch there is `lazify-chain`, which is this repo's
-  `main`.
-- This repo: `main` stays runnable and tracks `origin/lazify-chain`. Each
-  ticket gets a short-lived local branch, `feat/<ticket>-<slice>`, pushed as
-  `chain/<ticket>-<slice>` and merged into `lazify-chain` by pull request.
-  The `chain/` prefix keeps rewrite branches apart from Electron's, and
-  `lazify-chain/…` can't be used because a branch already has that name.
+  The one rewrite branch there is `lazify-chain`.
+- This repo: `main` tracks `origin/lazify-chain`, and work is committed
+  straight to it. There are no per-ticket branches or pull requests.
+  `main` stays runnable: every commit passes `CI=true npm test` and
+  `npm run typecheck`.
 
 ### P-3 Data separation
 
