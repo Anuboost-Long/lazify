@@ -12,9 +12,14 @@ Ordered smallest-safe-first. Each item becomes a ticket in `tickets/` (format:
 - [x] The owner's in-progress Electron work committed separately (PR #12 in the Electron repo)
 - [x] Chain app scaffolded as its own repo, `lazify-chain` (A-3), and
       arranged like Mneme
-- [x] Native side verified: `npm run dev` compiled and opened a window that
-      reached `desktop.platform.getInfo()` (macOS, arm64, 2026-10-09; first
-      checked in the earlier in-repo copy of the scaffold)
+- [x] Native side verified: `npm run dev` in this repo, after the
+      restructure, opened a window that reached `desktop.platform.getInfo()`
+      (macOS, arm64, 2026-10-09, read through `chain inspect`)
+- [ ] Report to chain-sdk: on the first `chain dev` run, Tauri restarted and
+      ran `beforeDevCommand` a second time while the first Vite still held
+      port 1420. The command exited 1 but left `chain dev`, Vite and two app
+      processes running. Separately, `chain init` runs `git init` even
+      inside an existing repository
 - [ ] Owner: approve or amend P-2 and P-3 and answer D-1, D-2 and D-5
       (`04-architecture-decisions.md`)
 
