@@ -50,7 +50,7 @@ terminal and an agent session survive a UI reload and reattach.
 | [006](tickets/006-commands.md) | One-shot commands: Electron's `CommandRunner` on `process-runner`, with prompt answering | **Done.** Real git command and a real y/N prompt in the app |
 | [007](tickets/007-git.md) | Git: status, changes, diffs and actions; shadow repos for plain folders | **Done.** 30 results match Electron on real repositories |
 | [008](tickets/008-agents.md) | Agents: list, launch and resume, attention and turn-done detection, reattach after reload | **Done.** A waiting agent survived a real reload. Notifications wait on request 07 |
-| 009 | Projects: folder picker, grants, file tree and watch over `desktop.folders` | Next |
+| [009](tickets/009-projects.md) | Projects: file tree, file and asset reads, search, pickers over `desktop.folders` | **Done.** Electron's tests and fixture match; search uses one recursive listing |
 
 ## Chain SDK requests
 

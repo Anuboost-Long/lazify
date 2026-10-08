@@ -1,0 +1,517 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`project importer golden > imports the same project > full scan 1`] = `
+{
+  "value": {
+    "projectName": "<project-name>",
+    "projectPath": "<project>",
+    "stackDetection": {
+      "commands": {
+        "build": "npm run build",
+        "install": "npm install",
+      },
+      "confidence": 0.1,
+      "framework": "unknown",
+      "metaFramework": "unknown",
+      "packageManager": "npm",
+      "reasons": [],
+      "stack": "unknown",
+      "warnings": [
+        "No lock file found. Defaulted to npm.",
+        "Could not determine stack confidently.",
+        "No recognized framework dependency or config file found.",
+      ],
+    },
+    "tree": [
+      {
+        "children": [
+          {
+            "children": [],
+            "content": "Preview unavailable for binary file.
+",
+            "id": "imported-assets/logo.png",
+            "locked": false,
+            "name": "logo.png",
+            "source": "custom",
+            "type": "file",
+          },
+        ],
+        "id": "imported-assets",
+        "locked": false,
+        "name": "assets",
+        "source": "custom",
+        "type": "folder",
+      },
+      {
+        "children": [],
+        "id": "imported-empty-folder",
+        "locked": false,
+        "name": "empty-folder",
+        "source": "custom",
+        "type": "folder",
+      },
+      {
+        "children": [
+          {
+            "children": [
+              {
+                "children": [],
+                "content": "*.snap
+",
+                "id": "imported-src/components/.gitignore",
+                "locked": false,
+                "name": ".gitignore",
+                "source": "custom",
+                "type": "file",
+              },
+              {
+                "children": [],
+                "content": "ignored by the nested rule
+",
+                "id": "imported-src/components/Button.snap",
+                "locked": false,
+                "name": "Button.snap",
+                "source": "custom",
+                "type": "file",
+              },
+              {
+                "children": [],
+                "content": "export function Button() { return null; }
+",
+                "id": "imported-src/components/Button.tsx",
+                "locked": false,
+                "name": "Button.tsx",
+                "source": "custom",
+                "type": "file",
+              },
+            ],
+            "id": "imported-src/components",
+            "locked": false,
+            "name": "components",
+            "source": "custom",
+            "type": "folder",
+          },
+          {
+            "children": [],
+            "content": "export const answer = 42;
+",
+            "id": "imported-src/index.ts",
+            "locked": false,
+            "name": "index.ts",
+            "source": "custom",
+            "type": "file",
+          },
+          {
+            "children": [],
+            "content": "not ignored below the root
+",
+            "id": "imported-src/root-only.txt",
+            "locked": false,
+            "name": "root-only.txt",
+            "source": "custom",
+            "type": "file",
+          },
+        ],
+        "id": "imported-src",
+        "locked": false,
+        "name": "src",
+        "source": "custom",
+        "type": "folder",
+      },
+      {
+        "children": [],
+        "content": "SECRET=1
+",
+        "id": "imported-.env",
+        "locked": false,
+        "name": ".env",
+        "source": "custom",
+        "type": "file",
+      },
+      {
+        "children": [],
+        "content": "SECRET=2
+",
+        "id": "imported-.env.local",
+        "locked": false,
+        "name": ".env.local",
+        "source": "custom",
+        "type": "file",
+      },
+      {
+        "children": [],
+        "content": "dist/
+*.log
+!keep.log
+/root-only.txt
+.env*
+# a comment
+
+",
+        "id": "imported-.gitignore",
+        "locked": false,
+        "name": ".gitignore",
+        "source": "custom",
+        "type": "file",
+      },
+      {
+        "children": [],
+        "content": "sorted first?
+",
+        "id": "imported-alpha.md",
+        "locked": false,
+        "name": "alpha.md",
+        "source": "custom",
+        "type": "file",
+      },
+      {
+        "children": [],
+        "content": "Preview omitted. File is larger than 256 KB.
+",
+        "id": "imported-big.txt",
+        "locked": false,
+        "name": "big.txt",
+        "source": "custom",
+        "type": "file",
+      },
+      {
+        "children": [],
+        "content": "ignored
+",
+        "id": "imported-debug.log",
+        "locked": false,
+        "name": "debug.log",
+        "source": "custom",
+        "type": "file",
+      },
+      {
+        "children": [],
+        "content": "kept by negation
+",
+        "id": "imported-keep.log",
+        "locked": false,
+        "name": "keep.log",
+        "source": "custom",
+        "type": "file",
+      },
+      {
+        "children": [],
+        "content": "{
+  "name": "demo",
+  "scripts": {
+    "build": "tsc"
+  }
+}",
+        "id": "imported-package.json",
+        "locked": false,
+        "name": "package.json",
+        "source": "custom",
+        "type": "file",
+      },
+      {
+        "children": [],
+        "content": "# Demo
+",
+        "id": "imported-README.md",
+        "locked": false,
+        "name": "README.md",
+        "source": "custom",
+        "type": "file",
+      },
+      {
+        "children": [],
+        "content": "ignored at the root
+",
+        "id": "imported-root-only.txt",
+        "locked": false,
+        "name": "root-only.txt",
+        "source": "custom",
+        "type": "file",
+      },
+      {
+        "children": [],
+        "content": "sorted last
+",
+        "id": "imported-Zeta.md",
+        "locked": false,
+        "name": "Zeta.md",
+        "source": "custom",
+        "type": "file",
+      },
+    ],
+  },
+}
+`;
+
+exports[`project importer golden > imports the same project > index 1`] = `
+{
+  "value": {
+    "projectName": "<project-name>",
+    "projectPath": "<project>",
+    "stackDetection": {
+      "commands": {
+        "build": "npm run build",
+        "install": "npm install",
+      },
+      "confidence": 0.1,
+      "framework": "unknown",
+      "metaFramework": "unknown",
+      "packageManager": "npm",
+      "reasons": [],
+      "stack": "unknown",
+      "warnings": [
+        "No lock file found. Defaulted to npm.",
+        "Could not determine stack confidently.",
+        "No recognized framework dependency or config file found.",
+      ],
+    },
+    "tree": [
+      {
+        "absolutePath": "<project>/assets",
+        "children": [
+          {
+            "absolutePath": "<project>/assets/logo.png",
+            "children": [],
+            "id": "imported-index-assets/logo.png",
+            "name": "logo.png",
+            "relativePath": "assets/logo.png",
+            "type": "file",
+          },
+        ],
+        "id": "imported-index-assets",
+        "name": "assets",
+        "relativePath": "assets",
+        "type": "folder",
+      },
+      {
+        "absolutePath": "<project>/empty-folder",
+        "children": [],
+        "id": "imported-index-empty-folder",
+        "name": "empty-folder",
+        "relativePath": "empty-folder",
+        "type": "folder",
+      },
+      {
+        "absolutePath": "<project>/src",
+        "children": [
+          {
+            "absolutePath": "<project>/src/components",
+            "children": [
+              {
+                "absolutePath": "<project>/src/components/.gitignore",
+                "children": [],
+                "id": "imported-index-src/components/.gitignore",
+                "name": ".gitignore",
+                "relativePath": "src/components/.gitignore",
+                "type": "file",
+              },
+              {
+                "absolutePath": "<project>/src/components/Button.tsx",
+                "children": [],
+                "id": "imported-index-src/components/Button.tsx",
+                "name": "Button.tsx",
+                "relativePath": "src/components/Button.tsx",
+                "type": "file",
+              },
+            ],
+            "id": "imported-index-src/components",
+            "name": "components",
+            "relativePath": "src/components",
+            "type": "folder",
+          },
+          {
+            "absolutePath": "<project>/src/index.ts",
+            "children": [],
+            "id": "imported-index-src/index.ts",
+            "name": "index.ts",
+            "relativePath": "src/index.ts",
+            "type": "file",
+          },
+        ],
+        "id": "imported-index-src",
+        "name": "src",
+        "relativePath": "src",
+        "type": "folder",
+      },
+      {
+        "absolutePath": "<project>/.env",
+        "children": [],
+        "id": "imported-index-.env",
+        "name": ".env",
+        "relativePath": ".env",
+        "type": "file",
+      },
+      {
+        "absolutePath": "<project>/.env.local",
+        "children": [],
+        "id": "imported-index-.env.local",
+        "name": ".env.local",
+        "relativePath": ".env.local",
+        "type": "file",
+      },
+      {
+        "absolutePath": "<project>/.gitignore",
+        "children": [],
+        "id": "imported-index-.gitignore",
+        "name": ".gitignore",
+        "relativePath": ".gitignore",
+        "type": "file",
+      },
+      {
+        "absolutePath": "<project>/alpha.md",
+        "children": [],
+        "id": "imported-index-alpha.md",
+        "name": "alpha.md",
+        "relativePath": "alpha.md",
+        "type": "file",
+      },
+      {
+        "absolutePath": "<project>/big.txt",
+        "children": [],
+        "id": "imported-index-big.txt",
+        "name": "big.txt",
+        "relativePath": "big.txt",
+        "type": "file",
+      },
+      {
+        "absolutePath": "<project>/keep.log",
+        "children": [],
+        "id": "imported-index-keep.log",
+        "name": "keep.log",
+        "relativePath": "keep.log",
+        "type": "file",
+      },
+      {
+        "absolutePath": "<project>/package.json",
+        "children": [],
+        "id": "imported-index-package.json",
+        "name": "package.json",
+        "relativePath": "package.json",
+        "type": "file",
+      },
+      {
+        "absolutePath": "<project>/README.md",
+        "children": [],
+        "id": "imported-index-README.md",
+        "name": "README.md",
+        "relativePath": "README.md",
+        "type": "file",
+      },
+      {
+        "absolutePath": "<project>/Zeta.md",
+        "children": [],
+        "id": "imported-index-Zeta.md",
+        "name": "Zeta.md",
+        "relativePath": "Zeta.md",
+        "type": "file",
+      },
+    ],
+  },
+}
+`;
+
+exports[`project importer golden > imports the same project > index of a file 1`] = `
+{
+  "error": "The selected path is not a directory.",
+}
+`;
+
+exports[`project importer golden > imports the same project > index of a missing folder 1`] = `
+{
+  "error": "ENOENT: no such file or directory, stat '<project>/nope'",
+}
+`;
+
+exports[`project importer golden > imports the same project > read a binary file 1`] = `
+{
+  "value": "Preview unavailable for binary file.
+",
+}
+`;
+
+exports[`project importer golden > imports the same project > read a folder 1`] = `
+{
+  "error": "The selected path is not a file.",
+}
+`;
+
+exports[`project importer golden > imports the same project > read a large file 1`] = `
+{
+  "value": "Preview omitted. File is larger than 256 KB.
+",
+}
+`;
+
+exports[`project importer golden > imports the same project > read a missing file 1`] = `
+{
+  "error": "ENOENT: no such file or directory, stat '<project>/missing.ts'",
+}
+`;
+
+exports[`project importer golden > imports the same project > read a text file 1`] = `
+{
+  "value": "export const answer = 42;
+",
+}
+`;
+
+exports[`project importer golden > imports the same project > template of selected files 1`] = `
+{
+  "value": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [],
+              "content": "export function Button() { return null; }
+",
+              "id": "imported-template-src/components/Button.tsx",
+              "locked": false,
+              "name": "Button.tsx",
+              "source": "custom",
+              "type": "file",
+            },
+          ],
+          "id": "imported-template-src/components",
+          "locked": false,
+          "name": "components",
+          "source": "custom",
+          "type": "folder",
+        },
+        {
+          "children": [],
+          "content": "export const answer = 42;
+",
+          "id": "imported-template-src/index.ts",
+          "locked": false,
+          "name": "index.ts",
+          "source": "custom",
+          "type": "file",
+        },
+      ],
+      "id": "imported-template-src",
+      "locked": false,
+      "name": "src",
+      "source": "custom",
+      "type": "folder",
+    },
+    {
+      "children": [],
+      "content": "# Demo
+",
+      "id": "imported-template-README.md",
+      "locked": false,
+      "name": "README.md",
+      "source": "custom",
+      "type": "file",
+    },
+  ],
+}
+`;
+
+exports[`project importer golden > imports the same project > template with nothing selected 1`] = `
+{
+  "error": "Select at least one file before saving a template.",
+}
+`;
