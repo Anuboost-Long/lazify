@@ -29,7 +29,7 @@ Ordered smallest-safe-first. Each item becomes a ticket in `tickets/` (format:
 | Ticket | Scope | Why it is safe | Electron tests to mirror |
 | --- | --- | --- | --- |
 | [001](tickets/001-prompt-assembly.md) | **Done.** Prompt assembly into `src/features/prompts/lib/` | `assemblePrompt` and its helpers import nothing from Node or Electron. The fixture was recorded from the Electron code on 2026-10-09 | `tests/main/prompt-builder.test.ts`, `prompt-presets-and-context.test.ts` |
-| 002 | Stack detection (`src/brain/stack-detection`) | The pure parts (`command-builder`, `package-manager-detector`, `detect-stack`) port as-is. Reading the project's files waits on request 01 | `tests/brain/command-builder.test.ts`, `package-json-reader.test.ts` |
+| [002](tickets/002-stack-detection.md) | **Done.** Stack detection into `src/shared/lib/stack-detection/`, reading through a `ProjectReader`. Real folders wait on request 01 | 28 golden cases recorded from Electron; 9 deliberately improved (React stacks were detected as Next.js, see ticket) | `tests/brain/command-builder.test.ts`, `package-json-reader.test.ts` |
 | 003 | Package version matching (`semver-utils`, `version-matcher` decisions) | Pure logic. Registry fetches use `desktop.http` through `src/platform` | **None.** Record characterisation fixtures from Electron first |
 
 ## Chain SDK requests

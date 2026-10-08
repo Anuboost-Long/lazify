@@ -1,0 +1,652 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`detectProjectStack golden > aspnet solution 1`] = `
+{
+  "commands": {
+    "build": "dotnet build "Shop.sln"",
+    "dev": "dotnet watch run --project "src/Shop.Api/Shop.Api.csproj"",
+    "install": "dotnet restore "Shop.sln"",
+    "start": "dotnet run --project "src/Shop.Api/Shop.Api.csproj"",
+    "test": "dotnet test "Shop.sln"",
+  },
+  "confidence": 0.95,
+  "framework": "dotnet",
+  "metaFramework": "aspnet",
+  "packageManager": "dotnet",
+  "reasons": [
+    "Shop.sln solution file exists",
+    "Microsoft.NET.Sdk.Web SDK found",
+    "Shop.Api.csproj project file exists",
+    "targets net8.0",
+  ],
+  "stack": "dotnet",
+  "warnings": [],
+}
+`;
+
+exports[`detectProjectStack golden > bare react 1`] = `
+{
+  "commands": {
+    "build": "npx next build",
+    "dev": "npx next dev",
+    "install": "npm install",
+    "start": "npm run start",
+  },
+  "confidence": 0.85,
+  "framework": "react",
+  "metaFramework": "nextjs",
+  "packageManager": "npm",
+  "reasons": [
+    "react dependency found",
+    "react-dom dependency found",
+  ],
+  "stack": "react-next",
+  "warnings": [
+    "Multiple stack indicators detected.",
+    "Multiple indicators found: react-next + react-vite + react-unknown. Classified as react-next because it has higher priority.",
+  ],
+}
+`;
+
+exports[`detectProjectStack golden > bare react without scripts 1`] = `
+{
+  "commands": {
+    "build": "npx next build",
+    "dev": "npx next dev",
+    "install": "npm install",
+    "start": "npx next start",
+  },
+  "confidence": 0.85,
+  "framework": "react",
+  "metaFramework": "nextjs",
+  "packageManager": "npm",
+  "reasons": [
+    "react dependency found",
+    "react-dom dependency found",
+  ],
+  "stack": "react-next",
+  "warnings": [
+    "No lock file found. Defaulted to npm.",
+    "Multiple stack indicators detected.",
+    "Multiple indicators found: react-next + react-vite + react-unknown. Classified as react-next because it has higher priority.",
+  ],
+}
+`;
+
+exports[`detectProjectStack golden > blazor project with several target frameworks 1`] = `
+{
+  "commands": {
+    "build": "dotnet build "Portal.csproj"",
+    "dev": "dotnet watch run --project "Portal.csproj"",
+    "install": "dotnet restore "Portal.csproj"",
+    "start": "dotnet run --project "Portal.csproj"",
+    "test": "dotnet test "Portal.csproj"",
+  },
+  "confidence": 0.9,
+  "framework": "dotnet",
+  "metaFramework": "blazor",
+  "packageManager": "dotnet",
+  "reasons": [
+    "Blazor SDK or components referenced",
+    "Portal.csproj project file exists",
+    "targets net9.0",
+  ],
+  "stack": "dotnet",
+  "warnings": [],
+}
+`;
+
+exports[`detectProjectStack golden > create react app 1`] = `
+{
+  "commands": {
+    "build": "npx next build",
+    "dev": "npx next dev",
+    "install": "npm install",
+    "start": "npm run start",
+    "test": "npm run test",
+  },
+  "confidence": 0.85,
+  "framework": "react",
+  "metaFramework": "nextjs",
+  "packageManager": "npm",
+  "reasons": [
+    "react dependency found",
+    "react-dom dependency found",
+  ],
+  "stack": "react-next",
+  "warnings": [
+    "Multiple stack indicators detected.",
+    "Multiple indicators found: react-next + react-vite + react-cra. Classified as react-next because it has higher priority.",
+  ],
+}
+`;
+
+exports[`detectProjectStack golden > dotnet project beside a package.json 1`] = `
+{
+  "commands": {
+    "build": "dotnet build "Site.csproj"",
+    "dev": "dotnet watch run --project "Site.csproj"",
+    "install": "dotnet restore "Site.csproj"",
+    "start": "dotnet run --project "Site.csproj"",
+    "test": "dotnet test "Site.csproj"",
+  },
+  "confidence": 0.9,
+  "framework": "dotnet",
+  "metaFramework": "aspnet",
+  "packageManager": "dotnet",
+  "reasons": [
+    "Microsoft.NET.Sdk.Web SDK found",
+    "Site.csproj project file exists",
+    "targets net8.0",
+  ],
+  "stack": "dotnet",
+  "warnings": [],
+}
+`;
+
+exports[`detectProjectStack golden > electron app 1`] = `
+{
+  "commands": {
+    "build": "npm run build",
+    "dev": "npm run electron:dev",
+    "install": "npm install",
+  },
+  "confidence": 0.95,
+  "framework": "electron",
+  "metaFramework": "electron",
+  "packageManager": "npm",
+  "reasons": [
+    "electron dependency found",
+    "electron-builder dependency found",
+    "electron-builder.json exists",
+    "package.json main entry suggests electron",
+  ],
+  "stack": "electron",
+  "warnings": [],
+}
+`;
+
+exports[`detectProjectStack golden > electron app without a start script 1`] = `
+{
+  "commands": {
+    "install": "npm install",
+  },
+  "confidence": 0.95,
+  "framework": "electron",
+  "metaFramework": "electron",
+  "packageManager": "npm",
+  "reasons": [
+    "electron dependency found",
+  ],
+  "stack": "electron",
+  "warnings": [
+    "Detected Electron but no desktop start/dev script found.",
+  ],
+}
+`;
+
+exports[`detectProjectStack golden > electron with vite and react 1`] = `
+{
+  "commands": {
+    "build": "npm run build",
+    "dev": "npm run dev",
+    "install": "npm install",
+  },
+  "confidence": 0.95,
+  "framework": "electron",
+  "metaFramework": "electron",
+  "packageManager": "npm",
+  "reasons": [
+    "electron dependency found",
+    "electron folder exists",
+  ],
+  "stack": "electron",
+  "warnings": [
+    "Multiple stack indicators detected.",
+    "Multiple indicators found: electron + react-next + react-vite. Classified as electron because it has higher priority.",
+  ],
+}
+`;
+
+exports[`detectProjectStack golden > empty folder 1`] = `
+{
+  "commands": {
+    "install": "npm install",
+  },
+  "confidence": 0.1,
+  "framework": "unknown",
+  "metaFramework": "unknown",
+  "packageManager": "npm",
+  "reasons": [],
+  "stack": "unknown",
+  "warnings": [
+    "No package.json found.",
+    "No lock file found. Defaulted to npm.",
+    "Could not determine stack confidently.",
+    "No recognized framework dependency or config file found.",
+  ],
+}
+`;
+
+exports[`detectProjectStack golden > expo app with bun 1`] = `
+{
+  "commands": {
+    "android": "bun run android",
+    "install": "bun install",
+    "ios": "bun run ios",
+    "start": "bun run start",
+    "web": "bunx expo start --web",
+  },
+  "confidence": 0.95,
+  "framework": "react-native",
+  "metaFramework": "expo",
+  "packageManager": "bun",
+  "reasons": [
+    "expo dependency found",
+    "app.json exists",
+    "expo-router dependency found",
+    "react-native dependency found",
+  ],
+  "stack": "react-native-expo",
+  "warnings": [
+    "Multiple stack indicators detected.",
+    "Multiple indicators found: react-native-expo + react-next + react-vite. Classified as react-native-expo because it has higher priority.",
+  ],
+}
+`;
+
+exports[`detectProjectStack golden > expo app without scripts 1`] = `
+{
+  "commands": {
+    "android": "bunx expo start --android",
+    "install": "bun install",
+    "ios": "bunx expo start --ios",
+    "start": "bunx expo start",
+    "web": "bunx expo start --web",
+  },
+  "confidence": 0.95,
+  "framework": "react-native",
+  "metaFramework": "expo",
+  "packageManager": "bun",
+  "reasons": [
+    "expo dependency found",
+    "react-native dependency found",
+  ],
+  "stack": "react-native-expo",
+  "warnings": [],
+}
+`;
+
+exports[`detectProjectStack golden > express api 1`] = `
+{
+  "commands": {
+    "dev": "npm run dev",
+    "install": "npm install",
+    "test": "npm run test",
+  },
+  "confidence": 0.85,
+  "framework": "node",
+  "metaFramework": "express",
+  "packageManager": "npm",
+  "reasons": [
+    "express dependency found",
+  ],
+  "stack": "node-api",
+  "warnings": [],
+}
+`;
+
+exports[`detectProjectStack golden > fastify api without scripts 1`] = `
+{
+  "commands": {
+    "install": "npm install",
+  },
+  "confidence": 0.85,
+  "framework": "node",
+  "metaFramework": "unknown",
+  "packageManager": "npm",
+  "reasons": [
+    "fastify dependency found",
+    "@nestjs/core dependency found",
+  ],
+  "stack": "node-api",
+  "warnings": [
+    "No lock file found. Defaulted to npm.",
+    "Node API detected but no dev/start script found.",
+  ],
+}
+`;
+
+exports[`detectProjectStack golden > fsharp console project 1`] = `
+{
+  "commands": {
+    "build": "dotnet build "Tool.fsproj"",
+    "dev": "dotnet watch run --project "Tool.fsproj"",
+    "install": "dotnet restore "Tool.fsproj"",
+    "start": "dotnet run --project "Tool.fsproj"",
+    "test": "dotnet test "Tool.fsproj"",
+  },
+  "confidence": 0.9,
+  "framework": "dotnet",
+  "metaFramework": "dotnet-console",
+  "packageManager": "dotnet",
+  "reasons": [
+    "Tool.fsproj project file exists",
+    "targets net8.0",
+  ],
+  "stack": "dotnet",
+  "warnings": [],
+}
+`;
+
+exports[`detectProjectStack golden > invalid package.json 1`] = `
+{
+  "commands": {
+    "install": "npm install",
+  },
+  "confidence": 0.1,
+  "framework": "unknown",
+  "metaFramework": "unknown",
+  "packageManager": "npm",
+  "reasons": [],
+  "stack": "unknown",
+  "warnings": [
+    "Invalid package.json.",
+    "No lock file found. Defaulted to npm.",
+    "Could not determine stack confidently.",
+    "No recognized framework dependency or config file found.",
+  ],
+}
+`;
+
+exports[`detectProjectStack golden > loose swift file at the root 1`] = `
+{
+  "commands": {
+    "build": "swift build",
+    "dev": "swift run",
+    "install": "swift package resolve",
+    "start": "swift run",
+    "test": "swift test",
+  },
+  "confidence": 0.8,
+  "framework": "swift",
+  "metaFramework": "unknown",
+  "packageManager": "swiftpm",
+  "reasons": [
+    "1 Swift file found",
+  ],
+  "stack": "swift",
+  "warnings": [
+    "No package.json found.",
+    "No lock file found. Defaulted to npm.",
+    "Swift detected, but neither SwiftUI nor UIKit was found in the sources.",
+  ],
+}
+`;
+
+exports[`detectProjectStack golden > maui project 1`] = `
+{
+  "commands": {
+    "build": "dotnet build "Mobile.csproj"",
+    "dev": "dotnet watch run --project "Mobile.csproj"",
+    "install": "dotnet restore "Mobile.csproj"",
+    "start": "dotnet run --project "Mobile.csproj"",
+    "test": "dotnet test "Mobile.csproj"",
+  },
+  "confidence": 0.9,
+  "framework": "dotnet",
+  "metaFramework": "maui",
+  "packageManager": "dotnet",
+  "reasons": [
+    "project targets .NET MAUI",
+    "Mobile.csproj project file exists",
+  ],
+  "stack": "dotnet",
+  "warnings": [],
+}
+`;
+
+exports[`detectProjectStack golden > next app vendoring a dotnet sample 1`] = `
+{
+  "commands": {
+    "build": "npx next build",
+    "dev": "npm run dev",
+    "install": "npm install",
+    "start": "npx next start",
+  },
+  "confidence": 0.95,
+  "framework": "react",
+  "metaFramework": "nextjs",
+  "packageManager": "npm",
+  "reasons": [
+    "next dependency found",
+    "react dependency found",
+    "react-dom dependency found",
+  ],
+  "stack": "react-next",
+  "warnings": [
+    "Multiple stack indicators detected.",
+    "Multiple indicators found: react-next + react-vite. Classified as react-next because it has higher priority.",
+  ],
+}
+`;
+
+exports[`detectProjectStack golden > next app with yarn and no dev script 1`] = `
+{
+  "commands": {
+    "build": "yarn build",
+    "dev": "yarn next dev",
+    "install": "yarn install",
+    "start": "yarn next start",
+  },
+  "confidence": 0.95,
+  "framework": "react",
+  "metaFramework": "nextjs",
+  "packageManager": "yarn",
+  "reasons": [
+    "next dependency found",
+    "next.config.mjs exists",
+    "app folder exists",
+    "react dependency found",
+    "react-dom dependency found",
+  ],
+  "stack": "react-next",
+  "warnings": [
+    "Multiple stack indicators detected.",
+    "Multiple indicators found: react-next + react-vite. Classified as react-next because it has higher priority.",
+  ],
+}
+`;
+
+exports[`detectProjectStack golden > package.json holding an array 1`] = `
+{
+  "commands": {
+    "install": "npm install",
+  },
+  "confidence": 0.1,
+  "framework": "unknown",
+  "metaFramework": "unknown",
+  "packageManager": "npm",
+  "reasons": [],
+  "stack": "unknown",
+  "warnings": [
+    "Invalid package.json.",
+    "No lock file found. Defaulted to npm.",
+    "Could not determine stack confidently.",
+    "No recognized framework dependency or config file found.",
+  ],
+}
+`;
+
+exports[`detectProjectStack golden > plain node package 1`] = `
+{
+  "commands": {
+    "build": "yarn build",
+    "install": "yarn install",
+  },
+  "confidence": 0.1,
+  "framework": "unknown",
+  "metaFramework": "unknown",
+  "packageManager": "yarn",
+  "reasons": [],
+  "stack": "unknown",
+  "warnings": [
+    "Could not determine stack confidently.",
+    "No recognized framework dependency or config file found.",
+  ],
+}
+`;
+
+exports[`detectProjectStack golden > react native cli app with native folders 1`] = `
+{
+  "commands": {
+    "android": "npm run android",
+    "install": "npm install",
+    "ios": "npx expo start --ios",
+    "start": "npm run start",
+    "web": "npx expo start --web",
+  },
+  "confidence": 0.85,
+  "framework": "react-native",
+  "metaFramework": "expo",
+  "packageManager": "npm",
+  "reasons": [
+    "react-native dependency found",
+    "metro.config.js exists",
+  ],
+  "stack": "react-native-expo",
+  "warnings": [
+    "No lock file found. Defaulted to npm.",
+    "Multiple stack indicators detected.",
+    "Multiple indicators found: react-native-expo + react-native-cli + react-next + react-vite. Classified as react-native-expo because it has higher priority.",
+  ],
+}
+`;
+
+exports[`detectProjectStack golden > solution with no project file 1`] = `
+{
+  "commands": {
+    "build": "dotnet build "Empty.slnx"",
+    "dev": "dotnet watch run",
+    "install": "dotnet restore "Empty.slnx"",
+    "start": "dotnet run",
+    "test": "dotnet test "Empty.slnx"",
+  },
+  "confidence": 0.95,
+  "framework": "dotnet",
+  "metaFramework": "dotnet-console",
+  "packageManager": "dotnet",
+  "reasons": [
+    "Empty.slnx solution file exists",
+  ],
+  "stack": "dotnet",
+  "warnings": [
+    "Found a solution file but no project file to run.",
+  ],
+}
+`;
+
+exports[`detectProjectStack golden > swift package without ui 1`] = `
+{
+  "commands": {
+    "build": "swift build",
+    "dev": "swift run",
+    "install": "swift package resolve",
+    "start": "swift run",
+    "test": "swift test",
+  },
+  "confidence": 0.9,
+  "framework": "swift",
+  "metaFramework": "swiftpm",
+  "packageManager": "swiftpm",
+  "reasons": [
+    "Package.swift exists",
+    "2 Swift files found",
+  ],
+  "stack": "swift",
+  "warnings": [
+    "No package.json found.",
+    "No lock file found. Defaulted to npm.",
+    "Swift detected, but neither SwiftUI nor UIKit was found in the sources.",
+  ],
+}
+`;
+
+exports[`detectProjectStack golden > swiftui app 1`] = `
+{
+  "commands": {
+    "build": "xcodebuild -project "Notes.xcodeproj" -scheme "Notes" build",
+    "install": "xcodebuild -project "Notes.xcodeproj" -resolvePackageDependencies",
+    "start": "open "Notes.xcodeproj"",
+    "test": "xcodebuild -project "Notes.xcodeproj" -scheme "Notes" test",
+  },
+  "confidence": 0.95,
+  "framework": "swift",
+  "metaFramework": "swiftui",
+  "packageManager": "swiftpm",
+  "reasons": [
+    "Notes.xcodeproj project exists",
+    "1 Swift file found",
+    "NotesApp.swift imports SwiftUI",
+  ],
+  "stack": "swift-ui",
+  "warnings": [
+    "No package.json found.",
+    "No lock file found. Defaulted to npm.",
+    "Assuming the "Notes" scheme; adjust if the project defines others.",
+  ],
+}
+`;
+
+exports[`detectProjectStack golden > uikit app with cocoapods 1`] = `
+{
+  "commands": {
+    "build": "xcodebuild -workspace "Shop.xcworkspace" -scheme "Shop" build",
+    "install": "pod install",
+    "start": "open "Shop.xcworkspace"",
+    "test": "xcodebuild -workspace "Shop.xcworkspace" -scheme "Shop" test",
+  },
+  "confidence": 0.95,
+  "framework": "swift",
+  "metaFramework": "uikit",
+  "packageManager": "cocoapods",
+  "reasons": [
+    "Shop.xcworkspace workspace exists",
+    "Shop.xcodeproj project exists",
+    "Podfile exists",
+    "1 Swift file found",
+    "AppDelegate.swift imports UIKit",
+  ],
+  "stack": "swift",
+  "warnings": [
+    "No package.json found.",
+    "No lock file found. Defaulted to npm.",
+    "Assuming the "Shop" scheme; adjust if the project defines others.",
+  ],
+}
+`;
+
+exports[`detectProjectStack golden > vite react app with pnpm 1`] = `
+{
+  "commands": {
+    "build": "pnpm build",
+    "dev": "pnpm dev",
+    "install": "pnpm install",
+    "lint": "pnpm lint",
+    "start": "pnpm next start",
+  },
+  "confidence": 0.85,
+  "framework": "react",
+  "metaFramework": "nextjs",
+  "packageManager": "pnpm",
+  "reasons": [
+    "react dependency found",
+    "react-dom dependency found",
+  ],
+  "stack": "react-next",
+  "warnings": [
+    "Multiple stack indicators detected.",
+    "Multiple indicators found: react-next + react-vite. Classified as react-next because it has higher priority.",
+  ],
+}
+`;
