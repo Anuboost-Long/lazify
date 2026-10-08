@@ -4,10 +4,11 @@ import { buildProcessTree, getDescendantPids, scanListeningPorts } from "@/share
 import { choosePackageManager } from "@/shared/lib/environment/scanner";
 import type { PtySession } from "@/shared/types/sessions";
 
+import { clearAttentionOnSubmit, isAgentRun, isHiddenRun, isWaiting } from "./agents";
 import { projectReader } from "./folders";
-import { killPty, listPtySessions, startPty } from "./terminal";
+import { killPty, listPtySessions, ptyWrite as writeToPty, startPty } from "./terminal";
 
-export { onPtyData, onScriptStatus, ptyBacklog, ptyResize, ptyWrite } from "./terminal";
+export { onPtyData, onScriptStatus, ptyBacklog, ptyResize } from "./terminal";
 export type { PtyBacklog, PtyDataEvent } from "./terminal";
 
 export interface ScriptLaunch {
@@ -68,24 +69,33 @@ export async function restartScript(
 	return launchScript(projectPath, scriptName, cols, rows);
 }
 
+export function ptyWrite(runId: string, data: string): void {
+	clearAttentionOnSubmit(runId, data);
+	writeToPty(runId, data);
+}
+
 export async function listSessions(): Promise<PtySession[]> {
-	const sessions = await listPtySessions();
+	const all = await listPtySessions();
+	const hidden = await Promise.all(all.map((session) => isHiddenRun(session.runId)));
+	const sessions = all.filter((_session, index) => !hidden[index]);
 	if (sessions.length === 0) return [];
 
 	const [ports, tree] = await Promise.all([scanListeningPorts(), buildProcessTree()]);
 
-	return sessions.map((session) => {
-		const descendants = getDescendantPids(session.pid, tree);
+	return Promise.all(
+		sessions.map(async (session) => {
+			const descendants = getDescendantPids(session.pid, tree);
 
-		return {
-			...session,
-			ports: ports
-				.filter((port) => descendants.has(port.pid))
-				.map((port) => ({ port: port.port, command: port.command, address: port.address })),
-			waiting: false,
-			isAgent: false,
-		};
-	});
+			return {
+				...session,
+				ports: ports
+					.filter((port) => descendants.has(port.pid))
+					.map((port) => ({ port: port.port, command: port.command, address: port.address })),
+				waiting: await isWaiting(session.runId),
+				isAgent: await isAgentRun(session.runId),
+			};
+		}),
+	);
 }
 
 export function onSessionKilled(callback: (event: { runId: string }) => void): () => void {

@@ -79,3 +79,26 @@ export function currentOs(): Promise<ChainOs> {
 
 	return os;
 }
+
+const variables = new Map<string, Promise<string | null>>();
+
+export function environmentVariable(name: string): Promise<string | null> {
+	let value = variables.get(name);
+
+	if (!value) {
+		value = execFile("printenv", [name]).then(
+			({ stdout }) => stdout.trim() || null,
+			() => null,
+		);
+		variables.set(name, value);
+	}
+
+	return value;
+}
+
+export function pathExistsOnDisk(path: string): Promise<boolean> {
+	return execFile("test", ["-e", path]).then(
+		() => true,
+		() => false,
+	);
+}

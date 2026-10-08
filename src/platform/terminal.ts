@@ -31,6 +31,7 @@ export interface StartPtyOptions {
 	cols?: number;
 	rows?: number;
 	env?: Record<string, string>;
+	tags?: Record<string, string>;
 }
 
 const RUN_ID_PREFIX = "pty-";
@@ -85,6 +86,7 @@ export async function startPty({
 	cols = 220,
 	rows = 50,
 	env = {},
+	tags = {},
 }: StartPtyOptions): Promise<string> {
 	await trackExits();
 
@@ -96,7 +98,7 @@ export async function startPty({
 		cols,
 		rows,
 		label: scriptName,
-		metadata: { scriptName, projectPath: cwd },
+		metadata: { ...tags, scriptName, projectPath: cwd },
 	});
 	const runId = runIdOf(session.id);
 
@@ -121,6 +123,16 @@ export async function listPtySessions(): Promise<PtySessionInfo[]> {
 				startedAt: new Date(session.startedAtMs).toISOString(),
 			};
 		});
+}
+
+export async function ptySessionTags(): Promise<Map<string, Record<string, string>>> {
+	await trackExits();
+
+	return new Map(
+		(await desktop.terminal.list())
+			.filter((session) => session.exit === null)
+			.map((session) => [runIdOf(session.id), session.metadata]),
+	);
 }
 
 export async function ptyBacklog(runId: string): Promise<PtyBacklog> {

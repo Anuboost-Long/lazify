@@ -16,7 +16,7 @@ An untested OS is `Not tested`, never `Pass`.
 | Workspace files | | | | | | Not started |
 | Git | Fixture recorded at `c9abefc` on real repositories | [Ticket 007](tickets/007-git.md): 30 of 30 golden results, including shadow repos; verified in the app. Screens not ported | Partial | Not tested | Not tested | Not started |
 | Scripts and terminal | `src/main/pty-runner.ts`; environment fixture at `c9abefc` | Sessions ([ticket 004](tickets/004-terminal-sessions.md), survives a real reload) and scripts ([ticket 005](tickets/005-scripts.md), two real Vite servers). Port check Different by design (stricter). Agent badges wait on ticket 008 | Partial | Not tested | Not tested | Not started |
-| Agents | | | | | | Not started |
+| Agents | `tests/main/agents/agent-functionality.test.ts` | [Ticket 008](tickets/008-agents.md): Electron's agent tests pass on the copy; launch, attention and reattach verified in the app. Autopilot, usage, keep-awake, notifications not ported | Partial | Not tested | Not tested | Not started |
 | Agent monitor | | | | | | Not started |
 | Prompt Builder | Fixture recorded at `c9abefc` | Prompt assembly only: [ticket 001](tickets/001-prompt-assembly.md), 16 of 16 golden cases. Storage and screens not ported | Partial | Not tested | Not tested | Not started |
 | Tasks | | | | | | Not started |

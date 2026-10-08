@@ -58,3 +58,12 @@ export async function listFolderNames(path: string): Promise<string[]> {
 export function deletePath(path: string): Promise<void> {
 	return desktop.folders.delete(path);
 }
+
+export async function readTextFile(path: string): Promise<string | null> {
+	try {
+		return await desktop.folders.readText(path);
+	} catch (error) {
+		if (isNotFound(error)) return null;
+		throw error;
+	}
+}
