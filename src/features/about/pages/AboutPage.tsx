@@ -1,4 +1,4 @@
-export default function About() {
+export default function AboutPage() {
   return (
     <main className="mx-auto max-w-md px-4 py-16 text-sm text-chain-navy/70 dark:text-chain-cream/70">
       <h1 className="mb-2 text-lg font-semibold text-chain-navy dark:text-chain-cream">

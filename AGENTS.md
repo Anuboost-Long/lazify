@@ -1,5 +1,9 @@
 # lazify-chain — Agent Memory
 
+This is the Chain SDK rewrite of Lazify. The Electron app in `../lazify`
+stays untouched and keeps shipping until this app reaches parity. Treat it
+as the reference to compare against, not as code to edit from here.
+
 lazify-chain consumes the Chain SDK (`@chain/sdk`) from the sibling `chain-sdk`
 repo. It must never import Tauri, Rust, or any native/OS API directly —
 only `@chain/sdk`. See that repo's `AGENTS.md` and `docs/ARCHITECTURE.md`
@@ -35,20 +39,45 @@ This is the scaffold produced by `chain init`:
   don't reach for arbitrary-value brackets or a different palette without
   a reason. Add custom CSS there only when a utility class genuinely
   can't express it.
-- Routing via `react-router-dom`'s data router — standard structure:
+- Imports from another folder start at `src/` with `@/`
+  (`@/features/home/pages/HomePage`); imports in the same folder stay `./`.
+  The alias is set in `tsconfig.json` (`paths`) and `vite.config.ts`
+  (`resolve.alias`), and both must agree.
+- Routing via `react-router-dom`'s data router, split into husks and
+  content. This is the same layering as Mneme and as the Electron Lazify
+  renderer (`../lazify/src/renderer`), so ported screens move across
+  folder for folder:
   - `src/router.tsx` — `createBrowserRouter` route tree. Add new
-    top-level pages here as siblings; nest under a parent route only when
-    pages genuinely share layout beyond `RootLayout`.
+    top-level routes here as siblings; nest under a parent route only when
+    routes genuinely share layout beyond `RootLayout`.
+  - `src/routes/` — one husk per route (`HomeRoute.tsx`). A route owns
+    the wiring only (`useParams`, data loading, app-wide state) and renders
+    nothing but its feature's page.
+  - `src/features/<feature>/pages/` — the actual UI, receiving data and
+    callbacks as props. `components/`, `hooks/` and `lib/` beside it hold
+    what only that feature uses.
+  - `src/shared/ui/`, `src/shared/lib/`, `src/shared/providers/` — pieces
+    used by more than one feature.
+  - `src/platform/` — the **only** code that calls `@chain/sdk`. Each file
+    wraps one capability (filesystem, processes, terminals, storage) behind
+    an app-shaped function. Features never import `@chain/sdk` directly,
+    so a capability change touches one file. (The scaffold's home page
+    still calls `desktop.platform` directly; it is a placeholder.)
+  - `src/app/` — the app shell's own pieces (`NavBar`), used only by
+    `src/layouts/RootLayout.tsx`.
   - `src/layouts/RootLayout.tsx` — shared chrome (`NavBar` + `<Outlet/>`).
-  - `src/components/` — pieces shared across routes (currently `NavBar`).
-  - `src/pages/` — one component per route (`Home.tsx`, `About.tsx`).
+  - Porting map from Electron Lazify: `src/renderer/features/X` →
+    `src/features/X`, `src/renderer/shared` → `src/shared`,
+    `src/renderer/app/routes` → `src/routes`, the `@renderer/` alias → `@/`.
+    Anything that called `window.lazify.*` goes through `src/platform/`
+    instead.
   - `src/App.tsx` just renders `<RouterProvider router={router} />`;
     `src/main.tsx` is untouched from `create-tauri-app`'s default.
     This is standard in-window SPA routing, not Tauri's multi-window API —
     multiple native windows are a different pattern (separate OS-level
     windows, not in-page navigation) and would be a deliberate later choice
     if this app ever needs genuinely separate windows, not a default.
-- `src/pages/Home.tsx` calls `desktop.platform.getInfo()` to prove the
+- `src/features/home/pages/HomePage.tsx` calls `desktop.platform.getInfo()` to prove the
   app can reach the Chain SDK end to end.
 - Chain's placeholder branding: `asset/app-icon.svg` (used in the nav
   bar) and `asset/icons/` (the full desktop icon set), also copied into

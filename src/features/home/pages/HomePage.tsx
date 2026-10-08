@@ -3,12 +3,12 @@ import type { PlatformInfo } from "@chain/sdk";
 import clsx from "clsx";
 import { useEffect, useState } from "react";
 
-import chainIcon from "../../asset/app-icon.svg";
+import chainIcon from "../../../../asset/app-icon.svg";
 
 type Status =
   { kind: "loading" } | { kind: "ready"; info: PlatformInfo } | { kind: "error"; message: string };
 
-export default function Home() {
+export default function HomePage() {
   const [status, setStatus] = useState<Status>({ kind: "loading" });
 
   useEffect(() => {

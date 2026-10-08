@@ -1,18 +1,18 @@
 import { createBrowserRouter } from "react-router-dom";
 
-import RootLayout from "./layouts/RootLayout";
-import About from "./pages/About";
-import Home from "./pages/Home";
+import RootLayout from "@/layouts/RootLayout";
+import AboutRoute from "@/routes/AboutRoute";
+import HomeRoute from "@/routes/HomeRoute";
 
-// Add new top-level pages as siblings of Home/About here; nest under a
-// parent route only when pages genuinely share layout beyond RootLayout.
+// Add new top-level routes as siblings here; nest under a parent route only
+// when routes genuinely share layout beyond RootLayout.
 export const router = createBrowserRouter([
   {
     path: "/",
     element: <RootLayout />,
     children: [
-      { index: true, element: <Home /> },
-      { path: "about", element: <About /> }
+      { index: true, element: <HomeRoute /> },
+      { path: "about", element: <AboutRoute /> }
     ]
   }
 ]);
