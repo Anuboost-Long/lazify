@@ -35,6 +35,27 @@ the pane appears, not before.
       line`. The run was recorded as `sent`, and the task moved to
       `doing` (`auto`). The agent, the custom agent and the task were
       removed afterwards
+- [x] Phase 4 exit run in the real app, through its own buttons with
+      `chain inspect`:
+      - **Sync project** (picker stubbed to this repository) synced
+        lazify-chain
+      - on the Agents page, **New agent** → **Echo check** (a custom
+        agent) started an agent run in lazify-chain
+      - Tasks → **Add task** → "Echo exit check" → **Save**: the editor's
+        preview showed the prompt built from the Chain-stored presets and
+        rules
+      - the row's **Send this task's prompt to the agent** → the echo
+        agent: the agent printed the prompt, the task moved to `doing`,
+        and one run was recorded against that agent
+      - `location.reload()`: the agent was still running, its tab came
+        back, and the task kept its status and run
+      - everything was removed afterwards
+- [ ] The reattached agent terminal repainting its output. After the
+      reload the terminal was built (52 rows) and the backlog was intact
+      (2,950 characters). But the window was hidden, so no animation frame
+      ran and nothing was drawn. The replay is the same terminal pool that
+      repainted the Scripts pane in ticket 018. Check by eye with the
+      window visible
 - [x] Autopilot (019b): `src/platform/autopilot.ts` keeps Electron's
       `agent-autopilot.json`. `src/platform/agents.ts` routes a waiting
       agent to Electron's unchanged `Autopilot` before raising attention,
@@ -62,6 +83,17 @@ the pane appears, not before.
       `~/.codex/auth.json`) take effect when `chain dev` restarts. The two
       single files are covered by
       [Chain request 10](../../chain-sdk-requests/10-declared-read-only-files.md)
+
+## Testing note: probe agents
+
+The echo agent above is a shell `read` loop, which reads one line at a
+time. It lost 8 of a prompt's 37 lines even when the prompt arrived in one
+write: macOS keeps only about 1 KB of unread line-by-line input, and the
+loop drains it slowly. An agent reading raw input
+(`stty -icanon -echo; cat`) got all 37, and so did plain `cat`. Real agent
+CLIs read raw input. Electron's node-pty goes through the same macOS
+terminal driver. The modal pastes without pressing Enter, as in Electron,
+so the prompt's last line waits for the user to submit it.
 
 ## Carried over from Electron
 
