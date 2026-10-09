@@ -2,6 +2,7 @@ import * as agents from "./agents";
 import * as commands from "./commands";
 import * as git from "./git";
 import * as keepAwakeGroup from "./keep-awake";
+import * as packages from "./packages";
 import type { LazifyApi } from "./lazify-api";
 import * as projects from "./projects";
 import * as scripts from "./scripts";
@@ -180,7 +181,7 @@ export const lazify: LazifyApi = {
 	addProjectPackage: rejects("addProjectPackage"),
 	removeProjectPackage: rejects("removeProjectPackage"),
 	installProjectDependencies: rejects("installProjectDependencies"),
-	matchPackageVersions: rejects("matchPackageVersions"),
+	matchPackageVersions: packages.matchPackageVersions,
 	fixProjectPackageVersions: rejects("fixProjectPackageVersions"),
 	listPromptPresets: rejects("listPromptPresets"),
 	createPromptPreset: rejects("createPromptPreset"),
