@@ -19,7 +19,7 @@ An untested OS is `Not tested`, never `Pass`.
 | Agents | `tests/main/agents/agent-functionality.test.ts` | [Ticket 008](tickets/008-agents.md): Electron's agent tests pass on the copy; launch, attention and reattach verified in the app. Autopilot, usage, keep-awake, notifications not ported | Partial | Not tested | Not tested | Not started |
 | Agent monitor | | | | | | Not started |
 | Prompt Builder | Fixture recorded at `c9abefc` | Prompt assembly only: [ticket 001](tickets/001-prompt-assembly.md), 16 of 16 golden cases. Storage and screens not ported | Partial | Not tested | Not tested | Not started |
-| Tasks | | | | | | Not started |
+| Tasks | `tests/main/tasks.test.ts` | [Ticket 016](tickets/016-shell-settings-home.md): Electron's tests pass on Chain storage (19 of 21; prompt building waits on 019); shown on Home in the app | Partial | Not tested | Not tested | Not started |
 | Starter projects | | | | | | Not started |
 | Imported templates | | | | | | Not started |
 | Dependencies | Fixture recorded at `c9abefc` | Version matching only: [ticket 003](tickets/003-package-version-matching.md), 10 of 10 golden cases; identical to Electron on two real projects. Search, install and audit not ported | Partial | Not tested | Not tested | Not started |

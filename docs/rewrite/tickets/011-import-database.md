@@ -39,11 +39,13 @@ checks."
 - **Safe to run twice.** `INSERT OR IGNORE` on the primary key: a second run
   adds nothing, and a row already changed in the Chain app keeps the Chain
   app's version.
-- **Orphans.** Electron declared `ON DELETE CASCADE` foreign keys but never
-  turned enforcement on (no `PRAGMA foreign_keys` anywhere in its source),
-  so deleting a task could leave its agent runs and status events behind.
-  Chain storage enforces foreign keys, so those rows are skipped and counted
-  as `orphaned` instead of failing the import.
+- **Orphans.** Agent runs and status events whose task is missing are
+  skipped and counted as `orphaned` instead of failing the import, because
+  Chain storage enforces foreign keys. A normal Electron profile has none:
+  Electron's `node:sqlite` enforces foreign keys by default
+  (`enableForeignKeyConstraints`), so its `ON DELETE CASCADE` worked. This
+  only guards a database edited outside Lazify. (Corrected 2026-10-09: this
+  section first said Electron never enforced them. That was wrong.)
 
 ## Recovery
 

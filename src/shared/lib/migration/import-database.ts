@@ -23,10 +23,10 @@ export interface DatabaseImportReport {
 type Row = Record<string, unknown> & { id: string | number };
 
 /**
- * Electron declared these foreign keys but never turned enforcement on, so a
- * deleted task can have left its runs and events behind. Chain storage
- * enforces them, so such rows are skipped and counted rather than failing the
- * whole import.
+ * Electron's node:sqlite enforces foreign keys by default, so these rows
+ * always have their task there. A database edited outside Lazify might not,
+ * and Chain storage enforces them too, so such rows are skipped and counted
+ * rather than failing the whole import.
  */
 const CHILD_OF_TASK: ReadonlySet<ElectronTable> = new Set(["task_agent_runs", "task_status_events"]);
 

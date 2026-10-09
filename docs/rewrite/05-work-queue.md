@@ -78,7 +78,7 @@ and understand failures without the old app.
 | Ticket | Scope | Status |
 | --- | --- | --- |
 | [015](tickets/015-renderer-foundation.md) | Whole renderer ported and compiling; `globalThis.lazify` bridge over `src/platform/` | **Done.** All 13 pages render in the app; unported groups say so |
-| 016 | App shell, settings, theme and language persistence, Home | Next |
+| [016](tickets/016-shell-settings-home.md) | App shell, settings, theme and language persistence, Home | **In progress.** Tasks on Chain storage and theme/language verified; zoom and keep-awake wait on requests 08 and 09 |
 | 017 | Open a project: picker, project list, file tree, preview, search | Queued |
 | 018 | Scripts pane and terminal, with reattach after reload | Queued |
 | 019 | Agents page: launch, give a task (Prompt Builder and tasks storage), reattach | Queued |
@@ -94,4 +94,6 @@ and understand failures without the old app.
 | 05 | [Local port availability](../chain-sdk-requests/05-local-port-availability.md) | Dev-port injection, .NET restart wait (ticket 005) | Shipped on macOS 2026-10-09, as `desktop.ports` |
 | 06 | [App-owned folders](../chain-sdk-requests/06-app-owned-folders.md) | Shadow repos for agent change review (ticket 007), project staging, pasted images, extensions | Shipped on macOS 2026-10-09, as `desktop.folders.appFolder` |
 | 07 | [Attention alerts](../chain-sdk-requests/07-attention-alerts.md) | Agent waiting and turn-done notifications (ticket 008) | Shipped on macOS 2026-10-09, as `desktop.attention`; click path unverified |
+| 08 | [Page zoom](../chain-sdk-requests/08-page-zoom.md) | Settings zoom and Cmd +/− (ticket 016) | Sent 2026-10-09 |
+| 09 | [Keep-awake](../chain-sdk-requests/09-keep-awake.md) | "Keep awake" while agents work (ticket 016) | Sent 2026-10-09 |
 | later | Data import, transcript reads (see Mneme's request 11), notifications, keep-awake, keychain, ports, LSP stdin, archive unpacking, embedded browser view, updater, menu, zoom | Later slices | Written when the slice is next |

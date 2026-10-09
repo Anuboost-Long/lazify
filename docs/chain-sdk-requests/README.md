@@ -21,6 +21,8 @@ Each request:
 | 05 | [Tell the app whether a local TCP port is free](05-local-port-availability.md) | Shipped on macOS 2026-10-09, as `desktop.ports` |
 | 06 | [Folders the app owns, with real paths its processes can use](06-app-owned-folders.md) | Shipped on macOS 2026-10-09, as `desktop.folders.appFolder` |
 | 07 | [Get the user's attention when the app is in the background](07-attention-alerts.md) | Shipped on macOS 2026-10-09, as `desktop.attention`; click path unverified |
+| 08 | [Zoom the app's page](08-page-zoom.md) | Sent to chain-sdk 2026-10-09 |
+| 09 | [Keep the Mac awake while an agent works](09-keep-awake.md) | Sent to chain-sdk 2026-10-09 |
 
 Overlap with Mneme: request 01's read-only allow-list design fork would also
 answer Mneme's request 11 (`external-file-read`).

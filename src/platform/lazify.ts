@@ -5,6 +5,7 @@ import type { LazifyApi } from "./lazify-api";
 import * as projects from "./projects";
 import * as scripts from "./scripts";
 import * as system from "./system";
+import * as tasks from "./tasks";
 
 const notYet = (name: string) => new Error(`${name} isn't available in Lazify Chain yet.`);
 
@@ -205,19 +206,19 @@ export const lazify: LazifyApi = {
 	stepZoom: rejects("stepZoom"),
 	resetZoom: rejects("resetZoom"),
 	onZoomChanged: noSubscription,
-	listTasks: rejects("listTasks"),
-	listAllTasks: rejects("listAllTasks"),
-	createTask: rejects("createTask"),
-	updateTask: rejects("updateTask"),
-	setTaskStatus: rejects("setTaskStatus"),
-	listTaskStatusEvents: rejects("listTaskStatusEvents"),
-	reorderTask: rejects("reorderTask"),
-	deleteTask: rejects("deleteTask"),
+	listTasks: tasks.listTasks,
+	listAllTasks: tasks.listAllTasks,
+	createTask: tasks.createTask,
+	updateTask: tasks.updateTask,
+	setTaskStatus: tasks.setTaskStatus,
+	listTaskStatusEvents: tasks.listTaskStatusEvents,
+	reorderTask: tasks.reorderTask,
+	deleteTask: tasks.deleteTask,
 	buildTaskPrompt: rejects("buildTaskPrompt"),
-	recordTaskRun: rejects("recordTaskRun"),
-	listTaskRuns: rejects("listTaskRuns"),
-	completeTaskRun: rejects("completeTaskRun"),
-	completeAgentTaskRuns: rejects("completeAgentTaskRuns"),
+	recordTaskRun: tasks.recordTaskRun,
+	listTaskRuns: tasks.listTaskRuns,
+	completeTaskRun: tasks.completeTaskRun,
+	completeAgentTaskRuns: tasks.completeAgentTaskRuns,
 	listTemplates: rejects("listTemplates"),
 	listImportedTemplates: rejects("listImportedTemplates"),
 	getImportedTemplate: rejects("getImportedTemplate"),
