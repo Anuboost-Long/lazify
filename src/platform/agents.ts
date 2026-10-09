@@ -5,6 +5,7 @@ import type { AgentDescriptor } from "@/shared/lib/agents/agent-registry";
 import { AttentionDetector } from "@/shared/lib/agents/attention-detector";
 import type { AutopilotHold } from "@/shared/lib/agents/autopilot-policy";
 
+import { setAgentBusy } from "./keep-awake";
 import { listPtySessions, onPtyData, onScriptStatus, ptyBacklog, ptySessionTags, startPty } from "./terminal";
 
 export type { AgentDescriptor } from "@/shared/lib/agents/agent-registry";
@@ -68,7 +69,7 @@ const detector = new AttentionDetector((runId) => {
 		`${run.agentLabel} is done`,
 		`${run.projectName} finished the task you gave it.`,
 	);
-});
+}, setAgentBusy);
 
 const remember = (runId: string, projectPath: string, agentLabel: string, hidden: boolean) =>
 	runs.set(runId, {

@@ -3,12 +3,15 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 
 import { lazify } from "@/platform/lazify";
+import { applyStoredZoom } from "@/platform/zoom";
 
 import App from "./app/App";
 import { initialLanguageReady } from "./i18n/i18n";
 import "./styles.css";
 
 globalThis.lazify = lazify;
+
+await applyStoredZoom();
 
 await initialLanguageReady;
 

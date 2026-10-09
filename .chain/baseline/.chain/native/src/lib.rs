@@ -704,6 +704,53 @@ fn ports_is_free(port: u32) -> Result<bool, String> {
     chain_core::ports::is_free(port)
 }
 
+// Bridges the page-zoom capability contract (capabilities/page-zoom in
+// chain-sdk): the webview's own page zoom (WKWebView pageZoom), so the page
+// reflows and canvases stay sharp, unlike CSS zoom. WebKit has no getter
+// through Tauri, so the factor each webview was set to is kept here.
+#[derive(Default)]
+struct PageZoomState(Mutex<HashMap<String, f64>>);
+
+#[tauri::command]
+fn page_zoom_set(webview: tauri::Webview, state: tauri::State<PageZoomState>, factor: f64) -> Result<(), String> {
+    let factor = chain_core::page_zoom::check(factor).map_err(|e| format!("INVALID_ARGUMENT: {e}"))?;
+    webview.set_zoom(factor).map_err(|e| e.to_string())?;
+    state.0.lock().expect("page-zoom mutex poisoned").insert(webview.label().to_string(), factor);
+    Ok(())
+}
+
+#[tauri::command]
+fn page_zoom_get(webview: tauri::Webview, state: tauri::State<PageZoomState>) -> f64 {
+    state.0.lock().expect("page-zoom mutex poisoned").get(webview.label()).copied().unwrap_or(1.0)
+}
+
+// Bridges the keep-awake capability contract (capabilities/keep-awake in
+// chain-sdk): one power assertion for the whole app, released by the
+// kernel if the app exits or crashes.
+fn to_keep_awake_command_error(e: chain_core::keep_awake::KeepAwakeError) -> String {
+    use chain_core::keep_awake::KeepAwakeError::*;
+    match e {
+        InvalidArgument(m) => format!("INVALID_ARGUMENT: {m}"),
+        Unsupported(m) => format!("UNSUPPORTED: {m}"),
+        Other(m) => m,
+    }
+}
+
+#[tauri::command]
+fn keep_awake_start(reason: String, display: Option<bool>) -> Result<(), String> {
+    chain_core::keep_awake::start(&reason, display.unwrap_or(true)).map_err(to_keep_awake_command_error)
+}
+
+#[tauri::command]
+fn keep_awake_stop() {
+    chain_core::keep_awake::stop();
+}
+
+#[tauri::command]
+fn keep_awake_status() -> Option<chain_core::keep_awake::Held> {
+    chain_core::keep_awake::held()
+}
+
 // Bridges the models capability contract (capabilities/models in
 // chain-sdk). Data-only model packs live in a `models/` sibling of
 // `files/` in this app's data directory; engines get them by id and paths
@@ -1330,6 +1377,7 @@ pub fn run() {
         .manage(folders::FoldersState::default())
         .manage(terminal::TerminalState::default())
         .manage(attention::AttentionState::default())
+        .manage(PageZoomState::default())
         .on_window_event(|window, event| {
             window::on_window_event(window, event);
             folders::on_window_event(window, event);
@@ -1394,6 +1442,11 @@ pub fn run() {
             attention::attention_request,
             attention::attention_permission,
             attention::attention_notify,
+            page_zoom_set,
+            page_zoom_get,
+            keep_awake_start,
+            keep_awake_stop,
+            keep_awake_status,
             terminal::terminal_start,
             terminal::terminal_list,
             terminal::terminal_backlog,

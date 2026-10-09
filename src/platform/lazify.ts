@@ -1,11 +1,13 @@
 import * as agents from "./agents";
 import * as commands from "./commands";
 import * as git from "./git";
+import * as keepAwakeGroup from "./keep-awake";
 import type { LazifyApi } from "./lazify-api";
 import * as projects from "./projects";
 import * as scripts from "./scripts";
 import * as system from "./system";
 import * as tasks from "./tasks";
+import * as zoom from "./zoom";
 
 const notYet = (name: string) => new Error(`${name} isn't available in Lazify Chain yet.`);
 
@@ -67,8 +69,8 @@ export const lazify: LazifyApi = {
 	autopilotSettings: rejects("autopilotSettings"),
 	setAutopilot: rejects("setAutopilot"),
 	setAutopilotProject: rejects("setAutopilotProject"),
-	keepAwake: rejects("keepAwake"),
-	setKeepAwake: rejects("setKeepAwake"),
+	keepAwake: keepAwakeGroup.keepAwake,
+	setKeepAwake: keepAwakeGroup.setKeepAwake,
 	getAgentUsage: rejects("getAgentUsage"),
 	setAgentBudget: rejects("setAgentBudget"),
 	onAgentActivity: noSubscription,
@@ -201,11 +203,11 @@ export const lazify: LazifyApi = {
 	detectEditors: rejects("detectEditors"),
 	openInEditor: rejects("openInEditor"),
 	chooseUploadFile: rejects("chooseUploadFile"),
-	readZoom: rejects("readZoom"),
-	setZoom: rejects("setZoom"),
-	stepZoom: rejects("stepZoom"),
-	resetZoom: rejects("resetZoom"),
-	onZoomChanged: noSubscription,
+	readZoom: zoom.readZoom,
+	setZoom: zoom.setZoom,
+	stepZoom: zoom.stepZoom,
+	resetZoom: zoom.resetZoom,
+	onZoomChanged: zoom.onZoomChanged,
 	listTasks: tasks.listTasks,
 	listAllTasks: tasks.listAllTasks,
 	createTask: tasks.createTask,
