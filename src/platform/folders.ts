@@ -76,6 +76,46 @@ export function readFileBytes(path: string): Promise<Uint8Array> {
 	return desktop.folders.readBytes(path);
 }
 
+export function readFileSlice(path: string, offset: number, length: number): Promise<Uint8Array> {
+	return desktop.folders.readBytes(path, { offset, length });
+}
+
+export interface FolderEntry {
+	path: string;
+	name: string;
+	kind: "file" | "folder" | "symlink" | "other";
+	size: number;
+	modifiedMs: number;
+}
+
+export async function listFolder(path: string): Promise<FolderEntry[]> {
+	try {
+		return (await desktop.folders.list(path)).map(({ path: entryPath, name, kind, size, modifiedMs }) => ({
+			path: entryPath,
+			name,
+			kind,
+			size,
+			modifiedMs,
+		}));
+	} catch (error) {
+		if (isNotFound(error)) return [];
+		throw error;
+	}
+}
+
+export async function fileStat(path: string): Promise<{ size: number; modifiedMs: number }> {
+	const { size, modifiedMs } = await desktop.folders.stat(path);
+	return { size, modifiedMs };
+}
+
+export async function watchFolder(path: string, onChange: (paths: string[]) => void): Promise<() => void> {
+	const watch = await desktop.folders.watch(path, (changes) => onChange(changes.map((change) => change.path)), {
+		recursive: true,
+	});
+
+	return () => void watch.stop();
+}
+
 export function writeFileBytes(path: string, bytes: Uint8Array): Promise<void> {
 	return desktop.folders.writeBytes(path, bytes);
 }

@@ -23,6 +23,7 @@ Each request:
 | 07 | [Get the user's attention when the app is in the background](07-attention-alerts.md) | Shipped on macOS 2026-10-09, as `desktop.attention`; click path unverified |
 | 08 | [Zoom the app's page](08-page-zoom.md) | Shipped on macOS 2026-10-09, as `desktop.pageZoom` |
 | 09 | [Keep the Mac awake while an agent works](09-keep-awake.md) | Shipped on macOS 2026-10-09, as `desktop.keepAwake` |
+| 10 | [Declare single read-only files](10-declared-read-only-files.md) | Sent 2026-10-09 |
 
 Overlap with Mneme: request 01's read-only allow-list design fork would also
 answer Mneme's request 11 (`external-file-read`).

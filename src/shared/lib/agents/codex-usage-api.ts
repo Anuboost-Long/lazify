@@ -1,0 +1,142 @@
+import { environmentVariable } from "@/platform/exec";
+import { readTextFile } from "@/platform/folders";
+import { getJson } from "@/platform/http";
+import type { AgentRateLimit } from "@/shared/types/agents";
+
+import { rateLimitWindow, toRateLimit } from "./rate-limit";
+
+/**
+ * Codex's rate-limit window, read from the account rather than the transcripts.
+ *
+ * Codex only learns its own limits from the responses it gets back, so the
+ * `rate_limits` block in a rollout file is a snapshot of whenever it last ran —
+ * routinely hours old, and blind to Codex usage from any other machine. The
+ * ChatGPT backend reports the same window live, so it is asked directly and the
+ * transcript value is kept only as a fallback.
+ */
+
+const USAGE_URL = "https://chatgpt.com/backend-api/wham/usage";
+const AUTH_FILE = ".codex/auth.json";
+const REQUEST_TIMEOUT_MS = 8_000;
+
+interface RawWindow {
+	used_percent?: number | null;
+	limit_window_seconds?: number | null;
+	reset_at?: number | null;
+}
+
+/**
+ * Codex meters a rolling block and a weekly allowance at the same time, and
+ * turns the block on and off between plan changes. Both windows are kept as the
+ * account sends them, so a response carrying one is as readable as one carrying
+ * two, and nothing has to guess which is in force.
+ */
+
+interface StoredAuth {
+	tokens?: { access_token?: string; account_id?: string };
+}
+
+/**
+ * The call in progress, so overlapping refreshes share one request instead of
+ * queueing several. Cleared as soon as it settles: nothing is held between
+ * refreshes, and each refresh reports the account as it is right then.
+ */
+let inFlight: Promise<AgentRateLimit | null> | null = null;
+
+/** `exp` out of a JWT, so an expired token is never spent on a doomed call. */
+function expiresAt(token: string): number | null {
+	try {
+		const payload = token.split(".")[1];
+		if (!payload) return null;
+
+		const base64 = payload.replace(/-/g, "+").replace(/_/g, "/");
+		const bytes = Uint8Array.from(atob(base64), (char) => char.charCodeAt(0));
+		const claims = JSON.parse(new TextDecoder().decode(bytes)) as { exp?: number };
+
+		return typeof claims.exp === "number" ? claims.exp * 1000 : null;
+	} catch {
+		return null;
+	}
+}
+
+async function readAuth(): Promise<{ token: string; accountId: string } | null> {
+	try {
+		const home = (await environmentVariable("HOME")) ?? "";
+		const tokens = (JSON.parse((await readTextFile(`${home}/${AUTH_FILE}`)) ?? "") as StoredAuth).tokens;
+
+		if (!tokens?.access_token || !tokens.account_id) return null;
+
+		const expiry = expiresAt(tokens.access_token);
+		if (expiry !== null && expiry <= Date.now()) return null;
+
+		return { token: tokens.access_token, accountId: tokens.account_id };
+	} catch {
+		// Codex is not installed, or the user has not signed in with ChatGPT.
+		return null;
+	}
+}
+
+function windowOf(window: RawWindow | null | undefined) {
+	if (!window) return null;
+
+	return rateLimitWindow(
+		window.used_percent,
+		typeof window.limit_window_seconds === "number"
+			? Math.round(window.limit_window_seconds / 60)
+			: null,
+		window.reset_at ? new Date(window.reset_at * 1000).toISOString() : null,
+	);
+}
+
+/**
+ * The live window, or null when Codex is not signed in or cannot be reached —
+ * in which case the caller keeps whatever the transcripts last recorded.
+ */
+export function getCodexRateLimit(): Promise<AgentRateLimit | null> {
+	inFlight ??= fetchRateLimit().finally(() => {
+		inFlight = null;
+	});
+
+	return inFlight;
+}
+
+async function fetchRateLimit(): Promise<AgentRateLimit | null> {
+	const auth = await readAuth();
+	if (!auth) return null;
+
+	try {
+		const response = await getJson(
+			USAGE_URL,
+			{
+				Authorization: `Bearer ${auth.token}`,
+				"chatgpt-account-id": auth.accountId,
+			},
+			REQUEST_TIMEOUT_MS,
+		);
+
+		if (!response.ok) return null;
+
+		const body = response.data as {
+			plan_type?: string | null;
+			rate_limit_reached_type?: string | null;
+			rate_limit?: {
+				limit_reached?: boolean | null;
+				primary_window?: RawWindow | null;
+				secondary_window?: RawWindow | null;
+			} | null;
+		};
+
+		return toRateLimit(
+			[windowOf(body.rate_limit?.primary_window), windowOf(body.rate_limit?.secondary_window)],
+			{
+				source: "reported",
+				planType: body.plan_type ?? null,
+				observedAt: new Date().toISOString(),
+				limitReached: body.rate_limit?.limit_reached === true,
+				reachedType: body.rate_limit_reached_type ?? null,
+			},
+		);
+	} catch {
+		return null;
+	}
+}

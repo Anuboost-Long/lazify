@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { AgentAttentionEvent, AgentRunEvent } from "@/platform/agents";
+import type { AgentAttentionEvent, AgentRunEvent, AutopilotAnsweredEvent } from "@/platform/agents";
 
 import { createFakeTerminal } from "./fake-terminal";
 
@@ -176,6 +176,53 @@ describe("platform agents", () => {
 		expect(events.at(-1)).toMatchObject({ waiting: false });
 		await new Promise((resolve) => setTimeout(resolve, 0));
 		expect(fake.sessions.get("t1")?.input).toEqual(["1", "\r"]);
+	});
+
+	it("stores autopilot's switches in Electron's format and reads them back", async () => {
+		const autopilot = await import("@/platform/autopilot");
+
+		await expect(autopilot.autopilotSettings()).resolves.toEqual({ enabled: false, excludedProjects: [] });
+		await autopilot.setAutopilot(true);
+		await autopilot.setAutopilotProject("/work/api", false);
+		await autopilot.setAutopilotProject("/work/api", false);
+
+		expect(JSON.parse(files["/app/agent-autopilot.json"])).toEqual({ enabled: true, excludedProjects: ["/work/api"] });
+		await expect(autopilot.setAutopilotProject("/work/api", true)).resolves.toEqual({
+			enabled: true,
+			excludedProjects: [],
+		});
+	});
+
+	it("lets autopilot answer a prompt while it is on, and hands it back where it is off", async () => {
+		vi.useFakeTimers();
+		files["/app/agent-autopilot.json"] = JSON.stringify({ enabled: true, excludedProjects: ["/work/api"] });
+		const { agents } = await load();
+		const answered: AutopilotAnsweredEvent[] = [];
+		const events: AgentAttentionEvent[] = [];
+		agents.onAutopilotAnswered((event) => answered.push(event));
+		agents.onAgentAttention((event) => events.push(event));
+		const web = await agents.openAgentTerminal("claude", "/work/web");
+		const api = await agents.openAgentTerminal("claude", "/work/api");
+
+		fake.print("t1", QUESTION);
+		fake.print("t2", QUESTION);
+		expect(events.map(({ runId }) => runId)).toEqual([api.runId]);
+
+		await vi.advanceTimersByTimeAsync(700);
+
+		expect(answered).toEqual([
+			{
+				runId: web.runId,
+				projectPath: "/work/web",
+				projectName: "web",
+				agentLabel: "Claude",
+				question: "Do you want to proceed?",
+				optionLabel: "Yes",
+			},
+		]);
+		expect(fake.sessions.get("t1")?.input).toEqual(["1"]);
+		expect(fake.sessions.get("t2")?.input).toEqual([]);
+		expect(await agents.isWaiting(web.runId)).toBe(false);
 	});
 
 	it("reports the end of a turn once", async () => {

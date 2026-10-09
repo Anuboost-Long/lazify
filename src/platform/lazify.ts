@@ -1,4 +1,5 @@
 import * as agents from "./agents";
+import * as autopilot from "./autopilot";
 import * as commands from "./commands";
 import * as git from "./git";
 import * as keepAwakeGroup from "./keep-awake";
@@ -66,16 +67,16 @@ export const lazify: LazifyApi = {
 	openExternalUrl: system.openExternalUrl,
 	revealInFileManager: system.revealInFileManager,
 	openTerminal: system.openTerminal,
-	onAutopilotAnswered: noSubscription,
-	listAgentSessions: rejects("listAgentSessions"),
-	autopilotSettings: rejects("autopilotSettings"),
-	setAutopilot: rejects("setAutopilot"),
-	setAutopilotProject: rejects("setAutopilotProject"),
+	onAutopilotAnswered: agents.onAutopilotAnswered,
+	listAgentSessions: agents.listAgentSessions,
+	autopilotSettings: autopilot.autopilotSettings,
+	setAutopilot: autopilot.setAutopilot,
+	setAutopilotProject: autopilot.setAutopilotProject,
 	keepAwake: keepAwakeGroup.keepAwake,
 	setKeepAwake: keepAwakeGroup.setKeepAwake,
-	getAgentUsage: rejects("getAgentUsage"),
-	setAgentBudget: rejects("setAgentBudget"),
-	onAgentActivity: noSubscription,
+	getAgentUsage: agents.getAgentUsage,
+	setAgentBudget: agents.setAgentBudget,
+	onAgentActivity: agents.onAgentActivity,
 	readCollectionDoc: rejects("readCollectionDoc"),
 	saveCollectionDoc: rejects("saveCollectionDoc"),
 	previewCollectionDoc: rejects("previewCollectionDoc"),

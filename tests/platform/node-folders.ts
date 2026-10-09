@@ -67,7 +67,12 @@ export const nodeFolders = {
 			}
 			return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
 		}),
-	readBytes: (target: string) => chainCall(target, async () => new Uint8Array(await fs.readFile(target))),
+	readBytes: (target: string, options: { offset?: number; length?: number } = {}) =>
+		chainCall(target, async () => {
+			const bytes = new Uint8Array(await fs.readFile(target));
+			const start = options.offset ?? 0;
+			return bytes.slice(start, options.length === undefined ? undefined : start + options.length);
+		}),
 	writeText: (target: string, text: string) => chainCall(target, () => fs.writeFile(target, text)),
 	writeBytes: (target: string, bytes: Uint8Array) => chainCall(target, () => fs.writeFile(target, bytes)),
 	createFolder: async (target: string) => {

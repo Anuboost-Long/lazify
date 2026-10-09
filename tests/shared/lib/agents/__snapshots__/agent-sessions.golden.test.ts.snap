@@ -1,0 +1,92 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`agent sessions golden > lists the same past sessions > all 1`] = `
+[
+  {
+    "agentId": "claude",
+    "sessionId": "unicode",
+    "title": "café ☕ — résumé naïve 日本語 prompt",
+    "updatedAt": 1700000500000,
+  },
+  {
+    "agentId": "codex",
+    "sessionId": "codex-new",
+    "title": "Add a dark mode toggle",
+    "updatedAt": 1700000450000,
+  },
+  {
+    "agentId": "claude",
+    "sessionId": "blocks",
+    "title": "Why does this screenshot look off?",
+    "updatedAt": 1700000400000,
+  },
+  {
+    "agentId": "codex",
+    "sessionId": "rollout-old-format",
+    "title": "Write tests for the parser",
+    "updatedAt": 1700000350000,
+  },
+  {
+    "agentId": "claude",
+    "sessionId": "long-crlf",
+    "title": "Explain Explain Explain Explain Explain Explain Explain Explain Explain Explain Explain Explain Explain Explain Explain Explain Explain Explain Explain Explain…",
+    "updatedAt": 1700000300000,
+  },
+  {
+    "agentId": "claude",
+    "sessionId": "tools-only",
+    "title": "",
+    "updatedAt": 1700000200000,
+  },
+  {
+    "agentId": "claude",
+    "sessionId": "older",
+    "title": "Fix the login bug when the token expires",
+    "updatedAt": 1700000100000,
+  },
+  {
+    "agentId": "claude",
+    "sessionId": "truncated",
+    "title": "",
+    "updatedAt": 1700000050000,
+  },
+]
+`;
+
+exports[`agent sessions golden > lists the same past sessions > limited 1`] = `
+[
+  {
+    "agentId": "claude",
+    "sessionId": "unicode",
+    "title": "café ☕ — résumé naïve 日本語 prompt",
+    "updatedAt": 1700000500000,
+  },
+  {
+    "agentId": "codex",
+    "sessionId": "codex-new",
+    "title": "Add a dark mode toggle",
+    "updatedAt": 1700000450000,
+  },
+  {
+    "agentId": "claude",
+    "sessionId": "blocks",
+    "title": "Why does this screenshot look off?",
+    "updatedAt": 1700000400000,
+  },
+]
+`;
+
+exports[`agent sessions golden > lists the same past sessions > neverRun 1`] = `[]`;
+
+exports[`agent sessions golden > lists the same past sessions > noTranscripts 1`] = `[]`;
+
+exports[`agent sessions golden > lists the same past sessions > otherProject 1`] = `
+[
+  {
+    "agentId": "codex",
+    "sessionId": "codex-other",
+    "title": "",
+    "updatedAt": 1700000600000,
+  },
+]
+`;

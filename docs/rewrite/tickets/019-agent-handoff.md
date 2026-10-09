@@ -1,4 +1,4 @@
-# 019 — Give an agent a task (Phase 4 / In progress)
+# 019 — Give an agent a task, autopilot, sessions and usage (Phase 4 / In progress)
 
 **Read this whole ticket before touching code.** The Prompt Builder's
 storage and the task → agent handoff run on Chain, so a task can be sent to
@@ -27,7 +27,7 @@ the pane appears, not before.
 - [x] Electron's prompt tests pass on Chain storage
       (`tests/features/prompts/`, 52 tests), and Electron's task tests
       pass in full (21 of 21, including prompt building)
-- [x] `CI=true npm test` passes (324 tests); typecheck passes
+- [x] `CI=true npm test` passes (345 tests); typecheck passes
 - [x] Real app, with `chain inspect`: a custom agent reading lines
       (`while read …; printf "GOT:%s"`) was opened on lazify-chain, a
       task's prompt was built and pasted, and once a terminal view
@@ -35,9 +35,42 @@ the pane appears, not before.
       line`. The run was recorded as `sent`, and the task moved to
       `doing` (`auto`). The agent, the custom agent and the task were
       removed afterwards
-- [ ] Autopilot settings (019b)
-- [ ] Agent sessions and usage (019c): needs `~/.claude/projects` and
-      `~/.codex/sessions` readable
+- [x] Autopilot (019b): `src/platform/autopilot.ts` keeps Electron's
+      `agent-autopilot.json`. `src/platform/agents.ts` routes a waiting
+      agent to Electron's unchanged `Autopilot` before raising attention,
+      as Electron's main process did. Tests: switches stored in Electron's
+      format; a prompt answered (`1` typed, `onAutopilotAnswered` fired) in
+      a project where autopilot is on, and handed to the user in an
+      excluded one
+- [x] Past sessions (019c): `agent-sessions.ts` reads transcripts through
+      `desktop.folders` in chunks instead of Node streams. Golden fixture
+      recorded from Electron (`docs/rewrite/scripts/agent-sessions-recorder`):
+      5 of 5 cases match, including a first record over 64 KB, a
+      multi-byte character split across a chunk, CRLF, boilerplate,
+      sidechains, both Codex formats and the folder-depth limit
+- [x] Usage and budgets (019c): `agent-usage.ts`, `usage/*`,
+      `rate-limit.ts`, both account APIs, `agent-limits-store.ts` and the
+      activity watcher (on `desktop.folders.watch`). The account calls go
+      through `desktop.http` (`src/platform/http.ts`), and the Keychain
+      token through `security` as before. Golden fixture recorded from
+      Electron (`docs/rewrite/scripts/agent-usage-recorder`), with the
+      network and Keychain faked and only fixture tokens accepted: 4 of 4
+      cases match, including the re-read of an appended transcript.
+      Electron's `codex-rate-limit` tests pass on the copy
+- [ ] In the app: past sessions and usage. The new read-only entries
+      (`~/.claude/projects`, `~/.codex/sessions`, `~/.claude.json`,
+      `~/.codex/auth.json`) take effect when `chain dev` restarts. The two
+      single files wait on
+      [Chain request 10](../../chain-sdk-requests/10-declared-read-only-files.md)
+
+## Carried over from Electron
+
+- A half-written last transcript line is read once, fails to parse, and
+  is never re-read, because the cache offset moves to the end of the
+  file. Its tokens are lost from the totals. The golden fixture keeps
+  this.
+- On macOS, `~/.claude/.credentials.json` is only a fallback after the
+  Keychain. It isn't declared, so on macOS the port behaves the same.
 
 ## Not removed
 

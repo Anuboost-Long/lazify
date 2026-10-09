@@ -1,14 +1,21 @@
 import { desktop } from "@chain/sdk";
 
+import { watchAgentActivity } from "@/shared/lib/agents/agent-activity-watcher";
+import type { AgentActivityEvent } from "@/shared/lib/agents/agent-activity-watcher";
 import { getAgentDefinition, listAgents as listRegisteredAgents, resumeArgs } from "@/shared/lib/agents/agent-registry";
 import type { AgentDescriptor } from "@/shared/lib/agents/agent-registry";
 import { AttentionDetector } from "@/shared/lib/agents/attention-detector";
+import { Autopilot } from "@/shared/lib/agents/autopilot";
 import type { AutopilotHold } from "@/shared/lib/agents/autopilot-policy";
 
+import { autopilotSettings, isAutopilotActive } from "./autopilot";
 import { setAgentBusy } from "./keep-awake";
-import { listPtySessions, onPtyData, onScriptStatus, ptyBacklog, ptySessionTags, startPty } from "./terminal";
+import { listPtySessions, onPtyData, onScriptStatus, ptyBacklog, ptySessionTags, ptyWrite, startPty } from "./terminal";
 
 export type { AgentDescriptor } from "@/shared/lib/agents/agent-registry";
+export { setAgentBudget } from "@/shared/lib/agents/agent-limits-store";
+export { listAgentSessions } from "@/shared/lib/agents/agent-sessions";
+export { getAgentUsage } from "@/shared/lib/agents/agent-usage";
 export { addCustomAgent, removeCustomAgent } from "@/shared/lib/agents/custom-agents-store";
 export type { CustomAgent, CustomAgentInput } from "@/shared/lib/agents/custom-agents-store";
 
@@ -24,12 +31,19 @@ export interface AgentAttentionEvent extends AgentRunEvent {
 	hold: AutopilotHold | null;
 }
 
+export interface AutopilotAnsweredEvent extends AgentRunEvent {
+	question: string;
+	optionLabel: string;
+}
+
 const AGENT_TAG = "agent";
 
 const runs = new Map<string, AgentRunEvent & { hidden: boolean }>();
 const attentionListeners = new Set<(event: AgentAttentionEvent) => void>();
 const doneListeners = new Set<(event: AgentRunEvent) => void>();
 const focusListeners = new Set<(event: { runId: string; projectPath: string }) => void>();
+const autopilotListeners = new Set<(event: AutopilotAnsweredEvent) => void>();
+const activityListeners = new Set<(event: AgentActivityEvent) => void>();
 
 const DONE_NOTIFICATION = "agent-done:";
 
@@ -47,11 +61,11 @@ const describe = (runId: string): AgentRunEvent | null => {
 	return { runId, projectPath: run.projectPath, projectName: run.projectName, agentLabel: run.agentLabel };
 };
 
-const emitAttention = (runId: string, waiting: boolean) => {
+const emitAttention = (runId: string, waiting: boolean, hold: AutopilotHold | null = null) => {
 	const run = describe(runId);
 	if (!run) return;
 
-	for (const listener of attentionListeners) listener({ ...run, waiting, hold: null });
+	for (const listener of attentionListeners) listener({ ...run, waiting, hold });
 
 	if (waiting) {
 		void alertWhenAway(`agent-waiting:${runId}`, `${run.agentLabel} needs you`, `${run.projectName} is waiting for a response.`);
@@ -71,6 +85,26 @@ const detector = new AttentionDetector((runId) => {
 	);
 }, setAgentBusy);
 
+const autopilot = new Autopilot({
+	isActive: (runId) => {
+		const run = runs.get(runId);
+		return run !== undefined && detector.isTracked(runId) && isAutopilotActive(run.projectPath);
+	},
+	getScreen: (runId) => detector.screen(runId),
+	isWaiting: (runId) => detector.isWaiting(runId),
+	answer: (runId, keys) => {
+		detector.clear(runId);
+		ptyWrite(runId, keys);
+	},
+	onAnswered: (runId, { question, optionLabel }) => {
+		const run = describe(runId);
+		if (!run) return;
+
+		for (const listener of autopilotListeners) listener({ ...run, question, optionLabel });
+	},
+	onHeld: (runId, detail) => emitAttention(runId, true, detail.hold),
+});
+
 const remember = (runId: string, projectPath: string, agentLabel: string, hidden: boolean) =>
 	runs.set(runId, {
 		runId,
@@ -84,6 +118,8 @@ let watching: Promise<void> | null = null;
 
 function watchAgents(): Promise<void> {
 	watching ??= (async () => {
+		await autopilotSettings();
+
 		desktop.attention.onNotificationClick((id) => {
 			if (!id.startsWith(DONE_NOTIFICATION)) return;
 
@@ -96,12 +132,20 @@ function watchAgents(): Promise<void> {
 
 		onPtyData(({ runId, data }) => {
 			const waiting = detector.push(runId, data);
-			if (waiting !== null) emitAttention(runId, waiting);
+			if (waiting === null) return;
+
+			if (waiting && autopilot.willConsider(runId)) {
+				autopilot.consider(runId);
+				return;
+			}
+
+			emitAttention(runId, waiting);
 		});
 
 		onScriptStatus(({ runId, status }) => {
 			if (status === "running") return;
 			detector.forget(runId);
+			autopilot.forget(runId);
 			runs.delete(runId);
 		});
 
@@ -193,3 +237,19 @@ export const onAgentDone = (callback: (event: AgentRunEvent) => void) => subscri
 
 export const onAgentFocus = (callback: (event: { runId: string; projectPath: string }) => void) =>
 	subscribe(focusListeners, callback);
+
+export const onAutopilotAnswered = (callback: (event: AutopilotAnsweredEvent) => void) =>
+	subscribe(autopilotListeners, callback);
+
+let watchingActivity: Promise<() => void> | null = null;
+
+export const onAgentActivity = (callback: (event: AgentActivityEvent) => void) => {
+	watchingActivity ??= watchAgentActivity((event) => {
+		for (const listener of activityListeners) listener(event);
+	});
+	activityListeners.add(callback);
+
+	return () => {
+		activityListeners.delete(callback);
+	};
+};

@@ -46,7 +46,11 @@
   },
   "chain": {
     "readOnlyFolders": [
-      "~/Library/Application Support/lazify"
+      "~/Library/Application Support/lazify",
+      "~/.claude/projects",
+      "~/.codex/sessions",
+      "~/.claude.json",
+      "~/.codex/auth.json"
     ]
   }
 }
