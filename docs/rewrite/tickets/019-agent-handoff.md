@@ -60,7 +60,7 @@ the pane appears, not before.
 - [ ] In the app: past sessions and usage. The new read-only entries
       (`~/.claude/projects`, `~/.codex/sessions`, `~/.claude.json`,
       `~/.codex/auth.json`) take effect when `chain dev` restarts. The two
-      single files wait on
+      single files are covered by
       [Chain request 10](../../chain-sdk-requests/10-declared-read-only-files.md)
 
 ## Carried over from Electron
