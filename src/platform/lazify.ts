@@ -5,6 +5,7 @@ import * as keepAwakeGroup from "./keep-awake";
 import * as packages from "./packages";
 import type { LazifyApi } from "./lazify-api";
 import * as projects from "./projects";
+import * as prompts from "./prompts";
 import * as scripts from "./scripts";
 import * as system from "./system";
 import * as tasks from "./tasks";
@@ -183,18 +184,18 @@ export const lazify: LazifyApi = {
 	installProjectDependencies: rejects("installProjectDependencies"),
 	matchPackageVersions: packages.matchPackageVersions,
 	fixProjectPackageVersions: rejects("fixProjectPackageVersions"),
-	listPromptPresets: rejects("listPromptPresets"),
-	createPromptPreset: rejects("createPromptPreset"),
-	updatePromptPreset: rejects("updatePromptPreset"),
-	deletePromptPreset: rejects("deletePromptPreset"),
-	listContextEntries: rejects("listContextEntries"),
-	createContextEntry: rejects("createContextEntry"),
-	updateContextEntry: rejects("updateContextEntry"),
-	setContextEntryActive: rejects("setContextEntryActive"),
-	setContextPackActive: rejects("setContextPackActive"),
-	deleteContextEntry: rejects("deleteContextEntry"),
-	buildPrompt: rejects("buildPrompt"),
-	suggestPromptPreset: rejects("suggestPromptPreset"),
+	listPromptPresets: prompts.listPromptPresets,
+	createPromptPreset: prompts.createPromptPreset,
+	updatePromptPreset: prompts.updatePromptPreset,
+	deletePromptPreset: prompts.deletePromptPreset,
+	listContextEntries: prompts.listContextEntries,
+	createContextEntry: prompts.createContextEntry,
+	updateContextEntry: prompts.updateContextEntry,
+	setContextEntryActive: prompts.setContextEntryActive,
+	setContextPackActive: prompts.setContextPackActive,
+	deleteContextEntry: prompts.deleteContextEntry,
+	buildPrompt: prompts.buildPrompt,
+	suggestPromptPreset: prompts.suggestPromptPreset,
 	relaunchApp: rejects("relaunchApp"),
 	getDiagnosticsPaths: rejects("getDiagnosticsPaths"),
 	saveClipboardImage: rejects("saveClipboardImage"),
@@ -217,7 +218,7 @@ export const lazify: LazifyApi = {
 	listTaskStatusEvents: tasks.listTaskStatusEvents,
 	reorderTask: tasks.reorderTask,
 	deleteTask: tasks.deleteTask,
-	buildTaskPrompt: rejects("buildTaskPrompt"),
+	buildTaskPrompt: tasks.buildTaskPrompt,
 	recordTaskRun: tasks.recordTaskRun,
 	listTaskRuns: tasks.listTaskRuns,
 	completeTaskRun: tasks.completeTaskRun,

@@ -1,5 +1,6 @@
 import { completeRun, completeRunsForAgent, listRuns, recordRun } from "@/shared/lib/tasks/run-store";
 import { listStatusEvents } from "@/shared/lib/tasks/status-events";
+import { buildPromptForTask } from "@/shared/lib/tasks/task-prompt";
 import { setTaskStatus as moveTask } from "@/shared/lib/tasks/task-store";
 import type { TaskStatus, TaskStatusSource } from "@/shared/lib/tasks/types";
 
@@ -14,3 +15,4 @@ export const recordTaskRun = recordRun;
 export const listTaskRuns = listRuns;
 export const completeTaskRun = completeRun;
 export const completeAgentTaskRuns = completeRunsForAgent;
+export const buildTaskPrompt = buildPromptForTask;

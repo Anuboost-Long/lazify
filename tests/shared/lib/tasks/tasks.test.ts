@@ -28,6 +28,7 @@ let listAllTasks: typeof TaskStore.listAllTasks;
 let listTasks: typeof TaskStore.listTasks;
 let setTaskStatus: typeof TaskStore.setTaskStatus;
 let updateTask: typeof TaskStore.updateTask;
+let buildPromptForTask: typeof import("@/shared/lib/tasks/task-prompt").buildPromptForTask;
 
 const PROJECT = "/work/demo";
 
@@ -53,6 +54,7 @@ beforeEach(async () => {
   ({ createTask, deleteTask, getTask, listAllTasks, listTasks, setTaskStatus, updateTask } = await import(
     "@/shared/lib/tasks/task-store"
   ));
+  ({ buildPromptForTask } = await import("@/shared/lib/tasks/task-prompt"));
 });
 
 describe("tasks", () => {
@@ -151,6 +153,21 @@ describe("the home dashboard's view of every project", () => {
     await createTask(input({ name: "Undated", deadline: null }));
 
     expect((await listAllTasks()).map((task) => task.name)).toEqual(["Sooner", "Later", "Undated"]);
+  });
+});
+
+describe("building a prompt from a stored task", () => {
+  it("uses the task's own fields and preset", async () => {
+    const created = await createTask(input({ presetId: "builtin-bug-fix" }));
+    const built = await buildPromptForTask(created.id);
+
+    expect(built?.presetId).toBe("builtin-bug-fix");
+    expect(built?.prompt).toContain("Add dark mode");
+    expect(built?.prompt).toContain("- Add a theme toggle.");
+  });
+
+  it("says nothing about a task that is gone", async () => {
+    expect(await buildPromptForTask("task-missing")).toBeNull();
   });
 });
 
