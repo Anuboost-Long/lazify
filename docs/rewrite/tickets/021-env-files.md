@@ -1,4 +1,4 @@
-# 021 — Environment files (Phase 5 / In progress)
+# 021 — Environment files (Phase 5 / Done; the panel with a real file pending)
 
 **Read this whole ticket before touching code.** The `env` group (6
 members) on Chain: list a project's root `.env*` files, read one, and edit
