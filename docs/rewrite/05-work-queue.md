@@ -82,6 +82,7 @@ and understand failures without the old app.
 | [017](tickets/017-open-a-project.md) | Open a project: picker, project list, file tree, preview, search | **Done.** Synced, opened, previewed, searched (300 ms) and removed in the app; the picker with a person pending |
 | [018](tickets/018-scripts-pane.md) | Scripts pane and terminal, with reattach after reload | **Done.** A real `vite preview` run survived a reload in the pane and stopped cleanly |
 | [019](tickets/019-agent-handoff.md) | Agents page: launch, give a task (Prompt Builder and tasks storage), reattach | **Done.** The Phase 4 exit run passed in the app (sync, launch, task sent, reload, reconnect). Autopilot, past sessions and usage match Electron in tests and show in the app; a reattached agent terminal repaints after a reload |
+| [020](tickets/020-failures-and-accessibility.md) | Failures you can understand, and accessibility: unported features named, startup window, keyboard reach | **In progress.** Chain-only audit passed; unported features name themselves in the app. Waits on a `chain dev` restart (startup window) and requests 11 and 12 |
 
 ## Chain SDK requests
 
@@ -97,4 +98,6 @@ and understand failures without the old app.
 | 08 | [Page zoom](../chain-sdk-requests/08-page-zoom.md) | Settings zoom and Cmd +/− (ticket 016) | Shipped on macOS 2026-10-09, as `desktop.pageZoom` |
 | 09 | [Keep-awake](../chain-sdk-requests/09-keep-awake.md) | "Keep awake" while agents work (ticket 016) | Shipped on macOS 2026-10-09, as `desktop.keepAwake` |
 | 10 | [Declared read-only files](../chain-sdk-requests/10-declared-read-only-files.md) | Agent usage: Claude's offline cache, the Codex token (ticket 019) | Shipped on macOS 2026-10-09; verified in the app |
+| 11 | [Window size and title](../chain-sdk-requests/11-window-size-and-title.md) | Window opens at Electron's 1440×920, minimum 1180×760, titled Lazify (ticket 020) | Sent 2026-10-10 |
+| 12 | [Tab reaches every control](../chain-sdk-requests/12-tab-reaches-every-control.md) | Keyboard navigation parity with Chromium (ticket 020) | Sent 2026-10-10 |
 | later | Data import, transcript reads (see Mneme's request 11), notifications, keep-awake, keychain, ports, LSP stdin, archive unpacking, embedded browser view, updater, menu, zoom | Later slices | Written when the slice is next |

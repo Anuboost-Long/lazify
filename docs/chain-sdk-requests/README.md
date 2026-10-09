@@ -23,7 +23,9 @@ Each request:
 | 07 | [Get the user's attention when the app is in the background](07-attention-alerts.md) | Shipped on macOS 2026-10-09, as `desktop.attention`; click path unverified |
 | 08 | [Zoom the app's page](08-page-zoom.md) | Shipped on macOS 2026-10-09, as `desktop.pageZoom` |
 | 09 | [Keep the Mac awake while an agent works](09-keep-awake.md) | Shipped on macOS 2026-10-09, as `desktop.keepAwake` |
-| 10 | [Declare single read-only files](10-declared-read-only-files.md) | Shipped on macOS 2026-10-09: a declared entry may be a file (kind "file"); needs a rebuild |
+| 10 | [Declare single read-only files](10-declared-read-only-files.md) | Shipped on macOS 2026-10-09: a declared entry may be a file (kind "file"); verified in the app |
+| 11 | [The window's starting size, minimum size and title](11-window-size-and-title.md) | Sent 2026-10-10 |
+| 12 | [Tab reaches every button and link](12-tab-reaches-every-control.md) | Sent 2026-10-10 |
 
 Overlap with Mneme: request 01's read-only allow-list design fork would also
 answer Mneme's request 11 (`external-file-read`).

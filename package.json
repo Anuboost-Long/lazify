@@ -51,6 +51,10 @@
       "~/.codex/sessions",
       "~/.claude.json",
       "~/.codex/auth.json"
-    ]
+    ],
+    "window": {
+      "backgroundColor": "#0b1220",
+      "showWhen": "firstPaint"
+    }
   }
 }
