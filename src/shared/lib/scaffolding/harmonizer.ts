@@ -37,3 +37,54 @@ export interface TemplateDefinition {
   recommendedPackages?: string[];
   starter?: StarterSource;
 }
+
+export function getInstallCommand(
+  packageManager: PackageManager,
+  packages: string[],
+  options?: { dev?: boolean }
+): string[] {
+  if (packageManager === "yarn") {
+    return options?.dev ? ["add", "--dev", ...packages] : ["add", ...packages];
+  }
+
+  return options?.dev ? ["install", "--save-dev", ...packages] : ["install", ...packages];
+}
+
+export function getAutoFixArgs(
+  packageManager: PackageManager,
+  packages: string[],
+  options?: { dev?: boolean }
+): string[] | null {
+  if (packageManager === "npm") {
+    return options?.dev
+      ? ["install", "--save-dev", "--legacy-peer-deps", ...packages]
+      : ["install", "--legacy-peer-deps", ...packages];
+  }
+
+  if (packageManager === "yarn") {
+    return options?.dev
+      ? ["add", "--dev", "--ignore-engines", ...packages]
+      : ["add", "--ignore-engines", ...packages];
+  }
+
+  return null;
+}
+
+export function getUninstallCommand(packageManager: PackageManager, packageName: string): string[] {
+  if (packageManager === "yarn") {
+    return ["remove", packageName];
+  }
+  return ["uninstall", packageName];
+}
+
+export function summarizeAutoFix(packageManager: PackageManager): string {
+  if (packageManager === "npm") {
+    return "Retrying with --legacy-peer-deps to bypass peer dependency conflicts.";
+  }
+
+  if (packageManager === "yarn") {
+    return "Retrying with --ignore-engines to bypass engine mismatch checks.";
+  }
+
+  return "No automatic dependency fix is available for this package manager.";
+}

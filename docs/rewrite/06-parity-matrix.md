@@ -22,7 +22,7 @@ An untested OS is `Not tested`, never `Pass`.
 | Tasks | `tests/main/tasks.test.ts` | [Ticket 016](tickets/016-shell-settings-home.md): Electron's tests pass on Chain storage (21 of 21, prompt building in [ticket 019](tickets/019-agent-handoff.md)); shown on Home; a task handed to a real agent in the app | Partial | Not tested | Not tested | Not started |
 | Starter projects | | | | | | Not started |
 | Imported templates | | | | | | Not started |
-| Dependencies | Fixture recorded at `c9abefc` | Version matching only: [ticket 003](tickets/003-package-version-matching.md), 10 of 10 golden cases; identical to Electron on two real projects. Search, install and audit not ported | Partial | Not tested | Not tested | Not started |
+| Dependencies | Fixtures recorded at `c9abefc` and on 2026-10-10 | Version matching: [ticket 003](tickets/003-package-version-matching.md), 10 of 10 golden. List, add, remove, install, outdated, audit, search and fix: [ticket 022](tickets/022-packages.md), 19 of 19 golden from Electron; every member run against the real npm in the app | Partial | Not tested | Not tested | Not started |
 | Environment files | `tests/main/projects/env-files.test.ts` | [Ticket 021](tickets/021-env-files.md): Electron's 24 tests pass on the copy; every edit verified on disk in the app. Panel with a real file waits on a person at the picker | Partial | Not tested | Not tested | Not started |
 | Developer environment | | | | | | Not started |
 | Formatting and code quality | | | | | | Not started |

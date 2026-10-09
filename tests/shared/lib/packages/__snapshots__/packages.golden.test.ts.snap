@@ -1,0 +1,571 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`npm search golden > "  fallback  " 1`] = `
+{
+  "packages": [
+    {
+      "description": "String left pad",
+      "keywords": [
+        "pad",
+        "string",
+      ],
+      "name": "left-pad",
+      "publisher": "azer",
+      "version": "1.3.0",
+    },
+    {
+      "description": "",
+      "keywords": [
+        "pad",
+      ],
+      "name": "pad-left",
+      "publisher": "jon",
+      "version": "2.1.0",
+    },
+  ],
+}
+`;
+
+exports[`npm search golden > "a" 1`] = `
+{
+  "packages": [],
+}
+`;
+
+exports[`npm search golden > "offline" 1`] = `
+{
+  "threw": "Unable to reach npm search right now. Check your internet connection or npm proxy configuration.",
+}
+`;
+
+exports[`npm search golden > "react" 1`] = `
+{
+  "packages": [
+    {
+      "description": "React",
+      "keywords": [
+        "ui",
+      ],
+      "name": "react",
+      "publisher": "fb",
+      "version": "19.1.0",
+    },
+    {
+      "description": "",
+      "keywords": [],
+      "name": "react-dom",
+      "publisher": null,
+      "version": "19.1.0",
+    },
+  ],
+}
+`;
+
+exports[`package workflows golden > add dev, npm, auto-fix succeeds 1`] = `
+{
+  "calls": [
+    {
+      "args": [
+        "install",
+        "--save-dev",
+        "vitest",
+      ],
+      "command": "npm",
+      "cwd": "<project>",
+    },
+    {
+      "args": [
+        "install",
+        "--save-dev",
+        "--legacy-peer-deps",
+        "vitest",
+      ],
+      "command": "npm",
+      "cwd": "<project>",
+    },
+  ],
+  "outcome": {
+    "message": "vitest installed successfully.",
+    "projectPath": "<project>",
+    "success": true,
+  },
+  "progress": [
+    {
+      "message": "Installing vitest with npm.",
+      "status": "running",
+      "step": "add-package",
+      "workflowId": "add-pkg-<time>",
+    },
+    {
+      "message": "Retrying with --legacy-peer-deps to bypass peer dependency conflicts.",
+      "status": "running",
+      "step": "dependency-auto-fix",
+      "workflowId": "add-pkg-<time>",
+    },
+    {
+      "message": "vitest installed successfully.",
+      "status": "success",
+      "step": "complete",
+      "workflowId": "add-pkg-<time>",
+    },
+  ],
+}
+`;
+
+exports[`package workflows golden > add dev, yarn, auto-fix fails 1`] = `
+{
+  "calls": [
+    {
+      "args": [
+        "add",
+        "--dev",
+        "vitest",
+      ],
+      "command": "yarn",
+      "cwd": "<project>",
+    },
+    {
+      "args": [
+        "add",
+        "--dev",
+        "--ignore-engines",
+        "vitest",
+      ],
+      "command": "yarn",
+      "cwd": "<project>",
+    },
+  ],
+  "outcome": {
+    "message": "Package installation failed.",
+    "success": false,
+  },
+  "progress": [
+    {
+      "message": "Installing vitest with yarn.",
+      "status": "running",
+      "step": "add-package",
+      "workflowId": "add-pkg-<time>",
+    },
+    {
+      "message": "Retrying with --ignore-engines to bypass engine mismatch checks.",
+      "status": "running",
+      "step": "dependency-auto-fix",
+      "workflowId": "add-pkg-<time>",
+    },
+    {
+      "message": "Package installation failed.",
+      "status": "error",
+      "step": "add-package",
+      "workflowId": "add-pkg-<time>",
+    },
+  ],
+}
+`;
+
+exports[`package workflows golden > add, missing project 1`] = `
+{
+  "calls": [],
+  "outcome": {
+    "threw": "Project path does not exist: <project>",
+  },
+  "progress": [],
+}
+`;
+
+exports[`package workflows golden > add, no lockfile 1`] = `
+{
+  "calls": [
+    {
+      "args": [
+        "install",
+        "zod",
+      ],
+      "command": "npm",
+      "cwd": "<project>",
+    },
+  ],
+  "outcome": {
+    "message": "zod installed successfully.",
+    "projectPath": "<project>",
+    "success": true,
+  },
+  "progress": [
+    {
+      "message": "Installing zod with npm.",
+      "status": "running",
+      "step": "add-package",
+      "workflowId": "add-pkg-<time>",
+    },
+    {
+      "message": "zod installed successfully.",
+      "status": "success",
+      "step": "complete",
+      "workflowId": "add-pkg-<time>",
+    },
+  ],
+}
+`;
+
+exports[`package workflows golden > add, npm, succeeds 1`] = `
+{
+  "calls": [
+    {
+      "args": [
+        "install",
+        "zod",
+      ],
+      "command": "npm",
+      "cwd": "<project>",
+    },
+  ],
+  "outcome": {
+    "message": "zod installed successfully.",
+    "projectPath": "<project>",
+    "success": true,
+  },
+  "progress": [
+    {
+      "message": "Installing zod with npm.",
+      "status": "running",
+      "step": "add-package",
+      "workflowId": "add-pkg-<time>",
+    },
+    {
+      "message": "zod installed successfully.",
+      "status": "success",
+      "step": "complete",
+      "workflowId": "add-pkg-<time>",
+    },
+  ],
+}
+`;
+
+exports[`package workflows golden > install packages, missing project 1`] = `
+{
+  "calls": [],
+  "outcome": {
+    "threw": "Project path does not exist: <project>",
+  },
+  "progress": [],
+}
+`;
+
+exports[`package workflows golden > install packages, two at once 1`] = `
+{
+  "calls": [
+    {
+      "args": [
+        "install",
+        "react@18.3.1",
+        "react-dom@18.3.1",
+      ],
+      "command": "npm",
+      "cwd": "<project>",
+    },
+  ],
+  "outcome": {
+    "message": "Packages installed successfully.",
+    "projectPath": "<project>",
+    "success": true,
+  },
+  "progress": [
+    {
+      "message": "Installing react@18.3.1, react-dom@18.3.1 with npm.",
+      "status": "running",
+      "step": "install-package",
+      "workflowId": "install-<time>",
+    },
+    {
+      "message": "Packages installed successfully.",
+      "status": "success",
+      "step": "complete",
+      "workflowId": "install-<time>",
+    },
+  ],
+}
+`;
+
+exports[`package workflows golden > install, npm, legacy retry 1`] = `
+{
+  "calls": [
+    {
+      "args": [
+        "install",
+      ],
+      "command": "npm",
+      "cwd": "<project>",
+    },
+    {
+      "args": [
+        "install",
+        "--legacy-peer-deps",
+      ],
+      "command": "npm",
+      "cwd": "<project>",
+    },
+  ],
+  "outcome": {
+    "message": "Dependencies installed successfully.",
+    "projectPath": "<project>",
+    "success": true,
+  },
+  "progress": [
+    {
+      "message": "Installing dependencies with npm.",
+      "status": "running",
+      "step": "install-dependencies",
+      "workflowId": "install-deps-<time>",
+    },
+    {
+      "message": "Retrying with --legacy-peer-deps to bypass peer dependency conflicts.",
+      "status": "running",
+      "step": "dependency-auto-fix",
+      "workflowId": "install-deps-<time>",
+    },
+    {
+      "message": "Dependencies installed successfully.",
+      "status": "success",
+      "step": "complete",
+      "workflowId": "install-deps-<time>",
+    },
+  ],
+}
+`;
+
+exports[`package workflows golden > install, yarn, fails without retry 1`] = `
+{
+  "calls": [
+    {
+      "args": [
+        "install",
+      ],
+      "command": "yarn",
+      "cwd": "<project>",
+    },
+  ],
+  "outcome": {
+    "message": "Dependency installation failed.",
+    "success": false,
+  },
+  "progress": [
+    {
+      "message": "Installing dependencies with yarn.",
+      "status": "running",
+      "step": "install-dependencies",
+      "workflowId": "install-deps-<time>",
+    },
+    {
+      "message": "Dependency installation failed.",
+      "status": "error",
+      "step": "install-dependencies",
+      "workflowId": "install-deps-<time>",
+    },
+  ],
+}
+`;
+
+exports[`package workflows golden > remove, npm, succeeds 1`] = `
+{
+  "calls": [
+    {
+      "args": [
+        "uninstall",
+        "zod",
+      ],
+      "command": "npm",
+      "cwd": "<project>",
+    },
+  ],
+  "outcome": {
+    "message": "zod removed successfully.",
+    "projectPath": "<project>",
+    "success": true,
+  },
+  "progress": [
+    {
+      "message": "Removing zod with npm.",
+      "status": "running",
+      "step": "remove-package",
+      "workflowId": "remove-pkg-<time>",
+    },
+    {
+      "message": "zod removed successfully.",
+      "status": "success",
+      "step": "complete",
+      "workflowId": "remove-pkg-<time>",
+    },
+  ],
+}
+`;
+
+exports[`package workflows golden > remove, yarn, fails 1`] = `
+{
+  "calls": [
+    {
+      "args": [
+        "remove",
+        "zod",
+      ],
+      "command": "yarn",
+      "cwd": "<project>",
+    },
+  ],
+  "outcome": {
+    "message": "Package removal failed.",
+    "success": false,
+  },
+  "progress": [
+    {
+      "message": "Removing zod with yarn.",
+      "status": "running",
+      "step": "remove-package",
+      "workflowId": "remove-pkg-<time>",
+    },
+    {
+      "message": "Package removal failed.",
+      "status": "error",
+      "step": "remove-package",
+      "workflowId": "remove-pkg-<time>",
+    },
+  ],
+}
+`;
+
+exports[`project health golden > clean 1`] = `
+{
+  "audit": {
+    "metadata": {
+      "dependencies": {
+        "dev": 0,
+        "optional": 0,
+        "peer": 0,
+        "peerOptional": 0,
+        "prod": 0,
+        "total": 0,
+      },
+      "vulnerabilities": {
+        "critical": 0,
+        "high": 0,
+        "info": 0,
+        "low": 0,
+        "moderate": 0,
+        "total": 0,
+      },
+    },
+    "vulnerabilities": {},
+  },
+  "outdated": {
+    "packages": {},
+  },
+}
+`;
+
+exports[`project health golden > crash 1`] = `
+{
+  "audit": {
+    "error": "spawn npm ENOENT",
+    "metadata": {
+      "dependencies": {
+        "dev": 0,
+        "optional": 0,
+        "peer": 0,
+        "peerOptional": 0,
+        "prod": 0,
+        "total": 0,
+      },
+      "vulnerabilities": {
+        "critical": 0,
+        "high": 0,
+        "info": 0,
+        "low": 0,
+        "moderate": 0,
+        "total": 0,
+      },
+    },
+    "vulnerabilities": {},
+  },
+  "outdated": {
+    "error": "spawn npm ENOENT",
+    "packages": {},
+  },
+}
+`;
+
+exports[`project health golden > issues 1`] = `
+{
+  "audit": {
+    "metadata": {
+      "dependencies": {
+        "dev": 1,
+        "optional": 0,
+        "peer": 0,
+        "peerOptional": 0,
+        "prod": 3,
+        "total": 4,
+      },
+      "vulnerabilities": {
+        "critical": 0,
+        "high": 1,
+        "info": 0,
+        "low": 0,
+        "moderate": 0,
+        "total": 1,
+      },
+    },
+    "vulnerabilities": {
+      "lodash": {
+        "fixAvailable": true,
+        "isDirect": true,
+        "name": "lodash",
+        "range": "<4.17.21",
+        "severity": "high",
+        "via": [
+          "Prototype Pollution",
+        ],
+      },
+    },
+  },
+  "outdated": {
+    "packages": {
+      "react": {
+        "current": "18.2.0",
+        "dependent": "app",
+        "latest": "19.1.0",
+        "location": "node_modules/react",
+        "wanted": "18.3.1",
+      },
+    },
+  },
+}
+`;
+
+exports[`project health golden > npm-error 1`] = `
+{
+  "audit": {
+    "error": "Lockfile is out of date",
+    "metadata": {
+      "dependencies": {
+        "dev": 0,
+        "optional": 0,
+        "peer": 0,
+        "peerOptional": 0,
+        "prod": 0,
+        "total": 0,
+      },
+      "vulnerabilities": {
+        "critical": 0,
+        "high": 0,
+        "info": 0,
+        "low": 0,
+        "moderate": 0,
+        "total": 0,
+      },
+    },
+    "vulnerabilities": {},
+  },
+  "outdated": {
+    "error": "Lockfile is out of date",
+    "packages": {},
+  },
+}
+`;

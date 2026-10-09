@@ -26,7 +26,7 @@ Each request:
 | 10 | [Declare single read-only files](10-declared-read-only-files.md) | Shipped on macOS 2026-10-09: a declared entry may be a file (kind "file"); verified in the app |
 | 11 | [The window's starting size, minimum size and title](11-window-size-and-title.md) | Shipped on macOS 2026-10-10, as `chain.window` `size`, `minSize`, `title`; verified in the app |
 | 12 | [Tab reaches every button and link](12-tab-reaches-every-control.md) | Shipped on macOS 2026-10-10, as `chain.window` `tabFocus`; verified in the app |
-| 13 | [`chain dev` starts when port 1420 is taken](13-dev-server-port-in-use.md) | Sent 2026-10-10 |
+| 13 | [`chain dev` starts when port 1420 is taken](13-dev-server-port-in-use.md) | Shipped 2026-10-10 in `chain dev`: steps to the next free port for Vite and the window; two apps at once not yet seen |
 
 Overlap with Mneme: request 01's read-only allow-list design fork would also
 answer Mneme's request 11 (`external-file-read`).

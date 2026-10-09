@@ -10,6 +10,7 @@ import * as prompts from "./prompts";
 import * as scripts from "./scripts";
 import * as system from "./system";
 import * as tasks from "./tasks";
+import * as workflow from "./workflow";
 import * as zoom from "./zoom";
 
 const unported = {
@@ -26,7 +27,6 @@ const unported = {
 	lazyShield: "Lazy Shield",
 	linting: "Linting and code scans",
 	openInEditor: "Opening files in an editor",
-	packages: "Managing packages",
 	pastedImages: "Pasting images",
 	pictureInPicture: "Picture in picture",
 	projectCreation: "Creating projects",
@@ -200,15 +200,15 @@ export const lazify: LazifyApi = {
 	getPictureInPictureState: rejects(unported.pictureInPicture),
 	onPictureInPictureChanged: noSubscription,
 	toggleMediaPictureInPicture: rejects(unported.pictureInPicture),
-	searchNpmPackages: rejects(unported.packages),
-	getNpmOutdated: rejects(unported.packages),
-	getNpmAudit: rejects(unported.packages),
-	listProjectPackages: rejects(unported.packages),
-	addProjectPackage: rejects(unported.packages),
-	removeProjectPackage: rejects(unported.packages),
-	installProjectDependencies: rejects(unported.packages),
+	searchNpmPackages: packages.searchNpmPackages,
+	getNpmOutdated: packages.getNpmOutdated,
+	getNpmAudit: packages.getNpmAudit,
+	listProjectPackages: packages.listProjectPackages,
+	addProjectPackage: packages.addProjectPackage,
+	removeProjectPackage: packages.removeProjectPackage,
+	installProjectDependencies: packages.installProjectDependencies,
 	matchPackageVersions: packages.matchPackageVersions,
-	fixProjectPackageVersions: rejects(unported.packages),
+	fixProjectPackageVersions: packages.fixProjectPackageVersions,
 	listPromptPresets: prompts.listPromptPresets,
 	createPromptPreset: prompts.createPromptPreset,
 	updatePromptPreset: prompts.updatePromptPreset,
@@ -261,6 +261,6 @@ export const lazify: LazifyApi = {
 	quitAndInstallUpdate: rejects(unported.updates),
 	onUpdateStateChanged: noSubscription,
 	createProject: rejects(unported.projectCreation),
-	installPackage: rejects(unported.projectCreation),
-	onWorkflowProgress: noSubscription,
+	installPackage: packages.installPackage,
+	onWorkflowProgress: workflow.onWorkflowProgress,
 };

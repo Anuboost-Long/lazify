@@ -94,8 +94,8 @@ parity fixtures and failure/cancellation paths, not only success demos.
 | Ticket | Scope | Electron source | Chain | Status |
 | --- | --- | --- | --- | --- |
 | 021 | Environment files: list, read, edit, add, delete, create (`env`, 6 members). Also ends ticket 020's F2 | `src/main/projects/env/*` (339 lines) | `folders` (request 01) | **Done.** Electron's tests pass; every edit checked on disk in the app. Left: the panel with a real file, after a person syncs a project |
-| 022 | Packages: list, add, remove, install, outdated, audit, search, fix versions (`packages`, 8) | `src/main/ipc/packages.ts`, `project-health.ts`; version matching done in 003 | `process-runner`, `http` | Next |
-| 023 | Git screens and project health, checked against Electron (the platform side is ticket 007) | `src/main/projects/project-health.ts` | — | Planned |
+| 022 | Packages: list, add, remove, install, outdated, audit, search, fix versions (`packages`, 8) | `src/main/ipc/packages.ts`, `project-health.ts`; version matching done in 003 | `process-runner`, `http` | **Done.** 19 of 19 golden from Electron; every member run against the real npm in the app |
+| 023 | Git screens and project health, checked against Electron (the platform side is ticket 007) | `src/main/projects/project-health.ts` | — | Next |
 | 024 | Formatting (`formatting`, 7) | `src/main/formatting/*` (619 lines) | `process-runner` | Planned |
 | 025 | Starter catalog and project creation, with progress, cancel and failure recovery (`workflow`, `templates` list) | `src/main/scaffolding/*` (2,894 lines, shared with 026) | `folders`, `process-runner`, `http` | Planned |
 | 026 | Imported templates: analysis, editor, provisioning, tree safeguards | `src/brain/template-engine/*`, `imported-template-store.ts` | `folders` | Planned |
@@ -122,5 +122,5 @@ history are checked in 023's parity pass rather than a ticket of their own.
 | 10 | [Declared read-only files](../chain-sdk-requests/10-declared-read-only-files.md) | Agent usage: Claude's offline cache, the Codex token (ticket 019) | Shipped on macOS 2026-10-09; verified in the app |
 | 11 | [Window size and title](../chain-sdk-requests/11-window-size-and-title.md) | Window opens at Electron's 1440×920, minimum 1180×760, titled Lazify (ticket 020) | Shipped on macOS 2026-10-10; verified in the app |
 | 12 | [Tab reaches every control](../chain-sdk-requests/12-tab-reaches-every-control.md) | Keyboard navigation parity with Chromium (ticket 020) | Shipped on macOS 2026-10-10; verified in the app |
-| 13 | [Dev server port in use](../chain-sdk-requests/13-dev-server-port-in-use.md) | Running lazify-chain and another Chain app (chain-sdk's playground) in development at once | Sent 2026-10-10 |
+| 13 | [Dev server port in use](../chain-sdk-requests/13-dev-server-port-in-use.md) | Running lazify-chain and another Chain app (chain-sdk's playground) in development at once | Shipped 2026-10-10 in `chain dev` (no update needed); two windows at once not yet seen |
 | later | Data import, transcript reads (see Mneme's request 11), notifications, keep-awake, keychain, ports, LSP stdin, archive unpacking, embedded browser view, updater, menu, zoom | Later slices | Written when the slice is next |
