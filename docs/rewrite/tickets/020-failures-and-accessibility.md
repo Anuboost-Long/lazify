@@ -1,4 +1,4 @@
-# 020 — Failures you can understand, and accessibility (Phase 4 / In progress)
+# 020 — Failures you can understand, and accessibility (Phase 4 / Done)
 
 **Read this whole ticket before touching code.** The last two Phase 4
 roadmap items: user-visible failure states, and accessibility and window
@@ -80,10 +80,10 @@ across unchanged (`focus-visible` in 26 files, `aria-label` throughout).
       the page's area), `title` "Lazify", `tabFocus` "all". After a
       `chain dev` restart: the page laid out at 1440×889, and the window
       server names the window "Lazify"
-- [ ] F4: dragging the window smaller stops at the minimum (by hand)
-- [ ] F5: confirmed by hand with the window focused. Not automatable:
-      `chain inspect` can't press keys, and `osascript` needs Accessibility
-      permission, which wasn't granted
+- [x] F4: dragging the window smaller stops at the minimum (checked by
+      the owner by hand, 2026-10-10)
+- [x] F5: Tab walks the sidebar buttons on Home with Keyboard navigation
+      off (checked by the owner by hand, 2026-10-10)
 - [x] `CI=true npm test` (347 passed) and `npm run typecheck` pass
 
 ## Not removed
@@ -99,3 +99,6 @@ self-contained.
 
 - 2026-10-10, macOS: audit and failure checks above, through
   `chain inspect`. Test agents and tabs removed afterwards.
+- 2026-10-10, macOS: requests 11 and 12 picked up with `chain update`;
+  window size, title and background read back in the app; Tab reach and
+  the minimum size checked by the owner.

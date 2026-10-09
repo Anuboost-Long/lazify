@@ -1,6 +1,6 @@
 # Lazify rewrite dossier — Electron to Chain SDK
 
-**Current phase:** Phase 4 (smallest vertical slice). Phases 1 and 2 are done; Phase 3 is built and waits on the owner's first import. The Electron app in
+**Current phase:** Phase 5 (project-authoring workflows). Phases 1, 2 and 4 are done; Phase 3 is built and waits on the owner's first import. The Electron app in
 `../lazify` is unchanged and stays that way (A-3). This repo is the Chain
 app; see [`../../AGENTS.md`](../../AGENTS.md) for its layout.
 
@@ -29,7 +29,7 @@ Read first:
 | [08-migration-ledger](08-migration-ledger.md) | Each data migration and its validation | Backup and SQLite import |
 | [09-rollback-and-recovery](09-rollback-and-recovery.md) | Fallback per slice | Not started |
 | [10-release-readiness](10-release-readiness.md) | Signing, updater, cutover | Not started |
-| [tickets/](tickets/README.md) | One doc per change set (merged ticket and feature-doc format) | 001–019 built |
+| [tickets/](tickets/README.md) | One doc per change set (merged ticket and feature-doc format) | 001–020 built |
 | [evidence/](evidence/README.md) | Test output, fixtures, recordings | Empty |
 
 Native features Lazify needs from Chain are requested in
