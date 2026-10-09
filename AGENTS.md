@@ -79,8 +79,10 @@ This is the scaffold produced by `chain init`:
     instead.
   - This is in-window routing, not Tauri's multi-window API. Separate OS
     windows would be a deliberate later choice.
-- Chain's placeholder branding: `asset/app-icon.svg` (used in the nav
-  bar) and `asset/icons/` (the full desktop icon set), also copied into
+- Lazify's icon: `asset/app-icon.svg` is Electron Lazify's
+  `build/app-icon.svg` (see its `build/BRAND.md`; the in-app mark is the
+  ported `Logo`), and `asset/icons/` is the desktop set generated from it,
+  also copied into
   `.chain/native/icons/` where Tauri's bundler actually reads them from
   (`.chain/native/tauri.conf.json`'s `bundle.icon` already points there —
   no config change needed to use them).
