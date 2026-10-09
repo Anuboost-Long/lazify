@@ -1,4 +1,4 @@
-# 019 — Give an agent a task, autopilot, sessions and usage (Phase 4 / In progress)
+# 019 — Give an agent a task, autopilot, sessions and usage (Phase 4 / Done)
 
 **Read this whole ticket before touching code.** The Prompt Builder's
 storage and the task → agent handoff run on Chain, so a task can be sent to
@@ -50,12 +50,12 @@ the pane appears, not before.
       - `location.reload()`: the agent was still running, its tab came
         back, and the task kept its status and run
       - everything was removed afterwards
-- [ ] The reattached agent terminal repainting its output. After the
-      reload the terminal was built (52 rows) and the backlog was intact
-      (2,950 characters). But the window was hidden, so no animation frame
-      ran and nothing was drawn. The replay is the same terminal pool that
-      repainted the Scripts pane in ticket 018. Check by eye with the
-      window visible
+- [x] The reattached agent terminal repainting its output. On
+      2026-10-09, with the window visible, a custom agent printing 40 lines
+      and then waiting (`cat`) was started from **New agent**. After
+      `location.reload()` its tab came back and all 40 lines were drawn
+      again in the terminal's rows. The agent was stopped and removed
+      afterwards
 - [x] Autopilot (019b): `src/platform/autopilot.ts` keeps Electron's
       `agent-autopilot.json`. `src/platform/agents.ts` routes a waiting
       agent to Electron's unchanged `Autopilot` before raising attention,
@@ -78,11 +78,13 @@ the pane appears, not before.
       network and Keychain faked and only fixture tokens accepted: 4 of 4
       cases match, including the re-read of an appended transcript.
       Electron's `codex-rate-limit` tests pass on the copy
-- [ ] In the app: past sessions and usage. The new read-only entries
-      (`~/.claude/projects`, `~/.codex/sessions`, `~/.claude.json`,
-      `~/.codex/auth.json`) take effect when `chain dev` restarts. The two
-      single files are covered by
-      [Chain request 10](../../chain-sdk-requests/10-declared-read-only-files.md)
+- [x] In the app: past sessions and usage, after a `chain dev` restart
+      on 2026-10-09. **New agent** → **Resume a session** listed the
+      lazify project's real Claude conversations, and the Agents page's
+      **Usage** panel showed Claude's and Codex's totals, 5-hour windows
+      and the limits their accounts reported (Claude through the Keychain
+      token, Codex through `~/.codex/auth.json`, declared by
+      [Chain request 10](../../chain-sdk-requests/10-declared-read-only-files.md))
 
 ## Testing note: probe agents
 

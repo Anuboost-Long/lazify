@@ -81,7 +81,7 @@ and understand failures without the old app.
 | [016](tickets/016-shell-settings-home.md) | App shell, settings, theme and language persistence, Home | **Done.** Tasks on Chain storage; theme, language, zoom and keep-awake verified in the app |
 | [017](tickets/017-open-a-project.md) | Open a project: picker, project list, file tree, preview, search | **Done.** Synced, opened, previewed, searched (300 ms) and removed in the app; the picker with a person pending |
 | [018](tickets/018-scripts-pane.md) | Scripts pane and terminal, with reattach after reload | **Done.** A real `vite preview` run survived a reload in the pane and stopped cleanly |
-| [019](tickets/019-agent-handoff.md) | Agents page: launch, give a task (Prompt Builder and tasks storage), reattach | **In progress.** The Phase 4 exit run passed in the app (sync, launch, task sent, reload, reconnect). Autopilot, past sessions and usage match Electron in tests. Left: seeing sessions and usage in the app after a `chain dev` restart, and the reattached terminal repainting with the window visible |
+| [019](tickets/019-agent-handoff.md) | Agents page: launch, give a task (Prompt Builder and tasks storage), reattach | **Done.** The Phase 4 exit run passed in the app (sync, launch, task sent, reload, reconnect). Autopilot, past sessions and usage match Electron in tests and show in the app; a reattached agent terminal repaints after a reload |
 
 ## Chain SDK requests
 
@@ -96,5 +96,5 @@ and understand failures without the old app.
 | 07 | [Attention alerts](../chain-sdk-requests/07-attention-alerts.md) | Agent waiting and turn-done notifications (ticket 008) | Shipped on macOS 2026-10-09, as `desktop.attention`; click path unverified |
 | 08 | [Page zoom](../chain-sdk-requests/08-page-zoom.md) | Settings zoom and Cmd +/− (ticket 016) | Shipped on macOS 2026-10-09, as `desktop.pageZoom` |
 | 09 | [Keep-awake](../chain-sdk-requests/09-keep-awake.md) | "Keep awake" while agents work (ticket 016) | Shipped on macOS 2026-10-09, as `desktop.keepAwake` |
-| 10 | [Declared read-only files](../chain-sdk-requests/10-declared-read-only-files.md) | Agent usage: Claude's offline cache, the Codex token (ticket 019) | Shipped on macOS 2026-10-09; needs a rebuild |
+| 10 | [Declared read-only files](../chain-sdk-requests/10-declared-read-only-files.md) | Agent usage: Claude's offline cache, the Codex token (ticket 019) | Shipped on macOS 2026-10-09; verified in the app |
 | later | Data import, transcript reads (see Mneme's request 11), notifications, keep-awake, keychain, ports, LSP stdin, archive unpacking, embedded browser view, updater, menu, zoom | Later slices | Written when the slice is next |
