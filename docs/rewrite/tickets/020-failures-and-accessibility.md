@@ -69,11 +69,14 @@ across unchanged (`focus-visible` in 26 files, `aria-label` throughout).
       preload groups, `system` split by member). `tests/platform/lazify.test.ts`.
       In the app, the Environment panel now reads "Editing .env files isn't
       available in Lazify Chain yet."
-- [ ] F3: window appears already dark, after the first paint. Declared in
-      `package.json` `chain.window`; compiled in, so it waits on the next
-      `chain dev` restart
+- [x] F3: after a `chain dev` restart on 2026-10-10,
+      `desktop.window.options()` read back `backgroundColor` `#0b1220ff`
+      with the standard title bar, as in Electron. `showWhen` is
+      startup-only and isn't read back
 - [x] F4, F5: requests 11 and 12 written and sent to chain-sdk (2026-10-10)
-- [ ] F5: confirmed by hand with the window focused
+- [ ] F5: confirmed by hand with the window focused. Not automatable:
+      `chain inspect` can't press keys, and `osascript` needs Accessibility
+      permission, which wasn't granted
 - [x] `CI=true npm test` (347 passed) and `npm run typecheck` pass
 
 ## Not removed
