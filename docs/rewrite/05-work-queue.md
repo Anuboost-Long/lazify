@@ -98,7 +98,7 @@ and understand failures without the old app.
 | 08 | [Page zoom](../chain-sdk-requests/08-page-zoom.md) | Settings zoom and Cmd +/− (ticket 016) | Shipped on macOS 2026-10-09, as `desktop.pageZoom` |
 | 09 | [Keep-awake](../chain-sdk-requests/09-keep-awake.md) | "Keep awake" while agents work (ticket 016) | Shipped on macOS 2026-10-09, as `desktop.keepAwake` |
 | 10 | [Declared read-only files](../chain-sdk-requests/10-declared-read-only-files.md) | Agent usage: Claude's offline cache, the Codex token (ticket 019) | Shipped on macOS 2026-10-09; verified in the app |
-| 11 | [Window size and title](../chain-sdk-requests/11-window-size-and-title.md) | Window opens at Electron's 1440×920, minimum 1180×760, titled Lazify (ticket 020) | Sent 2026-10-10 |
-| 12 | [Tab reaches every control](../chain-sdk-requests/12-tab-reaches-every-control.md) | Keyboard navigation parity with Chromium (ticket 020) | Sent 2026-10-10 |
+| 11 | [Window size and title](../chain-sdk-requests/11-window-size-and-title.md) | Window opens at Electron's 1440×920, minimum 1180×760, titled Lazify (ticket 020) | Shipped on macOS 2026-10-10; minimum not yet dragged by hand |
+| 12 | [Tab reaches every control](../chain-sdk-requests/12-tab-reaches-every-control.md) | Keyboard navigation parity with Chromium (ticket 020) | Shipped on macOS 2026-10-10; real Tab press not yet checked |
 | 13 | [Dev server port in use](../chain-sdk-requests/13-dev-server-port-in-use.md) | Running lazify-chain and another Chain app (chain-sdk's playground) in development at once | Sent 2026-10-10 |
 | later | Data import, transcript reads (see Mneme's request 11), notifications, keep-awake, keychain, ports, LSP stdin, archive unpacking, embedded browser view, updater, menu, zoom | Later slices | Written when the slice is next |

@@ -74,6 +74,13 @@ across unchanged (`focus-visible` in 26 files, `aria-label` throughout).
       with the standard title bar, as in Electron. `showWhen` is
       startup-only and isn't read back
 - [x] F4, F5: requests 11 and 12 written and sent to chain-sdk (2026-10-10)
+- [x] F4, F5 shipped: `chain update` (lib.rs, window.rs) and
+      `package.json` `chain.window` `size` 1440×888, `minSize` 1180×728
+      (Electron's outer sizes less the 32 pt title bar; Chain's sizes are
+      the page's area), `title` "Lazify", `tabFocus` "all". After a
+      `chain dev` restart: the page laid out at 1440×889, and the window
+      server names the window "Lazify"
+- [ ] F4: dragging the window smaller stops at the minimum (by hand)
 - [ ] F5: confirmed by hand with the window focused. Not automatable:
       `chain inspect` can't press keys, and `osascript` needs Accessibility
       permission, which wasn't granted

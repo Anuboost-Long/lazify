@@ -54,7 +54,11 @@
     ],
     "window": {
       "backgroundColor": "#0b1220",
-      "showWhen": "firstPaint"
+      "showWhen": "firstPaint",
+      "size": { "width": 1440, "height": 888 },
+      "minSize": { "width": 1180, "height": 728 },
+      "title": "Lazify",
+      "tabFocus": "all"
     }
   }
 }
