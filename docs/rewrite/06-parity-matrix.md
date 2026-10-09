@@ -23,7 +23,7 @@ An untested OS is `Not tested`, never `Pass`.
 | Starter projects | | | | | | Not started |
 | Imported templates | | | | | | Not started |
 | Dependencies | Fixture recorded at `c9abefc` | Version matching only: [ticket 003](tickets/003-package-version-matching.md), 10 of 10 golden cases; identical to Electron on two real projects. Search, install and audit not ported | Partial | Not tested | Not tested | Not started |
-| Environment files | | | | | | Not started |
+| Environment files | `tests/main/projects/env-files.test.ts` | [Ticket 021](tickets/021-env-files.md): Electron's 24 tests pass on the copy; every edit verified on disk in the app. Panel with a real file waits on a person at the picker | Partial | Not tested | Not tested | Not started |
 | Developer environment | | | | | | Not started |
 | Formatting and code quality | | | | | | Not started |
 | Browser and PiP | | | | | | Not started |

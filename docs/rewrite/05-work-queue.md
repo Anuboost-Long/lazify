@@ -93,8 +93,8 @@ parity fixtures and failure/cancellation paths, not only success demos.
 
 | Ticket | Scope | Electron source | Chain | Status |
 | --- | --- | --- | --- | --- |
-| 021 | Environment files: list, read, edit, add, delete, create (`env`, 6 members). Also ends ticket 020's F2 | `src/main/projects/env/*` (339 lines) | `folders` (request 01) | Next |
-| 022 | Packages: list, add, remove, install, outdated, audit, search, fix versions (`packages`, 8) | `src/main/ipc/packages.ts`, `project-health.ts`; version matching done in 003 | `process-runner`, `http` | Planned |
+| 021 | Environment files: list, read, edit, add, delete, create (`env`, 6 members). Also ends ticket 020's F2 | `src/main/projects/env/*` (339 lines) | `folders` (request 01) | **Done.** Electron's tests pass; every edit checked on disk in the app. Left: the panel with a real file, after a person syncs a project |
+| 022 | Packages: list, add, remove, install, outdated, audit, search, fix versions (`packages`, 8) | `src/main/ipc/packages.ts`, `project-health.ts`; version matching done in 003 | `process-runner`, `http` | Next |
 | 023 | Git screens and project health, checked against Electron (the platform side is ticket 007) | `src/main/projects/project-health.ts` | — | Planned |
 | 024 | Formatting (`formatting`, 7) | `src/main/formatting/*` (619 lines) | `process-runner` | Planned |
 | 025 | Starter catalog and project creation, with progress, cancel and failure recovery (`workflow`, `templates` list) | `src/main/scaffolding/*` (2,894 lines, shared with 026) | `folders`, `process-runner`, `http` | Planned |

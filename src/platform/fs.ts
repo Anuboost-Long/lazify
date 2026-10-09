@@ -1,6 +1,8 @@
 import { desktop } from "@chain/sdk";
 import type { ChainError, FolderEntry } from "@chain/sdk";
 
+import { uniqueId } from "@/shared/lib/unique-id";
+
 const NODE_DESCRIPTIONS: Record<string, string> = {
 	ENOENT: "no such file or directory",
 	EACCES: "permission denied",
@@ -132,4 +134,28 @@ export async function stat(path: string): Promise<Stats> {
 	return { size: entry.size, mtimeMs: entry.modifiedMs, ...kindChecks(entry) };
 }
 
-export default { readFile, readdir, stat };
+type WriteOptions = "utf8" | { encoding: "utf8"; flag?: "w" | "wx" };
+
+/**
+ * `wx` creates the file and never truncates one that is already there. Chain
+ * has no create-only write, but `move` refuses an existing target, so the text
+ * goes to a staging file beside it and is moved into place.
+ */
+export async function writeFile(path: string, text: string, options: WriteOptions): Promise<void> {
+	const flag = typeof options === "string" ? "w" : (options.flag ?? "w");
+	if (flag === "w") return chain("open", path, () => desktop.folders.writeText(path, text));
+
+	const staging = `${parentOf(path)}/.${uniqueId("lazify-create")}`;
+	await chain("open", staging, () => desktop.folders.writeText(staging, text));
+	try {
+		await desktop.folders.move(staging, path);
+	} catch (error) {
+		await desktop.folders.delete(staging);
+		if (await desktop.folders.exists(path)) {
+			throw new FsError(`EEXIST: file already exists, open '${path}'`, "EEXIST", path);
+		}
+		return chain("open", path, () => Promise.reject(error));
+	}
+}
+
+export default { readFile, readdir, stat, writeFile };

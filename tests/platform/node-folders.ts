@@ -78,6 +78,12 @@ export const nodeFolders = {
 	createFolder: async (target: string) => {
 		await fs.mkdir(target, { recursive: true });
 	},
+	move: async (from: string, to: string) => {
+		const taken = await fs.lstat(to).then(() => true, () => false);
+		if (taken) throw chainError("INVALID_ARGUMENT", `${to} already exists`);
+		await chainCall(from, () => fs.rename(from, to));
+	},
+	delete: (target: string) => fs.rm(target, { recursive: true, force: true }),
 	appFolder: async (kind: "data" | "temp") => ({
 		id: `app:${kind}`,
 		path: appFolders[kind],

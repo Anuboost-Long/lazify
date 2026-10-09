@@ -10,6 +10,14 @@ import type { ImportedProjectIndexResult } from "@/shared/types/project-tree";
 
 import { withFolderSnapshot } from "./fs";
 
+export {
+	addEnvVariable,
+	createProjectEnvFile,
+	deleteEnvVariable,
+	listProjectEnvFiles,
+	readProjectEnvFile,
+	updateEnvVariable,
+} from "@/shared/lib/projects/env";
 export { readProjectAssetFile } from "@/shared/lib/projects/project-asset-reader";
 export { importProjectFromDirectory } from "@/shared/lib/projects/project-importer";
 export { readImportedProjectFile } from "@/shared/lib/projects/project-importer-optimized";
