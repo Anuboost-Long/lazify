@@ -80,8 +80,8 @@ and understand failures without the old app.
 | [015](tickets/015-renderer-foundation.md) | Whole renderer ported and compiling; `globalThis.lazify` bridge over `src/platform/` | **Done.** All 13 pages render in the app; unported groups say so |
 | [016](tickets/016-shell-settings-home.md) | App shell, settings, theme and language persistence, Home | **Done.** Tasks on Chain storage; theme, language, zoom and keep-awake verified in the app |
 | [017](tickets/017-open-a-project.md) | Open a project: picker, project list, file tree, preview, search | **Done.** Synced, opened, previewed, searched (300 ms) and removed in the app; the picker with a person pending |
-| 018 | Scripts pane and terminal, with reattach after reload | Next |
-| 019 | Agents page: launch, give a task (Prompt Builder and tasks storage), reattach | Queued |
+| [018](tickets/018-scripts-pane.md) | Scripts pane and terminal, with reattach after reload | **Done.** A real `vite preview` run survived a reload in the pane and stopped cleanly |
+| 019 | Agents page: launch, give a task (Prompt Builder and tasks storage), reattach | Next |
 
 ## Chain SDK requests
 
