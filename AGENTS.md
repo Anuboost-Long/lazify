@@ -67,6 +67,10 @@ This is the scaffold produced by `chain init`:
     available in Lazify Chain yet" (subscriptions return a no-op
     unsubscribe). Porting a group means replacing its stubs there.
   - `src/app/` — the renderer's app shell (`AppShell`, sidebar, router).
+  - `node/` — code that runs under the user's Node, not in the window:
+    the formatter (Prettier), bundled by `npm run build:formatter` and
+    run by `src/platform/formatting.ts` through `process-runner`
+    (ticket 024).
   - Electron main-process code the renderer needs lives in
     `src/shared/lib/<same path as src/main>`. Files there that only hold
     types extracted from a Node module are stand-ins until that module is

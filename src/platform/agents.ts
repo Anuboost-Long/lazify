@@ -9,6 +9,7 @@ import { Autopilot } from "@/shared/lib/agents/autopilot";
 import type { AutopilotHold } from "@/shared/lib/agents/autopilot-policy";
 
 import { autopilotSettings, isAutopilotActive } from "./autopilot";
+import { formatAfterTurn } from "./formatting";
 import { setAgentBusy } from "./keep-awake";
 import { listPtySessions, onPtyData, onScriptStatus, ptyBacklog, ptySessionTags, ptyWrite, startPty } from "./terminal";
 
@@ -77,6 +78,8 @@ const detector = new AttentionDetector((runId) => {
 	if (!run) return;
 
 	for (const listener of doneListeners) listener(run);
+
+	void formatAfterTurn(run.projectPath).catch(() => undefined);
 
 	void alertWhenAway(
 		`${DONE_NOTIFICATION}${runId}`,

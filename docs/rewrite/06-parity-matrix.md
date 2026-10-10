@@ -25,7 +25,7 @@ An untested OS is `Not tested`, never `Pass`.
 | Dependencies | Fixtures recorded at `c9abefc` and on 2026-10-10 | Version matching: [ticket 003](tickets/003-package-version-matching.md), 10 of 10 golden. List, add, remove, install, outdated, audit, search and fix: [ticket 022](tickets/022-packages.md), 19 of 19 golden from Electron; every member run against the real npm in the app | Partial | Not tested | Not tested | Not started |
 | Environment files | `tests/main/projects/env-files.test.ts` | [Ticket 021](tickets/021-env-files.md): Electron's 24 tests pass on the copy; every edit verified on disk in the app. Panel with a real file waits on a person at the picker | Partial | Not tested | Not tested | Not started |
 | Developer environment | | | | | | Not started |
-| Formatting and code quality | | | | | | Not started |
+| Formatting and code quality | Fixture recorded at `c9abefc`; `tests/main/formatting/organize-imports.test.ts`, three formatting renderer tests | Formatting: [ticket 024](tickets/024-formatting.md), 29 of 29 golden from Electron with the bundled formatter under `node`; Electron's 33 tests pass on the copy; settings, preview, a project and the automatic pass checked in the app. Needs Node (approved 2026-10-11). Code quality not started | Partial | Not tested | Not tested | Not started |
 | Browser and PiP | | | | | | Not started |
 | API Studio scanning | | | | | | Not started |
 | API Studio requests | | | | | | Not started |

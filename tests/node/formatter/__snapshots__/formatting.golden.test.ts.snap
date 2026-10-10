@@ -1,0 +1,429 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`formatting golden > runs the same scenario on real folders > .prettierrc: files 1`] = `
+{
+  "src/app.ts": "import path from 'node:path'
+
+import { translation } from '@/i18n/translation'
+import clsx from 'clsx'
+
+import { Panel } from './Panel'
+export const x = { a: 1, b: [1, 2, 3], c: 'str' }
+export function f(a, b) {
+  return clsx(path.join(a, b), Panel, translation)
+}
+",
+  "src/style.css": "a {
+        color: red;
+        margin: 0 auto;
+}
+",
+}
+`;
+
+exports[`formatting golden > runs the same scenario on real folders > .prettierrc: project formatter 1`] = `
+{
+  "configFile": ".prettierrc",
+}
+`;
+
+exports[`formatting golden > runs the same scenario on real folders > .prettierrc: write 1`] = `
+{
+  "configFile": ".prettierrc",
+  "failed": [],
+  "formatted": [
+    "src/app.ts",
+    "src/style.css",
+  ],
+  "unchanged": [],
+}
+`;
+
+exports[`formatting golden > runs the same scenario on real folders > JS config with a plugin: files 1`] = `
+{
+  "shout.lazy": "quiet words
+",
+  "src/app.ts": "import { Panel } from "./Panel";
+import path from "node:path";
+import { translation } from "@/i18n/translation";
+import clsx from "clsx";
+export const x = {a:1,b:[1,2,3],  c: 'str'}
+export function f(a,b){return clsx(path.join(a,b), Panel, translation)}
+",
+}
+`;
+
+exports[`formatting golden > runs the same scenario on real folders > JS config with a plugin: project formatter 1`] = `
+{
+  "configFile": "prettier.config.mjs",
+}
+`;
+
+exports[`formatting golden > runs the same scenario on real folders > JS config with a plugin: write 1`] = `
+{
+  "configFile": "prettier.config.mjs",
+  "failed": [],
+  "formatted": [],
+  "unchanged": [
+    "src/app.ts",
+    "shout.lazy",
+  ],
+}
+`;
+
+exports[`formatting golden > runs the same scenario on real folders > app defaults changed 1`] = `
+{
+  "configFile": null,
+  "failed": [],
+  "formatted": [
+    "src/app.ts",
+  ],
+  "unchanged": [],
+}
+`;
+
+exports[`formatting golden > runs the same scenario on real folders > app defaults changed: file 1`] = `
+{
+  "src/app.ts": "import path from 'node:path'
+
+import { translation } from '@/i18n/translation'
+import clsx from 'clsx'
+
+import { Panel } from './Panel'
+export const x = {
+	a: 1,
+	b: [1, 2, 3],
+	c: 'str',
+}
+export function f(a, b) {
+	return clsx(
+		path.join(a, b),
+		Panel,
+		translation,
+	)
+}
+",
+}
+`;
+
+exports[`formatting golden > runs the same scenario on real folders > broken config: files 1`] = `
+{
+  "src/app.ts": "import { Panel } from "./Panel";
+import path from "node:path";
+import { translation } from "@/i18n/translation";
+import clsx from "clsx";
+export const x = {a:1,b:[1,2,3],  c: 'str'}
+export function f(a,b){return clsx(path.join(a,b), Panel, translation)}
+",
+}
+`;
+
+exports[`formatting golden > runs the same scenario on real folders > broken config: project formatter 1`] = `
+{
+  "configFile": ".prettierrc",
+}
+`;
+
+exports[`formatting golden > runs the same scenario on real folders > broken config: write 1`] = `
+{
+  "configFile": ".prettierrc",
+  "failed": [],
+  "formatted": [],
+  "unchanged": [
+    "src/app.ts",
+  ],
+}
+`;
+
+exports[`formatting golden > runs the same scenario on real folders > config in a parent folder: files 1`] = `
+{
+  "src/app.ts": "import path from "node:path";
+
+import { translation } from "@/i18n/translation";
+import clsx from "clsx";
+
+import { Panel } from "./Panel";
+export const x = { a: 1, b: [1, 2, 3], c: "str" };
+export function f(a, b) {
+	return clsx(path.join(a, b), Panel, translation);
+}
+",
+}
+`;
+
+exports[`formatting golden > runs the same scenario on real folders > config in a parent folder: project formatter 1`] = `
+{
+  "configFile": "<root>/parent/.prettierrc.json",
+}
+`;
+
+exports[`formatting golden > runs the same scenario on real folders > config in a parent folder: write 1`] = `
+{
+  "configFile": "<root>/parent/.prettierrc.json",
+  "failed": [],
+  "formatted": [
+    "src/app.ts",
+  ],
+  "unchanged": [],
+}
+`;
+
+exports[`formatting golden > runs the same scenario on real folders > missing project: format 1`] = `
+{
+  "configFile": null,
+  "failed": [],
+  "formatted": [],
+  "unchanged": [
+    "a.ts",
+  ],
+}
+`;
+
+exports[`formatting golden > runs the same scenario on real folders > missing project: project formatter 1`] = `
+{
+  "configFile": null,
+}
+`;
+
+exports[`formatting golden > runs the same scenario on real folders > no config: files after write 1`] = `
+{
+  "README.md": "# Title
+
+- item
+- item
+",
+  "data.json": "{ "a": 1, "b": [1, 2] }
+",
+  "ignored/skip.ts": "const   skip=1
+",
+  "notes.xyz": "not a language
+",
+  "src/app.ts": "import path from "node:path";
+
+import clsx from "clsx";
+
+import { translation } from "@/i18n/translation";
+
+import { Panel } from "./Panel";
+export const x = { a: 1, b: [1, 2, 3], c: "str" };
+export function f(a, b) {
+  return clsx(path.join(a, b), Panel, translation);
+}
+",
+  "src/broken.ts": "export const = ;
+",
+  "src/clean.ts": "export const clean = "already";
+",
+  "src/style.css": "a {
+  color: red;
+  margin: 0 auto;
+}
+",
+}
+`;
+
+exports[`formatting golden > runs the same scenario on real folders > no config: preview 1`] = `
+{
+  "configFile": null,
+  "failed": [
+    {
+      "message": "Variable declaration expected. (1:14)",
+      "path": "src/broken.ts",
+    },
+    {
+      "message": "Outside the project",
+      "path": "../outside.ts",
+    },
+  ],
+  "formatted": [
+    "src/app.ts",
+    "src/style.css",
+    "data.json",
+    "README.md",
+  ],
+  "unchanged": [
+    "src/clean.ts",
+    "notes.xyz",
+    "ignored/skip.ts",
+    "gone.ts",
+    "big.js",
+    "src",
+  ],
+}
+`;
+
+exports[`formatting golden > runs the same scenario on real folders > no config: preview leaves files alone 1`] = `
+{
+  "README.md": "# Title
+*  item
+*  item
+",
+  "data.json": "{"a":1,"b":[1,2]}",
+  "ignored/skip.ts": "const   skip=1
+",
+  "notes.xyz": "not a language
+",
+  "src/app.ts": "import { Panel } from "./Panel";
+import path from "node:path";
+import { translation } from "@/i18n/translation";
+import clsx from "clsx";
+export const x = {a:1,b:[1,2,3],  c: 'str'}
+export function f(a,b){return clsx(path.join(a,b), Panel, translation)}
+",
+  "src/broken.ts": "export const = ;
+",
+  "src/clean.ts": "export const clean = "already";
+",
+  "src/style.css": "a{color:red;margin:0 auto}
+",
+}
+`;
+
+exports[`formatting golden > runs the same scenario on real folders > no config: project formatter 1`] = `
+{
+  "configFile": null,
+}
+`;
+
+exports[`formatting golden > runs the same scenario on real folders > no config: second write changes nothing 1`] = `
+{
+  "configFile": null,
+  "failed": [
+    {
+      "message": "Variable declaration expected. (1:14)",
+      "path": "src/broken.ts",
+    },
+  ],
+  "formatted": [],
+  "unchanged": [
+    "src/app.ts",
+    "src/clean.ts",
+    "src/style.css",
+    "data.json",
+    "README.md",
+    "notes.xyz",
+    "ignored/skip.ts",
+  ],
+}
+`;
+
+exports[`formatting golden > runs the same scenario on real folders > no config: write 1`] = `
+{
+  "configFile": null,
+  "failed": [
+    {
+      "message": "Variable declaration expected. (1:14)",
+      "path": "src/broken.ts",
+    },
+    {
+      "message": "Outside the project",
+      "path": "../outside.ts",
+    },
+  ],
+  "formatted": [
+    "src/app.ts",
+    "src/style.css",
+    "data.json",
+    "README.md",
+  ],
+  "unchanged": [
+    "src/clean.ts",
+    "notes.xyz",
+    "ignored/skip.ts",
+    "gone.ts",
+    "big.js",
+    "src",
+  ],
+}
+`;
+
+exports[`formatting golden > runs the same scenario on real folders > organize imports off 1`] = `
+{
+  "configFile": null,
+  "failed": [],
+  "formatted": [
+    "src/app.ts",
+  ],
+  "unchanged": [],
+}
+`;
+
+exports[`formatting golden > runs the same scenario on real folders > organize imports off: file 1`] = `
+{
+  "src/app.ts": "import { Panel } from "./Panel";
+import path from "node:path";
+import { translation } from "@/i18n/translation";
+import clsx from "clsx";
+export const x = { a: 1, b: [1, 2, 3], c: "str" };
+export function f(a, b) {
+  return clsx(path.join(a, b), Panel, translation);
+}
+",
+}
+`;
+
+exports[`formatting golden > runs the same scenario on real folders > package.json key: files 1`] = `
+{
+  "src/app.ts": "import path from "node:path"
+
+import { translation } from "@/i18n/translation"
+import clsx from "clsx"
+
+import { Panel } from "./Panel"
+export const x = { a: 1, b: [1, 2, 3], c: "str" }
+export function f(a, b) {
+    return clsx(path.join(a, b), Panel, translation)
+}
+",
+}
+`;
+
+exports[`formatting golden > runs the same scenario on real folders > package.json key: project formatter 1`] = `
+{
+  "configFile": "package.json",
+}
+`;
+
+exports[`formatting golden > runs the same scenario on real folders > package.json key: write 1`] = `
+{
+  "configFile": "package.json",
+  "failed": [],
+  "formatted": [
+    "src/app.ts",
+  ],
+  "unchanged": [],
+}
+`;
+
+exports[`formatting golden > runs the same scenario on real folders > sample: changed 1`] = `
+"const config = {
+    name: 'lazify',
+    tags: ['editor', 'agents', 'api'],
+    retries: 3,
+}
+export function describe(
+    project,
+    options,
+) {
+    if (!project) {
+        return null
+    }
+    return {
+        ...config,
+        ...options,
+        label: \`\${project.name} (\${project.stack})\`,
+    }
+}
+"
+`;
+
+exports[`formatting golden > runs the same scenario on real folders > sample: defaults 1`] = `
+"const config = { name: "lazify", tags: ["editor", "agents", "api"], retries: 3 };
+export function describe(project, options) {
+  if (!project) {
+    return null;
+  }
+  return { ...config, ...options, label: \`\${project.name} (\${project.stack})\` };
+}
+"
+`;

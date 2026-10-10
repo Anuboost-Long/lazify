@@ -1,6 +1,7 @@
 import * as agents from "./agents";
 import * as autopilot from "./autopilot";
 import * as commands from "./commands";
+import * as formatting from "./formatting";
 import * as git from "./git";
 import * as keepAwakeGroup from "./keep-awake";
 import * as packages from "./packages";
@@ -22,7 +23,6 @@ const unported = {
 	dmgBuilder: "The DMG builder",
 	droppedFiles: "Dropping files",
 	extensions: "Managing extensions",
-	formatting: "Formatting",
 	goToDefinition: "Go to definition",
 	lazyShield: "Lazy Shield",
 	linting: "Linting and code scans",
@@ -180,14 +180,14 @@ export const lazify: LazifyApi = {
 	toggleExtension: rejects(unported.extensions),
 	writeExtensionManifest: rejects(unported.extensions),
 	onExtensionInstall: noSubscription,
-	formatterSettings: rejects(unported.formatting),
-	setFormatterMode: rejects(unported.formatting),
-	setOrganizeImports: rejects(unported.formatting),
-	setFormatterDefaults: rejects(unported.formatting),
-	formatSample: rejects(unported.formatting),
-	projectFormatter: rejects(unported.formatting),
-	formatChangedFiles: rejects(unported.formatting),
-	onCodeFormatted: noSubscription,
+	formatterSettings: formatting.formatterSettings,
+	setFormatterMode: formatting.setFormatterMode,
+	setOrganizeImports: formatting.setOrganizeImports,
+	setFormatterDefaults: formatting.setFormatterDefaults,
+	formatSample: formatting.formatSample,
+	projectFormatter: formatting.projectFormatter,
+	formatChangedFiles: formatting.formatChangedFiles,
+	onCodeFormatted: formatting.onCodeFormatted,
 	lintFile: rejects(unported.linting),
 	createFixTask: rejects(unported.linting),
 	startSonarScan: rejects(unported.linting),
