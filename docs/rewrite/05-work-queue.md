@@ -95,8 +95,8 @@ parity fixtures and failure/cancellation paths, not only success demos.
 | --- | --- | --- | --- | --- |
 | 021 | Environment files: list, read, edit, add, delete, create (`env`, 6 members). Also ends ticket 020's F2 | `src/main/projects/env/*` (339 lines) | `folders` (request 01) | **Done.** Electron's tests pass; every edit checked on disk in the app. Left: the panel with a real file, after a person syncs a project |
 | 022 | Packages: list, add, remove, install, outdated, audit, search, fix versions (`packages`, 8) | `src/main/ipc/packages.ts`, `project-health.ts`; version matching done in 003 | `process-runner`, `http` | **Done.** 19 of 19 golden from Electron; every member run against the real npm in the app |
-| 023 | Git screens and project health, checked against Electron (the platform side is ticket 007) | `src/main/projects/project-health.ts` | — | Next |
-| 024 | Formatting (`formatting`, 7) | `src/main/formatting/*` (619 lines) | `process-runner` | Planned |
+| [023](tickets/023-git-screens-and-history.md) | Git screens and project health, checked against Electron (the platform side is ticket 007) | `src/main/projects/project-health.ts` | — | **Done.** Electron's two unported tests pass; every Git action, the discard confirmation, Home's Git summary and task history checked in the app. Left: tree change marks and the agent diff modal in the app |
+| 024 | Formatting (`formatting`, 7) | `src/main/formatting/*` (619 lines) | `process-runner` | Next |
 | 025 | Starter catalog and project creation, with progress, cancel and failure recovery (`workflow`, `templates` list) | `src/main/scaffolding/*` (2,894 lines, shared with 026) | `folders`, `process-runner`, `http` | Planned |
 | 026 | Imported templates: analysis, editor, provisioning, tree safeguards | `src/brain/template-engine/*`, `imported-template-store.ts` | `folders` | Planned |
 | 027 | Developer environment: tool scan, installs, NVM, listening ports and stop, open in editor (`environment`, 13; `detectEditors`, `openInEditor`) | `src/main/environment/*` (2,834 lines) | `process-runner`, `ports`; opening another app may need a request | Planned |
