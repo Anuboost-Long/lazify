@@ -1,0 +1,12 @@
+{
+  "id": "vite-react",
+  "label": "Vite React",
+  "description": "Scaffold a fast React application with Vite for a lightweight web project setup.",
+  "projectType": "vite",
+  "preferredPackageManager": "npm",
+  "createCommands": {
+    "npm": ["create", "vite@latest", "--", "--template", "react-ts"],
+    "npx": ["create-vite@latest", "--template", "react-ts"]
+  },
+  "packageManifest": "vite-react.json"
+}

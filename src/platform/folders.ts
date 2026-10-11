@@ -59,6 +59,10 @@ export async function listFolderNames(path: string): Promise<string[]> {
 	}
 }
 
+export function movePath(from: string, to: string): Promise<void> {
+	return desktop.folders.move(from, to);
+}
+
 export function deletePath(path: string): Promise<void> {
 	return desktop.folders.delete(path);
 }
@@ -126,8 +130,8 @@ export interface FolderTreeEntry {
 	size: number;
 }
 
-export async function listFolderTree(path: string): Promise<FolderTreeEntry[]> {
-	return (await desktop.folders.list(path, { recursive: true })).map(({ path: entryPath, kind, size }) => ({
+export async function listFolderTree(path: string, skipFolders?: string[]): Promise<FolderTreeEntry[]> {
+	return (await desktop.folders.list(path, { recursive: true, skipFolders })).map(({ path: entryPath, kind, size }) => ({
 		path: entryPath,
 		kind,
 		size,

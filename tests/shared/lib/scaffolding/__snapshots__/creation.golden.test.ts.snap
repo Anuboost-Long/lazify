@@ -1,0 +1,1128 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`project creation golden > cli, bare react native through npx 1`] = `
+{
+  "calls": [
+    {
+      "args": [
+        "@react-native-community/cli@latest",
+        "init",
+        "my-app",
+      ],
+      "command": "npx",
+      "cwd": "<staging>",
+    },
+    {
+      "args": [
+        "install",
+        "react-native-svg@15.12.1",
+      ],
+      "command": "npm",
+      "cwd": "<staging>/my-app",
+    },
+    {
+      "args": [
+        "install",
+        "--save-dev",
+        "react-native-svg-transformer@^1.1.0",
+      ],
+      "command": "npm",
+      "cwd": "<staging>/my-app",
+    },
+  ],
+  "outcome": {
+    "message": "Project created successfully at <base>/my-app.",
+    "projectPath": "<base>/my-app",
+    "success": true,
+  },
+  "progress": [
+    {
+      "message": "Environment ready. Using npx for Bare React Native.",
+      "status": "running",
+      "step": "preflight",
+      "workflowId": "create-<time>",
+    },
+    {
+      "message": "Preparing project files.",
+      "status": "running",
+      "step": "create-project",
+      "workflowId": "create-<time>",
+    },
+    {
+      "message": "Resolving latest compatible package versions from npm.",
+      "status": "running",
+      "step": "resolve-package-versions",
+      "workflowId": "finalize-<time>",
+    },
+    {
+      "message": "Installing 1 missing dependency package(s).",
+      "status": "running",
+      "step": "install-manifest-dependencies",
+      "workflowId": "finalize-<time>",
+    },
+    {
+      "message": "Installing 1 missing dev dependency package(s).",
+      "status": "running",
+      "step": "install-manifest-dev-dependencies",
+      "workflowId": "finalize-<time>",
+    },
+    {
+      "message": "Project created successfully at <base>/my-app.",
+      "status": "success",
+      "step": "complete",
+      "workflowId": "finalize-<time>",
+    },
+  ],
+  "project": {
+    "package.json": "{
+  "name": "my-app",
+  "dependencies": {
+    "react": "^18.3.1",
+    "axios": "^1.6.0"
+  },
+  "devDependencies": {}
+}
+",
+    "src/main.tsx": "export {};
+",
+  },
+  "stagingLeft": false,
+}
+`;
+
+exports[`project creation golden > cli, vite, create fails 1`] = `
+{
+  "calls": [
+    {
+      "args": [
+        "create",
+        "vite@latest",
+        "--",
+        "--template",
+        "react-ts",
+        "my-app",
+      ],
+      "command": "npm",
+      "cwd": "<staging>",
+    },
+  ],
+  "outcome": {
+    "message": "Project creation failed.",
+    "success": false,
+  },
+  "progress": [
+    {
+      "message": "Environment ready. Using npm for Vite React.",
+      "status": "running",
+      "step": "preflight",
+      "workflowId": "create-<time>",
+    },
+    {
+      "message": "Preparing project files.",
+      "status": "running",
+      "step": "create-project",
+      "workflowId": "create-<time>",
+    },
+    {
+      "message": "Project creation failed.",
+      "status": "error",
+      "step": "create-project",
+      "workflowId": "create-<time>",
+    },
+  ],
+  "project": null,
+  "stagingLeft": false,
+}
+`;
+
+exports[`project creation golden > cli, vite, install auto-fix fails 1`] = `
+{
+  "calls": [
+    {
+      "args": [
+        "create",
+        "vite@latest",
+        "--",
+        "--template",
+        "react-ts",
+        "my-app",
+      ],
+      "command": "npm",
+      "cwd": "<staging>",
+    },
+    {
+      "args": [
+        "install",
+        "clsx@^2.1.1",
+        "i18next@^25.6.0",
+        "jotai@^2.12.5",
+        "react-i18next@^15.7.3",
+      ],
+      "command": "npm",
+      "cwd": "<staging>/my-app",
+    },
+    {
+      "args": [
+        "install",
+        "--legacy-peer-deps",
+        "clsx@^2.1.1",
+        "i18next@^25.6.0",
+        "jotai@^2.12.5",
+        "react-i18next@^15.7.3",
+      ],
+      "command": "npm",
+      "cwd": "<staging>/my-app",
+    },
+  ],
+  "outcome": {
+    "message": "Project preparation succeeded, but runtime dependency installation failed.",
+    "projectPath": "<staging>/my-app",
+    "success": false,
+  },
+  "progress": [
+    {
+      "message": "Environment ready. Using npm for Vite React.",
+      "status": "running",
+      "step": "preflight",
+      "workflowId": "create-<time>",
+    },
+    {
+      "message": "Preparing project files.",
+      "status": "running",
+      "step": "create-project",
+      "workflowId": "create-<time>",
+    },
+    {
+      "message": "Resolving latest compatible package versions from npm.",
+      "status": "running",
+      "step": "resolve-package-versions",
+      "workflowId": "finalize-<time>",
+    },
+    {
+      "message": "Detected 1 package version mismatch(es). Leaving existing versions unchanged for now.",
+      "status": "running",
+      "step": "package-version-check",
+      "workflowId": "finalize-<time>",
+    },
+    {
+      "message": "Installing 4 missing dependency package(s).",
+      "status": "running",
+      "step": "install-manifest-dependencies",
+      "workflowId": "finalize-<time>",
+    },
+    {
+      "message": "Retrying with --legacy-peer-deps to bypass peer dependency conflicts.",
+      "status": "running",
+      "step": "dependency-auto-fix",
+      "workflowId": "finalize-<time>",
+    },
+    {
+      "message": "Project preparation succeeded, but runtime dependency installation failed.",
+      "status": "error",
+      "step": "install-manifest-dependencies",
+      "workflowId": "finalize-<time>",
+    },
+  ],
+  "project": null,
+  "stagingLeft": true,
+}
+`;
+
+exports[`project creation golden > cli, vite, latest compatible versions 1`] = `
+{
+  "calls": [
+    {
+      "args": [
+        "create",
+        "vite@latest",
+        "--",
+        "--template",
+        "react-ts",
+        "my-app",
+      ],
+      "command": "npm",
+      "cwd": "<staging>",
+    },
+    {
+      "args": [
+        "install",
+        "clsx@9.0.0",
+        "i18next@9.0.0",
+        "jotai@9.0.0",
+        "react-i18next@^15.7.3",
+      ],
+      "command": "npm",
+      "cwd": "<staging>/my-app",
+    },
+  ],
+  "outcome": {
+    "message": "Project created successfully at <base>/my-app.",
+    "projectPath": "<base>/my-app",
+    "success": true,
+  },
+  "progress": [
+    {
+      "message": "Environment ready. Using npm for Vite React.",
+      "status": "running",
+      "step": "preflight",
+      "workflowId": "create-<time>",
+    },
+    {
+      "message": "Preparing project files.",
+      "status": "running",
+      "step": "create-project",
+      "workflowId": "create-<time>",
+    },
+    {
+      "message": "Resolving latest compatible package versions from npm.",
+      "status": "running",
+      "step": "resolve-package-versions",
+      "workflowId": "finalize-<time>",
+    },
+    {
+      "message": "Detected 1 package version mismatch(es). Leaving existing versions unchanged for now.",
+      "status": "running",
+      "step": "package-version-check",
+      "workflowId": "finalize-<time>",
+    },
+    {
+      "message": "Installing 4 missing dependency package(s).",
+      "status": "running",
+      "step": "install-manifest-dependencies",
+      "workflowId": "finalize-<time>",
+    },
+    {
+      "message": "Project created successfully at <base>/my-app.",
+      "status": "success",
+      "step": "complete",
+      "workflowId": "finalize-<time>",
+    },
+  ],
+  "project": {
+    "package.json": "{
+  "name": "my-app",
+  "dependencies": {
+    "react": "^18.3.1",
+    "axios": "^1.6.0"
+  },
+  "devDependencies": {}
+}
+",
+    "src/main.tsx": "export {};
+",
+  },
+  "stagingLeft": false,
+}
+`;
+
+exports[`project creation golden > cli, vite, nothing to run it with 1`] = `
+{
+  "calls": [],
+  "outcome": {
+    "threw": "No available command runner was found for template "Vite React".",
+  },
+  "progress": [],
+  "project": null,
+  "stagingLeft": null,
+}
+`;
+
+exports[`project creation golden > cli, vite, npm missing uses npx and yarn 1`] = `
+{
+  "calls": [
+    {
+      "args": [
+        "create-vite@latest",
+        "--template",
+        "react-ts",
+        "my-app",
+      ],
+      "command": "npx",
+      "cwd": "<staging>",
+    },
+    {
+      "args": [
+        "add",
+        "clsx@^2.1.1",
+        "i18next@^25.6.0",
+        "jotai@^2.12.5",
+        "react-i18next@^15.7.3",
+      ],
+      "command": "yarn",
+      "cwd": "<staging>/my-app",
+    },
+  ],
+  "outcome": {
+    "message": "Project created successfully at <base>/my-app.",
+    "projectPath": "<base>/my-app",
+    "success": true,
+  },
+  "progress": [
+    {
+      "message": "Environment ready. Using npx for Vite React.",
+      "status": "running",
+      "step": "preflight",
+      "workflowId": "create-<time>",
+    },
+    {
+      "message": "Preparing project files.",
+      "status": "running",
+      "step": "create-project",
+      "workflowId": "create-<time>",
+    },
+    {
+      "message": "Resolving latest compatible package versions from npm.",
+      "status": "running",
+      "step": "resolve-package-versions",
+      "workflowId": "finalize-<time>",
+    },
+    {
+      "message": "Detected 1 package version mismatch(es). Leaving existing versions unchanged for now.",
+      "status": "running",
+      "step": "package-version-check",
+      "workflowId": "finalize-<time>",
+    },
+    {
+      "message": "Installing 4 missing dependency package(s).",
+      "status": "running",
+      "step": "install-manifest-dependencies",
+      "workflowId": "finalize-<time>",
+    },
+    {
+      "message": "Project created successfully at <base>/my-app.",
+      "status": "success",
+      "step": "complete",
+      "workflowId": "finalize-<time>",
+    },
+  ],
+  "project": {
+    "package.json": "{
+  "name": "my-app",
+  "dependencies": {
+    "react": "^18.3.1",
+    "axios": "^1.6.0"
+  },
+  "devDependencies": {}
+}
+",
+    "src/main.tsx": "export {};
+",
+  },
+  "stagingLeft": false,
+}
+`;
+
+exports[`project creation golden > cli, vite, registry offline, into a new folder 1`] = `
+{
+  "calls": [
+    {
+      "args": [
+        "create",
+        "vite@latest",
+        "--",
+        "--template",
+        "react-ts",
+        "my-app",
+      ],
+      "command": "npm",
+      "cwd": "<staging>",
+    },
+    {
+      "args": [
+        "install",
+        "clsx@^2.1.1",
+        "i18next@^25.6.0",
+        "jotai@^2.12.5",
+        "react-i18next@^15.7.3",
+      ],
+      "command": "npm",
+      "cwd": "<staging>/my-app",
+    },
+  ],
+  "outcome": {
+    "message": "Project created successfully at <base>/new/workspace/my-app.",
+    "projectPath": "<base>/new/workspace/my-app",
+    "success": true,
+  },
+  "progress": [
+    {
+      "message": "Environment ready. Using npm for Vite React.",
+      "status": "running",
+      "step": "preflight",
+      "workflowId": "create-<time>",
+    },
+    {
+      "message": "Preparing project files.",
+      "status": "running",
+      "step": "create-project",
+      "workflowId": "create-<time>",
+    },
+    {
+      "message": "Resolving latest compatible package versions from npm.",
+      "status": "running",
+      "step": "resolve-package-versions",
+      "workflowId": "finalize-<time>",
+    },
+    {
+      "message": "Detected 1 package version mismatch(es). Leaving existing versions unchanged for now.",
+      "status": "running",
+      "step": "package-version-check",
+      "workflowId": "finalize-<time>",
+    },
+    {
+      "message": "Installing 4 missing dependency package(s).",
+      "status": "running",
+      "step": "install-manifest-dependencies",
+      "workflowId": "finalize-<time>",
+    },
+    {
+      "message": "Project created successfully at <base>/new/workspace/my-app.",
+      "status": "success",
+      "step": "complete",
+      "workflowId": "finalize-<time>",
+    },
+  ],
+  "project": {
+    "package.json": "{
+  "name": "my-app",
+  "dependencies": {
+    "react": "^18.3.1",
+    "axios": "^1.6.0"
+  },
+  "devDependencies": {}
+}
+",
+    "src/main.tsx": "export {};
+",
+  },
+  "stagingLeft": false,
+}
+`;
+
+exports[`project creation golden > neither npm nor yarn 1`] = `
+{
+  "calls": [],
+  "outcome": {
+    "threw": "Install npm or yarn before running Lazify workflows.",
+  },
+  "progress": [],
+  "project": null,
+  "stagingLeft": null,
+}
+`;
+
+exports[`project creation golden > no stack chosen 1`] = `
+{
+  "calls": [],
+  "outcome": {
+    "threw": "Choose a stack before creating the project.",
+  },
+  "progress": [],
+  "project": null,
+  "stagingLeft": null,
+}
+`;
+
+exports[`project creation golden > node too old 1`] = `
+{
+  "calls": [],
+  "outcome": {
+    "threw": "Node.js 18+ is required. Detected v16.20.0.",
+  },
+  "progress": [],
+  "project": null,
+  "stagingLeft": null,
+}
+`;
+
+exports[`project creation golden > starter, clone fails otherwise 1`] = `
+{
+  "calls": [],
+  "outcome": {
+    "message": "Could not clone anuboost-lazify/next-scaffold@v1.0.0: fatal: early EOF",
+    "reason": "clone-failed",
+    "success": false,
+  },
+  "progress": [
+    {
+      "message": "Environment ready. Using the Next.js App starter.",
+      "status": "running",
+      "step": "preflight",
+      "workflowId": "create-<time>",
+    },
+    {
+      "message": "Cloning anuboost-lazify/next-scaffold at v1.0.0 into <staging>/my-app.",
+      "status": "running",
+      "step": "create-project",
+      "workflowId": "create-<time>",
+    },
+    {
+      "message": "Could not clone anuboost-lazify/next-scaffold@v1.0.0: fatal: early EOF",
+      "status": "error",
+      "step": "create-project",
+      "workflowId": "create-<time>",
+    },
+  ],
+  "project": null,
+  "stagingLeft": false,
+}
+`;
+
+exports[`project creation golden > starter, destination exists 1`] = `
+{
+  "calls": [],
+  "outcome": {
+    "threw": "A project already exists at <base>/my-app. Open it from Workspace instead of creating a new one.",
+  },
+  "progress": [],
+  "project": {
+    "keep.txt": "mine
+",
+  },
+  "stagingLeft": null,
+}
+`;
+
+exports[`project creation golden > starter, expo, succeeds 1`] = `
+{
+  "calls": [
+    {
+      "args": [
+        "install",
+      ],
+      "command": "npm",
+      "cwd": "<staging>/my-app",
+    },
+    {
+      "args": [
+        "init",
+        "--quiet",
+      ],
+      "command": "git",
+      "cwd": "<staging>/my-app",
+    },
+    {
+      "args": [
+        "add",
+        "-A",
+      ],
+      "command": "git",
+      "cwd": "<staging>/my-app",
+    },
+    {
+      "args": [
+        "commit",
+        "--quiet",
+        "-m",
+        "Initial commit",
+      ],
+      "command": "git",
+      "cwd": "<staging>/my-app",
+    },
+  ],
+  "outcome": {
+    "message": "Project created successfully at <base>/my-app.",
+    "projectPath": "<base>/my-app",
+    "success": true,
+  },
+  "progress": [
+    {
+      "message": "Environment ready. Using the Expo Starter starter.",
+      "status": "running",
+      "step": "preflight",
+      "workflowId": "create-<time>",
+    },
+    {
+      "message": "Cloning anuboost-lazify/expo-scaffold at v1.0.0 into <staging>/my-app.",
+      "status": "running",
+      "step": "create-project",
+      "workflowId": "create-<time>",
+    },
+    {
+      "message": "Prepared anuboost-lazify/expo-scaffold.",
+      "status": "running",
+      "step": "starter-ready",
+      "workflowId": "create-<time>",
+    },
+    {
+      "message": "Installing the starter's dependencies.",
+      "status": "running",
+      "step": "install-dependencies",
+      "workflowId": "finalize-<time>",
+    },
+    {
+      "message": "Project created successfully at <base>/my-app.",
+      "status": "success",
+      "step": "complete",
+      "workflowId": "finalize-<time>",
+    },
+  ],
+  "project": {
+    "README.md": "# my-app
+
+Run my-app locally.
+",
+    "app.json": "{"expo":{"name":"my-app","slug":"my-app"}}
+",
+    "app/layout.tsx": "<title>my-app app</title>
+",
+    "package.json": "{
+  "name": "my-app",
+  "version": "0.1.0",
+  "dependencies": {
+    "next": "15.0.0"
+  }
+}
+",
+  },
+  "stagingLeft": false,
+}
+`;
+
+exports[`project creation golden > starter, git commit fails 1`] = `
+{
+  "calls": [
+    {
+      "args": [
+        "install",
+      ],
+      "command": "npm",
+      "cwd": "<staging>/my-app",
+    },
+    {
+      "args": [
+        "init",
+        "--quiet",
+      ],
+      "command": "git",
+      "cwd": "<staging>/my-app",
+    },
+    {
+      "args": [
+        "add",
+        "-A",
+      ],
+      "command": "git",
+      "cwd": "<staging>/my-app",
+    },
+    {
+      "args": [
+        "commit",
+        "--quiet",
+        "-m",
+        "Initial commit",
+      ],
+      "command": "git",
+      "cwd": "<staging>/my-app",
+    },
+  ],
+  "outcome": {
+    "message": "Project created successfully at <base>/my-app.",
+    "projectPath": "<base>/my-app",
+    "success": true,
+  },
+  "progress": [
+    {
+      "message": "Environment ready. Using the Next.js App starter.",
+      "status": "running",
+      "step": "preflight",
+      "workflowId": "create-<time>",
+    },
+    {
+      "message": "Cloning anuboost-lazify/next-scaffold at v1.0.0 into <staging>/my-app.",
+      "status": "running",
+      "step": "create-project",
+      "workflowId": "create-<time>",
+    },
+    {
+      "message": "Prepared anuboost-lazify/next-scaffold.",
+      "status": "running",
+      "step": "starter-ready",
+      "workflowId": "create-<time>",
+    },
+    {
+      "message": "Installing the starter's dependencies.",
+      "status": "running",
+      "step": "install-dependencies",
+      "workflowId": "finalize-<time>",
+    },
+    {
+      "message": "Project created, but the git repository could not be initialized.",
+      "status": "running",
+      "step": "git-init",
+      "workflowId": "finalize-<time>",
+    },
+    {
+      "message": "Project created successfully at <base>/my-app.",
+      "status": "success",
+      "step": "complete",
+      "workflowId": "finalize-<time>",
+    },
+  ],
+  "project": {
+    "README.md": "# my-app
+
+Run my-app locally.
+",
+    "app.json": "{"expo":{"name":"my-app","slug":"my-app"}}
+",
+    "app/layout.tsx": "<title>my-app app</title>
+",
+    "package.json": "{
+  "name": "my-app",
+  "version": "0.1.0",
+  "dependencies": {
+    "next": "15.0.0"
+  }
+}
+",
+  },
+  "stagingLeft": false,
+}
+`;
+
+exports[`project creation golden > starter, git init fails 1`] = `
+{
+  "calls": [
+    {
+      "args": [
+        "install",
+      ],
+      "command": "npm",
+      "cwd": "<staging>/my-app",
+    },
+    {
+      "args": [
+        "init",
+        "--quiet",
+      ],
+      "command": "git",
+      "cwd": "<staging>/my-app",
+    },
+  ],
+  "outcome": {
+    "message": "Project created successfully at <base>/my-app.",
+    "projectPath": "<base>/my-app",
+    "success": true,
+  },
+  "progress": [
+    {
+      "message": "Environment ready. Using the Next.js App starter.",
+      "status": "running",
+      "step": "preflight",
+      "workflowId": "create-<time>",
+    },
+    {
+      "message": "Cloning anuboost-lazify/next-scaffold at v1.0.0 into <staging>/my-app.",
+      "status": "running",
+      "step": "create-project",
+      "workflowId": "create-<time>",
+    },
+    {
+      "message": "Prepared anuboost-lazify/next-scaffold.",
+      "status": "running",
+      "step": "starter-ready",
+      "workflowId": "create-<time>",
+    },
+    {
+      "message": "Installing the starter's dependencies.",
+      "status": "running",
+      "step": "install-dependencies",
+      "workflowId": "finalize-<time>",
+    },
+    {
+      "message": "Project created, but the git repository could not be initialized.",
+      "status": "running",
+      "step": "git-init",
+      "workflowId": "finalize-<time>",
+    },
+    {
+      "message": "Project created successfully at <base>/my-app.",
+      "status": "success",
+      "step": "complete",
+      "workflowId": "finalize-<time>",
+    },
+  ],
+  "project": {
+    "README.md": "# my-app
+
+Run my-app locally.
+",
+    "app.json": "{"expo":{"name":"my-app","slug":"my-app"}}
+",
+    "app/layout.tsx": "<title>my-app app</title>
+",
+    "package.json": "{
+  "name": "my-app",
+  "version": "0.1.0",
+  "dependencies": {
+    "next": "15.0.0"
+  }
+}
+",
+  },
+  "stagingLeft": false,
+}
+`;
+
+exports[`project creation golden > starter, git missing 1`] = `
+{
+  "calls": [],
+  "outcome": {
+    "message": "git is not installed or is not on PATH.",
+    "reason": "git-missing",
+    "success": false,
+  },
+  "progress": [
+    {
+      "message": "Environment ready. Using the Next.js App starter.",
+      "status": "running",
+      "step": "preflight",
+      "workflowId": "create-<time>",
+    },
+    {
+      "message": "Cloning anuboost-lazify/next-scaffold at v1.0.0 into <staging>/my-app.",
+      "status": "running",
+      "step": "create-project",
+      "workflowId": "create-<time>",
+    },
+    {
+      "message": "git is not installed or is not on PATH.",
+      "status": "error",
+      "step": "create-project",
+      "workflowId": "create-<time>",
+    },
+  ],
+  "project": null,
+  "stagingLeft": false,
+}
+`;
+
+exports[`project creation golden > starter, install fails 1`] = `
+{
+  "calls": [
+    {
+      "args": [
+        "install",
+      ],
+      "command": "npm",
+      "cwd": "<staging>/my-app",
+    },
+  ],
+  "outcome": {
+    "message": "Project preparation succeeded, but dependency installation failed.",
+    "projectPath": "<staging>/my-app",
+    "success": false,
+  },
+  "progress": [
+    {
+      "message": "Environment ready. Using the Next.js App starter.",
+      "status": "running",
+      "step": "preflight",
+      "workflowId": "create-<time>",
+    },
+    {
+      "message": "Cloning anuboost-lazify/next-scaffold at v1.0.0 into <staging>/my-app.",
+      "status": "running",
+      "step": "create-project",
+      "workflowId": "create-<time>",
+    },
+    {
+      "message": "Prepared anuboost-lazify/next-scaffold.",
+      "status": "running",
+      "step": "starter-ready",
+      "workflowId": "create-<time>",
+    },
+    {
+      "message": "Installing the starter's dependencies.",
+      "status": "running",
+      "step": "install-dependencies",
+      "workflowId": "finalize-<time>",
+    },
+    {
+      "message": "Project preparation succeeded, but dependency installation failed.",
+      "status": "error",
+      "step": "install-dependencies",
+      "workflowId": "finalize-<time>",
+    },
+  ],
+  "project": null,
+  "stagingLeft": true,
+}
+`;
+
+exports[`project creation golden > starter, offline 1`] = `
+{
+  "calls": [],
+  "outcome": {
+    "message": "Could not clone anuboost-lazify/next-scaffold@v1.0.0: Cloning into 'x'...
+fatal: unable to access 'https://github.com/x/': Could not resolve host: github.com",
+    "reason": "offline",
+    "success": false,
+  },
+  "progress": [
+    {
+      "message": "Environment ready. Using the Next.js App starter.",
+      "status": "running",
+      "step": "preflight",
+      "workflowId": "create-<time>",
+    },
+    {
+      "message": "Cloning anuboost-lazify/next-scaffold at v1.0.0 into <staging>/my-app.",
+      "status": "running",
+      "step": "create-project",
+      "workflowId": "create-<time>",
+    },
+    {
+      "message": "Could not clone anuboost-lazify/next-scaffold@v1.0.0: Cloning into 'x'...
+fatal: unable to access 'https://github.com/x/': Could not resolve host: github.com",
+      "status": "error",
+      "step": "create-project",
+      "workflowId": "create-<time>",
+    },
+  ],
+  "project": null,
+  "stagingLeft": false,
+}
+`;
+
+exports[`project creation golden > starter, succeeds 1`] = `
+{
+  "calls": [
+    {
+      "args": [
+        "install",
+      ],
+      "command": "npm",
+      "cwd": "<staging>/my-app",
+    },
+    {
+      "args": [
+        "init",
+        "--quiet",
+      ],
+      "command": "git",
+      "cwd": "<staging>/my-app",
+    },
+    {
+      "args": [
+        "add",
+        "-A",
+      ],
+      "command": "git",
+      "cwd": "<staging>/my-app",
+    },
+    {
+      "args": [
+        "commit",
+        "--quiet",
+        "-m",
+        "Initial commit",
+      ],
+      "command": "git",
+      "cwd": "<staging>/my-app",
+    },
+  ],
+  "outcome": {
+    "message": "Project created successfully at <base>/my-app.",
+    "projectPath": "<base>/my-app",
+    "success": true,
+  },
+  "progress": [
+    {
+      "message": "Environment ready. Using the Next.js App starter.",
+      "status": "running",
+      "step": "preflight",
+      "workflowId": "create-<time>",
+    },
+    {
+      "message": "Cloning anuboost-lazify/next-scaffold at v1.0.0 into <staging>/my-app.",
+      "status": "running",
+      "step": "create-project",
+      "workflowId": "create-<time>",
+    },
+    {
+      "message": "Prepared anuboost-lazify/next-scaffold.",
+      "status": "running",
+      "step": "starter-ready",
+      "workflowId": "create-<time>",
+    },
+    {
+      "message": "Installing the starter's dependencies.",
+      "status": "running",
+      "step": "install-dependencies",
+      "workflowId": "finalize-<time>",
+    },
+    {
+      "message": "Project created successfully at <base>/my-app.",
+      "status": "success",
+      "step": "complete",
+      "workflowId": "finalize-<time>",
+    },
+  ],
+  "project": {
+    "README.md": "# my-app
+
+Run my-app locally.
+",
+    "app.json": "{"expo":{"name":"my-app","slug":"my-app"}}
+",
+    "app/layout.tsx": "<title>my-app app</title>
+",
+    "package.json": "{
+  "name": "my-app",
+  "version": "0.1.0",
+  "dependencies": {
+    "next": "15.0.0"
+  }
+}
+",
+  },
+  "stagingLeft": false,
+}
+`;
+
+exports[`project creation golden > starter, tag missing 1`] = `
+{
+  "calls": [],
+  "outcome": {
+    "message": "Could not clone anuboost-lazify/next-scaffold@v1.0.0: fatal: Remote branch v1.0.0 not found in upstream origin",
+    "reason": "unreachable",
+    "success": false,
+  },
+  "progress": [
+    {
+      "message": "Environment ready. Using the Next.js App starter.",
+      "status": "running",
+      "step": "preflight",
+      "workflowId": "create-<time>",
+    },
+    {
+      "message": "Cloning anuboost-lazify/next-scaffold at v1.0.0 into <staging>/my-app.",
+      "status": "running",
+      "step": "create-project",
+      "workflowId": "create-<time>",
+    },
+    {
+      "message": "Could not clone anuboost-lazify/next-scaffold@v1.0.0: fatal: Remote branch v1.0.0 not found in upstream origin",
+      "status": "error",
+      "step": "create-project",
+      "workflowId": "create-<time>",
+    },
+  ],
+  "project": null,
+  "stagingLeft": false,
+}
+`;
+
+exports[`project creation golden > unknown stack 1`] = `
+{
+  "calls": [],
+  "outcome": {
+    "threw": "Template "svelte" was not found.",
+  },
+  "progress": [],
+  "project": null,
+  "stagingLeft": null,
+}
+`;

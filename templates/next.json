@@ -1,0 +1,23 @@
+{
+  "id": "next-default",
+  "label": "Next.js App",
+  "description": "Create a new Next.js application with App Router, locale-aware routing, translations, and global state scaffolding.",
+  "projectType": "next",
+  "preferredPackageManager": "npm",
+  "starter": {
+    "repo": "anuboost-lazify/next-scaffold",
+    "ref": "v1.0.0"
+  },
+  "createCommands": {
+    "npm": ["create", "next-app@latest", "--", "{{projectName}}", "--use-npm", "--import-alias", "@/*", "--yes"],
+    "npx": ["create-next-app@latest", "{{projectName}}", "--use-npm", "--import-alias", "@/*", "--yes"]
+  },
+  "createOptions": [
+    { "key": "typescript", "label": "TypeScript", "default": true, "onFlag": "--ts", "offFlag": "--js" },
+    { "key": "app", "label": "App Router", "default": true, "onFlag": "--app", "offFlag": "--no-app" },
+    { "key": "eslint", "label": "ESLint", "default": true, "onFlag": "--eslint", "offFlag": "--no-eslint" },
+    { "key": "tailwind", "label": "Tailwind CSS", "default": false, "onFlag": "--tailwind", "offFlag": "--no-tailwind" },
+    { "key": "srcDir", "label": "src/ directory", "default": false, "onFlag": "--src-dir", "offFlag": "--no-src-dir" }
+  ],
+  "packageManifest": "next.json"
+}

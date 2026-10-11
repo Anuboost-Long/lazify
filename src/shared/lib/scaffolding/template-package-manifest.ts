@@ -1,3 +1,10 @@
+import { readTextFile } from "@/platform/folders";
+import path from "@/shared/lib/path";
+import { satisfies, stripRangePrefix } from "@/shared/lib/package-version-matcher/semver-utils";
+
+import type { TemplateDefinition } from "./harmonizer";
+import { fetchLatestPackageVersion, fetchPackagePeerDependencies } from "./npm-registry";
+
 export interface TemplatePackageManifest {
   dependencies?: Record<string, string>;
   devDependencies?: Record<string, string>;
@@ -24,4 +31,170 @@ export interface TemplatePackageInstallPlan {
   dependencies: string[];
   devDependencies: string[];
   versionMismatches: PackageVersionMismatch[];
+}
+
+const TEMPLATE_PACKAGE_FILES = import.meta.glob<string>("/templates/packages/*.json", {
+  eager: true,
+  query: "?raw",
+  import: "default",
+});
+
+export function loadTemplatePackageManifest(template: TemplateDefinition): TemplatePackageManifest {
+  if (!template.packageManifest) {
+    return {};
+  }
+
+  const raw = TEMPLATE_PACKAGE_FILES[`/templates/packages/${template.packageManifest}`];
+
+  if (raw === undefined) {
+    throw new Error(`Package manifest "${template.packageManifest}" was not found.`);
+  }
+
+  return JSON.parse(raw) as TemplatePackageManifest;
+}
+
+export function listTemplatePackageEntries(template: TemplateDefinition): TemplatePackageEntry[] {
+  const manifest = loadTemplatePackageManifest(template);
+
+  return mapPackageEntries(manifest.dependencies);
+}
+
+export async function readProjectPackageJson(projectPath: string): Promise<ProjectPackageJson> {
+  const packageJsonPath = path.join(projectPath, "package.json");
+  const raw = await readTextFile(packageJsonPath);
+
+  if (raw === null) {
+    throw new Error(`Generated project is missing package.json at ${packageJsonPath}`);
+  }
+
+  return JSON.parse(raw) as ProjectPackageJson;
+}
+
+export function buildTemplatePackageInstallPlan(
+  manifest: TemplatePackageManifest,
+  projectPackageJson: ProjectPackageJson
+): TemplatePackageInstallPlan {
+  return {
+    dependencies: collectMissingPackages(
+      manifest.dependencies,
+      projectPackageJson.dependencies
+    ),
+    devDependencies: collectMissingPackages(
+      manifest.devDependencies,
+      projectPackageJson.devDependencies
+    ),
+    versionMismatches: [
+      ...collectVersionMismatches(
+        manifest.dependencies,
+        projectPackageJson.dependencies,
+        "dependencies"
+      ),
+      ...collectVersionMismatches(
+        manifest.devDependencies,
+        projectPackageJson.devDependencies,
+        "devDependencies"
+      )
+    ]
+  };
+}
+
+function collectMissingPackages(
+  expected: Record<string, string> | undefined,
+  actual: Record<string, string> | undefined
+) {
+  if (!expected) {
+    return [];
+  }
+
+  return Object.entries(expected)
+    .filter(([name]) => !(actual && name in actual))
+    .map(([name, version]) => `${name}@${version}`);
+}
+
+function collectVersionMismatches(
+  expected: Record<string, string> | undefined,
+  actual: Record<string, string> | undefined,
+  dependencyType: "dependencies" | "devDependencies"
+): PackageVersionMismatch[] {
+  if (!expected || !actual) {
+    return [];
+  }
+
+  return Object.entries(expected).flatMap(([name, expectedVersion]) => {
+    const actualVersion = actual[name];
+
+    if (!actualVersion || actualVersion === expectedVersion) {
+      return [];
+    }
+
+    return [
+      {
+        name,
+        expected: expectedVersion,
+        actual: actualVersion,
+        dependencyType
+      }
+    ];
+  });
+}
+
+function mapPackageEntries(
+  packages: Record<string, string> | undefined
+): TemplatePackageEntry[] {
+  if (!packages) {
+    return [];
+  }
+
+  return Object.entries(packages).map(([name, version]) => ({
+    name,
+    version
+  }));
+}
+
+/**
+ * Upgrade manifest pins to the newest version that is still compatible with
+ * what the scaffolder already installed. Taking dist-tag "latest" blindly can
+ * pull a release whose peers (React, etc.) do not match the generated project,
+ * so a latest with an unsatisfied peer falls back to the manifest pin.
+ */
+export async function resolveManifestToLatest(
+  manifest: TemplatePackageManifest,
+  installed: Record<string, string> = {}
+): Promise<TemplatePackageManifest> {
+  const isPeerCompatible = async (name: string, version: string): Promise<boolean> => {
+    const peers = await fetchPackagePeerDependencies(name, version);
+
+    // Unknown peers (offline, 404) must not silently block the upgrade.
+    if (!peers) return true;
+
+    return Object.entries(peers).every(([peerName, range]) => {
+      const installedVersion = installed[peerName];
+      if (!installedVersion) return true;
+      return satisfies(stripRangePrefix(installedVersion), range);
+    });
+  };
+
+  const resolveGroup = async (
+    deps: Record<string, string> | undefined
+  ): Promise<Record<string, string> | undefined> => {
+    if (!deps) return deps;
+
+    const entries = await Promise.all(
+      Object.entries(deps).map(async ([name, fallback]) => {
+        const latest = await fetchLatestPackageVersion(name);
+        if (!latest) return [name, fallback] as const;
+
+        return [name, (await isPeerCompatible(name, latest)) ? latest : fallback] as const;
+      })
+    );
+
+    return Object.fromEntries(entries);
+  };
+
+  const [dependencies, devDependencies] = await Promise.all([
+    resolveGroup(manifest.dependencies),
+    resolveGroup(manifest.devDependencies)
+  ]);
+
+  return { dependencies, devDependencies };
 }

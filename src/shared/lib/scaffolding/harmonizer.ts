@@ -1,4 +1,4 @@
-import type { StarterSource } from "@/shared/lib/scaffolding/catalog";
+import { readCatalog, type StarterSource } from "@/shared/lib/scaffolding/catalog";
 import type { CommandBinary, PackageManager } from "../environment/scanner";
 
 /**
@@ -36,6 +36,20 @@ export interface TemplateDefinition {
   language?: string;
   recommendedPackages?: string[];
   starter?: StarterSource;
+}
+
+export function listTemplates(): TemplateDefinition[] {
+  return readCatalog();
+}
+
+export function getTemplate(id: string): TemplateDefinition {
+  const template = listTemplates().find((entry) => entry.id === id);
+
+  if (!template) {
+    throw new Error(`Template "${id}" was not found.`);
+  }
+
+  return template;
 }
 
 export function getInstallCommand(

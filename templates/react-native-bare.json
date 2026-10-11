@@ -1,0 +1,11 @@
+{
+  "id": "react-native-bare",
+  "label": "Bare React Native",
+  "description": "Initialize a native React Native project without Expo for full iOS and Android control.",
+  "projectType": "react-native",
+  "preferredPackageManager": "npm",
+  "createCommands": {
+    "npx": ["@react-native-community/cli@latest", "init"]
+  },
+  "packageManifest": "react-native-bare.json"
+}
