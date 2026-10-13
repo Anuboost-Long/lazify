@@ -178,9 +178,7 @@ export async function openAgentTerminal(
 	resumeSessionId?: string,
 	hidden = false,
 ): Promise<{ runId: string }> {
-	await watchAgents();
-
-	const definition = await getAgentDefinition(agentId);
+	const [, definition] = await Promise.all([watchAgents(), getAgentDefinition(agentId)]);
 	if (!definition) {
 		throw new Error(`Unknown agent: ${agentId}`);
 	}

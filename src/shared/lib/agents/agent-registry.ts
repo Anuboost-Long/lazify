@@ -114,13 +114,21 @@ async function nvmVersionBinDirs(): Promise<string[]> {
   }
 }
 
-const locatedBinaryCache = new Map<string, string | null>();
+const locatedBinaries = new Map<string, Promise<string | null>>();
 
 /** Finds where a binary actually lives, on this PATH or under any nvm version. */
-async function locateBinary(binary: string): Promise<string | null> {
-  const cached = locatedBinaryCache.get(binary);
-  if (cached !== undefined) return cached;
+function locateBinary(binary: string): Promise<string | null> {
+  let located = locatedBinaries.get(binary);
+  if (!located) {
+    located = probeBinary(binary);
+    located.catch(() => locatedBinaries.delete(binary));
+    locatedBinaries.set(binary, located);
+  }
 
+  return located;
+}
+
+async function probeBinary(binary: string): Promise<string | null> {
   const probe = (await currentOs()) === "windows" ? "where" : "which";
   let resolved: string | null = null;
   try {
@@ -140,7 +148,6 @@ async function locateBinary(binary: string): Promise<string | null> {
     }
   }
 
-  locatedBinaryCache.set(binary, resolved);
   return resolved;
 }
 

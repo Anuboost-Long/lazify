@@ -27,5 +27,10 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
 // commit is scheduled — by the second, the app has actually been painted, so
 // the window that replaces the splash is never handed over empty.
 requestAnimationFrame(() => {
-  requestAnimationFrame(() => globalThis.lazify?.signalRendererReady());
+  requestAnimationFrame(() => {
+    globalThis.lazify?.signalRendererReady();
+    // The first spawn also resolves the login-shell PATH (~1s) — pay it here,
+    // not when the user opens their first agent.
+    void lazify.listAgents().catch(() => undefined);
+  });
 });
