@@ -76,6 +76,14 @@ export async function readTextFile(path: string): Promise<string | null> {
 	}
 }
 
+// Node's `readFile(path, "utf8")`: invalid bytes become U+FFFD and a BOM is kept.
+const lossyUtf8 = new TextDecoder("utf-8", { ignoreBOM: true });
+
+/** A file's text as Electron read it, where `readTextFile` would refuse invalid UTF-8. */
+export async function readTextLossy(path: string): Promise<string> {
+	return lossyUtf8.decode(await readFileBytes(path));
+}
+
 export function readFileBytes(path: string): Promise<Uint8Array> {
 	return desktop.folders.readBytes(path);
 }

@@ -1,4 +1,4 @@
-import { fileStat, listFolderTree, readFileBytes } from "@/platform/folders";
+import { fileStat, listFolderTree, readFileBytes, readTextLossy } from "@/platform/folders";
 import path from "@/shared/lib/path";
 
 import { MAX_TEMPLATE_CONTENT_BYTES, SAFE_TEXT_EXTENSIONS } from "./content-rules";
@@ -124,17 +124,13 @@ function compileIgnoreRule(rawPattern: string, baseRelativePath: string): Ignore
 
 const childPath = (relativeFolder: string, name: string) => (relativeFolder ? `${relativeFolder}/${name}` : name);
 
-async function readText(filePath: string) {
-	return utf8.decode(await readFileBytes(filePath));
-}
-
 async function loadIgnoreRules(rootPath: string, relativeFolder: string, listing: Listing) {
 	if (!listing.get(relativeFolder)?.some((entry) => entry.name === ".gitignore")) {
 		return [];
 	}
 
 	try {
-		const content = await readText(path.join(rootPath, relativeFolder, ".gitignore"));
+		const content = await readTextLossy(path.join(rootPath, relativeFolder, ".gitignore"));
 		return content
 			.split(/\r?\n/)
 			.map((line) => compileIgnoreRule(line, relativeFolder))

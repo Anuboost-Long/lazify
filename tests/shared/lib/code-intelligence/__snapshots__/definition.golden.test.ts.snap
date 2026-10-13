@@ -1,0 +1,155 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`go to definition golden > answers 20 questions about one project 1`] = `
+{
+  "a C# class": {
+    "absolutePath": "<base>/app/src/services/UserService.cs",
+    "kind": "declaration",
+    "line": 3,
+    "relativePath": "src/services/UserService.cs",
+  },
+  "a JSX prop, through the component's props type": {
+    "absolutePath": "<base>/app/src/components/Button.tsx",
+    "kind": "declaration",
+    "line": 2,
+    "relativePath": "src/components/Button.tsx",
+  },
+  "a declaration that isn't exported": {
+    "absolutePath": "<base>/app/src/components/Card.tsx",
+    "kind": "declaration",
+    "line": 1,
+    "relativePath": "src/components/Card.tsx",
+  },
+  "a file named after a default export": null,
+  "a file too big to read": null,
+  "a name followed through its import and a barrel": {
+    "absolutePath": "<base>/app/src/components/Button.tsx",
+    "kind": "export",
+    "line": 6,
+    "relativePath": "src/components/Button.tsx",
+  },
+  "a name imported from a package": null,
+  "a name imported through an alias": {
+    "absolutePath": "<base>/app/src/lib/helper.ts",
+    "kind": "export",
+    "line": 1,
+    "relativePath": "src/lib/helper.ts",
+  },
+  "a name, searched across the project": {
+    "absolutePath": "<base>/app/src/components/Button.tsx",
+    "kind": "export",
+    "line": 6,
+    "relativePath": "src/components/Button.tsx",
+  },
+  "a package name": null,
+  "a path that leaves the project": null,
+  "a relative import of a folder": {
+    "absolutePath": "<base>/app/src/components/index.ts",
+    "kind": "file",
+    "line": 1,
+    "relativePath": "src/components/index.ts",
+  },
+  "a relative import path": {
+    "absolutePath": "<base>/app/src/components/Button.tsx",
+    "kind": "file",
+    "line": 1,
+    "relativePath": "src/components/Button.tsx",
+  },
+  "an alias import path": {
+    "absolutePath": "<base>/app/src/lib/helper.ts",
+    "kind": "file",
+    "line": 1,
+    "relativePath": "src/lib/helper.ts",
+  },
+  "an export deeper down beats a plain declaration above it": {
+    "absolutePath": "<base>/app/src/deep/a/b/c/Widget.ts",
+    "kind": "export",
+    "line": 1,
+    "relativePath": "src/deep/a/b/c/Widget.ts",
+  },
+  "an optional JSX prop": {
+    "absolutePath": "<base>/app/src/components/Button.tsx",
+    "kind": "declaration",
+    "line": 3,
+    "relativePath": "src/components/Button.tsx",
+  },
+  "not an identifier": null,
+  "nothing declares it": null,
+  "only in a file that isn't source": null,
+  "only in node_modules and dist": null,
+}
+`;
+
+exports[`go to definition golden > lists the user's highlighting assets 1`] = `
+{
+  "empty": {
+    "directory": "<base>/data/highlighting",
+    "extensions": {},
+    "languages": [],
+    "themes": [],
+  },
+  "filled": {
+    "directory": "<base>/data/highlighting",
+    "extensions": {
+      ".rsx": "rust",
+    },
+    "languages": [
+      {
+        "data": {
+          "fileTypes": [
+            "rs",
+            3,
+          ],
+          "name": "Rust",
+        },
+        "displayName": "Rust",
+        "fileTypes": [
+          "rs",
+        ],
+        "id": "rust",
+      },
+    ],
+    "themes": [
+      {
+        "data": {
+          "colors": {},
+          "name": "Nord",
+          "type": "dark",
+        },
+        "displayName": "Nord",
+        "id": "nord",
+        "type": "dark",
+      },
+      {
+        "data": {
+          "colors": {
+            "editor.background": "#fafafa",
+          },
+          "displayName": "Paper",
+        },
+        "displayName": "Paper",
+        "id": "paper",
+        "type": "light",
+      },
+      {
+        "data": {
+          "colors": {},
+        },
+        "displayName": "plain",
+        "id": "plain",
+        "type": "dark",
+      },
+    ],
+  },
+  "readme": "# Syntax highlighting
+
+Drop files in here and restart Lazify — or hit Reload in Settings > Appearance.
+
+  themes/      VS Code theme JSON (the same files a .vsix ships)
+  languages/   TextMate grammars, e.g. rust.tmLanguage.json
+  extensions.json   { ".mylang": "rust" } to point an extension at a grammar
+
+The file name becomes the id shown in the theme picker.
+",
+}
+`;

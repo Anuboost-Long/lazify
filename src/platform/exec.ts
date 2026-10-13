@@ -113,6 +113,26 @@ export async function existingFiles(paths: string[]): Promise<Set<string>> {
 	return new Set(stdout.split("\n").filter(Boolean));
 }
 
+const GREP_BATCH = 500;
+
+/** Which of `paths` contain `text` byte for byte, a few hundred files per process. */
+export async function filesContaining(text: string, paths: string[]): Promise<Set<string>> {
+	const batches: string[][] = [];
+	for (let start = 0; start < paths.length; start += GREP_BATCH) batches.push(paths.slice(start, start + GREP_BATCH));
+
+	const outputs = await Promise.all(
+		batches.map((batch) =>
+			execFile("grep", ["-l", "-F", "-e", text, "--", ...batch], { maxBuffer: 16 * 1024 * 1024 }).then(
+				({ stdout }) => stdout,
+				// 1: nothing matched; 2: a file couldn't be read, but the matches are still listed.
+				(error: unknown) => (error instanceof ExecFileError ? error.stdout : ""),
+			),
+		),
+	);
+
+	return new Set(outputs.flatMap((output) => output.split("\n")).filter(Boolean));
+}
+
 export function pathExistsOnDisk(path: string): Promise<boolean> {
 	return execFile("test", ["-e", path]).then(
 		() => true,

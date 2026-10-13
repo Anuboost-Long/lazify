@@ -1,5 +1,6 @@
 import * as agents from "./agents";
 import * as autopilot from "./autopilot";
+import * as codeIntelligence from "./code-intelligence";
 import * as commands from "./commands";
 import * as environment from "./environment";
 import * as formatting from "./formatting";
@@ -18,12 +19,10 @@ import * as zoom from "./zoom";
 const unported = {
 	apiDocs: "API documentation",
 	apiStudio: "API Studio",
-	codeThemes: "Importing code themes",
 	diagnostics: "The diagnostics folder",
 	dmgBuilder: "The DMG builder",
 	droppedFiles: "Dropping files",
 	extensions: "Managing extensions",
-	goToDefinition: "Go to definition",
 	lazyShield: "Lazy Shield",
 	linting: "Linting and code scans",
 	pastedImages: "Pasting images",
@@ -142,7 +141,7 @@ export const lazify: LazifyApi = {
 	onBrowserOpenTab: noSubscription,
 	onBrowserPopupBlocked: noSubscription,
 	allowPopupsFrom: rejects(unported.lazyShield),
-	findSymbolDefinition: rejects(unported.goToDefinition),
+	findSymbolDefinition: codeIntelligence.findSymbolDefinition,
 	selectAppBundle: rejects(unported.dmgBuilder),
 	selectDmgDestination: rejects(unported.dmgBuilder),
 	inspectAppBundle: rejects(unported.dmgBuilder),
@@ -222,8 +221,8 @@ export const lazify: LazifyApi = {
 	getDiagnosticsPaths: rejects(unported.diagnostics),
 	saveClipboardImage: rejects(unported.pastedImages),
 	pathForDroppedFile: throws(unported.droppedFiles),
-	listHighlightingAssets: rejects(unported.codeThemes),
-	openHighlightingFolder: rejects(unported.codeThemes),
+	listHighlightingAssets: codeIntelligence.listHighlightingAssets,
+	openHighlightingFolder: codeIntelligence.openHighlightingFolder,
 	detectEditors: environment.detectEditors,
 	openInEditor: environment.openInEditor,
 	chooseUploadFile: rejects(unported.uploadPicker),
