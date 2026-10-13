@@ -79,3 +79,16 @@ package with progress feeding the existing install job (`downloading`,
 `unpacking`, `done`/`failed`), check the server file is there, record the
 version. Tailwind (1.8 MB) could use `http` bytes today, but one path for
 both is simpler, so ticket 029 waits on this.
+
+## What shipped — 2026-10-14
+
+`desktop.packages` (chain-sdk working tree), a capability of its own so
+`models` stays data-only: `install({ id, url, sha256, archive: "zip" },
+onProgress)`, `resolve(id, file)` (a file's path, or `NOT_FOUND`),
+`cancel`, `list`, `remove`. Packages live in Chain's
+`<app data>/packages/<id>/`, laid out exactly as the archive is, nothing
+made executable. `src/platform/extension-packages.ts` wraps it.
+
+From Lazify, on macOS 27.0.1: Tailwind 0.16.0 (1.8 MB) in 3.0 s,
+SonarLint 6.1.0 (177 MB) in 128 s with progress throughout and 2.5 s
+unpacking; removed and reinstalled.

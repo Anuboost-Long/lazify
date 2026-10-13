@@ -1,11 +1,11 @@
-import { existingFiles } from "@/platform/exec";
+import { installPackage, packageFile, removePackage } from "@/platform/extension-packages";
 import { deletePath } from "@/platform/folders";
 import path from "@/shared/lib/path";
 
 import { forgetJavaRuntime } from "./java-runtime";
-import { extensionDir, extensionsRoot, unpackedDir } from "./paths";
+import { extensionsRoot } from "./paths";
 import { PROVIDERS, providerFor } from "./providers";
-import { type DownloadReporter, fetchLatestRelease } from "./registry";
+import { type DownloadReporter, fetchChecksum, fetchLatestRelease } from "./registry";
 import { forgetInstall, installedExtension, rememberInstall, setExtensionEnabled } from "./store";
 import type { ExtensionState, ExtensionStatus, InstallProgress, RegistryRelease } from "./types";
 
@@ -74,21 +74,22 @@ export async function listExtensions(refresh = false): Promise<ExtensionState[]>
 
 export type InstallReporter = (progress: InstallProgress) => void;
 
-const hasServer = async (root: string, marker: string) =>
-	(await existingFiles([path.join(root, marker)])).size > 0;
+/** Chain package ids are lowercase letters, digits and dashes. */
+const packageId = (id: string) => id.toLowerCase().replaceAll(".", "-");
 
-/**
- * Streams the package to disk and unpacks it into `target`. Waits on Chain
- * request 17: the SonarLint package is 177 MB, which `desktop.http` would hold
- * in memory with no progress.
- */
+const serverFile = (id: string, marker: string) => packageFile(packageId(id), `extension/${marker}`);
+
+/** Chain reports no unpack stage of its own: the download's last byte starts it. */
 async function downloadAndUnpack(
-	_release: RegistryRelease,
-	_target: string,
-	_onProgress: DownloadReporter,
-	_onUnpacking: () => void,
+	id: string,
+	release: RegistryRelease,
+	onProgress: DownloadReporter,
+	onUnpacking: () => void,
 ): Promise<void> {
-	throw new Error("Installing extensions isn't available in Lazify Chain yet.");
+	await installPackage(packageId(id), release.downloadUrl, await fetchChecksum(release), (received, total) => {
+		onProgress(received, total);
+		if (total !== null && received >= total) onUnpacking();
+	});
 }
 
 export async function installExtension(
@@ -103,18 +104,15 @@ export async function installExtension(
 
 	if (!release) throw new Error(`${provider.entry.displayName} is not reachable on Open VSX`);
 
-	const installRoot = path.join(await extensionsRoot(), id);
-
-	await deletePath(installRoot);
 	await downloadAndUnpack(
+		id,
 		release,
-		await extensionDir(id, release.version),
 		(receivedBytes, totalBytes) => report({ stage: "downloading", receivedBytes, totalBytes }),
 		() => report({ stage: "unpacking" }),
 	);
 
-	if (!(await hasServer(await unpackedDir(id, release.version), provider.serverMarker))) {
-		await deletePath(installRoot);
+	if (!(await serverFile(id, provider.serverMarker))) {
+		await removePackage(packageId(id));
 		throw new Error(`${provider.entry.displayName} did not ship a language server`);
 	}
 
@@ -125,6 +123,7 @@ export async function installExtension(
 }
 
 export async function removeExtension(id: string): Promise<ExtensionState[]> {
+	await removePackage(packageId(id));
 	await deletePath(path.join(await extensionsRoot(), id));
 	await forgetInstall(id);
 	announce(id);
@@ -145,7 +144,7 @@ export async function activeExtensionRoot(id: string): Promise<string | null> {
 
 	if (!provider || !installed?.enabled || !(await provider.requirement()).satisfied) return null;
 
-	const root = await unpackedDir(id, installed.version);
+	const server = await serverFile(id, provider.serverMarker);
 
-	return (await hasServer(root, provider.serverMarker)) ? root : null;
+	return server ? server.slice(0, -provider.serverMarker.length - 1) : null;
 }

@@ -26,6 +26,12 @@ vi.mock("@/platform/http", () => ({
 	},
 }));
 
+// The cases never download: an install stops at Java or an unknown id.
+vi.mock("@/platform/extension-packages", () => ({
+	packageFile: async () => null,
+	removePackage: async () => undefined,
+}));
+
 vi.mock("@/shared/lib/extensions/java-runtime", () => ({
 	findJavaRuntime: async () => javaRuntime(),
 	forgetJavaRuntime: () => undefined,

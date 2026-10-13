@@ -1,4 +1,4 @@
-# 029 — Extensions (Phase 5 / In progress: install waits on request 17)
+# 029 — Extensions (Phase 5 / Done)
 
 **Read this whole ticket before touching code.** The Extensions page on
 Chain: the two diagnostics engines (SonarQube for IDE and Tailwind CSS
@@ -19,14 +19,12 @@ new list and refresh every manifest already written.
 
 ## Status — 2026-10-14
 
-In progress. Everything but downloading and unpacking a package is
-ported, and 10 of 10 golden results recorded from Electron match. In the
-app: Open VSX listed both engines (668 ms), the Java search found
-Temurin 21, a manifest was written. Installing waits on
+Done on macOS. 10 of 10 golden results recorded from Electron match. In
+the app: Open VSX listed both engines (668 ms), the Java search found
+Temurin 21, a manifest was written, and both engines installed through
 [request 17](../../chain-sdk-requests/17-install-a-downloaded-package.md)
-(sent 2026-10-14): the SonarLint package is 177 MB, which `desktop.http`
-would hold in memory with no progress. Until then an install fails with
-"Installing extensions isn't available in Lazify Chain yet."
+(`desktop.packages`): Tailwind in 3.0 s, SonarLint's 177 MB in 128 s
+with progress throughout. Left: the Extensions page clicked through.
 
 ## Source-of-truth references
 
@@ -55,7 +53,9 @@ would hold in memory with no progress. Until then an install fails with
   `ELECTRON_RUN_AS_NODE`.
 - `src/main/projects/lazify-directory.ts` → `src/shared/lib/projects/`,
   shared with API Studio and linting later.
-- Download and unpack: request 17.
+- Download and unpack: `desktop.packages` (request 17), through
+  `src/platform/extension-packages.ts`, checked against the sha256 Open
+  VSX publishes.
 
 ## Acceptance checklist and evidence
 
@@ -72,7 +72,13 @@ would hold in memory with no progress. Until then an install fails with
       `/Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java`;
       an install started a job that failed with the not-yet message; a
       manifest written into a scratch project
-- [ ] Install of both engines in the app, with progress (request 17)
+- [x] Install of both engines in the app, with progress: Tailwind 0.16.0
+      in 3.0 s; SonarLint 6.1.0 (176,650,008 bytes) in 128 s, `downloading`
+      every ~100 ms, `unpacking` for 2.5 s, `done`. `activeExtensionRoot`
+      gives each package's `extension/` folder and SonarLint's launch
+      names its jar and analyzers there. Tailwind removed (package gone)
+      and reinstalled
+- [ ] The Extensions page clicked through
 - [x] `CI=true npm test`, `npm run typecheck`, `npm run build:web` pass
 
 ## Differences from Electron
@@ -80,6 +86,17 @@ would hold in memory with no progress. Until then an install fails with
 - **Tailwind's server runs on the user's Node**, found on the login-shell
   PATH (`node -p process.execPath`), as Prettier does; Electron used its
   own bundled Node.
+- **Packages live in Chain's `packages/<id>/`** (`bradlc-vscode-tailwindcss`,
+  `sonarsource-sonarlint-vscode`), one version each, instead of
+  `extensions/<id>/<version>/`. `installed.json` stays in `extensions/`.
+- **A reinstall keeps the old copy until the new one is unpacked**, and
+  a failed one leaves nothing; Electron deleted the old copy first.
+- **The download is checked against Open VSX's sha256**; Electron
+  checked nothing.
+- **`unpacking` starts when the last byte arrives**, as Chain reports no
+  unpack stage of its own.
+- **An archive with a link or a path leaving the folder is refused
+  whole**; Electron skipped those entries. Real VSIX files have none.
 - **`beginInstall` is async**: a second click while the first is still
   checking the requirement joins the same start.
 
@@ -93,7 +110,12 @@ Revert the commit; the members go back to their stubs.
 
 ## Open questions
 
-None yet.
+- An `installed.json` copied from Electron by the first-launch import
+  (ticket 012) would name engines whose files aren't in Chain's
+  `packages/`: the page would say "installed" while linting finds no
+  server. Import should leave `extensions/` out, or reinstall.
+- Linting (030) must stop a server before its package is reinstalled or
+  removed, as Chain asks.
 
 ## Keeping the two copies in step
 

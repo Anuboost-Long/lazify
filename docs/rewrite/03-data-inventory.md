@@ -43,7 +43,7 @@ Migration notes:
 | `window-zoom.json` | `src/main/window-zoom.ts` | |
 | `imported-templates/` | `src/main/scaffolding/imported-template-store.ts` | User-owned snapshots. **Must migrate** |
 | `catalog-cache/` | `src/main/scaffolding/catalog.ts` | Cache. Can be rebuilt |
-| `extensions/` | `src/main/extensions/paths.ts` | Installed extensions and runtimes. Reinstall or migrate (decide) |
+| `extensions/` | `src/main/extensions/paths.ts` | Installed extensions and runtimes. Reinstall or migrate (decide). On Chain the packages live in Chain's own `packages/` folder (request 17), not here; only `installed.json` stays, so a copied `installed.json` names engines that aren't there |
 | `highlighting/` | `src/main/code-intelligence/highlighting-store.ts` | The user's own drop-in themes and grammars (not downloaded). Not imported yet: see ticket 028's open question |
 | `api-studio-environments.json` | `src/main/api-studio/environment-store.ts` | **Secret values in plaintext**, keyed by project path and environment |
 | `api-studio-requests.json` | `src/main/api-studio/request-store.ts` | App-side request store |
