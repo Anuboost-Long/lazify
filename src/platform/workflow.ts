@@ -35,3 +35,11 @@ export const getTemplatePackageManifest = async (templateId: string) =>
 	listTemplatePackageEntries(getTemplate(templateId));
 
 export const checkEnvironment = scanEnvironment;
+
+export {
+	deleteImportedTemplate,
+	getImportedTemplate,
+	listImportedTemplates,
+	saveImportedTemplateFromProject as saveImportedTemplate,
+	updateImportedTemplate,
+} from "@/shared/lib/scaffolding/imported-template-store";

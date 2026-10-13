@@ -1,11 +1,12 @@
-import { createFolder, deletePath, pathExists } from "@/platform/folders";
+import { createFolder, deletePath, pathExists, projectReader } from "@/platform/folders";
 import path from "@/shared/lib/path";
 
-import { scanEnvironment } from "../../environment/scanner";
+import { choosePackageManager, scanEnvironment } from "../../environment/scanner";
 import type { CommandBinary } from "../../environment/scanner";
 import type { StarterSource } from "../catalog";
 import { getTemplate } from "../harmonizer";
 import type { TemplateDefinition } from "../harmonizer";
+import { getImportedTemplate } from "../imported-template-store";
 import {
 	createStagingRoot,
 	materializePreparedProject,
@@ -14,8 +15,10 @@ import {
 import type { PreparedProject } from "../prepared-projects";
 import type { StarterDescriptor } from "../starter-descriptor";
 import { StarterError, provisionStarter } from "../starter-provisioner";
+import { reconcileProjectStructure } from "../tree-reconciler";
+import { runPlainInstall } from "./installers";
 import { resolveTemplateCommand, resolveUserPath } from "./paths";
-import type { CreateProjectPayload, PrepareProjectResult, WorkflowContext } from "./types";
+import type { CreateProjectPayload, PrepareProjectResult, WorkflowContext, WorkflowResult } from "./types";
 
 /**
  * Step one of two. Produces a temporary project tree — a starter clone or the
@@ -232,6 +235,79 @@ export async function prepareFromStarter(
 		projectPath,
 		optionalFolders: descriptor.optionalFolders,
 		required: descriptor.required,
+	};
+}
+
+export async function createProjectFromImportedTemplate(
+	ctx: WorkflowContext,
+	payload: CreateProjectPayload,
+	workflowId: string,
+): Promise<WorkflowResult> {
+	if (!payload.importedTemplateId) {
+		throw new Error("Select an imported template before creating the project.");
+	}
+
+	const importedTemplate = await getImportedTemplate(payload.importedTemplateId);
+	const baseDirectory = await resolveUserPath(payload.baseDirectory);
+	const projectPath = path.resolve(baseDirectory, payload.name);
+	const structureTree =
+		payload.structureTree.length > 0 ? payload.structureTree : importedTemplate.tree;
+
+	ctx.emitProgress({
+		workflowId,
+		status: "running",
+		step: "preflight",
+		message: `Preparing imported template ${importedTemplate.name}.`,
+	});
+
+	ctx.emitProgress({
+		workflowId,
+		status: "running",
+		step: "create-project",
+		message: `Scaffolding project from imported template in ${projectPath}.`,
+	});
+
+	await createFolder(projectPath);
+	await reconcileProjectStructure(projectPath, structureTree);
+
+	if (await pathExists(path.join(projectPath, "package.json"))) {
+		ctx.emitProgress({
+			workflowId,
+			status: "running",
+			step: "install-dependencies",
+			message: "Installing project dependencies.",
+		});
+
+		const packageManager = await choosePackageManager(projectReader(projectPath));
+		const installResult = await runPlainInstall(ctx, { workflowId, packageManager, projectPath });
+
+		if (!installResult.success) {
+			ctx.emitProgress({
+				workflowId,
+				status: "error",
+				step: "install-dependencies",
+				message: "Project was created, but dependency installation failed.",
+			});
+
+			return {
+				success: false,
+				message: "Project was created, but dependency installation failed.",
+				projectPath,
+			};
+		}
+	}
+
+	ctx.emitProgress({
+		workflowId,
+		status: "success",
+		step: "complete",
+		message: `Project created successfully at ${projectPath}.`,
+	});
+
+	return {
+		success: true,
+		message: `Project created successfully at ${projectPath}.`,
+		projectPath,
 	};
 }
 

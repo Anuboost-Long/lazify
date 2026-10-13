@@ -107,9 +107,9 @@ export async function listFolder(path: string): Promise<FolderEntry[]> {
 	}
 }
 
-export async function fileStat(path: string): Promise<{ size: number; modifiedMs: number }> {
-	const { size, modifiedMs } = await desktop.folders.stat(path);
-	return { size, modifiedMs };
+export async function fileStat(path: string): Promise<Pick<FolderEntry, "kind" | "size" | "modifiedMs">> {
+	const { kind, size, modifiedMs } = await desktop.folders.stat(path);
+	return { kind, size, modifiedMs };
 }
 
 export async function watchFolder(path: string, onChange: (paths: string[]) => void): Promise<() => void> {

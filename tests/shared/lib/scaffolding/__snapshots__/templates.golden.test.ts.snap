@@ -1,0 +1,4299 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`imported templates golden > a confirmed stack that matches, and one that differs 1`] = `
+[
+  {
+    "description": "Imported from shop with 1 file.",
+    "features": [],
+    "fileCount": 1,
+    "id": "same",
+    "metadata": {
+      "createdAt": "2026-10-14T00:00:00.000Z",
+      "fileCount": 1,
+      "folderCount": 0,
+      "originalFileCount": 18,
+      "selectedItemCount": 1,
+      "updatedAt": "2026-10-14T00:00:00.000Z",
+    },
+    "name": "Same",
+    "savedAt": "2026-10-14T00:00:00.000Z",
+    "sourceProjectPath": "<base>/shop",
+    "stackDetection": {
+      "commands": {
+        "build": "npx next build",
+        "dev": "npx next dev",
+        "install": "npm install",
+        "start": "npx next start",
+      },
+      "confidence": 0.95,
+      "framework": "react",
+      "metaFramework": "nextjs",
+      "packageManager": "npm",
+      "reasons": [
+        "next dependency found",
+        "next.config.js exists",
+        "app folder exists",
+        "Stack confirmed by user during import.",
+      ],
+      "stack": "react-next",
+      "warnings": [
+        "Environment files were excluded for safety.",
+      ],
+    },
+    "structure": {
+      "files": [
+        {
+          "content": "{
+  "name": "shop",
+  "dependencies": {
+    "next": "15.0.0"
+  }
+}
+",
+          "extension": ".json",
+          "id": "tree-package.json",
+          "includeContent": true,
+          "isBinary": false,
+          "locked": false,
+          "name": "package.json",
+          "path": "package.json",
+          "role": "unknown",
+          "size": 67,
+          "source": "imported",
+          "type": "file",
+        },
+      ],
+      "folders": [],
+      "tree": [
+        {
+          "content": "{
+  "name": "shop",
+  "dependencies": {
+    "next": "15.0.0"
+  }
+}
+",
+          "extension": ".json",
+          "id": "tree-package.json",
+          "includeContent": true,
+          "isBinary": false,
+          "locked": false,
+          "name": "package.json",
+          "path": "package.json",
+          "role": "unknown",
+          "size": 67,
+          "source": "imported",
+          "type": "file",
+        },
+      ],
+    },
+    "tags": [
+      "react-next",
+      "react",
+      "nextjs",
+    ],
+    "tree": [
+      {
+        "children": [],
+        "content": "{
+  "name": "shop",
+  "dependencies": {
+    "next": "15.0.0"
+  }
+}
+",
+        "id": "tree-package.json",
+        "locked": false,
+        "name": "package.json",
+        "source": "custom",
+        "type": "file",
+      },
+    ],
+  },
+  {
+    "description": "Imported from shop with 1 file.",
+    "features": [],
+    "fileCount": 1,
+    "id": "other",
+    "metadata": {
+      "createdAt": "2026-10-14T00:00:01.000Z",
+      "fileCount": 1,
+      "folderCount": 0,
+      "originalFileCount": 18,
+      "selectedItemCount": 1,
+      "updatedAt": "2026-10-14T00:00:01.000Z",
+    },
+    "name": "Other",
+    "savedAt": "2026-10-14T00:00:01.000Z",
+    "sourceProjectPath": "<base>/shop",
+    "stackDetection": {
+      "commands": {
+        "build": "npx vite build",
+        "dev": "npx vite",
+        "install": "npm install",
+        "preview": "npx vite preview",
+      },
+      "confidence": 1,
+      "framework": "react",
+      "metaFramework": "vite",
+      "packageManager": "npm",
+      "reasons": [
+        "Stack manually selected by user during import: react-vite.",
+      ],
+      "stack": "react-vite",
+      "warnings": [
+        "Auto-detected stack was react-next. Saved template uses user-selected stack react-vite.",
+        "Environment files were excluded for safety.",
+      ],
+    },
+    "structure": {
+      "files": [
+        {
+          "content": "{
+  "name": "shop",
+  "dependencies": {
+    "next": "15.0.0"
+  }
+}
+",
+          "extension": ".json",
+          "id": "tree-package.json",
+          "includeContent": true,
+          "isBinary": false,
+          "locked": false,
+          "name": "package.json",
+          "path": "package.json",
+          "role": "unknown",
+          "size": 67,
+          "source": "imported",
+          "type": "file",
+        },
+      ],
+      "folders": [],
+      "tree": [
+        {
+          "content": "{
+  "name": "shop",
+  "dependencies": {
+    "next": "15.0.0"
+  }
+}
+",
+          "extension": ".json",
+          "id": "tree-package.json",
+          "includeContent": true,
+          "isBinary": false,
+          "locked": false,
+          "name": "package.json",
+          "path": "package.json",
+          "role": "unknown",
+          "size": 67,
+          "source": "imported",
+          "type": "file",
+        },
+      ],
+    },
+    "tags": [
+      "react-vite",
+      "react",
+      "vite",
+    ],
+    "tree": [
+      {
+        "children": [],
+        "content": "{
+  "name": "shop",
+  "dependencies": {
+    "next": "15.0.0"
+  }
+}
+",
+        "id": "tree-package.json",
+        "locked": false,
+        "name": "package.json",
+        "source": "custom",
+        "type": "file",
+      },
+    ],
+  },
+]
+`;
+
+exports[`imported templates golden > a large file is kept as a reference, in a project with no stack 1`] = `
+[
+  {
+    "description": "Imported from plain with 2 files.",
+    "features": [],
+    "fileCount": 2,
+    "id": "plain",
+    "metadata": {
+      "createdAt": "2026-10-14T00:00:00.000Z",
+      "fileCount": 2,
+      "folderCount": 0,
+      "originalFileCount": 2,
+      "selectedItemCount": 2,
+      "updatedAt": "2026-10-14T00:00:00.000Z",
+    },
+    "name": "Plain",
+    "savedAt": "2026-10-14T00:00:00.000Z",
+    "sourceProjectPath": "<base>/plain",
+    "stackDetection": {
+      "commands": {
+        "install": "npm install",
+      },
+      "confidence": 0.1,
+      "framework": "unknown",
+      "metaFramework": "unknown",
+      "packageManager": "npm",
+      "reasons": [],
+      "stack": "unknown",
+      "warnings": [
+        "No package.json found.",
+        "No lock file found. Defaulted to npm.",
+        "Could not determine stack confidently.",
+        "No recognized framework dependency or config file found.",
+        "Some large files were skipped from content storage.",
+      ],
+    },
+    "structure": {
+      "files": [
+        {
+          "extension": ".json",
+          "id": "tree-big.json",
+          "includeContent": false,
+          "isBinary": false,
+          "locked": false,
+          "name": "big.json",
+          "path": "big.json",
+          "role": "unknown",
+          "size": 61452,
+          "source": "imported",
+          "type": "file",
+        },
+        {
+          "content": "export {};
+",
+          "extension": ".ts",
+          "id": "tree-index.ts",
+          "includeContent": true,
+          "isBinary": false,
+          "locked": false,
+          "name": "index.ts",
+          "path": "index.ts",
+          "role": "unknown",
+          "size": 11,
+          "source": "imported",
+          "type": "file",
+        },
+      ],
+      "folders": [],
+      "tree": [
+        {
+          "extension": ".json",
+          "id": "tree-big.json",
+          "includeContent": false,
+          "isBinary": false,
+          "locked": false,
+          "name": "big.json",
+          "path": "big.json",
+          "role": "unknown",
+          "size": 61452,
+          "source": "imported",
+          "type": "file",
+        },
+        {
+          "content": "export {};
+",
+          "extension": ".ts",
+          "id": "tree-index.ts",
+          "includeContent": true,
+          "isBinary": false,
+          "locked": false,
+          "name": "index.ts",
+          "path": "index.ts",
+          "role": "unknown",
+          "size": 11,
+          "source": "imported",
+          "type": "file",
+        },
+      ],
+    },
+    "tags": [
+      "unknown",
+    ],
+    "tree": [
+      {
+        "children": [],
+        "id": "tree-big.json",
+        "locked": false,
+        "name": "big.json",
+        "source": "custom",
+        "type": "file",
+      },
+      {
+        "children": [],
+        "content": "export {};
+",
+        "id": "tree-index.ts",
+        "locked": false,
+        "name": "index.ts",
+        "source": "custom",
+        "type": "file",
+      },
+    ],
+  },
+]
+`;
+
+exports[`imported templates golden > a taken id gets a number, and a name with no letters a fallback id 1`] = `
+[
+  {
+    "description": "Imported from shop with 1 file.",
+    "features": [],
+    "fileCount": 1,
+    "id": "shop",
+    "metadata": {
+      "createdAt": "2026-10-14T00:00:00.000Z",
+      "fileCount": 1,
+      "folderCount": 0,
+      "originalFileCount": 18,
+      "selectedItemCount": 1,
+      "updatedAt": "2026-10-14T00:00:00.000Z",
+    },
+    "name": "Shop",
+    "savedAt": "2026-10-14T00:00:00.000Z",
+    "sourceProjectPath": "<base>/shop",
+    "stackDetection": {
+      "commands": {
+        "build": "npx next build",
+        "dev": "npx next dev",
+        "install": "npm install",
+        "start": "npx next start",
+      },
+      "confidence": 0.95,
+      "framework": "react",
+      "metaFramework": "nextjs",
+      "packageManager": "npm",
+      "reasons": [
+        "next dependency found",
+        "next.config.js exists",
+        "app folder exists",
+      ],
+      "stack": "react-next",
+      "warnings": [
+        "Environment files were excluded for safety.",
+      ],
+    },
+    "structure": {
+      "files": [
+        {
+          "content": "{
+  "name": "shop",
+  "dependencies": {
+    "next": "15.0.0"
+  }
+}
+",
+          "extension": ".json",
+          "id": "tree-package.json",
+          "includeContent": true,
+          "isBinary": false,
+          "locked": false,
+          "name": "package.json",
+          "path": "package.json",
+          "role": "unknown",
+          "size": 67,
+          "source": "imported",
+          "type": "file",
+        },
+      ],
+      "folders": [],
+      "tree": [
+        {
+          "content": "{
+  "name": "shop",
+  "dependencies": {
+    "next": "15.0.0"
+  }
+}
+",
+          "extension": ".json",
+          "id": "tree-package.json",
+          "includeContent": true,
+          "isBinary": false,
+          "locked": false,
+          "name": "package.json",
+          "path": "package.json",
+          "role": "unknown",
+          "size": 67,
+          "source": "imported",
+          "type": "file",
+        },
+      ],
+    },
+    "tags": [
+      "react-next",
+      "react",
+      "nextjs",
+    ],
+    "tree": [
+      {
+        "children": [],
+        "content": "{
+  "name": "shop",
+  "dependencies": {
+    "next": "15.0.0"
+  }
+}
+",
+        "id": "tree-package.json",
+        "locked": false,
+        "name": "package.json",
+        "source": "custom",
+        "type": "file",
+      },
+    ],
+  },
+  {
+    "description": "Imported from shop with 1 file.",
+    "features": [],
+    "fileCount": 1,
+    "id": "shop-2",
+    "metadata": {
+      "createdAt": "2026-10-14T00:00:01.000Z",
+      "fileCount": 1,
+      "folderCount": 0,
+      "originalFileCount": 18,
+      "selectedItemCount": 1,
+      "updatedAt": "2026-10-14T00:00:01.000Z",
+    },
+    "name": "shop",
+    "savedAt": "2026-10-14T00:00:01.000Z",
+    "sourceProjectPath": "<base>/shop",
+    "stackDetection": {
+      "commands": {
+        "build": "npx next build",
+        "dev": "npx next dev",
+        "install": "npm install",
+        "start": "npx next start",
+      },
+      "confidence": 0.95,
+      "framework": "react",
+      "metaFramework": "nextjs",
+      "packageManager": "npm",
+      "reasons": [
+        "next dependency found",
+        "next.config.js exists",
+        "app folder exists",
+      ],
+      "stack": "react-next",
+      "warnings": [
+        "Environment files were excluded for safety.",
+      ],
+    },
+    "structure": {
+      "files": [
+        {
+          "content": "{
+  "name": "shop",
+  "dependencies": {
+    "next": "15.0.0"
+  }
+}
+",
+          "extension": ".json",
+          "id": "tree-package.json",
+          "includeContent": true,
+          "isBinary": false,
+          "locked": false,
+          "name": "package.json",
+          "path": "package.json",
+          "role": "unknown",
+          "size": 67,
+          "source": "imported",
+          "type": "file",
+        },
+      ],
+      "folders": [],
+      "tree": [
+        {
+          "content": "{
+  "name": "shop",
+  "dependencies": {
+    "next": "15.0.0"
+  }
+}
+",
+          "extension": ".json",
+          "id": "tree-package.json",
+          "includeContent": true,
+          "isBinary": false,
+          "locked": false,
+          "name": "package.json",
+          "path": "package.json",
+          "role": "unknown",
+          "size": 67,
+          "source": "imported",
+          "type": "file",
+        },
+      ],
+    },
+    "tags": [
+      "react-next",
+      "react",
+      "nextjs",
+    ],
+    "tree": [
+      {
+        "children": [],
+        "content": "{
+  "name": "shop",
+  "dependencies": {
+    "next": "15.0.0"
+  }
+}
+",
+        "id": "tree-package.json",
+        "locked": false,
+        "name": "package.json",
+        "source": "custom",
+        "type": "file",
+      },
+    ],
+  },
+  {
+    "description": "Imported from shop with 1 file.",
+    "features": [],
+    "fileCount": 1,
+    "id": "laz-template",
+    "metadata": {
+      "createdAt": "2026-10-14T00:00:02.000Z",
+      "fileCount": 1,
+      "folderCount": 0,
+      "originalFileCount": 18,
+      "selectedItemCount": 1,
+      "updatedAt": "2026-10-14T00:00:02.000Z",
+    },
+    "name": "!!!",
+    "savedAt": "2026-10-14T00:00:02.000Z",
+    "sourceProjectPath": "<base>/shop",
+    "stackDetection": {
+      "commands": {
+        "build": "npx next build",
+        "dev": "npx next dev",
+        "install": "npm install",
+        "start": "npx next start",
+      },
+      "confidence": 0.95,
+      "framework": "react",
+      "metaFramework": "nextjs",
+      "packageManager": "npm",
+      "reasons": [
+        "next dependency found",
+        "next.config.js exists",
+        "app folder exists",
+      ],
+      "stack": "react-next",
+      "warnings": [
+        "Environment files were excluded for safety.",
+      ],
+    },
+    "structure": {
+      "files": [
+        {
+          "content": "{
+  "name": "shop",
+  "dependencies": {
+    "next": "15.0.0"
+  }
+}
+",
+          "extension": ".json",
+          "id": "tree-package.json",
+          "includeContent": true,
+          "isBinary": false,
+          "locked": false,
+          "name": "package.json",
+          "path": "package.json",
+          "role": "unknown",
+          "size": 67,
+          "source": "imported",
+          "type": "file",
+        },
+      ],
+      "folders": [],
+      "tree": [
+        {
+          "content": "{
+  "name": "shop",
+  "dependencies": {
+    "next": "15.0.0"
+  }
+}
+",
+          "extension": ".json",
+          "id": "tree-package.json",
+          "includeContent": true,
+          "isBinary": false,
+          "locked": false,
+          "name": "package.json",
+          "path": "package.json",
+          "role": "unknown",
+          "size": 67,
+          "source": "imported",
+          "type": "file",
+        },
+      ],
+    },
+    "tags": [
+      "react-next",
+      "react",
+      "nextjs",
+    ],
+    "tree": [
+      {
+        "children": [],
+        "content": "{
+  "name": "shop",
+  "dependencies": {
+    "next": "15.0.0"
+  }
+}
+",
+        "id": "tree-package.json",
+        "locked": false,
+        "name": "package.json",
+        "source": "custom",
+        "type": "file",
+      },
+    ],
+  },
+  [
+    {
+      "description": "Imported from shop with 1 file.",
+      "fileCount": 1,
+      "id": "laz-template",
+      "name": "!!!",
+      "savedAt": "2026-10-14T00:00:02.000Z",
+      "sourceProjectPath": "<base>/shop",
+      "stack": "react-next",
+    },
+    {
+      "description": "Imported from shop with 1 file.",
+      "fileCount": 1,
+      "id": "shop-2",
+      "name": "shop",
+      "savedAt": "2026-10-14T00:00:01.000Z",
+      "sourceProjectPath": "<base>/shop",
+      "stack": "react-next",
+    },
+    {
+      "description": "Imported from shop with 1 file.",
+      "fileCount": 1,
+      "id": "shop",
+      "name": "Shop",
+      "savedAt": "2026-10-14T00:00:00.000Z",
+      "sourceProjectPath": "<base>/shop",
+      "stack": "react-next",
+    },
+  ],
+]
+`;
+
+exports[`imported templates golden > a template file that isn't JSON 1`] = `
+[
+  "written",
+  {
+    "threw": "Expected property name or '}' in JSON at position 2 (line 1 column 3)",
+  },
+  {
+    "threw": "Imported template "broken" was not found.",
+  },
+]
+`;
+
+exports[`imported templates golden > create a project from a template with no package.json 1`] = `
+[
+  {
+    "description": "Imported from shop with 2 files.",
+    "features": [],
+    "fileCount": 2,
+    "id": "no-manifest",
+    "metadata": {
+      "createdAt": "2026-10-14T00:00:00.000Z",
+      "fileCount": 2,
+      "folderCount": 2,
+      "originalFileCount": 18,
+      "selectedItemCount": 4,
+      "updatedAt": "2026-10-14T00:00:00.000Z",
+    },
+    "name": "No manifest",
+    "savedAt": "2026-10-14T00:00:00.000Z",
+    "sourceProjectPath": "<base>/shop",
+    "stackDetection": {
+      "commands": {
+        "build": "npx next build",
+        "dev": "npx next dev",
+        "install": "npm install",
+        "start": "npx next start",
+      },
+      "confidence": 0.95,
+      "framework": "react",
+      "metaFramework": "nextjs",
+      "packageManager": "npm",
+      "reasons": [
+        "next dependency found",
+        "next.config.js exists",
+        "app folder exists",
+      ],
+      "stack": "react-next",
+      "warnings": [
+        "Environment files were excluded for safety.",
+      ],
+    },
+    "structure": {
+      "files": [
+        {
+          "content": "export default function Page() { return null; }
+",
+          "extension": ".tsx",
+          "id": "tree-app/page.tsx",
+          "includeContent": true,
+          "isBinary": false,
+          "locked": false,
+          "name": "page.tsx",
+          "path": "app/page.tsx",
+          "role": "unknown",
+          "size": 48,
+          "source": "imported",
+          "type": "file",
+        },
+        {
+          "content": "export {};
+",
+          "extension": ".ts",
+          "id": "tree-nested/kept.ts",
+          "includeContent": true,
+          "isBinary": false,
+          "locked": false,
+          "name": "kept.ts",
+          "path": "nested/kept.ts",
+          "role": "unknown",
+          "size": 11,
+          "source": "imported",
+          "type": "file",
+        },
+      ],
+      "folders": [
+        {
+          "id": "tree-app",
+          "locked": false,
+          "name": "app",
+          "path": "app",
+          "role": "ui-layer",
+          "source": "imported",
+          "type": "folder",
+        },
+        {
+          "id": "tree-nested",
+          "locked": false,
+          "name": "nested",
+          "path": "nested",
+          "role": "unknown",
+          "source": "imported",
+          "type": "folder",
+        },
+      ],
+      "tree": [
+        {
+          "children": [
+            {
+              "content": "export default function Page() { return null; }
+",
+              "extension": ".tsx",
+              "id": "tree-app/page.tsx",
+              "includeContent": true,
+              "isBinary": false,
+              "locked": false,
+              "name": "page.tsx",
+              "path": "app/page.tsx",
+              "role": "unknown",
+              "size": 48,
+              "source": "imported",
+              "type": "file",
+            },
+          ],
+          "id": "tree-app",
+          "locked": false,
+          "name": "app",
+          "path": "app",
+          "role": "ui-layer",
+          "source": "imported",
+          "type": "folder",
+        },
+        {
+          "children": [
+            {
+              "content": "export {};
+",
+              "extension": ".ts",
+              "id": "tree-nested/kept.ts",
+              "includeContent": true,
+              "isBinary": false,
+              "locked": false,
+              "name": "kept.ts",
+              "path": "nested/kept.ts",
+              "role": "unknown",
+              "size": 11,
+              "source": "imported",
+              "type": "file",
+            },
+          ],
+          "id": "tree-nested",
+          "locked": false,
+          "name": "nested",
+          "path": "nested",
+          "role": "unknown",
+          "source": "imported",
+          "type": "folder",
+        },
+      ],
+    },
+    "tags": [
+      "react-next",
+      "react",
+      "nextjs",
+    ],
+    "tree": [
+      {
+        "children": [
+          {
+            "children": [],
+            "content": "export default function Page() { return null; }
+",
+            "id": "tree-app/page.tsx",
+            "locked": false,
+            "name": "page.tsx",
+            "source": "custom",
+            "type": "file",
+          },
+        ],
+        "id": "tree-app",
+        "locked": false,
+        "name": "app",
+        "source": "custom",
+        "type": "folder",
+      },
+      {
+        "children": [
+          {
+            "children": [],
+            "content": "export {};
+",
+            "id": "tree-nested/kept.ts",
+            "locked": false,
+            "name": "kept.ts",
+            "source": "custom",
+            "type": "file",
+          },
+        ],
+        "id": "tree-nested",
+        "locked": false,
+        "name": "nested",
+        "source": "custom",
+        "type": "folder",
+      },
+    ],
+  },
+  {
+    "calls": [],
+    "outcome": {
+      "message": "Project created successfully at <base>/workspace/my-app.",
+      "projectPath": "<base>/workspace/my-app",
+      "success": true,
+    },
+    "progress": [
+      {
+        "message": "Preparing imported template No manifest.",
+        "status": "running",
+        "step": "preflight",
+        "workflowId": "create-<time>",
+      },
+      {
+        "message": "Scaffolding project from imported template in <base>/workspace/my-app.",
+        "status": "running",
+        "step": "create-project",
+        "workflowId": "create-<time>",
+      },
+      {
+        "message": "Project created successfully at <base>/workspace/my-app.",
+        "status": "success",
+        "step": "complete",
+        "workflowId": "create-<time>",
+      },
+    ],
+    "project": {
+      "app/page.tsx": "export default function Page() { return null; }
+",
+      "nested/kept.ts": "export {};
+",
+    },
+  },
+]
+`;
+
+exports[`imported templates golden > create a project from a template, installing its dependencies 1`] = `
+[
+  {
+    "description": "Imported from shop with 4 files.",
+    "features": [
+      "component-based-ui",
+    ],
+    "fileCount": 4,
+    "id": "shop",
+    "metadata": {
+      "createdAt": "2026-10-14T00:00:00.000Z",
+      "fileCount": 4,
+      "folderCount": 3,
+      "originalFileCount": 18,
+      "selectedItemCount": 7,
+      "updatedAt": "2026-10-14T00:00:00.000Z",
+    },
+    "name": "Shop",
+    "savedAt": "2026-10-14T00:00:00.000Z",
+    "sourceProjectPath": "<base>/shop",
+    "stackDetection": {
+      "commands": {
+        "build": "npx next build",
+        "dev": "npx next dev",
+        "install": "npm install",
+        "start": "npx next start",
+      },
+      "confidence": 0.95,
+      "framework": "react",
+      "metaFramework": "nextjs",
+      "packageManager": "npm",
+      "reasons": [
+        "next dependency found",
+        "next.config.js exists",
+        "app folder exists",
+      ],
+      "stack": "react-next",
+      "warnings": [
+        "Environment files were excluded for safety.",
+        "Binary files were stored as references only.",
+      ],
+    },
+    "structure": {
+      "files": [
+        {
+          "content": "export default function Page() { return null; }
+",
+          "extension": ".tsx",
+          "id": "tree-app/page.tsx",
+          "includeContent": true,
+          "isBinary": false,
+          "locked": false,
+          "name": "page.tsx",
+          "path": "app/page.tsx",
+          "role": "unknown",
+          "size": 48,
+          "source": "imported",
+          "type": "file",
+        },
+        {
+          "content": "export const Button = () => null;
+",
+          "extension": ".tsx",
+          "id": "tree-components/Button.tsx",
+          "includeContent": true,
+          "isBinary": false,
+          "locked": false,
+          "name": "Button.tsx",
+          "path": "components/Button.tsx",
+          "role": "ui",
+          "size": 34,
+          "source": "imported",
+          "type": "file",
+        },
+        {
+          "extension": ".png",
+          "id": "tree-public/logo.png",
+          "includeContent": false,
+          "isBinary": true,
+          "locked": false,
+          "name": "logo.png",
+          "path": "public/logo.png",
+          "role": "unknown",
+          "size": 9,
+          "source": "imported",
+          "type": "file",
+        },
+        {
+          "content": "{
+  "name": "shop",
+  "dependencies": {
+    "next": "15.0.0"
+  }
+}
+",
+          "extension": ".json",
+          "id": "tree-package.json",
+          "includeContent": true,
+          "isBinary": false,
+          "locked": false,
+          "name": "package.json",
+          "path": "package.json",
+          "role": "unknown",
+          "size": 67,
+          "source": "imported",
+          "type": "file",
+        },
+      ],
+      "folders": [
+        {
+          "id": "tree-app",
+          "locked": false,
+          "name": "app",
+          "path": "app",
+          "role": "ui-layer",
+          "source": "imported",
+          "type": "folder",
+        },
+        {
+          "id": "tree-components",
+          "locked": false,
+          "name": "components",
+          "path": "components",
+          "role": "shared-ui",
+          "source": "imported",
+          "type": "folder",
+        },
+        {
+          "id": "tree-public",
+          "locked": false,
+          "name": "public",
+          "path": "public",
+          "role": "unknown",
+          "source": "imported",
+          "type": "folder",
+        },
+      ],
+      "tree": [
+        {
+          "children": [
+            {
+              "content": "export default function Page() { return null; }
+",
+              "extension": ".tsx",
+              "id": "tree-app/page.tsx",
+              "includeContent": true,
+              "isBinary": false,
+              "locked": false,
+              "name": "page.tsx",
+              "path": "app/page.tsx",
+              "role": "unknown",
+              "size": 48,
+              "source": "imported",
+              "type": "file",
+            },
+          ],
+          "id": "tree-app",
+          "locked": false,
+          "name": "app",
+          "path": "app",
+          "role": "ui-layer",
+          "source": "imported",
+          "type": "folder",
+        },
+        {
+          "children": [
+            {
+              "content": "export const Button = () => null;
+",
+              "extension": ".tsx",
+              "id": "tree-components/Button.tsx",
+              "includeContent": true,
+              "isBinary": false,
+              "locked": false,
+              "name": "Button.tsx",
+              "path": "components/Button.tsx",
+              "role": "ui",
+              "size": 34,
+              "source": "imported",
+              "type": "file",
+            },
+          ],
+          "id": "tree-components",
+          "locked": false,
+          "name": "components",
+          "path": "components",
+          "role": "shared-ui",
+          "source": "imported",
+          "type": "folder",
+        },
+        {
+          "children": [
+            {
+              "extension": ".png",
+              "id": "tree-public/logo.png",
+              "includeContent": false,
+              "isBinary": true,
+              "locked": false,
+              "name": "logo.png",
+              "path": "public/logo.png",
+              "role": "unknown",
+              "size": 9,
+              "source": "imported",
+              "type": "file",
+            },
+          ],
+          "id": "tree-public",
+          "locked": false,
+          "name": "public",
+          "path": "public",
+          "role": "unknown",
+          "source": "imported",
+          "type": "folder",
+        },
+        {
+          "content": "{
+  "name": "shop",
+  "dependencies": {
+    "next": "15.0.0"
+  }
+}
+",
+          "extension": ".json",
+          "id": "tree-package.json",
+          "includeContent": true,
+          "isBinary": false,
+          "locked": false,
+          "name": "package.json",
+          "path": "package.json",
+          "role": "unknown",
+          "size": 67,
+          "source": "imported",
+          "type": "file",
+        },
+      ],
+    },
+    "tags": [
+      "react-next",
+      "react",
+      "nextjs",
+      "component-based-ui",
+    ],
+    "tree": [
+      {
+        "children": [
+          {
+            "children": [],
+            "content": "export default function Page() { return null; }
+",
+            "id": "tree-app/page.tsx",
+            "locked": false,
+            "name": "page.tsx",
+            "source": "custom",
+            "type": "file",
+          },
+        ],
+        "id": "tree-app",
+        "locked": false,
+        "name": "app",
+        "source": "custom",
+        "type": "folder",
+      },
+      {
+        "children": [
+          {
+            "children": [],
+            "content": "export const Button = () => null;
+",
+            "id": "tree-components/Button.tsx",
+            "locked": false,
+            "name": "Button.tsx",
+            "source": "custom",
+            "type": "file",
+          },
+        ],
+        "id": "tree-components",
+        "locked": false,
+        "name": "components",
+        "source": "custom",
+        "type": "folder",
+      },
+      {
+        "children": [
+          {
+            "children": [],
+            "id": "tree-public/logo.png",
+            "locked": false,
+            "name": "logo.png",
+            "source": "custom",
+            "type": "file",
+          },
+        ],
+        "id": "tree-public",
+        "locked": false,
+        "name": "public",
+        "source": "custom",
+        "type": "folder",
+      },
+      {
+        "children": [],
+        "content": "{
+  "name": "shop",
+  "dependencies": {
+    "next": "15.0.0"
+  }
+}
+",
+        "id": "tree-package.json",
+        "locked": false,
+        "name": "package.json",
+        "source": "custom",
+        "type": "file",
+      },
+    ],
+  },
+  {
+    "calls": [
+      {
+        "args": [
+          "install",
+        ],
+        "command": "npm",
+        "cwd": "<base>/workspace/my-app",
+      },
+    ],
+    "outcome": {
+      "message": "Project created successfully at <base>/workspace/my-app.",
+      "projectPath": "<base>/workspace/my-app",
+      "success": true,
+    },
+    "progress": [
+      {
+        "message": "Preparing imported template Shop.",
+        "status": "running",
+        "step": "preflight",
+        "workflowId": "create-<time>",
+      },
+      {
+        "message": "Scaffolding project from imported template in <base>/workspace/my-app.",
+        "status": "running",
+        "step": "create-project",
+        "workflowId": "create-<time>",
+      },
+      {
+        "message": "Installing project dependencies.",
+        "status": "running",
+        "step": "install-dependencies",
+        "workflowId": "create-<time>",
+      },
+      {
+        "message": "Project created successfully at <base>/workspace/my-app.",
+        "status": "success",
+        "step": "complete",
+        "workflowId": "create-<time>",
+      },
+    ],
+    "project": {
+      "app/page.tsx": "export default function Page() { return null; }
+",
+      "components/Button.tsx": "export const Button = () => null;
+",
+      "package.json": "{
+  "name": "shop",
+  "dependencies": {
+    "next": "15.0.0"
+  }
+}
+",
+      "public/logo.png": "",
+    },
+  },
+]
+`;
+
+exports[`imported templates golden > create a project, install fails 1`] = `
+[
+  {
+    "description": "Imported from shop with 2 files.",
+    "features": [],
+    "fileCount": 2,
+    "id": "shop",
+    "metadata": {
+      "createdAt": "2026-10-14T00:00:00.000Z",
+      "fileCount": 2,
+      "folderCount": 1,
+      "originalFileCount": 18,
+      "selectedItemCount": 3,
+      "updatedAt": "2026-10-14T00:00:00.000Z",
+    },
+    "name": "Shop",
+    "savedAt": "2026-10-14T00:00:00.000Z",
+    "sourceProjectPath": "<base>/shop",
+    "stackDetection": {
+      "commands": {
+        "build": "npx next build",
+        "dev": "npx next dev",
+        "install": "npm install",
+        "start": "npx next start",
+      },
+      "confidence": 0.95,
+      "framework": "react",
+      "metaFramework": "nextjs",
+      "packageManager": "npm",
+      "reasons": [
+        "next dependency found",
+        "next.config.js exists",
+        "app folder exists",
+      ],
+      "stack": "react-next",
+      "warnings": [
+        "Environment files were excluded for safety.",
+      ],
+    },
+    "structure": {
+      "files": [
+        {
+          "content": "export default function Page() { return null; }
+",
+          "extension": ".tsx",
+          "id": "tree-app/page.tsx",
+          "includeContent": true,
+          "isBinary": false,
+          "locked": false,
+          "name": "page.tsx",
+          "path": "app/page.tsx",
+          "role": "unknown",
+          "size": 48,
+          "source": "imported",
+          "type": "file",
+        },
+        {
+          "content": "{
+  "name": "shop",
+  "dependencies": {
+    "next": "15.0.0"
+  }
+}
+",
+          "extension": ".json",
+          "id": "tree-package.json",
+          "includeContent": true,
+          "isBinary": false,
+          "locked": false,
+          "name": "package.json",
+          "path": "package.json",
+          "role": "unknown",
+          "size": 67,
+          "source": "imported",
+          "type": "file",
+        },
+      ],
+      "folders": [
+        {
+          "id": "tree-app",
+          "locked": false,
+          "name": "app",
+          "path": "app",
+          "role": "ui-layer",
+          "source": "imported",
+          "type": "folder",
+        },
+      ],
+      "tree": [
+        {
+          "children": [
+            {
+              "content": "export default function Page() { return null; }
+",
+              "extension": ".tsx",
+              "id": "tree-app/page.tsx",
+              "includeContent": true,
+              "isBinary": false,
+              "locked": false,
+              "name": "page.tsx",
+              "path": "app/page.tsx",
+              "role": "unknown",
+              "size": 48,
+              "source": "imported",
+              "type": "file",
+            },
+          ],
+          "id": "tree-app",
+          "locked": false,
+          "name": "app",
+          "path": "app",
+          "role": "ui-layer",
+          "source": "imported",
+          "type": "folder",
+        },
+        {
+          "content": "{
+  "name": "shop",
+  "dependencies": {
+    "next": "15.0.0"
+  }
+}
+",
+          "extension": ".json",
+          "id": "tree-package.json",
+          "includeContent": true,
+          "isBinary": false,
+          "locked": false,
+          "name": "package.json",
+          "path": "package.json",
+          "role": "unknown",
+          "size": 67,
+          "source": "imported",
+          "type": "file",
+        },
+      ],
+    },
+    "tags": [
+      "react-next",
+      "react",
+      "nextjs",
+    ],
+    "tree": [
+      {
+        "children": [
+          {
+            "children": [],
+            "content": "export default function Page() { return null; }
+",
+            "id": "tree-app/page.tsx",
+            "locked": false,
+            "name": "page.tsx",
+            "source": "custom",
+            "type": "file",
+          },
+        ],
+        "id": "tree-app",
+        "locked": false,
+        "name": "app",
+        "source": "custom",
+        "type": "folder",
+      },
+      {
+        "children": [],
+        "content": "{
+  "name": "shop",
+  "dependencies": {
+    "next": "15.0.0"
+  }
+}
+",
+        "id": "tree-package.json",
+        "locked": false,
+        "name": "package.json",
+        "source": "custom",
+        "type": "file",
+      },
+    ],
+  },
+  {
+    "calls": [
+      {
+        "args": [
+          "install",
+        ],
+        "command": "npm",
+        "cwd": "<base>/workspace/my-app",
+      },
+      {
+        "args": [
+          "install",
+          "--legacy-peer-deps",
+        ],
+        "command": "npm",
+        "cwd": "<base>/workspace/my-app",
+      },
+    ],
+    "outcome": {
+      "message": "Project created successfully at <base>/workspace/my-app.",
+      "projectPath": "<base>/workspace/my-app",
+      "success": true,
+    },
+    "progress": [
+      {
+        "message": "Preparing imported template Shop.",
+        "status": "running",
+        "step": "preflight",
+        "workflowId": "create-<time>",
+      },
+      {
+        "message": "Scaffolding project from imported template in <base>/workspace/my-app.",
+        "status": "running",
+        "step": "create-project",
+        "workflowId": "create-<time>",
+      },
+      {
+        "message": "Installing project dependencies.",
+        "status": "running",
+        "step": "install-dependencies",
+        "workflowId": "create-<time>",
+      },
+      {
+        "message": "Retrying with --legacy-peer-deps to bypass peer dependency conflicts.",
+        "status": "running",
+        "step": "dependency-auto-fix",
+        "workflowId": "create-<time>",
+      },
+      {
+        "message": "Project created successfully at <base>/workspace/my-app.",
+        "status": "success",
+        "step": "complete",
+        "workflowId": "create-<time>",
+      },
+    ],
+    "project": {
+      "app/page.tsx": "export default function Page() { return null; }
+",
+      "package.json": "{
+  "name": "shop",
+  "dependencies": {
+    "next": "15.0.0"
+  }
+}
+",
+    },
+  },
+]
+`;
+
+exports[`imported templates golden > create from the tree the user edited, not the stored one 1`] = `
+[
+  {
+    "description": "Imported from shop with 1 file.",
+    "features": [],
+    "fileCount": 1,
+    "id": "shop",
+    "metadata": {
+      "createdAt": "2026-10-14T00:00:00.000Z",
+      "fileCount": 1,
+      "folderCount": 1,
+      "originalFileCount": 18,
+      "selectedItemCount": 2,
+      "updatedAt": "2026-10-14T00:00:00.000Z",
+    },
+    "name": "Shop",
+    "savedAt": "2026-10-14T00:00:00.000Z",
+    "sourceProjectPath": "<base>/shop",
+    "stackDetection": {
+      "commands": {
+        "build": "npx next build",
+        "dev": "npx next dev",
+        "install": "npm install",
+        "start": "npx next start",
+      },
+      "confidence": 0.95,
+      "framework": "react",
+      "metaFramework": "nextjs",
+      "packageManager": "npm",
+      "reasons": [
+        "next dependency found",
+        "next.config.js exists",
+        "app folder exists",
+      ],
+      "stack": "react-next",
+      "warnings": [
+        "Environment files were excluded for safety.",
+      ],
+    },
+    "structure": {
+      "files": [
+        {
+          "content": "export default function Page() { return null; }
+",
+          "extension": ".tsx",
+          "id": "tree-app/page.tsx",
+          "includeContent": true,
+          "isBinary": false,
+          "locked": false,
+          "name": "page.tsx",
+          "path": "app/page.tsx",
+          "role": "unknown",
+          "size": 48,
+          "source": "imported",
+          "type": "file",
+        },
+      ],
+      "folders": [
+        {
+          "id": "tree-app",
+          "locked": false,
+          "name": "app",
+          "path": "app",
+          "role": "ui-layer",
+          "source": "imported",
+          "type": "folder",
+        },
+      ],
+      "tree": [
+        {
+          "children": [
+            {
+              "content": "export default function Page() { return null; }
+",
+              "extension": ".tsx",
+              "id": "tree-app/page.tsx",
+              "includeContent": true,
+              "isBinary": false,
+              "locked": false,
+              "name": "page.tsx",
+              "path": "app/page.tsx",
+              "role": "unknown",
+              "size": 48,
+              "source": "imported",
+              "type": "file",
+            },
+          ],
+          "id": "tree-app",
+          "locked": false,
+          "name": "app",
+          "path": "app",
+          "role": "ui-layer",
+          "source": "imported",
+          "type": "folder",
+        },
+      ],
+    },
+    "tags": [
+      "react-next",
+      "react",
+      "nextjs",
+    ],
+    "tree": [
+      {
+        "children": [
+          {
+            "children": [],
+            "content": "export default function Page() { return null; }
+",
+            "id": "tree-app/page.tsx",
+            "locked": false,
+            "name": "page.tsx",
+            "source": "custom",
+            "type": "file",
+          },
+        ],
+        "id": "tree-app",
+        "locked": false,
+        "name": "app",
+        "source": "custom",
+        "type": "folder",
+      },
+    ],
+  },
+  {
+    "calls": [],
+    "outcome": {
+      "message": "Project created successfully at <base>/workspace/my-app.",
+      "projectPath": "<base>/workspace/my-app",
+      "success": true,
+    },
+    "progress": [
+      {
+        "message": "Preparing imported template Shop.",
+        "status": "running",
+        "step": "preflight",
+        "workflowId": "create-<time>",
+      },
+      {
+        "message": "Scaffolding project from imported template in <base>/workspace/my-app.",
+        "status": "running",
+        "step": "create-project",
+        "workflowId": "create-<time>",
+      },
+      {
+        "message": "Project created successfully at <base>/workspace/my-app.",
+        "status": "success",
+        "step": "complete",
+        "workflowId": "create-<time>",
+      },
+    ],
+    "project": {
+      "only.ts": "export {};
+",
+    },
+  },
+]
+`;
+
+exports[`imported templates golden > create into an existing folder: merges package.json, replaces scaffold roots 1`] = `
+[
+  "written",
+  {
+    "description": "Imported from shop with 3 files.",
+    "features": [
+      "component-based-ui",
+    ],
+    "fileCount": 3,
+    "id": "shop",
+    "metadata": {
+      "createdAt": "2026-10-14T00:00:01.000Z",
+      "fileCount": 3,
+      "folderCount": 2,
+      "originalFileCount": 18,
+      "selectedItemCount": 5,
+      "updatedAt": "2026-10-14T00:00:01.000Z",
+    },
+    "name": "Shop",
+    "savedAt": "2026-10-14T00:00:01.000Z",
+    "sourceProjectPath": "<base>/shop",
+    "stackDetection": {
+      "commands": {
+        "build": "npx next build",
+        "dev": "npx next dev",
+        "install": "npm install",
+        "start": "npx next start",
+      },
+      "confidence": 0.95,
+      "framework": "react",
+      "metaFramework": "nextjs",
+      "packageManager": "npm",
+      "reasons": [
+        "next dependency found",
+        "next.config.js exists",
+        "app folder exists",
+      ],
+      "stack": "react-next",
+      "warnings": [
+        "Environment files were excluded for safety.",
+      ],
+    },
+    "structure": {
+      "files": [
+        {
+          "content": "export const Button = () => null;
+",
+          "extension": ".tsx",
+          "id": "tree-components/Button.tsx",
+          "includeContent": true,
+          "isBinary": false,
+          "locked": false,
+          "name": "Button.tsx",
+          "path": "components/Button.tsx",
+          "role": "ui",
+          "size": 34,
+          "source": "imported",
+          "type": "file",
+        },
+        {
+          "content": "export {};
+",
+          "extension": ".ts",
+          "id": "tree-nested/kept.ts",
+          "includeContent": true,
+          "isBinary": false,
+          "locked": false,
+          "name": "kept.ts",
+          "path": "nested/kept.ts",
+          "role": "unknown",
+          "size": 11,
+          "source": "imported",
+          "type": "file",
+        },
+        {
+          "content": "{
+  "name": "shop",
+  "dependencies": {
+    "next": "15.0.0"
+  }
+}
+",
+          "extension": ".json",
+          "id": "tree-package.json",
+          "includeContent": true,
+          "isBinary": false,
+          "locked": false,
+          "name": "package.json",
+          "path": "package.json",
+          "role": "unknown",
+          "size": 67,
+          "source": "imported",
+          "type": "file",
+        },
+      ],
+      "folders": [
+        {
+          "id": "tree-components",
+          "locked": false,
+          "name": "components",
+          "path": "components",
+          "role": "shared-ui",
+          "source": "imported",
+          "type": "folder",
+        },
+        {
+          "id": "tree-nested",
+          "locked": false,
+          "name": "nested",
+          "path": "nested",
+          "role": "unknown",
+          "source": "imported",
+          "type": "folder",
+        },
+      ],
+      "tree": [
+        {
+          "children": [
+            {
+              "content": "export const Button = () => null;
+",
+              "extension": ".tsx",
+              "id": "tree-components/Button.tsx",
+              "includeContent": true,
+              "isBinary": false,
+              "locked": false,
+              "name": "Button.tsx",
+              "path": "components/Button.tsx",
+              "role": "ui",
+              "size": 34,
+              "source": "imported",
+              "type": "file",
+            },
+          ],
+          "id": "tree-components",
+          "locked": false,
+          "name": "components",
+          "path": "components",
+          "role": "shared-ui",
+          "source": "imported",
+          "type": "folder",
+        },
+        {
+          "children": [
+            {
+              "content": "export {};
+",
+              "extension": ".ts",
+              "id": "tree-nested/kept.ts",
+              "includeContent": true,
+              "isBinary": false,
+              "locked": false,
+              "name": "kept.ts",
+              "path": "nested/kept.ts",
+              "role": "unknown",
+              "size": 11,
+              "source": "imported",
+              "type": "file",
+            },
+          ],
+          "id": "tree-nested",
+          "locked": false,
+          "name": "nested",
+          "path": "nested",
+          "role": "unknown",
+          "source": "imported",
+          "type": "folder",
+        },
+        {
+          "content": "{
+  "name": "shop",
+  "dependencies": {
+    "next": "15.0.0"
+  }
+}
+",
+          "extension": ".json",
+          "id": "tree-package.json",
+          "includeContent": true,
+          "isBinary": false,
+          "locked": false,
+          "name": "package.json",
+          "path": "package.json",
+          "role": "unknown",
+          "size": 67,
+          "source": "imported",
+          "type": "file",
+        },
+      ],
+    },
+    "tags": [
+      "react-next",
+      "react",
+      "nextjs",
+      "component-based-ui",
+    ],
+    "tree": [
+      {
+        "children": [
+          {
+            "children": [],
+            "content": "export const Button = () => null;
+",
+            "id": "tree-components/Button.tsx",
+            "locked": false,
+            "name": "Button.tsx",
+            "source": "custom",
+            "type": "file",
+          },
+        ],
+        "id": "tree-components",
+        "locked": false,
+        "name": "components",
+        "source": "custom",
+        "type": "folder",
+      },
+      {
+        "children": [
+          {
+            "children": [],
+            "content": "export {};
+",
+            "id": "tree-nested/kept.ts",
+            "locked": false,
+            "name": "kept.ts",
+            "source": "custom",
+            "type": "file",
+          },
+        ],
+        "id": "tree-nested",
+        "locked": false,
+        "name": "nested",
+        "source": "custom",
+        "type": "folder",
+      },
+      {
+        "children": [],
+        "content": "{
+  "name": "shop",
+  "dependencies": {
+    "next": "15.0.0"
+  }
+}
+",
+        "id": "tree-package.json",
+        "locked": false,
+        "name": "package.json",
+        "source": "custom",
+        "type": "file",
+      },
+    ],
+  },
+  {
+    "calls": [
+      {
+        "args": [
+          "install",
+        ],
+        "command": "npm",
+        "cwd": "<base>/workspace/my-app",
+      },
+    ],
+    "outcome": {
+      "message": "Project created successfully at <base>/workspace/my-app.",
+      "projectPath": "<base>/workspace/my-app",
+      "success": true,
+    },
+    "progress": [
+      {
+        "message": "Preparing imported template Shop.",
+        "status": "running",
+        "step": "preflight",
+        "workflowId": "create-<time>",
+      },
+      {
+        "message": "Scaffolding project from imported template in <base>/workspace/my-app.",
+        "status": "running",
+        "step": "create-project",
+        "workflowId": "create-<time>",
+      },
+      {
+        "message": "Installing project dependencies.",
+        "status": "running",
+        "step": "install-dependencies",
+        "workflowId": "create-<time>",
+      },
+      {
+        "message": "Project created successfully at <base>/workspace/my-app.",
+        "status": "success",
+        "step": "complete",
+        "workflowId": "create-<time>",
+      },
+    ],
+    "project": {
+      "components/Button.tsx": "export const Button = () => null;
+",
+      "nested/kept.ts": "export {};
+",
+      "nested/mine.ts": "mine
+",
+      "package.json": "{
+  "name": "mine",
+  "dependencies": {
+    "next": "15.0.0",
+    "react": "18.0.0"
+  },
+  "scripts": {
+    "dev": "vite"
+  }
+}
+",
+    },
+  },
+]
+`;
+
+exports[`imported templates golden > create with no template chosen, and with one that is gone 1`] = `
+[
+  {
+    "threw": "Select an imported template before creating the project.",
+  },
+  {
+    "threw": "Imported template "gone" was not found.",
+  },
+]
+`;
+
+exports[`imported templates golden > delete 1`] = `
+[
+  {
+    "description": "Imported from shop with 1 file.",
+    "features": [],
+    "fileCount": 1,
+    "id": "doomed",
+    "metadata": {
+      "createdAt": "2026-10-14T00:00:00.000Z",
+      "fileCount": 1,
+      "folderCount": 0,
+      "originalFileCount": 18,
+      "selectedItemCount": 1,
+      "updatedAt": "2026-10-14T00:00:00.000Z",
+    },
+    "name": "Doomed",
+    "savedAt": "2026-10-14T00:00:00.000Z",
+    "sourceProjectPath": "<base>/shop",
+    "stackDetection": {
+      "commands": {
+        "build": "npx next build",
+        "dev": "npx next dev",
+        "install": "npm install",
+        "start": "npx next start",
+      },
+      "confidence": 0.95,
+      "framework": "react",
+      "metaFramework": "nextjs",
+      "packageManager": "npm",
+      "reasons": [
+        "next dependency found",
+        "next.config.js exists",
+        "app folder exists",
+      ],
+      "stack": "react-next",
+      "warnings": [
+        "Environment files were excluded for safety.",
+      ],
+    },
+    "structure": {
+      "files": [
+        {
+          "content": "{
+  "name": "shop",
+  "dependencies": {
+    "next": "15.0.0"
+  }
+}
+",
+          "extension": ".json",
+          "id": "tree-package.json",
+          "includeContent": true,
+          "isBinary": false,
+          "locked": false,
+          "name": "package.json",
+          "path": "package.json",
+          "role": "unknown",
+          "size": 67,
+          "source": "imported",
+          "type": "file",
+        },
+      ],
+      "folders": [],
+      "tree": [
+        {
+          "content": "{
+  "name": "shop",
+  "dependencies": {
+    "next": "15.0.0"
+  }
+}
+",
+          "extension": ".json",
+          "id": "tree-package.json",
+          "includeContent": true,
+          "isBinary": false,
+          "locked": false,
+          "name": "package.json",
+          "path": "package.json",
+          "role": "unknown",
+          "size": 67,
+          "source": "imported",
+          "type": "file",
+        },
+      ],
+    },
+    "tags": [
+      "react-next",
+      "react",
+      "nextjs",
+    ],
+    "tree": [
+      {
+        "children": [],
+        "content": "{
+  "name": "shop",
+  "dependencies": {
+    "next": "15.0.0"
+  }
+}
+",
+        "id": "tree-package.json",
+        "locked": false,
+        "name": "package.json",
+        "source": "custom",
+        "type": "file",
+      },
+    ],
+  },
+  null,
+  [],
+  {
+    "threw": "Imported template "doomed" was not found.",
+  },
+]
+`;
+
+exports[`imported templates golden > missing templates 1`] = `
+[
+  {
+    "threw": "Imported template "nope" was not found.",
+  },
+  {
+    "threw": "Imported template "nope" was not found.",
+  },
+  {
+    "threw": "Imported template "nope" was not found.",
+  },
+]
+`;
+
+exports[`imported templates golden > rename, edit the tree, then a blank name keeps it 1`] = `
+[
+  {
+    "description": "Imported from shop with 2 files.",
+    "features": [
+      "component-based-ui",
+    ],
+    "fileCount": 2,
+    "id": "editable",
+    "metadata": {
+      "createdAt": "2026-10-14T00:00:00.000Z",
+      "fileCount": 2,
+      "folderCount": 2,
+      "originalFileCount": 18,
+      "selectedItemCount": 4,
+      "updatedAt": "2026-10-14T00:00:00.000Z",
+    },
+    "name": "Editable",
+    "savedAt": "2026-10-14T00:00:00.000Z",
+    "sourceProjectPath": "<base>/shop",
+    "stackDetection": {
+      "commands": {
+        "build": "npx next build",
+        "dev": "npx next dev",
+        "install": "npm install",
+        "start": "npx next start",
+      },
+      "confidence": 0.95,
+      "framework": "react",
+      "metaFramework": "nextjs",
+      "packageManager": "npm",
+      "reasons": [
+        "next dependency found",
+        "next.config.js exists",
+        "app folder exists",
+      ],
+      "stack": "react-next",
+      "warnings": [
+        "Environment files were excluded for safety.",
+      ],
+    },
+    "structure": {
+      "files": [
+        {
+          "content": "export default function Page() { return null; }
+",
+          "extension": ".tsx",
+          "id": "tree-app/page.tsx",
+          "includeContent": true,
+          "isBinary": false,
+          "locked": false,
+          "name": "page.tsx",
+          "path": "app/page.tsx",
+          "role": "unknown",
+          "size": 48,
+          "source": "imported",
+          "type": "file",
+        },
+        {
+          "content": "export const Button = () => null;
+",
+          "extension": ".tsx",
+          "id": "tree-components/Button.tsx",
+          "includeContent": true,
+          "isBinary": false,
+          "locked": false,
+          "name": "Button.tsx",
+          "path": "components/Button.tsx",
+          "role": "ui",
+          "size": 34,
+          "source": "imported",
+          "type": "file",
+        },
+      ],
+      "folders": [
+        {
+          "id": "tree-app",
+          "locked": false,
+          "name": "app",
+          "path": "app",
+          "role": "ui-layer",
+          "source": "imported",
+          "type": "folder",
+        },
+        {
+          "id": "tree-components",
+          "locked": false,
+          "name": "components",
+          "path": "components",
+          "role": "shared-ui",
+          "source": "imported",
+          "type": "folder",
+        },
+      ],
+      "tree": [
+        {
+          "children": [
+            {
+              "content": "export default function Page() { return null; }
+",
+              "extension": ".tsx",
+              "id": "tree-app/page.tsx",
+              "includeContent": true,
+              "isBinary": false,
+              "locked": false,
+              "name": "page.tsx",
+              "path": "app/page.tsx",
+              "role": "unknown",
+              "size": 48,
+              "source": "imported",
+              "type": "file",
+            },
+          ],
+          "id": "tree-app",
+          "locked": false,
+          "name": "app",
+          "path": "app",
+          "role": "ui-layer",
+          "source": "imported",
+          "type": "folder",
+        },
+        {
+          "children": [
+            {
+              "content": "export const Button = () => null;
+",
+              "extension": ".tsx",
+              "id": "tree-components/Button.tsx",
+              "includeContent": true,
+              "isBinary": false,
+              "locked": false,
+              "name": "Button.tsx",
+              "path": "components/Button.tsx",
+              "role": "ui",
+              "size": 34,
+              "source": "imported",
+              "type": "file",
+            },
+          ],
+          "id": "tree-components",
+          "locked": false,
+          "name": "components",
+          "path": "components",
+          "role": "shared-ui",
+          "source": "imported",
+          "type": "folder",
+        },
+      ],
+    },
+    "tags": [
+      "react-next",
+      "react",
+      "nextjs",
+      "component-based-ui",
+    ],
+    "tree": [
+      {
+        "children": [
+          {
+            "children": [],
+            "content": "export default function Page() { return null; }
+",
+            "id": "tree-app/page.tsx",
+            "locked": false,
+            "name": "page.tsx",
+            "source": "custom",
+            "type": "file",
+          },
+        ],
+        "id": "tree-app",
+        "locked": false,
+        "name": "app",
+        "source": "custom",
+        "type": "folder",
+      },
+      {
+        "children": [
+          {
+            "children": [],
+            "content": "export const Button = () => null;
+",
+            "id": "tree-components/Button.tsx",
+            "locked": false,
+            "name": "Button.tsx",
+            "source": "custom",
+            "type": "file",
+          },
+        ],
+        "id": "tree-components",
+        "locked": false,
+        "name": "components",
+        "source": "custom",
+        "type": "folder",
+      },
+    ],
+  },
+  {
+    "description": "Imported from shop with 2 files.",
+    "features": [
+      "component-based-ui",
+      "authentication",
+    ],
+    "fileCount": 2,
+    "id": "editable",
+    "metadata": {
+      "createdAt": "2026-10-14T00:00:00.000Z",
+      "fileCount": 2,
+      "folderCount": 1,
+      "originalFileCount": 18,
+      "selectedItemCount": 3,
+      "updatedAt": "2026-10-14T00:00:01.000Z",
+    },
+    "name": "Renamed",
+    "savedAt": "2026-10-14T00:00:01.000Z",
+    "sourceProjectPath": "<base>/shop",
+    "stackDetection": {
+      "commands": {
+        "build": "npx next build",
+        "dev": "npx next dev",
+        "install": "npm install",
+        "start": "npx next start",
+      },
+      "confidence": 0.95,
+      "framework": "react",
+      "metaFramework": "nextjs",
+      "packageManager": "npm",
+      "reasons": [
+        "next dependency found",
+        "next.config.js exists",
+        "app folder exists",
+      ],
+      "stack": "react-next",
+      "warnings": [
+        "Environment files were excluded for safety.",
+      ],
+    },
+    "structure": {
+      "files": [
+        {
+          "content": "export {};
+",
+          "extension": ".tsx",
+          "id": "custom-Card.tsx",
+          "includeContent": true,
+          "isBinary": false,
+          "locked": false,
+          "name": "Card.tsx",
+          "path": "components/Card.tsx",
+          "role": "unknown",
+          "source": "custom",
+          "type": "file",
+        },
+        {
+          "content": "export {};
+",
+          "extension": ".ts",
+          "id": "custom-auth.ts",
+          "includeContent": true,
+          "isBinary": false,
+          "locked": false,
+          "name": "auth.ts",
+          "path": "auth.ts",
+          "role": "unknown",
+          "source": "custom",
+          "type": "file",
+        },
+      ],
+      "folders": [
+        {
+          "id": "f-components",
+          "locked": false,
+          "name": "components",
+          "path": "components",
+          "role": "unknown",
+          "source": "custom",
+          "type": "folder",
+        },
+      ],
+      "tree": [
+        {
+          "children": [
+            {
+              "content": "export {};
+",
+              "extension": ".tsx",
+              "id": "custom-Card.tsx",
+              "includeContent": true,
+              "isBinary": false,
+              "locked": false,
+              "name": "Card.tsx",
+              "path": "components/Card.tsx",
+              "role": "unknown",
+              "source": "custom",
+              "type": "file",
+            },
+          ],
+          "id": "f-components",
+          "locked": false,
+          "name": "components",
+          "path": "components",
+          "role": "unknown",
+          "source": "custom",
+          "type": "folder",
+        },
+        {
+          "content": "export {};
+",
+          "extension": ".ts",
+          "id": "custom-auth.ts",
+          "includeContent": true,
+          "isBinary": false,
+          "locked": false,
+          "name": "auth.ts",
+          "path": "auth.ts",
+          "role": "unknown",
+          "source": "custom",
+          "type": "file",
+        },
+      ],
+    },
+    "tags": [
+      "react-next",
+      "react",
+      "nextjs",
+      "component-based-ui",
+      "authentication",
+    ],
+    "tree": [
+      {
+        "children": [
+          {
+            "children": [],
+            "content": "export {};
+",
+            "id": "custom-Card.tsx",
+            "locked": false,
+            "name": "Card.tsx",
+            "source": "custom",
+            "type": "file",
+          },
+        ],
+        "id": "f-components",
+        "locked": false,
+        "name": "components",
+        "source": "custom",
+        "type": "folder",
+      },
+      {
+        "children": [],
+        "content": "export {};
+",
+        "id": "custom-auth.ts",
+        "locked": false,
+        "name": "auth.ts",
+        "source": "custom",
+        "type": "file",
+      },
+    ],
+  },
+  {
+    "description": "Imported from shop with 2 files.",
+    "features": [
+      "component-based-ui",
+      "authentication",
+    ],
+    "fileCount": 2,
+    "id": "editable",
+    "metadata": {
+      "createdAt": "2026-10-14T00:00:00.000Z",
+      "fileCount": 2,
+      "folderCount": 1,
+      "originalFileCount": 18,
+      "selectedItemCount": 3,
+      "updatedAt": "2026-10-14T00:00:02.000Z",
+    },
+    "name": "Renamed",
+    "savedAt": "2026-10-14T00:00:02.000Z",
+    "sourceProjectPath": "<base>/shop",
+    "stackDetection": {
+      "commands": {
+        "build": "npx next build",
+        "dev": "npx next dev",
+        "install": "npm install",
+        "start": "npx next start",
+      },
+      "confidence": 0.95,
+      "framework": "react",
+      "metaFramework": "nextjs",
+      "packageManager": "npm",
+      "reasons": [
+        "next dependency found",
+        "next.config.js exists",
+        "app folder exists",
+      ],
+      "stack": "react-next",
+      "warnings": [
+        "Environment files were excluded for safety.",
+      ],
+    },
+    "structure": {
+      "files": [
+        {
+          "content": "export {};
+",
+          "extension": ".tsx",
+          "id": "custom-Card.tsx",
+          "includeContent": true,
+          "isBinary": false,
+          "locked": false,
+          "name": "Card.tsx",
+          "path": "components/Card.tsx",
+          "role": "unknown",
+          "source": "custom",
+          "type": "file",
+        },
+        {
+          "content": "export {};
+",
+          "extension": ".ts",
+          "id": "custom-auth.ts",
+          "includeContent": true,
+          "isBinary": false,
+          "locked": false,
+          "name": "auth.ts",
+          "path": "auth.ts",
+          "role": "unknown",
+          "source": "custom",
+          "type": "file",
+        },
+      ],
+      "folders": [
+        {
+          "id": "f-components",
+          "locked": false,
+          "name": "components",
+          "path": "components",
+          "role": "unknown",
+          "source": "custom",
+          "type": "folder",
+        },
+      ],
+      "tree": [
+        {
+          "children": [
+            {
+              "content": "export {};
+",
+              "extension": ".tsx",
+              "id": "custom-Card.tsx",
+              "includeContent": true,
+              "isBinary": false,
+              "locked": false,
+              "name": "Card.tsx",
+              "path": "components/Card.tsx",
+              "role": "unknown",
+              "source": "custom",
+              "type": "file",
+            },
+          ],
+          "id": "f-components",
+          "locked": false,
+          "name": "components",
+          "path": "components",
+          "role": "unknown",
+          "source": "custom",
+          "type": "folder",
+        },
+        {
+          "content": "export {};
+",
+          "extension": ".ts",
+          "id": "custom-auth.ts",
+          "includeContent": true,
+          "isBinary": false,
+          "locked": false,
+          "name": "auth.ts",
+          "path": "auth.ts",
+          "role": "unknown",
+          "source": "custom",
+          "type": "file",
+        },
+      ],
+    },
+    "tags": [
+      "react-next",
+      "react",
+      "nextjs",
+      "component-based-ui",
+      "authentication",
+    ],
+    "tree": [
+      {
+        "children": [
+          {
+            "children": [],
+            "content": "export {};
+",
+            "id": "custom-Card.tsx",
+            "locked": false,
+            "name": "Card.tsx",
+            "source": "custom",
+            "type": "file",
+          },
+        ],
+        "id": "f-components",
+        "locked": false,
+        "name": "components",
+        "source": "custom",
+        "type": "folder",
+      },
+      {
+        "children": [],
+        "content": "export {};
+",
+        "id": "custom-auth.ts",
+        "locked": false,
+        "name": "auth.ts",
+        "source": "custom",
+        "type": "file",
+      },
+    ],
+  },
+  [
+    {
+      "description": "Imported from shop with 2 files.",
+      "fileCount": 2,
+      "id": "editable",
+      "name": "Renamed",
+      "savedAt": "2026-10-14T00:00:02.000Z",
+      "sourceProjectPath": "<base>/shop",
+      "stack": "react-next",
+    },
+  ],
+]
+`;
+
+exports[`imported templates golden > save a partial selection under default names 1`] = `
+[
+  {
+    "description": "Imported from shop with 3 files.",
+    "features": [
+      "component-based-ui",
+    ],
+    "fileCount": 3,
+    "id": "laz-temp-001",
+    "metadata": {
+      "createdAt": "2026-10-14T00:00:00.000Z",
+      "fileCount": 3,
+      "folderCount": 4,
+      "originalFileCount": 18,
+      "selectedItemCount": 7,
+      "updatedAt": "2026-10-14T00:00:00.000Z",
+    },
+    "name": "laz-temp-001",
+    "savedAt": "2026-10-14T00:00:00.000Z",
+    "sourceProjectPath": "<base>/shop",
+    "stackDetection": {
+      "commands": {
+        "build": "npx next build",
+        "dev": "npx next dev",
+        "install": "npm install",
+        "start": "npx next start",
+      },
+      "confidence": 0.95,
+      "framework": "react",
+      "metaFramework": "nextjs",
+      "packageManager": "npm",
+      "reasons": [
+        "next dependency found",
+        "next.config.js exists",
+        "app folder exists",
+      ],
+      "stack": "react-next",
+      "warnings": [
+        "Environment files were excluded for safety.",
+      ],
+    },
+    "structure": {
+      "files": [
+        {
+          "content": "export default function Page() { return null; }
+",
+          "extension": ".tsx",
+          "id": "tree-app/page.tsx",
+          "includeContent": true,
+          "isBinary": false,
+          "locked": false,
+          "name": "page.tsx",
+          "path": "app/page.tsx",
+          "role": "unknown",
+          "size": 48,
+          "source": "imported",
+          "type": "file",
+        },
+        {
+          "content": "export const Button = () => null;
+",
+          "extension": ".tsx",
+          "id": "tree-components/Button.tsx",
+          "includeContent": true,
+          "isBinary": false,
+          "locked": false,
+          "name": "Button.tsx",
+          "path": "components/Button.tsx",
+          "role": "ui",
+          "size": 34,
+          "source": "imported",
+          "type": "file",
+        },
+        {
+          "content": "export const client = {};
+",
+          "extension": ".ts",
+          "id": "tree-src/api/client.ts",
+          "includeContent": true,
+          "isBinary": false,
+          "locked": false,
+          "name": "client.ts",
+          "path": "src/api/client.ts",
+          "role": "api",
+          "size": 26,
+          "source": "imported",
+          "type": "file",
+        },
+      ],
+      "folders": [
+        {
+          "id": "tree-app",
+          "locked": false,
+          "name": "app",
+          "path": "app",
+          "role": "ui-layer",
+          "source": "imported",
+          "type": "folder",
+        },
+        {
+          "id": "tree-components",
+          "locked": false,
+          "name": "components",
+          "path": "components",
+          "role": "shared-ui",
+          "source": "imported",
+          "type": "folder",
+        },
+        {
+          "id": "tree-src",
+          "locked": false,
+          "name": "src",
+          "path": "src",
+          "role": "ui-layer",
+          "source": "imported",
+          "type": "folder",
+        },
+        {
+          "id": "tree-src/api",
+          "locked": false,
+          "name": "api",
+          "path": "src/api",
+          "role": "data-layer",
+          "source": "imported",
+          "type": "folder",
+        },
+      ],
+      "tree": [
+        {
+          "children": [
+            {
+              "content": "export default function Page() { return null; }
+",
+              "extension": ".tsx",
+              "id": "tree-app/page.tsx",
+              "includeContent": true,
+              "isBinary": false,
+              "locked": false,
+              "name": "page.tsx",
+              "path": "app/page.tsx",
+              "role": "unknown",
+              "size": 48,
+              "source": "imported",
+              "type": "file",
+            },
+          ],
+          "id": "tree-app",
+          "locked": false,
+          "name": "app",
+          "path": "app",
+          "role": "ui-layer",
+          "source": "imported",
+          "type": "folder",
+        },
+        {
+          "children": [
+            {
+              "content": "export const Button = () => null;
+",
+              "extension": ".tsx",
+              "id": "tree-components/Button.tsx",
+              "includeContent": true,
+              "isBinary": false,
+              "locked": false,
+              "name": "Button.tsx",
+              "path": "components/Button.tsx",
+              "role": "ui",
+              "size": 34,
+              "source": "imported",
+              "type": "file",
+            },
+          ],
+          "id": "tree-components",
+          "locked": false,
+          "name": "components",
+          "path": "components",
+          "role": "shared-ui",
+          "source": "imported",
+          "type": "folder",
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "content": "export const client = {};
+",
+                  "extension": ".ts",
+                  "id": "tree-src/api/client.ts",
+                  "includeContent": true,
+                  "isBinary": false,
+                  "locked": false,
+                  "name": "client.ts",
+                  "path": "src/api/client.ts",
+                  "role": "api",
+                  "size": 26,
+                  "source": "imported",
+                  "type": "file",
+                },
+              ],
+              "id": "tree-src/api",
+              "locked": false,
+              "name": "api",
+              "path": "src/api",
+              "role": "data-layer",
+              "source": "imported",
+              "type": "folder",
+            },
+          ],
+          "id": "tree-src",
+          "locked": false,
+          "name": "src",
+          "path": "src",
+          "role": "ui-layer",
+          "source": "imported",
+          "type": "folder",
+        },
+      ],
+    },
+    "tags": [
+      "react-next",
+      "react",
+      "nextjs",
+      "component-based-ui",
+    ],
+    "tree": [
+      {
+        "children": [
+          {
+            "children": [],
+            "content": "export default function Page() { return null; }
+",
+            "id": "tree-app/page.tsx",
+            "locked": false,
+            "name": "page.tsx",
+            "source": "custom",
+            "type": "file",
+          },
+        ],
+        "id": "tree-app",
+        "locked": false,
+        "name": "app",
+        "source": "custom",
+        "type": "folder",
+      },
+      {
+        "children": [
+          {
+            "children": [],
+            "content": "export const Button = () => null;
+",
+            "id": "tree-components/Button.tsx",
+            "locked": false,
+            "name": "Button.tsx",
+            "source": "custom",
+            "type": "file",
+          },
+        ],
+        "id": "tree-components",
+        "locked": false,
+        "name": "components",
+        "source": "custom",
+        "type": "folder",
+      },
+      {
+        "children": [
+          {
+            "children": [
+              {
+                "children": [],
+                "content": "export const client = {};
+",
+                "id": "tree-src/api/client.ts",
+                "locked": false,
+                "name": "client.ts",
+                "source": "custom",
+                "type": "file",
+              },
+            ],
+            "id": "tree-src/api",
+            "locked": false,
+            "name": "api",
+            "source": "custom",
+            "type": "folder",
+          },
+        ],
+        "id": "tree-src",
+        "locked": false,
+        "name": "src",
+        "source": "custom",
+        "type": "folder",
+      },
+    ],
+  },
+  {
+    "description": "Imported from shop with 1 file.",
+    "features": [],
+    "fileCount": 1,
+    "id": "laz-temp-002",
+    "metadata": {
+      "createdAt": "2026-10-14T00:00:01.000Z",
+      "fileCount": 1,
+      "folderCount": 0,
+      "originalFileCount": 18,
+      "selectedItemCount": 1,
+      "updatedAt": "2026-10-14T00:00:01.000Z",
+    },
+    "name": "laz-temp-002",
+    "savedAt": "2026-10-14T00:00:01.000Z",
+    "sourceProjectPath": "<base>/shop",
+    "stackDetection": {
+      "commands": {
+        "build": "npx next build",
+        "dev": "npx next dev",
+        "install": "npm install",
+        "start": "npx next start",
+      },
+      "confidence": 0.95,
+      "framework": "react",
+      "metaFramework": "nextjs",
+      "packageManager": "npm",
+      "reasons": [
+        "next dependency found",
+        "next.config.js exists",
+        "app folder exists",
+      ],
+      "stack": "react-next",
+      "warnings": [
+        "Environment files were excluded for safety.",
+      ],
+    },
+    "structure": {
+      "files": [
+        {
+          "content": "{
+  "name": "shop",
+  "dependencies": {
+    "next": "15.0.0"
+  }
+}
+",
+          "extension": ".json",
+          "id": "tree-package.json",
+          "includeContent": true,
+          "isBinary": false,
+          "locked": false,
+          "name": "package.json",
+          "path": "package.json",
+          "role": "unknown",
+          "size": 67,
+          "source": "imported",
+          "type": "file",
+        },
+      ],
+      "folders": [],
+      "tree": [
+        {
+          "content": "{
+  "name": "shop",
+  "dependencies": {
+    "next": "15.0.0"
+  }
+}
+",
+          "extension": ".json",
+          "id": "tree-package.json",
+          "includeContent": true,
+          "isBinary": false,
+          "locked": false,
+          "name": "package.json",
+          "path": "package.json",
+          "role": "unknown",
+          "size": 67,
+          "source": "imported",
+          "type": "file",
+        },
+      ],
+    },
+    "tags": [
+      "react-next",
+      "react",
+      "nextjs",
+    ],
+    "tree": [
+      {
+        "children": [],
+        "content": "{
+  "name": "shop",
+  "dependencies": {
+    "next": "15.0.0"
+  }
+}
+",
+        "id": "tree-package.json",
+        "locked": false,
+        "name": "package.json",
+        "source": "custom",
+        "type": "file",
+      },
+    ],
+  },
+  [
+    {
+      "description": "Imported from shop with 1 file.",
+      "fileCount": 1,
+      "id": "laz-temp-002",
+      "name": "laz-temp-002",
+      "savedAt": "2026-10-14T00:00:01.000Z",
+      "sourceProjectPath": "<base>/shop",
+      "stack": "react-next",
+    },
+    {
+      "description": "Imported from shop with 3 files.",
+      "fileCount": 3,
+      "id": "laz-temp-001",
+      "name": "laz-temp-001",
+      "savedAt": "2026-10-14T00:00:00.000Z",
+      "sourceProjectPath": "<base>/shop",
+      "stack": "react-next",
+    },
+  ],
+]
+`;
+
+exports[`imported templates golden > save a whole Next project, then list it 1`] = `
+[
+  {
+    "description": "Imported from shop with 27 files.",
+    "features": [
+      "component-based-ui",
+      "tab-navigation",
+      "localization",
+    ],
+    "fileCount": 18,
+    "id": "shop-starter",
+    "metadata": {
+      "createdAt": "2026-10-14T00:00:00.000Z",
+      "fileCount": 18,
+      "folderCount": 8,
+      "originalFileCount": 18,
+      "selectedItemCount": 26,
+      "updatedAt": "2026-10-14T00:00:00.000Z",
+    },
+    "name": "Shop starter",
+    "savedAt": "2026-10-14T00:00:00.000Z",
+    "sourceProjectPath": "<base>/shop",
+    "stackDetection": {
+      "commands": {
+        "build": "npx next build",
+        "dev": "npx next dev",
+        "install": "npm install",
+        "start": "npx next start",
+      },
+      "confidence": 0.95,
+      "framework": "react",
+      "metaFramework": "nextjs",
+      "packageManager": "npm",
+      "reasons": [
+        "next dependency found",
+        "next.config.js exists",
+        "app folder exists",
+      ],
+      "stack": "react-next",
+      "warnings": [
+        "Environment files were excluded for safety.",
+        "Binary files were stored as references only.",
+      ],
+    },
+    "structure": {
+      "files": [
+        {
+          "content": "export default function Home() { return null; }
+",
+          "extension": ".tsx",
+          "id": "tree-app/(tabs)/home.tsx",
+          "includeContent": true,
+          "isBinary": false,
+          "locked": false,
+          "name": "home.tsx",
+          "path": "app/(tabs)/home.tsx",
+          "role": "unknown",
+          "size": 48,
+          "source": "imported",
+          "type": "file",
+        },
+        {
+          "content": "export default function Layout() { return null; }
+",
+          "extension": ".tsx",
+          "id": "tree-app/layout.tsx",
+          "includeContent": true,
+          "isBinary": false,
+          "locked": false,
+          "name": "layout.tsx",
+          "path": "app/layout.tsx",
+          "role": "unknown",
+          "size": 50,
+          "source": "imported",
+          "type": "file",
+        },
+        {
+          "content": "export default function Page() { return null; }
+",
+          "extension": ".tsx",
+          "id": "tree-app/page.tsx",
+          "includeContent": true,
+          "isBinary": false,
+          "locked": false,
+          "name": "page.tsx",
+          "path": "app/page.tsx",
+          "role": "unknown",
+          "size": 48,
+          "source": "imported",
+          "type": "file",
+        },
+        {
+          "content": "export const Button = () => null;
+",
+          "extension": ".tsx",
+          "id": "tree-components/Button.tsx",
+          "includeContent": true,
+          "isBinary": false,
+          "locked": false,
+          "name": "Button.tsx",
+          "path": "components/Button.tsx",
+          "role": "ui",
+          "size": 34,
+          "source": "imported",
+          "type": "file",
+        },
+        {
+          "content": "export {};
+",
+          "extension": ".tsx",
+          "id": "tree-components/Item9.tsx",
+          "includeContent": true,
+          "isBinary": false,
+          "locked": false,
+          "name": "Item9.tsx",
+          "path": "components/Item9.tsx",
+          "role": "ui",
+          "size": 11,
+          "source": "imported",
+          "type": "file",
+        },
+        {
+          "content": "export {};
+",
+          "extension": ".tsx",
+          "id": "tree-components/Item10.tsx",
+          "includeContent": true,
+          "isBinary": false,
+          "locked": false,
+          "name": "Item10.tsx",
+          "path": "components/Item10.tsx",
+          "role": "ui",
+          "size": 11,
+          "source": "imported",
+          "type": "file",
+        },
+        {
+          "extension": "",
+          "id": "tree-nested/.gitignore",
+          "includeContent": false,
+          "isBinary": true,
+          "locked": false,
+          "name": ".gitignore",
+          "path": "nested/.gitignore",
+          "role": "unknown",
+          "size": 11,
+          "source": "imported",
+          "type": "file",
+        },
+        {
+          "content": "export {};
+",
+          "extension": ".ts",
+          "id": "tree-nested/kept.ts",
+          "includeContent": true,
+          "isBinary": false,
+          "locked": false,
+          "name": "kept.ts",
+          "path": "nested/kept.ts",
+          "role": "unknown",
+          "size": 11,
+          "source": "imported",
+          "type": "file",
+        },
+        {
+          "extension": ".png",
+          "id": "tree-public/logo.png",
+          "includeContent": false,
+          "isBinary": true,
+          "locked": false,
+          "name": "logo.png",
+          "path": "public/logo.png",
+          "role": "unknown",
+          "size": 9,
+          "source": "imported",
+          "type": "file",
+        },
+        {
+          "content": "export const client = {};
+",
+          "extension": ".ts",
+          "id": "tree-src/api/client.ts",
+          "includeContent": true,
+          "isBinary": false,
+          "locked": false,
+          "name": "client.ts",
+          "path": "src/api/client.ts",
+          "role": "api",
+          "size": 26,
+          "source": "imported",
+          "type": "file",
+        },
+        {
+          "content": "{}
+",
+          "extension": ".json",
+          "id": "tree-src/i18n/en.json",
+          "includeContent": true,
+          "isBinary": false,
+          "locked": false,
+          "name": "en.json",
+          "path": "src/i18n/en.json",
+          "role": "unknown",
+          "size": 3,
+          "source": "imported",
+          "type": "file",
+        },
+        {
+          "extension": "",
+          "id": "tree-.gitignore",
+          "includeContent": false,
+          "isBinary": true,
+          "locked": false,
+          "name": ".gitignore",
+          "path": ".gitignore",
+          "role": "unknown",
+          "size": 45,
+          "source": "imported",
+          "type": "file",
+        },
+        {
+          "extension": ".log",
+          "id": "tree-keep.log",
+          "includeContent": false,
+          "isBinary": true,
+          "locked": false,
+          "name": "keep.log",
+          "path": "keep.log",
+          "role": "unknown",
+          "size": 5,
+          "source": "imported",
+          "type": "file",
+        },
+        {
+          "content": "module.exports = {};
+",
+          "extension": ".js",
+          "id": "tree-next.config.js",
+          "includeContent": true,
+          "isBinary": false,
+          "locked": false,
+          "name": "next.config.js",
+          "path": "next.config.js",
+          "role": "config",
+          "size": 21,
+          "source": "imported",
+          "type": "file",
+        },
+        {
+          "extension": ".txt",
+          "id": "tree-notes.txt",
+          "includeContent": false,
+          "isBinary": true,
+          "locked": false,
+          "name": "notes.txt",
+          "path": "notes.txt",
+          "role": "unknown",
+          "size": 12,
+          "source": "imported",
+          "type": "file",
+        },
+        {
+          "content": "{}
+",
+          "extension": ".json",
+          "id": "tree-package-lock.json",
+          "includeContent": true,
+          "isBinary": false,
+          "locked": false,
+          "name": "package-lock.json",
+          "path": "package-lock.json",
+          "role": "unknown",
+          "size": 3,
+          "source": "imported",
+          "type": "file",
+        },
+        {
+          "content": "{
+  "name": "shop",
+  "dependencies": {
+    "next": "15.0.0"
+  }
+}
+",
+          "extension": ".json",
+          "id": "tree-package.json",
+          "includeContent": true,
+          "isBinary": false,
+          "locked": false,
+          "name": "package.json",
+          "path": "package.json",
+          "role": "unknown",
+          "size": 67,
+          "source": "imported",
+          "type": "file",
+        },
+        {
+          "content": "﻿# Shop
+",
+          "extension": ".md",
+          "id": "tree-README.md",
+          "includeContent": true,
+          "isBinary": false,
+          "locked": false,
+          "name": "README.md",
+          "path": "README.md",
+          "role": "unknown",
+          "size": 10,
+          "source": "imported",
+          "type": "file",
+        },
+      ],
+      "folders": [
+        {
+          "id": "tree-app",
+          "locked": false,
+          "name": "app",
+          "path": "app",
+          "role": "ui-layer",
+          "source": "imported",
+          "type": "folder",
+        },
+        {
+          "id": "tree-app/(tabs)",
+          "locked": false,
+          "name": "(tabs)",
+          "path": "app/(tabs)",
+          "role": "ui-layer",
+          "source": "imported",
+          "type": "folder",
+        },
+        {
+          "id": "tree-components",
+          "locked": false,
+          "name": "components",
+          "path": "components",
+          "role": "shared-ui",
+          "source": "imported",
+          "type": "folder",
+        },
+        {
+          "id": "tree-nested",
+          "locked": false,
+          "name": "nested",
+          "path": "nested",
+          "role": "unknown",
+          "source": "imported",
+          "type": "folder",
+        },
+        {
+          "id": "tree-public",
+          "locked": false,
+          "name": "public",
+          "path": "public",
+          "role": "unknown",
+          "source": "imported",
+          "type": "folder",
+        },
+        {
+          "id": "tree-src",
+          "locked": false,
+          "name": "src",
+          "path": "src",
+          "role": "ui-layer",
+          "source": "imported",
+          "type": "folder",
+        },
+        {
+          "id": "tree-src/api",
+          "locked": false,
+          "name": "api",
+          "path": "src/api",
+          "role": "data-layer",
+          "source": "imported",
+          "type": "folder",
+        },
+        {
+          "id": "tree-src/i18n",
+          "locked": false,
+          "name": "i18n",
+          "path": "src/i18n",
+          "role": "ui-layer",
+          "source": "imported",
+          "type": "folder",
+        },
+      ],
+      "tree": [
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "content": "export default function Home() { return null; }
+",
+                  "extension": ".tsx",
+                  "id": "tree-app/(tabs)/home.tsx",
+                  "includeContent": true,
+                  "isBinary": false,
+                  "locked": false,
+                  "name": "home.tsx",
+                  "path": "app/(tabs)/home.tsx",
+                  "role": "unknown",
+                  "size": 48,
+                  "source": "imported",
+                  "type": "file",
+                },
+              ],
+              "id": "tree-app/(tabs)",
+              "locked": false,
+              "name": "(tabs)",
+              "path": "app/(tabs)",
+              "role": "ui-layer",
+              "source": "imported",
+              "type": "folder",
+            },
+            {
+              "content": "export default function Layout() { return null; }
+",
+              "extension": ".tsx",
+              "id": "tree-app/layout.tsx",
+              "includeContent": true,
+              "isBinary": false,
+              "locked": false,
+              "name": "layout.tsx",
+              "path": "app/layout.tsx",
+              "role": "unknown",
+              "size": 50,
+              "source": "imported",
+              "type": "file",
+            },
+            {
+              "content": "export default function Page() { return null; }
+",
+              "extension": ".tsx",
+              "id": "tree-app/page.tsx",
+              "includeContent": true,
+              "isBinary": false,
+              "locked": false,
+              "name": "page.tsx",
+              "path": "app/page.tsx",
+              "role": "unknown",
+              "size": 48,
+              "source": "imported",
+              "type": "file",
+            },
+          ],
+          "id": "tree-app",
+          "locked": false,
+          "name": "app",
+          "path": "app",
+          "role": "ui-layer",
+          "source": "imported",
+          "type": "folder",
+        },
+        {
+          "children": [
+            {
+              "content": "export const Button = () => null;
+",
+              "extension": ".tsx",
+              "id": "tree-components/Button.tsx",
+              "includeContent": true,
+              "isBinary": false,
+              "locked": false,
+              "name": "Button.tsx",
+              "path": "components/Button.tsx",
+              "role": "ui",
+              "size": 34,
+              "source": "imported",
+              "type": "file",
+            },
+            {
+              "content": "export {};
+",
+              "extension": ".tsx",
+              "id": "tree-components/Item9.tsx",
+              "includeContent": true,
+              "isBinary": false,
+              "locked": false,
+              "name": "Item9.tsx",
+              "path": "components/Item9.tsx",
+              "role": "ui",
+              "size": 11,
+              "source": "imported",
+              "type": "file",
+            },
+            {
+              "content": "export {};
+",
+              "extension": ".tsx",
+              "id": "tree-components/Item10.tsx",
+              "includeContent": true,
+              "isBinary": false,
+              "locked": false,
+              "name": "Item10.tsx",
+              "path": "components/Item10.tsx",
+              "role": "ui",
+              "size": 11,
+              "source": "imported",
+              "type": "file",
+            },
+          ],
+          "id": "tree-components",
+          "locked": false,
+          "name": "components",
+          "path": "components",
+          "role": "shared-ui",
+          "source": "imported",
+          "type": "folder",
+        },
+        {
+          "children": [
+            {
+              "extension": "",
+              "id": "tree-nested/.gitignore",
+              "includeContent": false,
+              "isBinary": true,
+              "locked": false,
+              "name": ".gitignore",
+              "path": "nested/.gitignore",
+              "role": "unknown",
+              "size": 11,
+              "source": "imported",
+              "type": "file",
+            },
+            {
+              "content": "export {};
+",
+              "extension": ".ts",
+              "id": "tree-nested/kept.ts",
+              "includeContent": true,
+              "isBinary": false,
+              "locked": false,
+              "name": "kept.ts",
+              "path": "nested/kept.ts",
+              "role": "unknown",
+              "size": 11,
+              "source": "imported",
+              "type": "file",
+            },
+          ],
+          "id": "tree-nested",
+          "locked": false,
+          "name": "nested",
+          "path": "nested",
+          "role": "unknown",
+          "source": "imported",
+          "type": "folder",
+        },
+        {
+          "children": [
+            {
+              "extension": ".png",
+              "id": "tree-public/logo.png",
+              "includeContent": false,
+              "isBinary": true,
+              "locked": false,
+              "name": "logo.png",
+              "path": "public/logo.png",
+              "role": "unknown",
+              "size": 9,
+              "source": "imported",
+              "type": "file",
+            },
+          ],
+          "id": "tree-public",
+          "locked": false,
+          "name": "public",
+          "path": "public",
+          "role": "unknown",
+          "source": "imported",
+          "type": "folder",
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "content": "export const client = {};
+",
+                  "extension": ".ts",
+                  "id": "tree-src/api/client.ts",
+                  "includeContent": true,
+                  "isBinary": false,
+                  "locked": false,
+                  "name": "client.ts",
+                  "path": "src/api/client.ts",
+                  "role": "api",
+                  "size": 26,
+                  "source": "imported",
+                  "type": "file",
+                },
+              ],
+              "id": "tree-src/api",
+              "locked": false,
+              "name": "api",
+              "path": "src/api",
+              "role": "data-layer",
+              "source": "imported",
+              "type": "folder",
+            },
+            {
+              "children": [
+                {
+                  "content": "{}
+",
+                  "extension": ".json",
+                  "id": "tree-src/i18n/en.json",
+                  "includeContent": true,
+                  "isBinary": false,
+                  "locked": false,
+                  "name": "en.json",
+                  "path": "src/i18n/en.json",
+                  "role": "unknown",
+                  "size": 3,
+                  "source": "imported",
+                  "type": "file",
+                },
+              ],
+              "id": "tree-src/i18n",
+              "locked": false,
+              "name": "i18n",
+              "path": "src/i18n",
+              "role": "ui-layer",
+              "source": "imported",
+              "type": "folder",
+            },
+          ],
+          "id": "tree-src",
+          "locked": false,
+          "name": "src",
+          "path": "src",
+          "role": "ui-layer",
+          "source": "imported",
+          "type": "folder",
+        },
+        {
+          "extension": "",
+          "id": "tree-.gitignore",
+          "includeContent": false,
+          "isBinary": true,
+          "locked": false,
+          "name": ".gitignore",
+          "path": ".gitignore",
+          "role": "unknown",
+          "size": 45,
+          "source": "imported",
+          "type": "file",
+        },
+        {
+          "extension": ".log",
+          "id": "tree-keep.log",
+          "includeContent": false,
+          "isBinary": true,
+          "locked": false,
+          "name": "keep.log",
+          "path": "keep.log",
+          "role": "unknown",
+          "size": 5,
+          "source": "imported",
+          "type": "file",
+        },
+        {
+          "content": "module.exports = {};
+",
+          "extension": ".js",
+          "id": "tree-next.config.js",
+          "includeContent": true,
+          "isBinary": false,
+          "locked": false,
+          "name": "next.config.js",
+          "path": "next.config.js",
+          "role": "config",
+          "size": 21,
+          "source": "imported",
+          "type": "file",
+        },
+        {
+          "extension": ".txt",
+          "id": "tree-notes.txt",
+          "includeContent": false,
+          "isBinary": true,
+          "locked": false,
+          "name": "notes.txt",
+          "path": "notes.txt",
+          "role": "unknown",
+          "size": 12,
+          "source": "imported",
+          "type": "file",
+        },
+        {
+          "content": "{}
+",
+          "extension": ".json",
+          "id": "tree-package-lock.json",
+          "includeContent": true,
+          "isBinary": false,
+          "locked": false,
+          "name": "package-lock.json",
+          "path": "package-lock.json",
+          "role": "unknown",
+          "size": 3,
+          "source": "imported",
+          "type": "file",
+        },
+        {
+          "content": "{
+  "name": "shop",
+  "dependencies": {
+    "next": "15.0.0"
+  }
+}
+",
+          "extension": ".json",
+          "id": "tree-package.json",
+          "includeContent": true,
+          "isBinary": false,
+          "locked": false,
+          "name": "package.json",
+          "path": "package.json",
+          "role": "unknown",
+          "size": 67,
+          "source": "imported",
+          "type": "file",
+        },
+        {
+          "content": "﻿# Shop
+",
+          "extension": ".md",
+          "id": "tree-README.md",
+          "includeContent": true,
+          "isBinary": false,
+          "locked": false,
+          "name": "README.md",
+          "path": "README.md",
+          "role": "unknown",
+          "size": 10,
+          "source": "imported",
+          "type": "file",
+        },
+      ],
+    },
+    "tags": [
+      "react-next",
+      "react",
+      "nextjs",
+      "component-based-ui",
+      "tab-navigation",
+      "localization",
+    ],
+    "tree": [
+      {
+        "children": [
+          {
+            "children": [
+              {
+                "children": [],
+                "content": "export default function Home() { return null; }
+",
+                "id": "tree-app/(tabs)/home.tsx",
+                "locked": false,
+                "name": "home.tsx",
+                "source": "custom",
+                "type": "file",
+              },
+            ],
+            "id": "tree-app/(tabs)",
+            "locked": false,
+            "name": "(tabs)",
+            "source": "custom",
+            "type": "folder",
+          },
+          {
+            "children": [],
+            "content": "export default function Layout() { return null; }
+",
+            "id": "tree-app/layout.tsx",
+            "locked": false,
+            "name": "layout.tsx",
+            "source": "custom",
+            "type": "file",
+          },
+          {
+            "children": [],
+            "content": "export default function Page() { return null; }
+",
+            "id": "tree-app/page.tsx",
+            "locked": false,
+            "name": "page.tsx",
+            "source": "custom",
+            "type": "file",
+          },
+        ],
+        "id": "tree-app",
+        "locked": false,
+        "name": "app",
+        "source": "custom",
+        "type": "folder",
+      },
+      {
+        "children": [
+          {
+            "children": [],
+            "content": "export const Button = () => null;
+",
+            "id": "tree-components/Button.tsx",
+            "locked": false,
+            "name": "Button.tsx",
+            "source": "custom",
+            "type": "file",
+          },
+          {
+            "children": [],
+            "content": "export {};
+",
+            "id": "tree-components/Item9.tsx",
+            "locked": false,
+            "name": "Item9.tsx",
+            "source": "custom",
+            "type": "file",
+          },
+          {
+            "children": [],
+            "content": "export {};
+",
+            "id": "tree-components/Item10.tsx",
+            "locked": false,
+            "name": "Item10.tsx",
+            "source": "custom",
+            "type": "file",
+          },
+        ],
+        "id": "tree-components",
+        "locked": false,
+        "name": "components",
+        "source": "custom",
+        "type": "folder",
+      },
+      {
+        "children": [
+          {
+            "children": [],
+            "id": "tree-nested/.gitignore",
+            "locked": false,
+            "name": ".gitignore",
+            "source": "custom",
+            "type": "file",
+          },
+          {
+            "children": [],
+            "content": "export {};
+",
+            "id": "tree-nested/kept.ts",
+            "locked": false,
+            "name": "kept.ts",
+            "source": "custom",
+            "type": "file",
+          },
+        ],
+        "id": "tree-nested",
+        "locked": false,
+        "name": "nested",
+        "source": "custom",
+        "type": "folder",
+      },
+      {
+        "children": [
+          {
+            "children": [],
+            "id": "tree-public/logo.png",
+            "locked": false,
+            "name": "logo.png",
+            "source": "custom",
+            "type": "file",
+          },
+        ],
+        "id": "tree-public",
+        "locked": false,
+        "name": "public",
+        "source": "custom",
+        "type": "folder",
+      },
+      {
+        "children": [
+          {
+            "children": [
+              {
+                "children": [],
+                "content": "export const client = {};
+",
+                "id": "tree-src/api/client.ts",
+                "locked": false,
+                "name": "client.ts",
+                "source": "custom",
+                "type": "file",
+              },
+            ],
+            "id": "tree-src/api",
+            "locked": false,
+            "name": "api",
+            "source": "custom",
+            "type": "folder",
+          },
+          {
+            "children": [
+              {
+                "children": [],
+                "content": "{}
+",
+                "id": "tree-src/i18n/en.json",
+                "locked": false,
+                "name": "en.json",
+                "source": "custom",
+                "type": "file",
+              },
+            ],
+            "id": "tree-src/i18n",
+            "locked": false,
+            "name": "i18n",
+            "source": "custom",
+            "type": "folder",
+          },
+        ],
+        "id": "tree-src",
+        "locked": false,
+        "name": "src",
+        "source": "custom",
+        "type": "folder",
+      },
+      {
+        "children": [],
+        "id": "tree-.gitignore",
+        "locked": false,
+        "name": ".gitignore",
+        "source": "custom",
+        "type": "file",
+      },
+      {
+        "children": [],
+        "id": "tree-keep.log",
+        "locked": false,
+        "name": "keep.log",
+        "source": "custom",
+        "type": "file",
+      },
+      {
+        "children": [],
+        "content": "module.exports = {};
+",
+        "id": "tree-next.config.js",
+        "locked": false,
+        "name": "next.config.js",
+        "source": "custom",
+        "type": "file",
+      },
+      {
+        "children": [],
+        "id": "tree-notes.txt",
+        "locked": false,
+        "name": "notes.txt",
+        "source": "custom",
+        "type": "file",
+      },
+      {
+        "children": [],
+        "content": "{}
+",
+        "id": "tree-package-lock.json",
+        "locked": false,
+        "name": "package-lock.json",
+        "source": "custom",
+        "type": "file",
+      },
+      {
+        "children": [],
+        "content": "{
+  "name": "shop",
+  "dependencies": {
+    "next": "15.0.0"
+  }
+}
+",
+        "id": "tree-package.json",
+        "locked": false,
+        "name": "package.json",
+        "source": "custom",
+        "type": "file",
+      },
+      {
+        "children": [],
+        "content": "﻿# Shop
+",
+        "id": "tree-README.md",
+        "locked": false,
+        "name": "README.md",
+        "source": "custom",
+        "type": "file",
+      },
+    ],
+  },
+  [
+    {
+      "description": "Imported from shop with 27 files.",
+      "fileCount": 18,
+      "id": "shop-starter",
+      "name": "Shop starter",
+      "savedAt": "2026-10-14T00:00:00.000Z",
+      "sourceProjectPath": "<base>/shop",
+      "stack": "react-next",
+    },
+  ],
+]
+`;
+
+exports[`imported templates golden > saving from a file, not a folder 1`] = `
+[
+  {
+    "threw": "The selected path is not a directory.",
+  },
+]
+`;
+
+exports[`imported templates golden > templates saved by an older Lazify 1`] = `
+[
+  "written",
+  [
+    {
+      "description": "Imported template",
+      "fileCount": 0,
+      "id": "unknown-template",
+      "name": "Imported template",
+      "savedAt": "2026-10-14T00:00:01.000Z",
+      "sourceProjectPath": "",
+      "stack": "unknown",
+    },
+    {
+      "description": "Imported template",
+      "fileCount": 1,
+      "id": "legacy",
+      "name": "Legacy",
+      "savedAt": "2025-01-02T03:04:05.000Z",
+      "sourceProjectPath": "",
+      "stack": "unknown",
+    },
+  ],
+  {
+    "description": "Imported template",
+    "features": [],
+    "fileCount": 1,
+    "id": "legacy",
+    "metadata": {
+      "createdAt": "2025-01-02T03:04:05.000Z",
+      "fileCount": 1,
+      "folderCount": 1,
+      "selectedItemCount": 2,
+      "updatedAt": "2025-01-02T03:04:05.000Z",
+    },
+    "name": "Legacy",
+    "savedAt": "2025-01-02T03:04:05.000Z",
+    "sourceProjectPath": "",
+    "stackDetection": {
+      "commands": {
+        "install": "npm install",
+      },
+      "confidence": 0.1,
+      "framework": "unknown",
+      "metaFramework": "unknown",
+      "packageManager": "unknown",
+      "reasons": [],
+      "stack": "unknown",
+      "warnings": [
+        "Template was saved before stack detection was available.",
+      ],
+    },
+    "structure": {
+      "files": [
+        {
+          "content": "export {};
+",
+          "extension": ".ts",
+          "id": "custom-index.ts",
+          "includeContent": true,
+          "isBinary": false,
+          "locked": false,
+          "name": "index.ts",
+          "path": "src/index.ts",
+          "role": "unknown",
+          "source": "custom",
+          "type": "file",
+        },
+      ],
+      "folders": [
+        {
+          "id": "src",
+          "locked": false,
+          "name": "src",
+          "path": "src",
+          "role": "unknown",
+          "source": "custom",
+          "type": "folder",
+        },
+      ],
+      "tree": [
+        {
+          "children": [
+            {
+              "content": "export {};
+",
+              "extension": ".ts",
+              "id": "custom-index.ts",
+              "includeContent": true,
+              "isBinary": false,
+              "locked": false,
+              "name": "index.ts",
+              "path": "src/index.ts",
+              "role": "unknown",
+              "source": "custom",
+              "type": "file",
+            },
+          ],
+          "id": "src",
+          "locked": false,
+          "name": "src",
+          "path": "src",
+          "role": "unknown",
+          "source": "custom",
+          "type": "folder",
+        },
+      ],
+    },
+    "tags": [],
+    "tree": [
+      {
+        "children": [
+          {
+            "children": [],
+            "content": "export {};
+",
+            "id": "custom-index.ts",
+            "locked": false,
+            "name": "index.ts",
+            "source": "custom",
+            "type": "file",
+          },
+        ],
+        "id": "src",
+        "locked": false,
+        "name": "src",
+        "source": "custom",
+        "type": "folder",
+      },
+    ],
+  },
+]
+`;
