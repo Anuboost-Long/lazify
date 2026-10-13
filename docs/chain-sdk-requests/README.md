@@ -28,6 +28,7 @@ Each request:
 | 12 | [Tab reaches every button and link](12-tab-reaches-every-control.md) | Shipped on macOS 2026-10-10, as `chain.window` `tabFocus`; verified in the app |
 | 13 | [`chain dev` starts when port 1420 is taken](13-dev-server-port-in-use.md) | Shipped 2026-10-10 in `chain dev`: steps to the next free port for Vite and the window; two apps at once not yet seen |
 | 14 | [Copy a folder across volumes](14-copy-a-folder.md) | Sent and shipped 2026-10-11: `desktop.folders.move()` copies when it crosses volumes (links and modes kept); cross-volume not yet tried from Lazify |
+| 15 | [Launch a program that outlives the app](15-launch-an-app-that-outlives-lazify.md) | Sent and shipped 2026-10-14 (chain-sdk working tree): `desktop.processRunner.launch(command, args)`, in its own session; `chain update` run. Not yet seen from Lazify: an editor surviving a quit |
 
 Overlap with Mneme: request 01's read-only allow-list design fork would also
 answer Mneme's request 11 (`external-file-read`).

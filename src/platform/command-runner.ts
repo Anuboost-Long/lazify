@@ -3,6 +3,8 @@ import type { ProcessHandle, ProcessOutputChunk } from "@chain/sdk";
 
 import { ensureCommandAvailable } from "@/shared/lib/environment/scanner";
 
+import { withSessionPath } from "./session-path";
+
 export type LogStream = "stdout" | "stderr" | "system";
 
 export interface LogEvent {
@@ -142,7 +144,7 @@ export class CommandRunner {
 						message: data,
 					});
 				},
-				{ cwd, env, keepStdinOpen: true },
+				{ cwd, env: withSessionPath(env), keepStdinOpen: true },
 			);
 		} catch (error) {
 			emitScriptLog({
@@ -282,7 +284,7 @@ export class CommandRunner {
 			};
 
 			desktop.processRunner
-				.run(command, args, onOutput, { cwd, keepStdinOpen: true })
+				.run(command, args, onOutput, { cwd, env: withSessionPath(), keepStdinOpen: true })
 				.then((handle) => {
 					child = handle;
 					void handle.exited.then(({ code }) => onExit(code));

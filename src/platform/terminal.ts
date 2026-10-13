@@ -3,6 +3,8 @@ import type { ChainError, TerminalSession } from "@chain/sdk";
 
 import type { ScriptStatusEvent } from "@/shared/types/sessions";
 
+import { withSessionPath } from "./session-path";
+
 export interface PtyDataEvent {
 	runId: string;
 	data: string;
@@ -94,7 +96,7 @@ export async function startPty({
 		command,
 		args,
 		cwd,
-		env,
+		env: withSessionPath(env),
 		cols,
 		rows,
 		label: scriptName,

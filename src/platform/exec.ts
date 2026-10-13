@@ -1,6 +1,8 @@
 import { desktop } from "@chain/sdk";
 import type { ChainOs, ProcessExit, ProcessHandle } from "@chain/sdk";
 
+import { withSessionPath } from "./session-path";
+
 export interface ExecFileOptions {
 	cwd?: string;
 	env?: Record<string, string>;
@@ -28,6 +30,7 @@ export class ExecFileError extends Error {
 
 const DEFAULT_MAX_BUFFER = 1024 * 1024;
 
+
 export async function execFile(
 	command: string,
 	args: string[],
@@ -50,7 +53,7 @@ export async function execFile(
 				void handle?.kill().catch(() => undefined);
 			}
 		},
-		{ cwd, env },
+		{ cwd, env: withSessionPath(env) },
 	);
 
 	const running = handle;
@@ -63,6 +66,11 @@ export async function execFile(
 	if (exit.code === 0 && !exit.killed) return { stdout, stderr };
 
 	throw new ExecFileError(`${command} ${failureOf(exit, overflowed)}`, exit.code, exit.killed, stdout, stderr);
+}
+
+/** Starts a program that is not Lazify's to stop: it keeps running after Lazify quits. */
+export function launch(command: string, args: string[]): Promise<void> {
+	return desktop.processRunner.launch(command, args);
 }
 
 function failureOf(exit: ProcessExit, overflowed: boolean) {
@@ -94,6 +102,15 @@ export function environmentVariable(name: string): Promise<string | null> {
 	}
 
 	return value;
+}
+
+/** Which of `paths` are files, following links, in one process however many there are. */
+export async function existingFiles(paths: string[]): Promise<Set<string>> {
+	if (paths.length === 0) return new Set();
+
+	const { stdout } = await execFile("/bin/sh", ["-c", 'for p; do [ -f "$p" ] && printf "%s\\n" "$p"; done; exit 0', "sh", ...paths]);
+
+	return new Set(stdout.split("\n").filter(Boolean));
 }
 
 export function pathExistsOnDisk(path: string): Promise<boolean> {

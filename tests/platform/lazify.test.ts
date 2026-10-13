@@ -9,9 +9,8 @@ describe("unported bridge members", () => {
 		await expect(lazify.checkForUpdates()).rejects.toThrow(
 			"Updating Lazify isn't available in Lazify Chain yet.",
 		);
-		const request = { projectPath: "/project", filePath: "/project/a.ts", line: null, command: "" };
-		await expect(lazify.openInEditor(request)).rejects.toThrow(
-			"Opening files in an editor isn't available in Lazify Chain yet.",
+		await expect(lazify.getDiagnosticsPaths()).rejects.toThrow(
+			"The diagnostics folder isn't available in Lazify Chain yet.",
 		);
 	});
 
