@@ -1,4 +1,4 @@
-# 027 — Developer environment (Phase 5 / In progress: app checks left)
+# 027 — Developer environment (Phase 5 / Done)
 
 **Read this whole ticket before touching code.** The Environment pane's
 tool scan, installs, updates and uninstalls, nvm, the listening-ports
@@ -25,14 +25,11 @@ editor members, all still stubbed since ticket 015.
 
 ## Status — 2026-10-14
 
-Built. Electron's 34 tests pass on the copy. In the running app: the
-forced scan (19 tools, ~1 s) and the cached one, probes, the npm update
-check, nvm's version list and editor detection. Opening an editor uses
-request 15 (`processRunner.launch`), sent and shipped the same day. Left:
-`nvmUse` changing a later spawn's Node, and Stop on listening processes,
-in the app. A first run was cut short when another session stopped
-`chain dev`; a second ran but its results were lost when the inspector
-moved.
+Done on macOS. Electron's 34 tests pass on the copy, and every member
+was run in the app: scans, probes, update checks, nvm (including
+`nvmUse` reaching a later spawn), listening processes and Stop, editor
+detection. Opening an editor uses request 15 (`processRunner.launch`),
+sent and shipped the same day. Left: an editor seen surviving a quit.
 
 ## Source-of-truth references
 
@@ -97,9 +94,12 @@ pid ≤ 1, "That process belongs to Lazify." for its own, "Stopped." or
       within major 10), unknown install refused with Electron's message,
       four nvm versions with LTS names and the current one, editors
       found (VS Code on PATH, Windsurf's shipped launcher) in 15 ms
-- [ ] In the app: `nvmUse` and a later spawn on that Node; listening
-      processes with Lazify's own protected and the dev server absent;
-      Stop on an external, a managed and an app-owned server
+- [x] In the app: `nvmUse("v20.20.2")` → a later `node --version` gave
+      v20.20.2, and back to v22.23.2. Listening processes: the app's own
+      inspector port and a server it spawned protected, a server in a
+      Lazify terminal managed, the dev server's port absent. Stop: the
+      external and the managed server "Stopped." in ~1.6 s; the app's
+      own child "That process belongs to Lazify."; pid 1 refused
 - [ ] An editor opened from Lazify still open after Lazify quits
 - [x] `CI=true npm test` (542 passed, 9 skipped), `npm run typecheck`,
       `npm run build:web` pass
@@ -134,4 +134,5 @@ None yet.
 - 2026-10-14, macOS 27.0.1 arm64: Electron's tests on the copy; the app
   run above. During the first app run the chain-sdk session sent SIGTERM
   to this app's `chain dev` by mistake (its own report), which ended the
-  app at 01:36:17; it was not the Stop under test.
+  app at 01:36:17; it was not the Stop under test. The nvm and Stop
+  checks were then run on the owner's own `chain dev` (01:42 build).
