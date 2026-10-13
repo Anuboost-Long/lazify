@@ -146,6 +146,7 @@
     "debug_script": "Script",
     "debug_status": "Status",
     "needs_attention": "Needs you",
+    "starting": "Starting {{agent}}…",
     "needs_attention_toast": "{{agent}} is waiting for your response in {{project}}.",
     "resume_session": "Resume a session",
     "resume_session_desc": "Pick up a past conversation in this project.",

@@ -238,6 +238,7 @@
     "debug_script": "脚本",
     "debug_status": "状态",
     "needs_attention": "需要你",
+    "starting": "正在启动 {{agent}}…",
     "needs_attention_toast": "{{agent}} 正在 {{project}} 中等待你的回复。",
     "resume_session": "恢复会话",
     "resume_session_desc": "继续此项目中的过往对话。",

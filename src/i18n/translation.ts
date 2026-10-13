@@ -146,6 +146,7 @@ export const translation = {
 		DebugScript: "agents.debug_script",
 		DebugStatus: "agents.debug_status",
 		NeedsAttention: "agents.needs_attention",
+		Starting: "agents.starting",
 		NeedsAttentionToast: "agents.needs_attention_toast",
 		ResumeSession: "agents.resume_session",
 		ResumeSessionDesc: "agents.resume_session_desc",

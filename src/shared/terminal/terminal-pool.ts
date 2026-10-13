@@ -40,6 +40,9 @@ interface Entry extends PooledTerminal {
 
 const entriesByRun = new Map<string, Entry[]>();
 
+const shownRuns = new Set<string>();
+const shownListeners = new Set<() => void>();
+
 let stopPtyData: (() => void) | null = null;
 let stopSessionKilled: (() => void) | null = null;
 let currentTheme = "dark";
@@ -74,6 +77,36 @@ function ensureListeners() {
 
     disposeRun(event.runId);
   });
+}
+
+function hasVisibleText(term: Terminal) {
+  const buffer = term.buffer.active;
+
+  for (let row = 0; row < buffer.length; row++) {
+    if (buffer.getLine(row)?.translateToString(true).trim()) return true;
+  }
+
+  return false;
+}
+
+function markShown(runId: string) {
+  if (shownRuns.has(runId)) return;
+
+  shownRuns.add(runId);
+  shownListeners.forEach((listener) => listener());
+}
+
+/** Whether the run's terminal has drawn anything visible yet: control sequences alone don't count. */
+export function hasShownOutput(runId: string) {
+  return shownRuns.has(runId);
+}
+
+export function onShownOutput(listener: () => void) {
+  shownListeners.add(listener);
+
+  return () => {
+    shownListeners.delete(listener);
+  };
 }
 
 function owner(entry: Entry) {
@@ -178,7 +211,16 @@ function buildTerminal(entry: Entry) {
   entry.fit = fit;
 
   term.onData((data) => globalThis.lazify.ptyWrite(entry.runId, data));
+
+  const watchingForText = term.onWriteParsed(() => {
+    if (!hasVisibleText(term)) return;
+
+    watchingForText.dispose();
+    markShown(entry.runId);
+  });
+
   entry.disposers.push(
+    () => watchingForText.dispose(),
     watchColorScheme(
       term,
       () => entry.runId,
@@ -262,6 +304,7 @@ function evictDetached() {
 }
 
 export function disposeRun(runId: string) {
+  shownRuns.delete(runId);
   endRestart(runId);
   forgetColorScheme(runId);
   (entriesByRun.get(runId) ?? []).slice().forEach(disposeEntry);
@@ -280,6 +323,8 @@ export function rebindRun(fromRunId: string, toRunId: string) {
 
   endRestart(fromRunId);
   forgetColorScheme(fromRunId);
+
+  if (shownRuns.delete(fromRunId)) markShown(toRunId);
 
   if (entries.length === 0) return;
 

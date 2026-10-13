@@ -336,16 +336,16 @@ export function useAgentTerminals(projectPath: string) {
 		async (tabId: string) => {
 			const target = terminals.find((terminal) => terminal.tabId === tabId);
 
-			if (target?.runId) {
-				await globalThis.lazify.stopScript(target.runId);
-			}
-
 			const remaining = terminals.filter((terminal) => terminal.tabId !== tabId);
 			setTerminals(remaining);
 
 			if (activeTabId === tabId) {
 				const fallback = remaining.find((terminal) => terminal.projectPath === projectPath);
 				setActiveTab(fallback?.tabId ?? null);
+			}
+
+			if (target?.runId) {
+				await globalThis.lazify.stopScript(target.runId);
 			}
 		},
 		[activeTabId, projectPath, setActiveTab, setTerminals, terminals],

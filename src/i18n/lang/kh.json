@@ -238,6 +238,7 @@
     "debug_script": "ស្គ្រីប",
     "debug_status": "ស្ថានភាព",
     "needs_attention": "ត្រូវការអ្នក",
+    "starting": "កំពុងចាប់ផ្ដើម {{agent}}…",
     "needs_attention_toast": "{{agent}} កំពុងរង់ចាំចម្លើយរបស់អ្នកនៅក្នុង {{project}}។",
     "resume_session": "បន្តវគ្គ",
     "resume_session_desc": "បន្តការសន្ទនាមុននៅក្នុងគម្រោងនេះ។",

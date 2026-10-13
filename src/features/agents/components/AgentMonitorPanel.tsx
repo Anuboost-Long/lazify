@@ -10,6 +10,7 @@ import UiIcon from "@/shared/ui/icons/UiIcon";
 
 import type { MonitorPanel, MonitorPanelSize } from "../hooks/use-monitor-panels";
 import { AgentGlyph } from "./AgentGlyph";
+import { AgentStarting } from "./AgentStarting";
 import { AgentThemeNotice } from "./AgentThemeNotice";
 
 const SIZE_SPAN: Record<MonitorPanelSize, string> = {
@@ -191,8 +192,9 @@ export const AgentMonitorPanel = memo(function AgentMonitorPanel({
 			<div className="flex min-h-0 flex-1 flex-col bg-terminal p-1.5">
 				<AgentThemeNotice session={panel} label={panel.displayName} compact />
 
-				<div className="min-h-0 flex-1">
+				<div className="relative min-h-0 flex-1">
 					<XTermPanel runId={panel.runId} isActive />
+					{panel.kind === "agent" && !panel.exited ? <AgentStarting runId={panel.runId} agent={panel.label} /> : null}
 				</div>
 			</div>
 		</div>

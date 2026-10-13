@@ -169,8 +169,6 @@ export function useMonitorPanels() {
 
   const clear = useCallback(
     async (runId: string) => {
-      await globalThis.lazify.stopScript(runId);
-
       setPanels((current) => current.filter((panel) => panel.runId !== runId));
 
       const next = loadWallLayout();
@@ -179,6 +177,8 @@ export function useMonitorPanels() {
         ...next,
         activeRunId: next.activeRunId === runId ? null : next.activeRunId
       });
+
+      await globalThis.lazify.stopScript(runId);
     },
     [commitLayout, setPanels]
   );

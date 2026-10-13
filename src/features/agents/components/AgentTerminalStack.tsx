@@ -4,6 +4,7 @@ import { XTermPanel } from "@/features/workspace/components/XTermPanel";
 
 import type { AgentTerminal } from "../hooks/agent-terminals";
 import { AgentEmptyState } from "./AgentEmptyState";
+import { AgentStarting } from "./AgentStarting";
 import { AgentThemeNotice } from "./AgentThemeNotice";
 
 interface AgentTerminalStackProps {
@@ -37,7 +38,7 @@ export function AgentTerminalStack({
 					>
 						<AgentThemeNotice session={{ ...terminal, runId: terminal.runId }} label={terminal.label} />
 
-						<div className="min-h-0 flex-1">
+						<div className="relative min-h-0 flex-1">
 							<XTermPanel
 								runId={terminal.runId}
 								isActive={terminal.tabId === activeTabId}
@@ -45,6 +46,9 @@ export function AgentTerminalStack({
 								onResolveFilePath={onResolveFilePath}
 								onOpenFilePath={onOpenFilePath}
 							/>
+							{terminal.kind === "agent" && !terminal.exited ? (
+								<AgentStarting runId={terminal.runId} agent={terminal.label} />
+							) : null}
 						</div>
 					</div>
 				) : null,

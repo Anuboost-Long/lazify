@@ -49,6 +49,13 @@
   --animate-drift: drift 14s ease-in-out infinite;
   --animate-fadeIn: fadeIn 420ms ease-out forwards;
   --animate-pulseLine: pulseLine 2.6s ease-in-out infinite;
+  --animate-appear: appear 240ms ease-out 300ms both;
+
+  @keyframes appear {
+    from {
+      opacity: 0;
+    }
+  }
 
   @keyframes fadeIn {
     0% {
