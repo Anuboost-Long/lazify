@@ -692,6 +692,13 @@ fn process_runner_close_stdin(state: tauri::State<ProcessRunnerState>, id: Strin
     }
 }
 
+// Not tracked in ProcessRunnerState: a launched program is never the app's
+// to stop, so quit-time cleanup must not find it.
+#[tauri::command]
+fn process_runner_launch(command: String, args: Vec<String>) -> Result<(), String> {
+    chain_core::process_runner::launch(&command, &args).map_err(to_process_runner_command_error)
+}
+
 // Bridges the ports capability contract (capabilities/ports in chain-sdk):
 // whether a dev server could bind a TCP port right now. Takes a u32, not a
 // u16, so 70000 reaches the range check instead of failing to deserialize.
@@ -1440,6 +1447,7 @@ pub fn run() {
             process_runner_kill,
             process_runner_write,
             process_runner_close_stdin,
+            process_runner_launch,
             ports_is_free,
             attention::attention_is_focused,
             attention::attention_request,
