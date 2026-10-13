@@ -1,0 +1,913 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`extensions golden > Open VSX answers with an error 1`] = `
+[
+  [
+    {
+      "entry": {
+        "displayName": "Tailwind CSS IntelliSense",
+        "homepage": "https://open-vsx.org/extension/bradlc/vscode-tailwindcss",
+        "id": "bradlc.vscode-tailwindcss",
+        "name": "vscode-tailwindcss",
+        "namespace": "bradlc",
+        "summary": "Class name diagnostics that read your project's own Tailwind config.",
+      },
+      "installed": null,
+      "latest": null,
+      "requirement": {
+        "helpUrl": null,
+        "label": null,
+        "note": null,
+        "satisfied": true,
+      },
+      "status": "not-installed",
+      "unreachable": true,
+    },
+    {
+      "entry": {
+        "displayName": "SonarQube for IDE",
+        "homepage": "https://open-vsx.org/extension/SonarSource/sonarlint-vscode",
+        "id": "SonarSource.sonarlint-vscode",
+        "name": "sonarlint-vscode",
+        "namespace": "SonarSource",
+        "summary": "SonarSource's own analyzers for Java, Python, PHP, Go, C#, IaC and secrets, plus type-aware JS and TS rules.",
+      },
+      "installed": null,
+      "latest": null,
+      "requirement": {
+        "helpUrl": null,
+        "label": null,
+        "note": null,
+        "satisfied": true,
+      },
+      "status": "not-installed",
+      "unreachable": true,
+    },
+  ],
+]
+`;
+
+exports[`extensions golden > Open VSX can't be reached 1`] = `
+[
+  [
+    {
+      "entry": {
+        "displayName": "Tailwind CSS IntelliSense",
+        "homepage": "https://open-vsx.org/extension/bradlc/vscode-tailwindcss",
+        "id": "bradlc.vscode-tailwindcss",
+        "name": "vscode-tailwindcss",
+        "namespace": "bradlc",
+        "summary": "Class name diagnostics that read your project's own Tailwind config.",
+      },
+      "installed": null,
+      "latest": null,
+      "requirement": {
+        "helpUrl": null,
+        "label": null,
+        "note": null,
+        "satisfied": true,
+      },
+      "status": "not-installed",
+      "unreachable": true,
+    },
+    {
+      "entry": {
+        "displayName": "SonarQube for IDE",
+        "homepage": "https://open-vsx.org/extension/SonarSource/sonarlint-vscode",
+        "id": "SonarSource.sonarlint-vscode",
+        "name": "sonarlint-vscode",
+        "namespace": "SonarSource",
+        "summary": "SonarSource's own analyzers for Java, Python, PHP, Go, C#, IaC and secrets, plus type-aware JS and TS rules.",
+      },
+      "installed": null,
+      "latest": null,
+      "requirement": {
+        "helpUrl": null,
+        "label": null,
+        "note": null,
+        "satisfied": true,
+      },
+      "status": "not-installed",
+      "unreachable": true,
+    },
+  ],
+]
+`;
+
+exports[`extensions golden > a written manifest follows a toggle 1`] = `
+[
+  "installed",
+  "<base>/watched/.lazify/extensions.json",
+  [
+    {
+      "entry": {
+        "displayName": "Tailwind CSS IntelliSense",
+        "homepage": "https://open-vsx.org/extension/bradlc/vscode-tailwindcss",
+        "id": "bradlc.vscode-tailwindcss",
+        "name": "vscode-tailwindcss",
+        "namespace": "bradlc",
+        "summary": "Class name diagnostics that read your project's own Tailwind config.",
+      },
+      "installed": {
+        "enabled": false,
+        "installedAt": "2026-01-01T00:00:00.000Z",
+        "version": "0.16.0",
+      },
+      "latest": {
+        "downloadUrl": "https://open-vsx.org/api/bradlc/vscode-tailwindcss/0.16.0/file/x.vsix",
+        "license": "MIT",
+        "publishedAt": "2026-09-01T00:00:00Z",
+        "version": "0.16.0",
+      },
+      "requirement": {
+        "helpUrl": null,
+        "label": null,
+        "note": null,
+        "satisfied": true,
+      },
+      "status": "installed",
+      "unreachable": false,
+    },
+    {
+      "entry": {
+        "displayName": "SonarQube for IDE",
+        "homepage": "https://open-vsx.org/extension/SonarSource/sonarlint-vscode",
+        "id": "SonarSource.sonarlint-vscode",
+        "name": "sonarlint-vscode",
+        "namespace": "SonarSource",
+        "summary": "SonarSource's own analyzers for Java, Python, PHP, Go, C#, IaC and secrets, plus type-aware JS and TS rules.",
+      },
+      "installed": null,
+      "latest": {
+        "downloadUrl": "https://open-vsx.org/api/SonarSource/sonarlint-vscode/6.1.0/file/x.vsix",
+        "license": "MIT",
+        "publishedAt": "2026-09-01T00:00:00Z",
+        "version": "6.1.0",
+      },
+      "requirement": {
+        "helpUrl": null,
+        "label": null,
+        "note": null,
+        "satisfied": true,
+      },
+      "status": "not-installed",
+      "unreachable": false,
+    },
+  ],
+  null,
+  {
+    "gitignore": "node_modules
+.lazify/
+",
+    "manifest": "{
+  "generatedBy": "lazify",
+  "generatedAt": "2026-10-14T00:00:03.000Z",
+  "description": "Diagnostics engines Lazify runs over this project. An engine listed as enabled is already underlining findings in the editor; its rules are the ones a fix has to satisfy. Read this rather than assuming which linters are in play.",
+  "engines": [
+    {
+      "id": "bradlc.vscode-tailwindcss",
+      "name": "Tailwind CSS IntelliSense",
+      "source": "tailwindcss",
+      "version": "0.16.0",
+      "enabled": false,
+      "status": "installed",
+      "extensions": [
+        ".ts",
+        ".tsx",
+        ".mts",
+        ".cts",
+        ".js",
+        ".jsx",
+        ".mjs",
+        ".cjs",
+        ".php",
+        ".html",
+        ".vue",
+        ".svelte",
+        ".astro",
+        ".css",
+        ".scss",
+        ".md",
+        ".mdx"
+      ],
+      "requirement": null
+    },
+    {
+      "id": "SonarSource.sonarlint-vscode",
+      "name": "SonarQube for IDE",
+      "source": "sonarlint",
+      "version": null,
+      "enabled": false,
+      "status": "not-installed",
+      "extensions": [
+        ".ts",
+        ".tsx",
+        ".mts",
+        ".cts",
+        ".js",
+        ".jsx",
+        ".mjs",
+        ".cjs",
+        ".java",
+        ".py",
+        ".php",
+        ".go",
+        ".cs",
+        ".html",
+        ".css",
+        ".scss",
+        ".xml",
+        ".yaml",
+        ".yml",
+        ".tf",
+        ".rb",
+        ".sh",
+        ".json",
+        ".dockerfile"
+      ],
+      "requirement": null
+    }
+  ]
+}
+",
+  },
+]
+`;
+
+exports[`extensions golden > an unknown extension 1`] = `
+[
+  {
+    "threw": "Unknown extension someone.else",
+  },
+]
+`;
+
+exports[`extensions golden > installed, current and outdated 1`] = `
+[
+  "installed",
+  "installed",
+  [
+    {
+      "entry": {
+        "displayName": "Tailwind CSS IntelliSense",
+        "homepage": "https://open-vsx.org/extension/bradlc/vscode-tailwindcss",
+        "id": "bradlc.vscode-tailwindcss",
+        "name": "vscode-tailwindcss",
+        "namespace": "bradlc",
+        "summary": "Class name diagnostics that read your project's own Tailwind config.",
+      },
+      "installed": {
+        "enabled": true,
+        "installedAt": "2026-01-01T00:00:00.000Z",
+        "version": "0.15.0",
+      },
+      "latest": {
+        "downloadUrl": "https://open-vsx.org/api/bradlc/vscode-tailwindcss/0.16.0/file/x.vsix",
+        "license": "MIT",
+        "publishedAt": "2026-09-01T00:00:00Z",
+        "version": "0.16.0",
+      },
+      "requirement": {
+        "helpUrl": null,
+        "label": null,
+        "note": null,
+        "satisfied": true,
+      },
+      "status": "update-available",
+      "unreachable": false,
+    },
+    {
+      "entry": {
+        "displayName": "SonarQube for IDE",
+        "homepage": "https://open-vsx.org/extension/SonarSource/sonarlint-vscode",
+        "id": "SonarSource.sonarlint-vscode",
+        "name": "sonarlint-vscode",
+        "namespace": "SonarSource",
+        "summary": "SonarSource's own analyzers for Java, Python, PHP, Go, C#, IaC and secrets, plus type-aware JS and TS rules.",
+      },
+      "installed": {
+        "enabled": true,
+        "installedAt": "2026-01-01T00:00:00.000Z",
+        "version": "6.1.0",
+      },
+      "latest": {
+        "downloadUrl": "https://open-vsx.org/api/SonarSource/sonarlint-vscode/6.1.0/file/x.vsix",
+        "license": "MIT",
+        "publishedAt": "2026-09-01T00:00:00Z",
+        "version": "6.1.0",
+      },
+      "requirement": {
+        "helpUrl": null,
+        "label": null,
+        "note": null,
+        "satisfied": true,
+      },
+      "status": "installed",
+      "unreachable": false,
+    },
+  ],
+]
+`;
+
+exports[`extensions golden > no Java: SonarLint says so and won't install 1`] = `
+[
+  [
+    {
+      "entry": {
+        "displayName": "Tailwind CSS IntelliSense",
+        "homepage": "https://open-vsx.org/extension/bradlc/vscode-tailwindcss",
+        "id": "bradlc.vscode-tailwindcss",
+        "name": "vscode-tailwindcss",
+        "namespace": "bradlc",
+        "summary": "Class name diagnostics that read your project's own Tailwind config.",
+      },
+      "installed": null,
+      "latest": {
+        "downloadUrl": "https://open-vsx.org/api/bradlc/vscode-tailwindcss/0.16.0/file/x.vsix",
+        "license": "MIT",
+        "publishedAt": "2026-09-01T00:00:00Z",
+        "version": "0.16.0",
+      },
+      "requirement": {
+        "helpUrl": null,
+        "label": null,
+        "note": null,
+        "satisfied": true,
+      },
+      "status": "not-installed",
+      "unreachable": false,
+    },
+    {
+      "entry": {
+        "displayName": "SonarQube for IDE",
+        "homepage": "https://open-vsx.org/extension/SonarSource/sonarlint-vscode",
+        "id": "SonarSource.sonarlint-vscode",
+        "name": "sonarlint-vscode",
+        "namespace": "SonarSource",
+        "summary": "SonarSource's own analyzers for Java, Python, PHP, Go, C#, IaC and secrets, plus type-aware JS and TS rules.",
+      },
+      "installed": null,
+      "latest": {
+        "downloadUrl": "https://open-vsx.org/api/SonarSource/sonarlint-vscode/6.1.0/file/x.vsix",
+        "license": "MIT",
+        "publishedAt": "2026-09-01T00:00:00Z",
+        "version": "6.1.0",
+      },
+      "requirement": {
+        "helpUrl": "https://adoptium.net/temurin/releases/?version=21",
+        "label": "extensions.needs_java",
+        "note": "No Java 21+ runtime was found, so this engine is not analysing anything.",
+        "satisfied": false,
+      },
+      "status": "not-installed",
+      "unreachable": false,
+    },
+  ],
+  {
+    "error": "No Java 21+ runtime was found, so this engine is not analysing anything.",
+    "id": "SonarSource.sonarlint-vscode",
+    "receivedBytes": 0,
+    "stage": "failed",
+    "startedAt": "2026-10-14T00:00:01.000Z",
+    "totalBytes": null,
+  },
+  [
+    {
+      "error": "No Java 21+ runtime was found, so this engine is not analysing anything.",
+      "id": "SonarSource.sonarlint-vscode",
+      "receivedBytes": 0,
+      "stage": "failed",
+      "startedAt": "2026-10-14T00:00:01.000Z",
+      "totalBytes": null,
+    },
+  ],
+]
+`;
+
+exports[`extensions golden > nothing installed, Open VSX reachable 1`] = `
+[
+  [
+    {
+      "entry": {
+        "displayName": "Tailwind CSS IntelliSense",
+        "homepage": "https://open-vsx.org/extension/bradlc/vscode-tailwindcss",
+        "id": "bradlc.vscode-tailwindcss",
+        "name": "vscode-tailwindcss",
+        "namespace": "bradlc",
+        "summary": "Class name diagnostics that read your project's own Tailwind config.",
+      },
+      "installed": null,
+      "latest": {
+        "downloadUrl": "https://open-vsx.org/api/bradlc/vscode-tailwindcss/0.16.0/file/x.vsix",
+        "license": "MIT",
+        "publishedAt": "2026-09-01T00:00:00Z",
+        "version": "0.16.0",
+      },
+      "requirement": {
+        "helpUrl": null,
+        "label": null,
+        "note": null,
+        "satisfied": true,
+      },
+      "status": "not-installed",
+      "unreachable": false,
+    },
+    {
+      "entry": {
+        "displayName": "SonarQube for IDE",
+        "homepage": "https://open-vsx.org/extension/SonarSource/sonarlint-vscode",
+        "id": "SonarSource.sonarlint-vscode",
+        "name": "sonarlint-vscode",
+        "namespace": "SonarSource",
+        "summary": "SonarSource's own analyzers for Java, Python, PHP, Go, C#, IaC and secrets, plus type-aware JS and TS rules.",
+      },
+      "installed": null,
+      "latest": {
+        "downloadUrl": "https://open-vsx.org/api/SonarSource/sonarlint-vscode/6.1.0/file/x.vsix",
+        "license": "MIT",
+        "publishedAt": "2026-09-01T00:00:00Z",
+        "version": "6.1.0",
+      },
+      "requirement": {
+        "helpUrl": null,
+        "label": null,
+        "note": null,
+        "satisfied": true,
+      },
+      "status": "not-installed",
+      "unreachable": false,
+    },
+  ],
+]
+`;
+
+exports[`extensions golden > removed 1`] = `
+[
+  "installed",
+  [
+    {
+      "entry": {
+        "displayName": "Tailwind CSS IntelliSense",
+        "homepage": "https://open-vsx.org/extension/bradlc/vscode-tailwindcss",
+        "id": "bradlc.vscode-tailwindcss",
+        "name": "vscode-tailwindcss",
+        "namespace": "bradlc",
+        "summary": "Class name diagnostics that read your project's own Tailwind config.",
+      },
+      "installed": null,
+      "latest": {
+        "downloadUrl": "https://open-vsx.org/api/bradlc/vscode-tailwindcss/0.16.0/file/x.vsix",
+        "license": "MIT",
+        "publishedAt": "2026-09-01T00:00:00Z",
+        "version": "0.16.0",
+      },
+      "requirement": {
+        "helpUrl": null,
+        "label": null,
+        "note": null,
+        "satisfied": true,
+      },
+      "status": "not-installed",
+      "unreachable": false,
+    },
+    {
+      "entry": {
+        "displayName": "SonarQube for IDE",
+        "homepage": "https://open-vsx.org/extension/SonarSource/sonarlint-vscode",
+        "id": "SonarSource.sonarlint-vscode",
+        "name": "sonarlint-vscode",
+        "namespace": "SonarSource",
+        "summary": "SonarSource's own analyzers for Java, Python, PHP, Go, C#, IaC and secrets, plus type-aware JS and TS rules.",
+      },
+      "installed": null,
+      "latest": {
+        "downloadUrl": "https://open-vsx.org/api/SonarSource/sonarlint-vscode/6.1.0/file/x.vsix",
+        "license": "MIT",
+        "publishedAt": "2026-09-01T00:00:00Z",
+        "version": "6.1.0",
+      },
+      "requirement": {
+        "helpUrl": null,
+        "label": null,
+        "note": null,
+        "satisfied": true,
+      },
+      "status": "not-installed",
+      "unreachable": false,
+    },
+  ],
+  [
+    "installed.json",
+  ],
+]
+`;
+
+exports[`extensions golden > switched off and on, and switching one that isn't installed 1`] = `
+[
+  "installed",
+  [
+    {
+      "entry": {
+        "displayName": "Tailwind CSS IntelliSense",
+        "homepage": "https://open-vsx.org/extension/bradlc/vscode-tailwindcss",
+        "id": "bradlc.vscode-tailwindcss",
+        "name": "vscode-tailwindcss",
+        "namespace": "bradlc",
+        "summary": "Class name diagnostics that read your project's own Tailwind config.",
+      },
+      "installed": {
+        "enabled": false,
+        "installedAt": "2026-01-01T00:00:00.000Z",
+        "version": "0.16.0",
+      },
+      "latest": {
+        "downloadUrl": "https://open-vsx.org/api/bradlc/vscode-tailwindcss/0.16.0/file/x.vsix",
+        "license": "MIT",
+        "publishedAt": "2026-09-01T00:00:00Z",
+        "version": "0.16.0",
+      },
+      "requirement": {
+        "helpUrl": null,
+        "label": null,
+        "note": null,
+        "satisfied": true,
+      },
+      "status": "installed",
+      "unreachable": false,
+    },
+    {
+      "entry": {
+        "displayName": "SonarQube for IDE",
+        "homepage": "https://open-vsx.org/extension/SonarSource/sonarlint-vscode",
+        "id": "SonarSource.sonarlint-vscode",
+        "name": "sonarlint-vscode",
+        "namespace": "SonarSource",
+        "summary": "SonarSource's own analyzers for Java, Python, PHP, Go, C#, IaC and secrets, plus type-aware JS and TS rules.",
+      },
+      "installed": null,
+      "latest": {
+        "downloadUrl": "https://open-vsx.org/api/SonarSource/sonarlint-vscode/6.1.0/file/x.vsix",
+        "license": "MIT",
+        "publishedAt": "2026-09-01T00:00:00Z",
+        "version": "6.1.0",
+      },
+      "requirement": {
+        "helpUrl": null,
+        "label": null,
+        "note": null,
+        "satisfied": true,
+      },
+      "status": "not-installed",
+      "unreachable": false,
+    },
+  ],
+  [
+    {
+      "entry": {
+        "displayName": "Tailwind CSS IntelliSense",
+        "homepage": "https://open-vsx.org/extension/bradlc/vscode-tailwindcss",
+        "id": "bradlc.vscode-tailwindcss",
+        "name": "vscode-tailwindcss",
+        "namespace": "bradlc",
+        "summary": "Class name diagnostics that read your project's own Tailwind config.",
+      },
+      "installed": {
+        "enabled": true,
+        "installedAt": "2026-01-01T00:00:00.000Z",
+        "version": "0.16.0",
+      },
+      "latest": {
+        "downloadUrl": "https://open-vsx.org/api/bradlc/vscode-tailwindcss/0.16.0/file/x.vsix",
+        "license": "MIT",
+        "publishedAt": "2026-09-01T00:00:00Z",
+        "version": "0.16.0",
+      },
+      "requirement": {
+        "helpUrl": null,
+        "label": null,
+        "note": null,
+        "satisfied": true,
+      },
+      "status": "installed",
+      "unreachable": false,
+    },
+    {
+      "entry": {
+        "displayName": "SonarQube for IDE",
+        "homepage": "https://open-vsx.org/extension/SonarSource/sonarlint-vscode",
+        "id": "SonarSource.sonarlint-vscode",
+        "name": "sonarlint-vscode",
+        "namespace": "SonarSource",
+        "summary": "SonarSource's own analyzers for Java, Python, PHP, Go, C#, IaC and secrets, plus type-aware JS and TS rules.",
+      },
+      "installed": null,
+      "latest": {
+        "downloadUrl": "https://open-vsx.org/api/SonarSource/sonarlint-vscode/6.1.0/file/x.vsix",
+        "license": "MIT",
+        "publishedAt": "2026-09-01T00:00:00Z",
+        "version": "6.1.0",
+      },
+      "requirement": {
+        "helpUrl": null,
+        "label": null,
+        "note": null,
+        "satisfied": true,
+      },
+      "status": "not-installed",
+      "unreachable": false,
+    },
+  ],
+  [
+    {
+      "entry": {
+        "displayName": "Tailwind CSS IntelliSense",
+        "homepage": "https://open-vsx.org/extension/bradlc/vscode-tailwindcss",
+        "id": "bradlc.vscode-tailwindcss",
+        "name": "vscode-tailwindcss",
+        "namespace": "bradlc",
+        "summary": "Class name diagnostics that read your project's own Tailwind config.",
+      },
+      "installed": {
+        "enabled": true,
+        "installedAt": "2026-01-01T00:00:00.000Z",
+        "version": "0.16.0",
+      },
+      "latest": {
+        "downloadUrl": "https://open-vsx.org/api/bradlc/vscode-tailwindcss/0.16.0/file/x.vsix",
+        "license": "MIT",
+        "publishedAt": "2026-09-01T00:00:00Z",
+        "version": "0.16.0",
+      },
+      "requirement": {
+        "helpUrl": null,
+        "label": null,
+        "note": null,
+        "satisfied": true,
+      },
+      "status": "installed",
+      "unreachable": false,
+    },
+    {
+      "entry": {
+        "displayName": "SonarQube for IDE",
+        "homepage": "https://open-vsx.org/extension/SonarSource/sonarlint-vscode",
+        "id": "SonarSource.sonarlint-vscode",
+        "name": "sonarlint-vscode",
+        "namespace": "SonarSource",
+        "summary": "SonarSource's own analyzers for Java, Python, PHP, Go, C#, IaC and secrets, plus type-aware JS and TS rules.",
+      },
+      "installed": null,
+      "latest": {
+        "downloadUrl": "https://open-vsx.org/api/SonarSource/sonarlint-vscode/6.1.0/file/x.vsix",
+        "license": "MIT",
+        "publishedAt": "2026-09-01T00:00:00Z",
+        "version": "6.1.0",
+      },
+      "requirement": {
+        "helpUrl": null,
+        "label": null,
+        "note": null,
+        "satisfied": true,
+      },
+      "status": "not-installed",
+      "unreachable": false,
+    },
+  ],
+]
+`;
+
+exports[`extensions golden > the project manifest, in a repository and out of one 1`] = `
+[
+  "installed",
+  "<base>/repo/.lazify/extensions.json",
+  {
+    "gitignore": "node_modules
+.lazify/
+",
+    "manifest": "{
+  "generatedBy": "lazify",
+  "generatedAt": "2026-10-14T00:00:01.000Z",
+  "description": "Diagnostics engines Lazify runs over this project. An engine listed as enabled is already underlining findings in the editor; its rules are the ones a fix has to satisfy. Read this rather than assuming which linters are in play.",
+  "engines": [
+    {
+      "id": "bradlc.vscode-tailwindcss",
+      "name": "Tailwind CSS IntelliSense",
+      "source": "tailwindcss",
+      "version": "0.16.0",
+      "enabled": true,
+      "status": "installed",
+      "extensions": [
+        ".ts",
+        ".tsx",
+        ".mts",
+        ".cts",
+        ".js",
+        ".jsx",
+        ".mjs",
+        ".cjs",
+        ".php",
+        ".html",
+        ".vue",
+        ".svelte",
+        ".astro",
+        ".css",
+        ".scss",
+        ".md",
+        ".mdx"
+      ],
+      "requirement": null
+    },
+    {
+      "id": "SonarSource.sonarlint-vscode",
+      "name": "SonarQube for IDE",
+      "source": "sonarlint",
+      "version": null,
+      "enabled": false,
+      "status": "not-installed",
+      "extensions": [
+        ".ts",
+        ".tsx",
+        ".mts",
+        ".cts",
+        ".js",
+        ".jsx",
+        ".mjs",
+        ".cjs",
+        ".java",
+        ".py",
+        ".php",
+        ".go",
+        ".cs",
+        ".html",
+        ".css",
+        ".scss",
+        ".xml",
+        ".yaml",
+        ".yml",
+        ".tf",
+        ".rb",
+        ".sh",
+        ".json",
+        ".dockerfile"
+      ],
+      "requirement": null
+    }
+  ]
+}
+",
+  },
+  "<base>/repo/.lazify/extensions.json",
+  {
+    "gitignore": "node_modules
+.lazify/
+",
+    "manifest": "{
+  "generatedBy": "lazify",
+  "generatedAt": "2026-10-14T00:00:01.000Z",
+  "description": "Diagnostics engines Lazify runs over this project. An engine listed as enabled is already underlining findings in the editor; its rules are the ones a fix has to satisfy. Read this rather than assuming which linters are in play.",
+  "engines": [
+    {
+      "id": "bradlc.vscode-tailwindcss",
+      "name": "Tailwind CSS IntelliSense",
+      "source": "tailwindcss",
+      "version": "0.16.0",
+      "enabled": true,
+      "status": "installed",
+      "extensions": [
+        ".ts",
+        ".tsx",
+        ".mts",
+        ".cts",
+        ".js",
+        ".jsx",
+        ".mjs",
+        ".cjs",
+        ".php",
+        ".html",
+        ".vue",
+        ".svelte",
+        ".astro",
+        ".css",
+        ".scss",
+        ".md",
+        ".mdx"
+      ],
+      "requirement": null
+    },
+    {
+      "id": "SonarSource.sonarlint-vscode",
+      "name": "SonarQube for IDE",
+      "source": "sonarlint",
+      "version": null,
+      "enabled": false,
+      "status": "not-installed",
+      "extensions": [
+        ".ts",
+        ".tsx",
+        ".mts",
+        ".cts",
+        ".js",
+        ".jsx",
+        ".mjs",
+        ".cjs",
+        ".java",
+        ".py",
+        ".php",
+        ".go",
+        ".cs",
+        ".html",
+        ".css",
+        ".scss",
+        ".xml",
+        ".yaml",
+        ".yml",
+        ".tf",
+        ".rb",
+        ".sh",
+        ".json",
+        ".dockerfile"
+      ],
+      "requirement": null
+    }
+  ]
+}
+",
+  },
+  "<base>/plain/.lazify/extensions.json",
+  {
+    "gitignore": null,
+    "manifest": "{
+  "generatedBy": "lazify",
+  "generatedAt": "2026-10-14T00:00:05.000Z",
+  "description": "Diagnostics engines Lazify runs over this project. An engine listed as enabled is already underlining findings in the editor; its rules are the ones a fix has to satisfy. Read this rather than assuming which linters are in play.",
+  "engines": [
+    {
+      "id": "bradlc.vscode-tailwindcss",
+      "name": "Tailwind CSS IntelliSense",
+      "source": "tailwindcss",
+      "version": "0.16.0",
+      "enabled": true,
+      "status": "installed",
+      "extensions": [
+        ".ts",
+        ".tsx",
+        ".mts",
+        ".cts",
+        ".js",
+        ".jsx",
+        ".mjs",
+        ".cjs",
+        ".php",
+        ".html",
+        ".vue",
+        ".svelte",
+        ".astro",
+        ".css",
+        ".scss",
+        ".md",
+        ".mdx"
+      ],
+      "requirement": null
+    },
+    {
+      "id": "SonarSource.sonarlint-vscode",
+      "name": "SonarQube for IDE",
+      "source": "sonarlint",
+      "version": null,
+      "enabled": false,
+      "status": "not-installed",
+      "extensions": [
+        ".ts",
+        ".tsx",
+        ".mts",
+        ".cts",
+        ".js",
+        ".jsx",
+        ".mjs",
+        ".cjs",
+        ".java",
+        ".py",
+        ".php",
+        ".go",
+        ".cs",
+        ".html",
+        ".css",
+        ".scss",
+        ".xml",
+        ".yaml",
+        ".yml",
+        ".tf",
+        ".rb",
+        ".sh",
+        ".json",
+        ".dockerfile"
+      ],
+      "requirement": null
+    }
+  ]
+}
+",
+  },
+  null,
+]
+`;

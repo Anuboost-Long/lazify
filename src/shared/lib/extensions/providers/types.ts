@@ -28,10 +28,10 @@ export interface ExtensionProvider {
 	diagnosticSource: string;
 	/** Relative path that proves the unpack landed something runnable. */
 	serverMarker: string;
-	launch: (unpackedRoot: string) => ServerLaunch | null;
-	requirement: () => ExtensionRequirement;
+	launch: (unpackedRoot: string) => Promise<ServerLaunch | null>;
+	requirement: () => Promise<ExtensionRequirement>;
 	languageIdFor: (filePath: string) => string | null;
 	defaultSettings: () => Record<string, unknown>;
-	initializationOptions: (projectPath: string) => Record<string, unknown>;
+	initializationOptions: (projectPath: string) => Promise<Record<string, unknown>>;
 	ruleUrl: (code: string) => string | null;
 }

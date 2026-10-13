@@ -30,6 +30,7 @@ Each request:
 | 14 | [Copy a folder across volumes](14-copy-a-folder.md) | Sent and shipped 2026-10-11: `desktop.folders.move()` copies when it crosses volumes (links and modes kept); cross-volume not yet tried from Lazify |
 | 15 | [Launch a program that outlives the app](15-launch-an-app-that-outlives-lazify.md) | Sent and shipped 2026-10-14 (chain-sdk working tree): `desktop.processRunner.launch(command, args)`, in its own session; `chain update` run. Not yet seen from Lazify: an editor surviving a quit |
 | 16 | [Process output that keeps every byte](16-byte-exact-process-output.md) | Sent and shipped 2026-10-14 (chain-sdk working tree): `run(…, { output: "bytes" })` gives `Uint8Array` chunks; text mode no longer splits a character. `chain update` waits for ticket 030 |
+| 17 | [Download and unpack a package Lazify can run](17-install-a-downloaded-package.md) | Sent 2026-10-14 |
 
 Overlap with Mneme: request 01's read-only allow-list design fork would also
 answer Mneme's request 11 (`external-file-read`).

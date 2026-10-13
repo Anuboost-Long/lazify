@@ -80,13 +80,16 @@ function failureOf(exit: ProcessExit, overflowed: boolean) {
 	return `exited with code ${exit.code}`;
 }
 
-let os: Promise<ChainOs> | null = null;
+let info: ReturnType<typeof desktop.platform.getInfo> | null = null;
 
-export function currentOs(): Promise<ChainOs> {
-	os ??= desktop.platform.getInfo().then((info) => info.os);
+const platformInfo = () => {
+	info ??= desktop.platform.getInfo();
+	return info;
+};
 
-	return os;
-}
+export const currentOs = (): Promise<ChainOs> => platformInfo().then(({ os }) => os);
+
+export const currentArch = () => platformInfo().then(({ arch }) => arch);
 
 const variables = new Map<string, Promise<string | null>>();
 
@@ -104,14 +107,20 @@ export function environmentVariable(name: string): Promise<string | null> {
 	return value;
 }
 
-/** Which of `paths` are files, following links, in one process however many there are. */
-export async function existingFiles(paths: string[]): Promise<Set<string>> {
+async function passing(test: "-f" | "-e", paths: string[]): Promise<Set<string>> {
 	if (paths.length === 0) return new Set();
 
-	const { stdout } = await execFile("/bin/sh", ["-c", 'for p; do [ -f "$p" ] && printf "%s\\n" "$p"; done; exit 0', "sh", ...paths]);
+	const script = `for p; do [ ${test} "$p" ] && printf "%s\\n" "$p"; done; exit 0`;
+	const { stdout } = await execFile("/bin/sh", ["-c", script, "sh", ...paths]);
 
 	return new Set(stdout.split("\n").filter(Boolean));
 }
+
+/** Which of `paths` are files, following links, in one process however many there are. */
+export const existingFiles = (paths: string[]) => passing("-f", paths);
+
+/** Which of `paths` exist as anything, in one process. Works outside every granted folder. */
+export const existingPaths = (paths: string[]) => passing("-e", paths);
 
 const GREP_BATCH = 500;
 

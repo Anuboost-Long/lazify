@@ -3,6 +3,7 @@ import * as autopilot from "./autopilot";
 import * as codeIntelligence from "./code-intelligence";
 import * as commands from "./commands";
 import * as environment from "./environment";
+import * as extensions from "./extensions";
 import * as formatting from "./formatting";
 import * as git from "./git";
 import * as keepAwakeGroup from "./keep-awake";
@@ -22,7 +23,6 @@ const unported = {
 	diagnostics: "The diagnostics folder",
 	dmgBuilder: "The DMG builder",
 	droppedFiles: "Dropping files",
-	extensions: "Managing extensions",
 	lazyShield: "Lazy Shield",
 	linting: "Linting and code scans",
 	pastedImages: "Pasting images",
@@ -169,13 +169,13 @@ export const lazify: LazifyApi = {
 	updateTool: environment.updateTool,
 	listListeningProcesses: environment.listListeningProcesses,
 	killListeningProcess: environment.killListeningProcess,
-	listExtensions: rejects(unported.extensions),
-	installExtension: rejects(unported.extensions),
-	extensionInstallJobs: rejects(unported.extensions),
-	removeExtension: rejects(unported.extensions),
-	toggleExtension: rejects(unported.extensions),
-	writeExtensionManifest: rejects(unported.extensions),
-	onExtensionInstall: noSubscription,
+	listExtensions: extensions.listExtensions,
+	installExtension: extensions.installExtension,
+	extensionInstallJobs: extensions.extensionInstallJobs,
+	removeExtension: extensions.removeExtension,
+	toggleExtension: extensions.toggleExtension,
+	writeExtensionManifest: extensions.writeExtensionManifest,
+	onExtensionInstall: extensions.onExtensionInstall,
 	formatterSettings: formatting.formatterSettings,
 	setFormatterMode: formatting.setFormatterMode,
 	setOrganizeImports: formatting.setOrganizeImports,
