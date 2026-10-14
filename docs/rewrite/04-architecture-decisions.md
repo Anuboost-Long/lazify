@@ -119,11 +119,23 @@ found and imports only after the user confirms. Projects whose folders can't
 be found are listed for the user to fix. The import is also available later
 from Settings. See `08-migration-ledger.md`.
 
+### D-3 Embedded browser: keep it
+
+Decided 2026-10-15 by the owner. The browser stays in scope for Chain,
+starting with Phase 6. It needs a new capability — an embedded,
+isolated guest view hosted inside the app's own window, distinct from
+the existing `desktop.browser` (a separate OS window for one-off SSO) —
+requested as
+[chain-sdk request 18](../chain-sdk-requests/18-embedded-browser-view.md).
+Tracker/ad blocking (Lazy Shield, which needs guest script execution) and
+media picture-in-picture are left for their own later requests rather
+than folded into this one. A security review runs before arbitrary
+navigation is enabled in the app, once the capability exists to review.
+
 ## Open — owner decisions
 
 | ID | Decision | Blocks |
 | --- | --- | --- |
-| D-3 | Embedded browser: keep it (needs an embedded guest-view capability plus a security review) or leave it out of the first release | Phase 6 browser slice |
 | D-4 | First-release scope: auto-update, custom extension install, DMG compiler, which agent CLIs | Phase 5–7 |
 | D-6 | Signing, notarisation and update-feed ownership for Chain builds | Phase 7 |
 | D-7 | API Studio secrets: move from plaintext JSON to a keychain capability in the Chain app? | API Studio slice |
