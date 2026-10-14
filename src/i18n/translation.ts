@@ -1734,4 +1734,9 @@ export const translation = {
 		SelectDate: "date_picker.select_date",
 		NoDate: "date_picker.no_date",
 	},
+	FatalError: {
+		Title: "fatal_error.title",
+		Message: "fatal_error.message",
+		Reload: "fatal_error.reload",
+	},
 } as const;

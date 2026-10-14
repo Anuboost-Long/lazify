@@ -108,6 +108,20 @@ Prompt Builder and task lifecycle (the roadmap's last Phase 5 bullet)
 already run on Chain (tickets 001, 016, 019). Their run and status
 history are checked in 023's parity pass rather than a ticket of their own.
 
+## Phase 6 — complex tools
+
+D-3: the embedded browser stays in scope for Chain, decided 2026-10-15.
+Its embedding primitive is [chain-sdk request 18](../chain-sdk-requests/18-embedded-browser-view.md),
+sent and not yet built; the browser ticket itself waits on it.
+
+| Ticket | Scope | Status |
+| --- | --- | --- |
+| [031](tickets/031-diagnostics.md) | Diagnostics: the log file, and the fatal-error screen for an error nothing caught (no `linting`/`extensions` preload group — called from `main.ts`/`main.tsx` only) | **Done.** Electron's logger cases pass on the copy; a real uncaught error showed the fatal screen and logged, a real unhandled rejection from an unported feature only logged (a first pass got that backwards and showed the screen for both — fixed and reverified); `getDiagnosticsPaths` answers for real in Settings |
+| — | Browser: embedded guest view, popup policy, Lazy Shield, media PiP | Waiting on request 18 |
+| — | API Studio: route inventory/scanners → route details → environments/secrets (D-7) → request execution → scripts → collections → response files/exports → docs | Not started |
+| — | Agents workbench and live monitor mode | Not started |
+| — | DMG compiler (macOS only, D-4) | Not started |
+
 ## Chain SDK requests
 
 | # | Request | Unblocks | Status |

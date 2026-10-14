@@ -49,7 +49,7 @@ export function DiagnosticsSection() {
           "",
           "",
           "---",
-          `Lazify ${paths.appVersion} · ${paths.platform}/${paths.arch} · Electron ${paths.electronVersion}`,
+          `Lazify ${paths.appVersion} · ${paths.platform}/${paths.arch}`,
         ].join("\n")
       : "";
 

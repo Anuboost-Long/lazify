@@ -31,7 +31,7 @@ An untested OS is `Not tested`, never `Pass`.
 | API Studio requests | | | | | | Not started |
 | API Studio collections/docs | | | | | | Not started |
 | DMG compiler | | | | N/A | N/A | Not started |
-| Updates/diagnostics | | | | | | Not started |
+| Updates/diagnostics | `tests/main/logger.test.ts`, `tests/main/crash-handlers.test.ts` | Diagnostics: [ticket 031](tickets/031-diagnostics.md), Electron's logger cases pass on the copy; a real uncaught error and a real unhandled rejection verified separately in the app (fatal vs. logged-only). Native crash reporter, OS-signal cleanup and renderer-crash watching don't carry over to a single-webview app (see ticket). Updates not started | Partial | Not tested | Not tested | Not started |
 | Legal and marketing | | | | | | Not started |
 | Localization/accessibility | | | | | | Not started |
 | Packaging/platforms | | | | | | Not started |

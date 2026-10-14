@@ -1732,5 +1732,10 @@
   "date_picker": {
     "select_date": "Select a date",
     "no_date": "No date set"
+  },
+  "fatal_error": {
+    "title": "Lazify hit an error it can't recover from",
+    "message": "Nothing was sent anywhere. The details were written to the log below.",
+    "reload": "Reload"
   }
 }

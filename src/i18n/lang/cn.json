@@ -1731,5 +1731,10 @@
     "packages_count": "{{count}} 个包",
     "packages_count_one": "{{count}} 个包",
     "packages_count_other": "{{count}} 个包"
+  },
+  "fatal_error": {
+    "title": "Lazify 遇到了无法恢复的错误",
+    "message": "没有任何内容被发送出去。详情已写入下面的日志文件。",
+    "reload": "重新加载"
   }
 }

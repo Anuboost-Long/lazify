@@ -2,6 +2,7 @@ import * as agents from "./agents";
 import * as autopilot from "./autopilot";
 import * as codeIntelligence from "./code-intelligence";
 import * as commands from "./commands";
+import * as diagnostics from "./diagnostics";
 import * as environment from "./environment";
 import * as extensions from "./extensions";
 import * as formatting from "./formatting";
@@ -21,7 +22,6 @@ import * as zoom from "./zoom";
 const unported = {
 	apiDocs: "API documentation",
 	apiStudio: "API Studio",
-	diagnostics: "The diagnostics folder",
 	dmgBuilder: "The DMG builder",
 	droppedFiles: "Dropping files",
 	lazyShield: "Lazy Shield",
@@ -218,7 +218,7 @@ export const lazify: LazifyApi = {
 	buildPrompt: prompts.buildPrompt,
 	suggestPromptPreset: prompts.suggestPromptPreset,
 	relaunchApp: rejects(unported.restart),
-	getDiagnosticsPaths: rejects(unported.diagnostics),
+	getDiagnosticsPaths: diagnostics.getDiagnosticsPaths,
 	saveClipboardImage: rejects(unported.pastedImages),
 	pathForDroppedFile: throws(unported.droppedFiles),
 	listHighlightingAssets: codeIntelligence.listHighlightingAssets,

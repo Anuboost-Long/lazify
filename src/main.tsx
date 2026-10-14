@@ -4,10 +4,13 @@ import ReactDOM from "react-dom/client";
 
 import { lazify } from "@/platform/lazify";
 import { applyStoredZoom } from "@/platform/zoom";
+import { installGlobalErrorLogging } from "@/shared/lib/diagnostics/global-errors";
 
 import App from "./app/App";
 import { initialLanguageReady } from "./i18n/i18n";
 import "./styles.css";
+
+installGlobalErrorLogging();
 
 globalThis.lazify = lazify;
 

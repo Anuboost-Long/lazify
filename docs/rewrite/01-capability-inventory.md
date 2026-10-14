@@ -39,7 +39,7 @@ primitives, never features.
 | API documentation | `src/main/api-studio/docs/*` | `apiDocs` | `pdf`, `files` | File change events on `.lazify/api-studio/docs` (02) | 02 |
 | DMG compiler | `src/main/dmg/*`, `src/main/dmg-compiler.ts` | `dmg` | `processRunner` | Working directory (03). The `hdiutil` usage stays app-level, macOS only. Styling the image scripts Finder, which needs the Apple Events entitlement and usage string (`build/entitlements.mac.plist`, `electron-builder.mac.yml`) in Chain's bundle config | 03 |
 | App and UI settings | `src/renderer/shared/hooks/*`, `src/main/window-zoom.ts` | `system` (zoom) | `window`, `storage` | Webview zoom | later |
-| Distribution and reliability | `src/main/updater.ts`, `src/main/diagnostics/*`, `src/main/splash.ts`, `src/main/app-menu.ts` | `updater`, `system` | `window` (show when ready) | Updater, app menu, crash and log paths | later |
+| Distribution and reliability | `src/main/updater.ts`, `src/main/diagnostics/*`, `src/main/splash.ts`, `src/main/app-menu.ts` | `updater`, `system` | `window` (show when ready) | Log file and the fatal-error screen done ([ticket 031](tickets/031-diagnostics.md)); updater, app menu, crash dumps and OS-signal cleanup later | partial |
 | Marketing site | `website/` | — | — | Out of scope | — |
 
 ## Request order
