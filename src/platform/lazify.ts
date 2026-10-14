@@ -9,6 +9,7 @@ import * as git from "./git";
 import * as keepAwakeGroup from "./keep-awake";
 import * as packages from "./packages";
 import type { LazifyApi } from "./lazify-api";
+import * as linting from "./linting";
 import * as projects from "./projects";
 import * as prompts from "./prompts";
 import * as scripts from "./scripts";
@@ -24,7 +25,6 @@ const unported = {
 	dmgBuilder: "The DMG builder",
 	droppedFiles: "Dropping files",
 	lazyShield: "Lazy Shield",
-	linting: "Linting and code scans",
 	pastedImages: "Pasting images",
 	pictureInPicture: "Picture in picture",
 	restart: "Restarting Lazify",
@@ -184,13 +184,13 @@ export const lazify: LazifyApi = {
 	projectFormatter: formatting.projectFormatter,
 	formatChangedFiles: formatting.formatChangedFiles,
 	onCodeFormatted: formatting.onCodeFormatted,
-	lintFile: rejects(unported.linting),
-	createFixTask: rejects(unported.linting),
-	startSonarScan: rejects(unported.linting),
-	stopSonarScan: rejects(unported.linting),
-	sonarScanState: rejects(unported.linting),
-	createPhaseTasks: rejects(unported.linting),
-	onSonarScan: noSubscription,
+	lintFile: linting.lintFile,
+	createFixTask: linting.createFixTask,
+	startSonarScan: linting.startSonarScan,
+	stopSonarScan: linting.stopSonarScan,
+	sonarScanState: linting.sonarScanState,
+	createPhaseTasks: linting.createPhaseTasks,
+	onSonarScan: linting.onSonarScan,
 	openPictureInPicture: rejects(unported.pictureInPicture),
 	closePictureInPicture: rejects(unported.pictureInPicture),
 	getPictureInPictureState: rejects(unported.pictureInPicture),

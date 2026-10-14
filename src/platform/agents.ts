@@ -7,6 +7,7 @@ import type { AgentDescriptor } from "@/shared/lib/agents/agent-registry";
 import { AttentionDetector } from "@/shared/lib/agents/attention-detector";
 import { Autopilot } from "@/shared/lib/agents/autopilot";
 import type { AutopilotHold } from "@/shared/lib/agents/autopilot-policy";
+import { prepareSessionLint } from "@/shared/lib/agents/session-lint";
 
 import { autopilotSettings, isAutopilotActive } from "./autopilot";
 import { formatAfterTurn } from "./formatting";
@@ -185,13 +186,17 @@ export async function openAgentTerminal(
 
 	const resume = resumeSessionId ? resumeArgs(agentId, resumeSessionId) : null;
 
+	// Findings from the app's own analysis, wired into this session only.
+	const lint = await prepareSessionLint(agentId, projectPath);
+
 	const runId = await startPty({
 		command: definition.binary,
-		args: [...definition.args, ...(resume ?? [])],
+		args: [...definition.args, ...(resume ?? []), ...lint.args],
 		cwd: projectPath,
 		scriptName: definition.label,
 		cols,
 		rows,
+		env: lint.env,
 		tags: { kind: AGENT_TAG, agentId, hidden: String(hidden) },
 	});
 

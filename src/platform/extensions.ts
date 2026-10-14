@@ -9,6 +9,7 @@ import {
 	toggleExtension as toggle,
 	writeProjectExtensionManifest,
 } from "@/shared/lib/extensions";
+import { disposeLanguageServers } from "@/shared/lib/linting";
 
 export const listExtensions = (refresh?: boolean) => list(refresh === true);
 
@@ -17,12 +18,18 @@ export const listExtensions = (refresh?: boolean) => list(refresh === true);
  * tens of megabytes, and the window watches the progress events rather than
  * holding a promise open across a page change.
  */
-export const installExtension = beginInstall;
+export function installExtension(id: string) {
+	// Chain asks for what runs from a package to stop before it is replaced.
+	disposeLanguageServers();
+
+	return beginInstall(id);
+}
 
 export const extensionInstallJobs = async () => installJobs();
 
 export async function removeExtension(id: string) {
 	forgetInstallJob(id);
+	disposeLanguageServers();
 
 	const states = await remove(id);
 

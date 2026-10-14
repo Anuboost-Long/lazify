@@ -1,0 +1,871 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`linting golden > reads, scans and reports the same projects 1`] = `
+{
+  "firstRun": {
+    "current": null,
+    "failure": null,
+    "findingCount": 4,
+    "projectPath": "<base>/repo",
+    "report": {
+      "batch": {
+        "end": 6,
+        "start": 1,
+        "total": 6,
+      },
+      "durationMs": 0,
+      "engines": [
+        "sonarlint",
+      ],
+      "fileCount": 6,
+      "files": [
+        {
+          "findings": [
+            {
+              "diagnostic": {
+                "code": "typescript:S1854",
+                "column": 1,
+                "endColumn": 4,
+                "endLine": 1,
+                "line": 1,
+                "message": "Remove this useless assignment on line 1.",
+                "rule": "sonarlint/typescript:S1854",
+                "source": "sonarlint",
+                "url": "https://rules.sonarsource.com/typescript/RSPEC-1854/",
+              },
+              "filePath": "<base>/repo/lib/money.mjs",
+              "snippet": "BAD
+BAD
+",
+              "snippetStartLine": 1,
+            },
+            {
+              "diagnostic": {
+                "code": "typescript:S1854",
+                "column": 1,
+                "endColumn": 4,
+                "endLine": 2,
+                "line": 2,
+                "message": "Remove this useless assignment on line 2.",
+                "rule": "sonarlint/typescript:S1854",
+                "source": "sonarlint",
+                "url": "https://rules.sonarsource.com/typescript/RSPEC-1854/",
+              },
+              "filePath": "<base>/repo/lib/money.mjs",
+              "snippet": "BAD
+BAD
+",
+              "snippetStartLine": 1,
+            },
+          ],
+          "path": "lib/money.mjs",
+        },
+        {
+          "findings": [
+            {
+              "diagnostic": {
+                "code": "typescript:S1854",
+                "column": 1,
+                "endColumn": 4,
+                "endLine": 2,
+                "line": 2,
+                "message": "Remove this useless assignment on line 2.",
+                "rule": "sonarlint/typescript:S1854",
+                "source": "sonarlint",
+                "url": "https://rules.sonarsource.com/typescript/RSPEC-1854/",
+              },
+              "filePath": "<base>/repo/src/cart/Cart.tsx",
+              "snippet": "const total = 1;
+BAD = 2;
+",
+              "snippetStartLine": 1,
+            },
+          ],
+          "path": "src/cart/Cart.tsx",
+        },
+        {
+          "findings": [
+            {
+              "diagnostic": {
+                "code": "typescript:S1854",
+                "column": 1,
+                "endColumn": 4,
+                "endLine": 2,
+                "line": 2,
+                "message": "Remove this useless assignment on line 2.",
+                "rule": "sonarlint/typescript:S1854",
+                "source": "sonarlint",
+                "url": "https://rules.sonarsource.com/typescript/RSPEC-1854/",
+              },
+              "filePath": "<base>/repo/src/styles.css",
+              "snippet": ".a { color: red; }
+BAD
+",
+              "snippetStartLine": 1,
+            },
+          ],
+          "path": "src/styles.css",
+        },
+      ],
+      "findingCount": 4,
+      "projectPath": "<base>/repo",
+      "resumeFrom": "docs/notes.md",
+      "roots": [
+        "docs",
+        "lib",
+        ".",
+        "src",
+      ],
+      "scannedAt": "<time>",
+      "skippedCount": 0,
+    },
+    "scanned": 6,
+    "status": "done",
+    "total": 6,
+  },
+  "ignore": "dist/
+.cache/
+secret.ts
+.lazify/
+",
+  "lintPaths": [
+    {
+      "diagnostics": [
+        {
+          "code": "typescript:S1854",
+          "column": 1,
+          "endColumn": 4,
+          "endLine": 2,
+          "line": 2,
+          "message": "Remove this useless assignment on line 2.",
+          "rule": "sonarlint/typescript:S1854",
+          "source": "sonarlint",
+          "url": "https://rules.sonarsource.com/typescript/RSPEC-1854/",
+        },
+      ],
+      "path": "<base>/repo/src/cart/Cart.tsx",
+    },
+    {
+      "diagnostics": [
+        {
+          "code": "typescript:S1854",
+          "column": 1,
+          "endColumn": 4,
+          "endLine": 1,
+          "line": 1,
+          "message": "Remove this useless assignment on line 1.",
+          "rule": "sonarlint/typescript:S1854",
+          "source": "sonarlint",
+          "url": "https://rules.sonarsource.com/typescript/RSPEC-1854/",
+        },
+        {
+          "code": "typescript:S1854",
+          "column": 1,
+          "endColumn": 4,
+          "endLine": 2,
+          "line": 2,
+          "message": "Remove this useless assignment on line 2.",
+          "rule": "sonarlint/typescript:S1854",
+          "source": "sonarlint",
+          "url": "https://rules.sonarsource.com/typescript/RSPEC-1854/",
+        },
+      ],
+      "path": "<base>/repo/lib/money.mjs",
+    },
+  ],
+  "noEngines": {
+    "current": null,
+    "failure": "no-engines",
+    "findingCount": 0,
+    "projectPath": "<base>/plain",
+    "report": null,
+    "scanned": 0,
+    "status": "failed",
+    "total": 0,
+  },
+  "plainFiles": {
+    "batch": {
+      "end": 6,
+      "start": 1,
+      "total": 6,
+    },
+    "files": [
+      "docs/notes.md",
+      "lib/money.mjs",
+      "package.json",
+      "src/cart/Cart.tsx",
+      "src/cart/total.ts",
+      "src/styles.css",
+    ],
+    "nextCursor": null,
+    "roots": [
+      "docs",
+      "lib",
+      ".",
+      "src",
+    ],
+  },
+  "repoFiles": {
+    "batch": {
+      "end": 6,
+      "start": 1,
+      "total": 6,
+    },
+    "files": [
+      "docs/notes.md",
+      "lib/money.mjs",
+      "package.json",
+      "src/cart/Cart.tsx",
+      "src/cart/total.ts",
+      "src/styles.css",
+    ],
+    "nextCursor": null,
+    "roots": [
+      "docs",
+      "lib",
+      ".",
+      "src",
+    ],
+  },
+  "secondRun": {
+    "current": null,
+    "failure": null,
+    "findingCount": 4,
+    "projectPath": "<base>/repo",
+    "report": {
+      "batch": {
+        "end": 6,
+        "start": 1,
+        "total": 6,
+      },
+      "durationMs": 0,
+      "engines": [
+        "sonarlint",
+      ],
+      "fileCount": 6,
+      "files": [
+        {
+          "findings": [
+            {
+              "diagnostic": {
+                "code": "typescript:S1854",
+                "column": 1,
+                "endColumn": 4,
+                "endLine": 1,
+                "line": 1,
+                "message": "Remove this useless assignment on line 1.",
+                "rule": "sonarlint/typescript:S1854",
+                "source": "sonarlint",
+                "url": "https://rules.sonarsource.com/typescript/RSPEC-1854/",
+              },
+              "filePath": "<base>/repo/lib/money.mjs",
+              "snippet": "BAD
+BAD
+",
+              "snippetStartLine": 1,
+            },
+            {
+              "diagnostic": {
+                "code": "typescript:S1854",
+                "column": 1,
+                "endColumn": 4,
+                "endLine": 2,
+                "line": 2,
+                "message": "Remove this useless assignment on line 2.",
+                "rule": "sonarlint/typescript:S1854",
+                "source": "sonarlint",
+                "url": "https://rules.sonarsource.com/typescript/RSPEC-1854/",
+              },
+              "filePath": "<base>/repo/lib/money.mjs",
+              "snippet": "BAD
+BAD
+",
+              "snippetStartLine": 1,
+            },
+          ],
+          "path": "lib/money.mjs",
+        },
+        {
+          "findings": [
+            {
+              "diagnostic": {
+                "code": "typescript:S1854",
+                "column": 1,
+                "endColumn": 4,
+                "endLine": 2,
+                "line": 2,
+                "message": "Remove this useless assignment on line 2.",
+                "rule": "sonarlint/typescript:S1854",
+                "source": "sonarlint",
+                "url": "https://rules.sonarsource.com/typescript/RSPEC-1854/",
+              },
+              "filePath": "<base>/repo/src/cart/Cart.tsx",
+              "snippet": "const total = 1;
+BAD = 2;
+",
+              "snippetStartLine": 1,
+            },
+          ],
+          "path": "src/cart/Cart.tsx",
+        },
+        {
+          "findings": [
+            {
+              "diagnostic": {
+                "code": "typescript:S1854",
+                "column": 1,
+                "endColumn": 4,
+                "endLine": 2,
+                "line": 2,
+                "message": "Remove this useless assignment on line 2.",
+                "rule": "sonarlint/typescript:S1854",
+                "source": "sonarlint",
+                "url": "https://rules.sonarsource.com/typescript/RSPEC-1854/",
+              },
+              "filePath": "<base>/repo/src/styles.css",
+              "snippet": ".a { color: red; }
+BAD
+",
+              "snippetStartLine": 1,
+            },
+          ],
+          "path": "src/styles.css",
+        },
+      ],
+      "findingCount": 4,
+      "projectPath": "<base>/repo",
+      "resumeFrom": "docs/notes.md",
+      "roots": [
+        "docs",
+        "lib",
+        ".",
+        "src",
+      ],
+      "scannedAt": "<time>",
+      "skippedCount": 0,
+    },
+    "scanned": 6,
+    "status": "done",
+    "total": 6,
+  },
+  "steps": [
+    "running",
+    "done",
+  ],
+  "stopped": {
+    "current": null,
+    "failure": "no-engines",
+    "findingCount": 0,
+    "projectPath": "<base>/plain",
+    "report": null,
+    "scanned": 0,
+    "status": "failed",
+    "total": 0,
+  },
+  "stored": {
+    "report": {
+      "batch": {
+        "end": 6,
+        "start": 1,
+        "total": 6,
+      },
+      "durationMs": 0,
+      "engines": [
+        "sonarlint",
+      ],
+      "fileCount": 6,
+      "files": [
+        {
+          "findings": [
+            {
+              "diagnostic": {
+                "code": "typescript:S1854",
+                "column": 1,
+                "endColumn": 4,
+                "endLine": 1,
+                "line": 1,
+                "message": "Remove this useless assignment on line 1.",
+                "rule": "sonarlint/typescript:S1854",
+                "source": "sonarlint",
+                "url": "https://rules.sonarsource.com/typescript/RSPEC-1854/",
+              },
+              "filePath": "<base>/repo/lib/money.mjs",
+              "snippet": "BAD
+BAD
+",
+              "snippetStartLine": 1,
+            },
+            {
+              "diagnostic": {
+                "code": "typescript:S1854",
+                "column": 1,
+                "endColumn": 4,
+                "endLine": 2,
+                "line": 2,
+                "message": "Remove this useless assignment on line 2.",
+                "rule": "sonarlint/typescript:S1854",
+                "source": "sonarlint",
+                "url": "https://rules.sonarsource.com/typescript/RSPEC-1854/",
+              },
+              "filePath": "<base>/repo/lib/money.mjs",
+              "snippet": "BAD
+BAD
+",
+              "snippetStartLine": 1,
+            },
+          ],
+          "path": "lib/money.mjs",
+        },
+        {
+          "findings": [
+            {
+              "diagnostic": {
+                "code": "typescript:S1854",
+                "column": 1,
+                "endColumn": 4,
+                "endLine": 2,
+                "line": 2,
+                "message": "Remove this useless assignment on line 2.",
+                "rule": "sonarlint/typescript:S1854",
+                "source": "sonarlint",
+                "url": "https://rules.sonarsource.com/typescript/RSPEC-1854/",
+              },
+              "filePath": "<base>/repo/src/cart/Cart.tsx",
+              "snippet": "const total = 1;
+BAD = 2;
+",
+              "snippetStartLine": 1,
+            },
+          ],
+          "path": "src/cart/Cart.tsx",
+        },
+        {
+          "findings": [
+            {
+              "diagnostic": {
+                "code": "typescript:S1854",
+                "column": 1,
+                "endColumn": 4,
+                "endLine": 2,
+                "line": 2,
+                "message": "Remove this useless assignment on line 2.",
+                "rule": "sonarlint/typescript:S1854",
+                "source": "sonarlint",
+                "url": "https://rules.sonarsource.com/typescript/RSPEC-1854/",
+              },
+              "filePath": "<base>/repo/src/styles.css",
+              "snippet": ".a { color: red; }
+BAD
+",
+              "snippetStartLine": 1,
+            },
+          ],
+          "path": "src/styles.css",
+        },
+      ],
+      "findingCount": 4,
+      "projectPath": "<base>/repo",
+      "resumeFrom": "docs/notes.md",
+      "roots": [
+        "docs",
+        "lib",
+        ".",
+        "src",
+      ],
+      "scannedAt": "<time>",
+      "skippedCount": 0,
+    },
+    "version": 2,
+  },
+  "warmed": [
+    "<base>/repo/secret.ts",
+  ],
+}
+`;
+
+exports[`linting golden > writes the same texts and plans 1`] = `
+{
+  "fixTask": {
+    "labelled": {
+      "deadline": null,
+      "description": "Code quality reported 11 findings in 5 files.
+Phase 2 of 3 of a project scan; the other phases cover other files.
+
+Each requirement below is one finding. Fix it in place, leave the
+surrounding behaviour unchanged, and do not reformat code the rule is
+not about.",
+      "name": "Phase 2 of 3 · Fix 11 Code quality findings across 5 files",
+      "notes": "Rules
+  typescript:S1764  https://rules.sonarsource.com/typescript/RSPEC-1764/
+  suggestCanonicalClasses  https://tailwindcss.com/docs/editor-setup
+
+src/cart/Cart.tsx:7 (typescript:S1764), shown from line 3:
+\`\`\`tsx
+if (a && a) return;
+\`\`\`
+
+src/cart/Cart.tsx:12-14 (typescript:S1764), shown from line 3:
+\`\`\`tsx
+if (a && a) return;
+\`\`\`
+
+src/cart/total.ts:7 (typescript:S1764), shown from line 3:
+\`\`\`ts
+if (a && a) return;
+\`\`\`
+
+src/checkout/Pay.tsx:1 (typescript:S1764), shown from line 3:
+\`\`\`tsx
+if (a && a) return;
+\`\`\`
+
+src/checkout/Pay.tsx:2 (typescript:S1764), shown from line 3:
+\`\`\`tsx
+if (a && a) return;
+\`\`\`
+
+src/checkout/Pay.tsx:3 (typescript:S1764), shown from line 3:
+\`\`\`tsx
+if (a && a) return;
+\`\`\`
+
+src/checkout/Pay.tsx:4 (typescript:S1764), shown from line 3:
+\`\`\`tsx
+if (a && a) return;
+\`\`\`
+
+src/checkout/Pay.tsx:5 (typescript:S1764), shown from line 3:
+\`\`\`tsx
+if (a && a) return;
+\`\`\`
+
+src/checkout/Pay.tsx:6 (typescript:S1764), shown from line 3:
+\`\`\`tsx
+if (a && a) return;
+\`\`\`
+
+lib/money.ts:7 (sonarlint), shown from line 3:
+\`\`\`ts
+if (a && a) return;
+\`\`\`
+
+README.md:3 (suggestCanonicalClasses), shown from line 3:
+\`\`\`md
+if (a && a) return;
+\`\`\`",
+      "presetId": "builtin-bug-fix",
+      "priority": "normal",
+      "projectPath": "/work/shop",
+      "requirements": [
+        "typescript:S1764 · src/cart/Cart.tsx:7 — Correct one of the identical sub-expressions on both sides of operator "&&".",
+        "typescript:S1764 · src/cart/Cart.tsx:12-14 — Correct one of the identical sub-expressions on both sides of operator "&&".",
+        "typescript:S1764 · src/cart/total.ts:7 — Correct one of the identical sub-expressions on both sides of operator "&&".",
+        "typescript:S1764 · src/checkout/Pay.tsx:1 — Correct one of the identical sub-expressions on both sides of operator "&&".",
+        "typescript:S1764 · src/checkout/Pay.tsx:2 — Correct one of the identical sub-expressions on both sides of operator "&&".",
+        "typescript:S1764 · src/checkout/Pay.tsx:3 — Correct one of the identical sub-expressions on both sides of operator "&&".",
+        "typescript:S1764 · src/checkout/Pay.tsx:4 — Correct one of the identical sub-expressions on both sides of operator "&&".",
+        "typescript:S1764 · src/checkout/Pay.tsx:5 — Correct one of the identical sub-expressions on both sides of operator "&&".",
+        "typescript:S1764 · src/checkout/Pay.tsx:6 — Correct one of the identical sub-expressions on both sides of operator "&&".",
+        "sonarlint · lib/money.ts:7 — Correct one of the identical sub-expressions on both sides of operator "&&".",
+        "suggestCanonicalClasses · README.md:3 — The class \`bg-black/[.94]\` can be written as \`bg-black/94\`.",
+      ],
+    },
+    "none": null,
+    "one": {
+      "deadline": null,
+      "description": "SonarQube for IDE reported 1 finding in src/cart.mjs.
+
+Each requirement below is one finding. Fix it in place, leave the
+surrounding behaviour unchanged, and do not reformat code the rule is
+not about.",
+      "name": "Fix typescript:S1764 in src/cart.mjs",
+      "notes": "Rules
+  typescript:S1764  https://rules.sonarsource.com/typescript/RSPEC-1764/
+
+src/cart.mjs:7 (typescript:S1764), shown from line 3:
+\`\`\`js
+if (a && a) return;
+\`\`\`",
+      "presetId": null,
+      "priority": "normal",
+      "projectPath": "/work/shop",
+      "requirements": [
+        "typescript:S1764 · src/cart.mjs:7 — Correct one of the identical sub-expressions on both sides of operator "&&".",
+      ],
+    },
+    "tooLong": {
+      "notesLength": 16188,
+      "requirements": 300,
+      "tail": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+\`\`\`
+
+(190 more findings listed above without code.)",
+    },
+  },
+  "phaseOptions": [
+    [
+      1,
+    ],
+    [
+      1,
+    ],
+    [
+      1,
+      2,
+      3,
+      4,
+    ],
+    [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+    ],
+  ],
+  "phases": [
+    {
+      "count": 1,
+      "plan": [
+        {
+          "files": [
+            "lib/money.ts",
+            "README.md",
+            "src/cart/Cart.tsx",
+            "src/cart/total.ts",
+            "src/checkout/Pay.tsx",
+          ],
+          "findingCount": 11,
+          "folder": "",
+          "index": 1,
+        },
+      ],
+    },
+    {
+      "count": 2,
+      "plan": [
+        {
+          "files": [
+            "lib/money.ts",
+            "README.md",
+            "src/cart/Cart.tsx",
+            "src/cart/total.ts",
+          ],
+          "findingCount": 5,
+          "folder": "",
+          "index": 1,
+        },
+        {
+          "files": [
+            "src/checkout/Pay.tsx",
+          ],
+          "findingCount": 6,
+          "folder": "src/checkout",
+          "index": 2,
+        },
+      ],
+    },
+    {
+      "count": 3,
+      "plan": [
+        {
+          "files": [
+            "lib/money.ts",
+            "README.md",
+            "src/cart/Cart.tsx",
+          ],
+          "findingCount": 4,
+          "folder": "",
+          "index": 1,
+        },
+        {
+          "files": [
+            "src/cart/total.ts",
+          ],
+          "findingCount": 1,
+          "folder": "src/cart",
+          "index": 2,
+        },
+        {
+          "files": [
+            "src/checkout/Pay.tsx",
+          ],
+          "findingCount": 6,
+          "folder": "src/checkout",
+          "index": 3,
+        },
+      ],
+    },
+    {
+      "count": 5,
+      "plan": [
+        {
+          "files": [
+            "lib/money.ts",
+          ],
+          "findingCount": 1,
+          "folder": "lib",
+          "index": 1,
+        },
+        {
+          "files": [
+            "README.md",
+          ],
+          "findingCount": 1,
+          "folder": "",
+          "index": 2,
+        },
+        {
+          "files": [
+            "src/cart/Cart.tsx",
+          ],
+          "findingCount": 2,
+          "folder": "src/cart",
+          "index": 3,
+        },
+        {
+          "files": [
+            "src/cart/total.ts",
+          ],
+          "findingCount": 1,
+          "folder": "src/cart",
+          "index": 4,
+        },
+        {
+          "files": [
+            "src/checkout/Pay.tsx",
+          ],
+          "findingCount": 6,
+          "folder": "src/checkout",
+          "index": 5,
+        },
+      ],
+    },
+    {
+      "count": 9,
+      "plan": [
+        {
+          "files": [
+            "lib/money.ts",
+          ],
+          "findingCount": 1,
+          "folder": "lib",
+          "index": 1,
+        },
+        {
+          "files": [
+            "README.md",
+          ],
+          "findingCount": 1,
+          "folder": "",
+          "index": 2,
+        },
+        {
+          "files": [
+            "src/cart/Cart.tsx",
+          ],
+          "findingCount": 2,
+          "folder": "src/cart",
+          "index": 3,
+        },
+        {
+          "files": [
+            "src/cart/total.ts",
+          ],
+          "findingCount": 1,
+          "folder": "src/cart",
+          "index": 4,
+        },
+        {
+          "files": [
+            "src/checkout/Pay.tsx",
+          ],
+          "findingCount": 6,
+          "folder": "src/checkout",
+          "index": 5,
+        },
+      ],
+    },
+  ],
+  "report": {
+    "clean": "",
+    "mixedEngines": "3 Code quality findings in the files you just wrote:
+
+src/a.ts
+  7:7  typescript:S1764 (sonarlint/typescript:S1764)  Correct one of the identical sub-expressions on both sides of operator "&&".  https://rules.sonarsource.com/typescript/RSPEC-1764/
+  9:7  sonarlint  Correct one of the identical sub-expressions on both sides of operator "&&".
+
+src/b.css
+  3:15  suggestCanonicalClasses (tailwindcss/suggestCanonicalClasses)  The class \`bg-black/[.94]\` can be written as \`bg-black/94\`.  https://tailwindcss.com/docs/editor-setup
+
+Fix these before moving on. Leave the surrounding behaviour unchanged, and
+do not reformat code the rules are not about.",
+    "oneFinding": "1 SonarQube for IDE finding in the file you just wrote:
+
+src/a.ts
+  7:7  typescript:S1764 (sonarlint/typescript:S1764)  Correct one of the identical sub-expressions on both sides of operator "&&".  https://rules.sonarsource.com/typescript/RSPEC-1764/
+
+Fix these before moving on. Leave the surrounding behaviour unchanged, and
+do not reformat code the rules are not about.",
+    "outsideProject": "1 Tailwind CSS finding in the file you just wrote:
+
+/elsewhere/lib.js
+  3:15  suggestCanonicalClasses (tailwindcss/suggestCanonicalClasses)  The class \`bg-black/[.94]\` can be written as \`bg-black/94\`.  https://tailwindcss.com/docs/editor-setup
+
+Fix these before moving on. Leave the surrounding behaviour unchanged, and
+do not reformat code the rules are not about.",
+  },
+  "scanText": "SonarQube for IDE and Tailwind CSS · 11 findings in 5 of 40 files
+Scanned lib, src in /work/shop on 2026-10-14T00:00:00.000Z
+Files 1001-1043 of 1043.
+3 files were not read.
+
+src/cart/Cart.tsx
+  7:7  typescript:S1764 (sonarlint/typescript:S1764)  Correct one of the identical sub-expressions on both sides of operator "&&".  https://rules.sonarsource.com/typescript/RSPEC-1764/
+  12:7  typescript:S1764 (sonarlint/typescript:S1764)  Correct one of the identical sub-expressions on both sides of operator "&&".  https://rules.sonarsource.com/typescript/RSPEC-1764/
+
+src/cart/total.ts
+  7:7  typescript:S1764 (sonarlint/typescript:S1764)  Correct one of the identical sub-expressions on both sides of operator "&&".  https://rules.sonarsource.com/typescript/RSPEC-1764/
+
+src/checkout/Pay.tsx
+  1:7  typescript:S1764 (sonarlint/typescript:S1764)  Correct one of the identical sub-expressions on both sides of operator "&&".  https://rules.sonarsource.com/typescript/RSPEC-1764/
+  2:7  typescript:S1764 (sonarlint/typescript:S1764)  Correct one of the identical sub-expressions on both sides of operator "&&".  https://rules.sonarsource.com/typescript/RSPEC-1764/
+  3:7  typescript:S1764 (sonarlint/typescript:S1764)  Correct one of the identical sub-expressions on both sides of operator "&&".  https://rules.sonarsource.com/typescript/RSPEC-1764/
+  4:7  typescript:S1764 (sonarlint/typescript:S1764)  Correct one of the identical sub-expressions on both sides of operator "&&".  https://rules.sonarsource.com/typescript/RSPEC-1764/
+  5:7  typescript:S1764 (sonarlint/typescript:S1764)  Correct one of the identical sub-expressions on both sides of operator "&&".  https://rules.sonarsource.com/typescript/RSPEC-1764/
+  6:7  typescript:S1764 (sonarlint/typescript:S1764)  Correct one of the identical sub-expressions on both sides of operator "&&".  https://rules.sonarsource.com/typescript/RSPEC-1764/
+
+lib/money.ts
+  7:7  sonarlint  Correct one of the identical sub-expressions on both sides of operator "&&".
+
+README.md
+  3:15  suggestCanonicalClasses (tailwindcss/suggestCanonicalClasses)  The class \`bg-black/[.94]\` can be written as \`bg-black/94\`.  https://tailwindcss.com/docs/editor-setup",
+  "snippets": [
+    {
+      "startLine": 1,
+      "text": "1
+2
+3
+4
+5
+6",
+    },
+    {
+      "startLine": 3,
+      "text": "3
+4
+5
+6
+7
+8
+9
+10
+11
+12",
+    },
+  ],
+}
+`;
