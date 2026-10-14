@@ -78,8 +78,10 @@ never do without going through `@chain/sdk`.
   notice. The decision needs, per attempt: the destination URL; the
   URL of the document that is navigating or that asked for the new
   window; whether that document is the guest's top-level frame or a
-  nested one; Chromium's own disposition hint for a new window
-  (foreground tab / background tab / new window); and whether the guest
+  nested one; whatever real signal exists for the modifier keys and
+  mouse button held by the action that opened a new window, so the app
+  can derive its own foreground/background intent the way Chromium's
+  disposition hint already let it; and whether the guest
   has reported genuine user input (a click, a keypress — not mouse
   movement) in roughly the last few seconds, so a click opening a new
   tab can be told apart from a page redirecting itself on a timer with
@@ -131,27 +133,31 @@ per-guest — the app opens, closes and switches between several at once
   ignore, not Chain's); the guest's own content process having crashed
   or gone away.
 - **A way to decide navigation and new windows before they happen**,
-  rather than only hear about them after: the app needs to be asked,
-  synchronously enough to still cancel the attempt, whenever a guest is
-  about to leave for another address (including one a nested frame is
-  trying to force on its top-level guest) or is about to open a new
-  window, and be able to refuse it, letting the app redirect the user
-  elsewhere instead (its own new tab, the system's browser) rather than
-  have the engine open anything on its own. Each ask needs to carry: the
-  destination URL; the URL of the frame/document responsible; whether
-  that's the guest's main frame; for a new window, the engine's
-  foreground/background/new-window disposition hint; and whether the
-  guest has seen a real input event (not pointer movement) recently
-  enough to count as the user's own doing. A new window with no address
+  rather than only hear about them after: the app needs to be told,
+  as an event it can still answer in time to cancel the attempt,
+  whenever a guest is about to leave for another address (including one
+  a nested frame is trying to force on its top-level guest) or is about
+  to open a new window, and be able to refuse it, letting the app
+  redirect the user elsewhere instead (its own new tab, the system's
+  browser) rather than have the engine open anything on its own. Each
+  ask needs to carry: the destination URL; the URL of the frame/document
+  responsible; whether that's the guest's main frame; for a new window,
+  whatever real signal exists for the modifier keys and mouse button
+  held when it was triggered, so the app can tell a foreground open from
+  a background one itself; and whether the guest has seen a real input
+  event (not pointer movement) recently enough to count as the user's
+  own doing. A new window with no address
   yet needs to be held — not shown, not destroyed — until it either gets
   a first real navigation (then judged the same way) or a timeout passes
   with none (then dropped).
-- **Permission policy**: be asked, per guest and per permission name
-  (e.g. `notifications`, `geolocation`, `clipboard-read`,
-  `media-key-system`, `fullscreen`, …), both for a one-off request a page
-  makes and for the synchronous check a page's own script can make
-  against its current state, and answer allow or deny — with no default
-  prompt UI of the engine's own ever shown in either case.
+- **Permission policy, but fixed, not asked each time.** Lazify's own
+  policy is a static allow-list — fullscreen, pointer lock, keyboard
+  lock, DRM and a sanitized clipboard write are always on; everything
+  else (camera, microphone, geolocation, notifications, a full
+  clipboard read, …) is always off, for every site, with no per-site
+  exception and no prompt of the engine's own ever shown. So this
+  doesn't need a per-request decision hook — a fixed set of capability
+  toggles chosen when a guest is created is enough.
 - **Two-finger swipe**: a gesture happening inside a guest, delivered to
   the app as it happens (direction, progress, velocity), so the app can
   draw its own indicator and decide whether to move the guest's history.
@@ -165,13 +171,41 @@ Verified only on macOS, in Electron. Not verified on Windows — this
 app's first release is macOS-only regardless (D-2), so Windows parity
 here is not blocking.
 
-## Open questions for chain-sdk
+## Open questions — resolved 2026-10-15
 
-- Whether the per-guest navigation/popup decision above is a blocking
-  call native waits on (mirroring `agentServer`'s own "native blocks,
-  JS answers" shape) or an event the app answers out of band before
-  acting — either serves the need; the contract's shape is Chain's call
-  (rule 2).
-- Whether "genuine recent user input" is something native can report
-  itself (it already has to route input to the right guest) or something
-  the app is left to infer from whatever input events it's given.
+chain-sdk looked at this against the real macOS WebKit APIs (not only
+docs) and came back with two platform facts that changed this request;
+both are reflected above already.
+
+- **The navigation/popup decision is an out-of-band event, not a
+  blocking call.** WebKit's own navigation-decision API already holds a
+  callback and invokes it whenever, sync or async; wry's own new-window
+  handling moves to a separate thread on Windows specifically to dodge
+  the deadlock a blocking call would risk there (WebView2 has the same
+  async model). An event mirrors what the platform already does on both
+  sides.
+- **WebKit has no "recent genuine user input" flag of its own** —
+  Chromium's sticky activation, which Electron surfaces, has no WebKit
+  equivalent. It has to be inferred app-side from a raw, per-guest
+  timestamped input stream (pointer-down/key-down, never movement),
+  which the app was always going to need anyway for recognising a real
+  click in the first place.
+- **WebKit has no "disposition" (foreground/background/new-window) at
+  all** — that's Chromium computing it for Electron, not something the
+  platform hands over. What WebKit does give is the modifier keys and
+  mouse button held by the action that triggered the new window, plus
+  the window-feature hints (shown, resizable, size) the page asked for;
+  the app derives its own foreground/background intent from those, the
+  same way Chromium's own computation does.
+- **Of the five permissions in Lazify's allow-list, only camera,
+  microphone and geolocation have a real per-request decide hook in
+  WebKit** (confirmed by listing `WKUIDelegate`'s methods at runtime,
+  not from docs); fullscreen and DRM are config toggles chosen once when
+  a guest is created, not a per-ask decision; pointer lock and keyboard
+  lock aren't confirmed to work in `WKWebView` yet; a clipboard write
+  during a real gesture isn't gated by WebKit at all. This turned out
+  not to matter: Lazify's policy for all five is a static allow/deny
+  that never varies by site (see above), so the creation-time toggles
+  WebKit does offer are enough on their own, and the one real per-request
+  hook (camera/mic/geolocation) isn't needed since Lazify always answers
+  it the same way anyway.

@@ -31,7 +31,7 @@ Each request:
 | 15 | [Launch a program that outlives the app](15-launch-an-app-that-outlives-lazify.md) | Sent and shipped 2026-10-14 (chain-sdk working tree): `desktop.processRunner.launch(command, args)`, in its own session; `chain update` run. Not yet seen from Lazify: an editor surviving a quit |
 | 16 | [Process output that keeps every byte](16-byte-exact-process-output.md) | Sent and shipped 2026-10-14 (chain-sdk working tree): `run(…, { output: "bytes" })` gives `Uint8Array` chunks; text mode no longer splits a character; `chain update` run |
 | 17 | [Download and unpack a package Lazify can run](17-install-a-downloaded-package.md) | Sent and shipped 2026-10-14 (chain-sdk working tree) as a new capability, `desktop.packages`; `chain update` run. Both engines installed from Lazify |
-| 18 | [An embedded, isolated web view inside the app's own window](18-embedded-browser-view.md) | Sent 2026-10-15 |
+| 18 | [An embedded, isolated web view inside the app's own window](18-embedded-browser-view.md) | Sent 2026-10-15; chain-sdk's research pass settled the design questions the same day (event-based navigation decisions, no per-request permission hook needed) — contract and implementation not started |
 
 Overlap with Mneme: request 01's read-only allow-list design fork would also
 answer Mneme's request 11 (`external-file-read`).
