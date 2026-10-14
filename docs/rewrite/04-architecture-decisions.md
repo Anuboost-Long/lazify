@@ -132,10 +132,21 @@ media picture-in-picture are left for their own later requests rather
 than folded into this one. A security review runs before arbitrary
 navigation is enabled in the app, once the capability exists to review.
 
+### D-4 (DMG compiler piece) Keep it
+
+Decided 2026-10-15 by the owner. The DMG compiler stays in scope for
+Chain. No new capability is expected: it shells out to macOS's own
+`ditto`, `hdiutil` and AppleScript, the same `process-runner` pattern
+already used elsewhere. Custom extension install (ticket 029, on
+`desktop.packages`) and which agent CLIs (the built-in registry plus
+user-added custom agents, tickets 008/019) are already settled in
+practice by what shipped. Auto-update is the one piece of D-4 still
+genuinely open.
+
 ## Open — owner decisions
 
 | ID | Decision | Blocks |
 | --- | --- | --- |
-| D-4 | First-release scope: auto-update, custom extension install, DMG compiler, which agent CLIs | Phase 5–7 |
+| D-4 (remainder) | First-release scope: auto-update | Phase 7 |
 | D-6 | Signing, notarisation and update-feed ownership for Chain builds | Phase 7 |
 | D-7 | API Studio secrets: move from plaintext JSON to a keychain capability in the Chain app? | API Studio slice |

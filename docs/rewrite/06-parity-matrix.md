@@ -30,7 +30,7 @@ An untested OS is `Not tested`, never `Pass`.
 | API Studio scanning | | | | | | Not started |
 | API Studio requests | | | | | | Not started |
 | API Studio collections/docs | | | | | | Not started |
-| DMG compiler | | | | N/A | N/A | Not started |
+| DMG compiler | **None in Electron** | [Ticket 033](tickets/033-dmg-compiler.md): 30 tests pass; `inspectAppBundle` and the staging steps checked against a real app. Mounting onward needs a person — not yet seen in the app | Partial | N/A | N/A | Not started |
 | Updates/diagnostics | `tests/main/logger.test.ts`, `tests/main/crash-handlers.test.ts` | Diagnostics: [ticket 031](tickets/031-diagnostics.md), Electron's logger cases pass on the copy; a real uncaught error and a real unhandled rejection verified separately in the app (fatal vs. logged-only). Native crash reporter, OS-signal cleanup and renderer-crash watching don't carry over to a single-webview app (see ticket). Updates not started | Partial | Not tested | Not tested | Not started |
 | Legal and marketing | | | | | | Not started |
 | Localization/accessibility | | | | | | Not started |

@@ -3,6 +3,7 @@ import * as autopilot from "./autopilot";
 import * as codeIntelligence from "./code-intelligence";
 import * as commands from "./commands";
 import * as diagnostics from "./diagnostics";
+import * as dmg from "./dmg";
 import * as environment from "./environment";
 import * as extensions from "./extensions";
 import * as formatting from "./formatting";
@@ -22,7 +23,6 @@ import * as zoom from "./zoom";
 const unported = {
 	apiDocs: "API documentation",
 	apiStudio: "API Studio",
-	dmgBuilder: "The DMG builder",
 	droppedFiles: "Dropping files",
 	lazyShield: "Lazy Shield",
 	pastedImages: "Pasting images",
@@ -142,14 +142,14 @@ export const lazify: LazifyApi = {
 	onBrowserPopupBlocked: noSubscription,
 	allowPopupsFrom: rejects(unported.lazyShield),
 	findSymbolDefinition: codeIntelligence.findSymbolDefinition,
-	selectAppBundle: rejects(unported.dmgBuilder),
-	selectDmgDestination: rejects(unported.dmgBuilder),
-	inspectAppBundle: rejects(unported.dmgBuilder),
-	defaultDmgPath: rejects(unported.dmgBuilder),
-	selectDmgImage: rejects(unported.dmgBuilder),
-	dmgImagePreview: rejects(unported.dmgBuilder),
-	compileDmg: rejects(unported.dmgBuilder),
-	onDmgProgress: noSubscription,
+	selectAppBundle: dmg.selectAppBundle,
+	selectDmgDestination: dmg.selectDmgDestination,
+	inspectAppBundle: dmg.inspectAppBundle,
+	defaultDmgPath: dmg.defaultDmgPath,
+	selectDmgImage: dmg.selectDmgImage,
+	dmgImagePreview: dmg.dmgImagePreview,
+	compileDmg: dmg.compileDmg,
+	onDmgProgress: dmg.onDmgProgress,
 	listEnvFiles: projects.listProjectEnvFiles,
 	readEnvFile: projects.readProjectEnvFile,
 	updateEnvVariable: projects.updateEnvVariable,
