@@ -1,3 +1,4 @@
+import { watch as fsWatch } from "node:fs";
 import fs from "node:fs/promises";
 import path from "node:path";
 
@@ -91,6 +92,17 @@ export const nodeFolders = {
 		access: "readWrite" as const,
 		source: "app" as const,
 	}),
+	watch: async (
+		target: string,
+		onChange: (changes: Array<{ path: string; kind: string }>) => void,
+		options: { recursive?: boolean } = {},
+	) => {
+		const watcher = fsWatch(target, { recursive: options.recursive }, (_event, name) => {
+			if (name) onChange([{ path: path.join(target, name), kind: "other" }]);
+		});
+
+		return { stop: () => watcher.close() };
+	},
 };
 
 export const appFolders = { data: "/nonexistent-app-data", temp: "/nonexistent-app-temp" };

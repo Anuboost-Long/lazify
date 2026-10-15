@@ -1,4 +1,5 @@
 import * as agents from "./agents";
+import * as apiDocs from "./api-docs";
 import * as apiStudio from "./api-studio";
 import * as autopilot from "./autopilot";
 import * as codeIntelligence from "./code-intelligence";
@@ -98,19 +99,19 @@ export const lazify: LazifyApi = {
 	getAgentUsage: agents.getAgentUsage,
 	setAgentBudget: agents.setAgentBudget,
 	onAgentActivity: agents.onAgentActivity,
-	readCollectionDoc: rejects(unported.apiDocs),
-	saveCollectionDoc: rejects(unported.apiDocs),
-	previewCollectionDoc: rejects(unported.apiDocs),
-	openCollectionDoc: rejects(unported.apiDocs),
-	exportCollectionDoc: rejects(unported.apiDocs),
-	chooseDocLogo: rejects(unported.apiDocs),
-	collectionDocBrief: rejects(unported.apiDocs),
-	collectionDocQuestions: rejects(unported.apiDocs),
-	writeCollectionDocBrief: rejects(unported.apiDocs),
-	importCollectionDocDraft: rejects(unported.apiDocs),
-	watchCollectionDocDraft: rejects(unported.apiDocs),
-	unwatchCollectionDocDraft: rejects(unported.apiDocs),
-	onCollectionDocDraftChanged: noSubscription,
+	readCollectionDoc: apiDocs.readCollectionDoc,
+	saveCollectionDoc: apiDocs.saveCollectionDoc,
+	previewCollectionDoc: apiDocs.previewCollectionDoc,
+	openCollectionDoc: apiDocs.openCollectionDoc,
+	exportCollectionDoc: apiDocs.exportCollectionDoc,
+	chooseDocLogo: apiDocs.chooseDocLogo,
+	collectionDocBrief: apiDocs.collectionDocBrief,
+	collectionDocQuestions: apiDocs.collectionDocQuestions,
+	writeCollectionDocBrief: apiDocs.writeCollectionDocBrief,
+	importCollectionDocDraft: apiDocs.importCollectionDocDraft,
+	watchCollectionDocDraft: apiDocs.watchCollectionDocDraft,
+	unwatchCollectionDocDraft: apiDocs.unwatchCollectionDocDraft,
+	onCollectionDocDraftChanged: apiDocs.onCollectionDocDraftChanged,
 	scanProjectRoutes: apiStudio.scanProjectRoutes,
 	readProjectRoutes: apiStudio.readProjectRoutes,
 	readRouteDetails: apiStudio.readRouteDetails,

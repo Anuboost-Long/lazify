@@ -120,7 +120,7 @@ export function readApiCollectionBody(projectPath: string, bodyFile: string) {
  * limitation `saveResponseFile` and ticket 033's DMG destination picker hit.
  * This picks a destination folder and keeps the suggested filename.
  */
-async function exportPathFor(suggestedName: string): Promise<string | null> {
+export async function exportPathFor(suggestedName: string): Promise<string | null> {
 	const [grant] = await desktop.folders.pick({ files: false });
 
 	return grant ? path.join(grant.path, suggestedName) : null;
