@@ -132,6 +132,15 @@ media picture-in-picture are left for their own later requests rather
 than folded into this one. A security review runs before arbitrary
 navigation is enabled in the app, once the capability exists to review.
 
+### D-7 API Studio secrets stay plaintext JSON
+
+Decided 2026-10-15 by the owner. API Studio's saved environment
+values, secrets included, stay plaintext JSON under `.lazify/`,
+exactly as Electron stores them — no new chain-sdk capability needed.
+chain-sdk has no keychain capability today; moving to one would mean
+filing and waiting on a new capability request before any storage
+code could land. Revisit if it turns out to matter.
+
 ### D-4 (DMG compiler piece) Keep it
 
 Decided 2026-10-15 by the owner. The DMG compiler stays in scope for
@@ -149,4 +158,3 @@ genuinely open.
 | --- | --- | --- |
 | D-4 (remainder) | First-release scope: auto-update | Phase 7 |
 | D-6 | Signing, notarisation and update-feed ownership for Chain builds | Phase 7 |
-| D-7 | API Studio secrets: move from plaintext JSON to a keychain capability in the Chain app? | API Studio slice |
