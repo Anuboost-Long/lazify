@@ -1,4 +1,4 @@
-# 034 — API Studio: route inventory and scanners (Phase 6 / Proposed)
+# 034 — API Studio: route inventory and scanners (Phase 6 / Done)
 
 **Read this whole ticket before touching code.** First of the eight
 API Studio slices in `05-work-queue.md`: scan a project for its API
@@ -22,16 +22,54 @@ is unchanged").
 
 ## Status — 2026-10-15
 
-Proposed. Not started. The renderer is already live (ticket 015): the
-Route Picker, `use-route-scan.ts` and everything under
-`src/features/api-studio/` compile and render, backed by
-`scanProjectRoutes`/`readProjectRoutes`/`readRouteDetails` in
-`src/platform/lazify.ts` all answering `rejects(unported.apiStudio)`.
-`src/shared/lib/api-studio/types.ts` is already ported byte-for-byte
-(only its two imports rewritten), and `rules/environment-policy.ts`
-came along for the ride since something else under `src/features/`
-already needed it — both confirmed unchanged against Electron. No
-other file this ticket touches exists yet in this repo.
+Done in tests, five commits. `scanProjectRoutes`, `readProjectRoutes`
+and `readRouteDetails` are real on `src/platform/lazify.ts`; the other
+20 `api-studio` members still reject as unported. All 744 tests in the
+repo pass (`CI=true npm test`), including 95 characterisation cases
+ported unchanged from Electron's `openapi-scan`, `framework-rules`,
+`monorepo-scan`, `aspnet-scan`, `php-python-frameworks` and
+`route-cache` suites, against a Node-backed fake of `desktop.folders`
+(`tests/platform/node-folders.ts`, the same harness ticket 028's
+go-to-definition tests use). `npm run typecheck` passes. **Not yet
+exercised in the real app** — see the acceptance checklist.
+
+Two directories this ticket needs were missing from the original
+scope estimate below and only turned up once `framework-scanner.ts`
+and `model-index.ts` were actually read: `engine/` (the route-matching
+core — `annotation-routes.ts`, `call-routes.ts`, `call-groups.ts`,
+`path-template.ts`, `parameter-binding.ts`, `route-drafts.ts`, 1,051
+lines) and `body-template/` (building an example request body from a
+model or an OpenAPI schema, 370 lines plus a 9-line barrel). Both are
+pure and ported unchanged. `environment.ts` (`deriveEnvironmentVariables`
+and its siblings — pure, no storage, unlike `environment-store.ts`)
+needed no action at all: ticket 015 had already ported it
+byte-identical. Actual new code: ~5,700 lines, not the ~4,300
+estimated.
+
+Three real boundary differences from Electron, decided during
+implementation rather than requested from chain-sdk:
+
+- **`buildRouteId`'s hash.** The webview has no `node:crypto`, and
+  `SubtleCrypto.digest` is async-only where Electron's call sites are
+  synchronous. Swapped the truncated SHA-1 for a synchronous
+  non-cryptographic 64-bit digest (two 32-bit FNV-1a lanes) — this id
+  only needs to be short, deterministic and distinct per
+  project+route+source, never secret. `route-identity.test.ts` checks
+  stability and distinctness, not a literal hash value, so it ported
+  unchanged.
+- **Gzip via `CompressionStream`/`DecompressionStream("gzip")`**,
+  not `node:zlib`. Verified working under Node (the test run above
+  round-trips real gzip bytes); still needs a live `chain dev` check
+  since the target runtime is WebKit, not Node (see Open questions).
+- **The atomic write is temp-file-then-delete-then-move, not a bare
+  rename.** Checked against chain-sdk's `folders` capability contract
+  (`agent-docs/capabilities/folders/CONTRACT.md` in the chain-sdk
+  repo): `move()` rejects with `INVALID_ARGUMENT` if the destination
+  already exists, same as Electron's `fs.rename` would on most
+  platforms if it didn't silently replace — so overwriting
+  `routes.json` on a rescan needs the old copy deleted first. This
+  narrows the atomicity window (delete-then-move) rather than
+  removing it (a bare direct write would).
 
 ## Source-of-truth references
 
@@ -54,6 +92,16 @@ other file this ticket touches exists yet in this repo.
     `flow.ts`, `block-scalar.ts`, `index.ts` — the hand-rolled YAML
     reader the OpenAPI scanner needs for `.yaml`/`.yml` docs (JSON
     OpenAPI docs need none of this)
+  - `engine/` (1,051 lines): `annotation-routes.ts`, `call-routes.ts`,
+    `call-groups.ts`, `path-template.ts`, `parameter-binding.ts`,
+    `route-drafts.ts` — missed in the original scope estimate, found
+    once `framework-scanner.ts` was actually read (see Status)
+  - `body-template/` (370 lines + a 9-line barrel): `placeholders.ts`,
+    `serialization-policy.ts`, `property-names.ts`, `form-fields.ts`,
+    `from-openapi-schema.ts`, `from-model-index.ts`, `index.ts` — also
+    missed originally
+  - `environment.ts` (212 lines) — already ported byte-identical by
+    ticket 015; nothing to do here
   - `project-inventory.ts` (148), `workspaces.ts` (95),
     `route-identity.ts` (41), `route-index-format.ts` (147),
     `route-cache.ts` (193), `scan-project-routes.ts` (115)
@@ -168,13 +216,15 @@ already exposes everything `route-cache.ts` needs
 
 ## Acceptance checklist and evidence
 
-- [ ] `openapi-scan.test.ts`, `framework-rules.test.ts`,
+- [x] `openapi-scan.test.ts`, `framework-rules.test.ts`,
       `monorepo-scan.test.ts`, `aspnet-scan.test.ts`,
       `php-python-frameworks.test.ts`, `route-identity.test.ts`,
       `yaml-reader.test.ts`, `return-types.test.ts` all port and pass
-      unchanged (characterisation, same as ticket 002's golden suite)
-- [ ] `route-cache.test.ts` passes against whichever of gzip/
-      uncompressed this ticket lands on
+      unchanged (characterisation, same as ticket 002's golden suite):
+      95 cases across the two suites plus route-cache
+- [x] `route-cache.test.ts` passes against the gzip implementation
+      (`CompressionStream`/`DecompressionStream`, verified under Node;
+      live WebKit check still open, see below)
 - [ ] A real project with each supported framework (at minimum one
       JS/TS stack with an OpenAPI doc, one Express source-scanned
       stack) scanned in the app: routes list matches what a person
@@ -187,7 +237,8 @@ already exposes everything `route-cache.ts` needs
 - [ ] A project with no supported framework and no OpenAPI doc scanned
       in the app: the "no API description or supported framework was
       found" warning shows, not an error
-- [ ] `CI=true npm test`, `npm run typecheck`, `npm run build:web` pass
+- [x] `CI=true npm test` (744 of 744, whole repo), `npm run typecheck`,
+      `npm run build:web` all pass
 
 ## Not removed
 
@@ -204,21 +255,40 @@ Revert the commits; the three members go back to
 
 - Whether `CompressionStream`/`DecompressionStream("gzip")` is actually
   available to code running in `src/platform/` under `chain dev` —
-  needs a live check before step 4 is called done; falling back to
-  uncompressed detail files costs disk space on a large API, not
-  correctness, so it is not a blocker on its own.
+  confirmed working under Node (this pass's test run), still needs a
+  live check in the real WebKit webview; falling back to uncompressed
+  detail files costs disk space on a large API, not correctness, so
+  it is not a blocker on its own.
 - D-7 (keychain for secrets) does not block this slice — route
   scanning never touches a secret — but `project-security.ts` and the
   OpenAPI `security.ts` scanner do read **scheme definitions** (which
   header/scheme a route needs), never a stored secret value. Worth a
   one-line note in whichever ticket resolves D-7 that this slice
   already shipped the read-only half.
-- `route-cache.ts`'s stale-detail sweep (`fs.readdir` over the detail
-  directory, deleting anything not just written) assumes `listFolder`
-  on a directory that may not exist yet behaves like Electron's
-  `.catch(() => [])` — needs checking against `folders.ts`'s real
-  error shape rather than assumed.
+- `route-cache.ts`'s stale-detail sweep now uses `listFolder`, which
+  already answers `[]` for a missing directory (`folders.ts` catches
+  `NOT_FOUND`) — confirmed by `route-cache.test.ts`'s first save (no
+  `routes/` directory exists yet) passing, so this is resolved, not
+  open.
+- None of the five steps have run against the real app yet — only
+  against `tests/platform/node-folders.ts`'s Node-backed fake of
+  `desktop.folders`. The acceptance checklist's unchecked rows (a real
+  project, a real monorepo, a real "nothing found" project, all
+  scanned through the app's UI) are what's left before this ticket's
+  row in `06-parity-matrix.md` can move past "Done in tests."
 
 ## Verification log
 
-Nothing yet — proposed.
+- 2026-10-15, macOS, Node (no OS-specific behaviour in this slice):
+  95 characterisation cases pass across
+  `tests/shared/lib/api-studio/{openapi-scan,framework-rules,
+  monorepo-scan,aspnet-scan,php-python-frameworks,route-cache,
+  yaml-reader,return-types,route-identity}.test.ts`, ported unchanged
+  from Electron apart from the test harness swap (real `node:fs`
+  temp projects, same as Electron, against
+  `tests/platform/node-folders.ts`'s fake of `desktop.folders` rather
+  than Electron's own code). Whole-repo `CI=true npm test`: 744 of 744
+  pass (including the one existing test this ticket had to update,
+  `tests/platform/lazify.test.ts`, which asserted `readProjectRoutes`
+  was still unported). `npm run typecheck` and `npm run build:web`:
+  clean. Not yet run: the real app.
