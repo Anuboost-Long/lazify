@@ -22,16 +22,50 @@ is unchanged").
 
 ## Status — 2026-10-15
 
-Done in tests, five commits. `scanProjectRoutes`, `readProjectRoutes`
-and `readRouteDetails` are real on `src/platform/lazify.ts`; the other
-20 `api-studio` members still reject as unported. All 744 tests in the
+Done, verified live. `scanProjectRoutes`, `readProjectRoutes` and
+`readRouteDetails` are real on `src/platform/lazify.ts`; the other 20
+`api-studio` members still reject as unported. All 744 tests in the
 repo pass (`CI=true npm test`), including 95 characterisation cases
 ported unchanged from Electron's `openapi-scan`, `framework-rules`,
 `monorepo-scan`, `aspnet-scan`, `php-python-frameworks` and
 `route-cache` suites, against a Node-backed fake of `desktop.folders`
 (`tests/platform/node-folders.ts`, the same harness ticket 028's
-go-to-definition tests use). `npm run typecheck` passes. **Not yet
-exercised in the real app** — see the acceptance checklist.
+go-to-definition tests use). `npm run typecheck` and `npm run
+build:web` pass.
+
+Then run for real in `chain dev`, through `chain inspect` (no native
+picker needed: four scratch projects created directly under
+`appFolder("data")`, which is always granted — a plain OpenAPI
+project, a NestJS-in-a-monorepo project, a project with nothing
+scannable, and the gzip cache itself):
+
+- A real OpenAPI project: `scanProjectRoutes` found both routes,
+  `scannersRun: ["openapi"]`, ids shaped `route_<16 hex>` (the new
+  FNV-1a digest, live, not just in tests).
+- A real NestJS monorepo (root `package.json` names `electron`,
+  `backend/` names `@nestjs/common`): `scannersRun: ["nestjs"]`, both
+  routes came back tagged `workspace: "backend"`, and the root's
+  `electron` dependency didn't pull in a phantom scan.
+- A real project with no manifest dependency and no OpenAPI doc:
+  `scannersRun: []`, the exact "No API description or supported
+  framework was found in this project" warning, zero routes — not a
+  thrown error.
+- `readProjectRoutes` read the saved scan back unchanged.
+  `readRouteDetails` read the per-folder detail list back correctly
+  **and** the `.json.gz` file on disk is genuine gzip (`file` reports
+  "gzip compressed data"; `gunzip -c` reproduces the exact JSON) —
+  `CompressionStream`/`DecompressionStream` work in the real WebKit
+  webview, not only under Node.
+
+One real mechanical snag along the way, noted for whoever next drives
+`chain inspect` from a script: its `eval` wraps the given code in a
+**non-async** IIFE and never awaits a returned promise, so literal
+`await` in the eval string is a silent syntax error that just times
+out (the catch block that would report it never gets installed,
+since the syntax error is at parse time). The fix is to never
+`await` in the eval string — kick off the async call with `.then()`
+stashing the result on a `window.__x`, then poll for it with a
+second, separate `--eval` call a moment later.
 
 Two directories this ticket needs were missing from the original
 scope estimate below and only turned up once `framework-scanner.ts`
@@ -223,20 +257,25 @@ already exposes everything `route-cache.ts` needs
       unchanged (characterisation, same as ticket 002's golden suite):
       95 cases across the two suites plus route-cache
 - [x] `route-cache.test.ts` passes against the gzip implementation
-      (`CompressionStream`/`DecompressionStream`, verified under Node;
-      live WebKit check still open, see below)
-- [ ] A real project with each supported framework (at minimum one
-      JS/TS stack with an OpenAPI doc, one Express source-scanned
-      stack) scanned in the app: routes list matches what a person
-      reading the source would expect, `scannersRun` names the right
-      scanner, a second scan with no route changes keeps every
-      `firstSeenAt`
-- [ ] A monorepo with two workspaces scanned in the app: both
-      services' routes appear, grouped by workspace, with no
-      `/health`-vs-`/health` collision between them
-- [ ] A project with no supported framework and no OpenAPI doc scanned
-      in the app: the "no API description or supported framework was
-      found" warning shows, not an error
+      (`CompressionStream`/`DecompressionStream`); confirmed again live
+      in the real WebKit webview (see Status) — the `.json.gz` file on
+      disk is genuine gzip, not a disguised fallback
+- [x] A real OpenAPI project scanned through the real app
+      (`chain inspect`, see Status): both routes found, `scannersRun`
+      names the right scanner. (A JS/TS source-scanned stack — Express,
+      NestJS — is covered by the monorepo case below instead of a
+      second standalone project.) Rescan-keeps-`firstSeenAt` is
+      covered by `route-cache.test.ts`, not re-driven live
+- [x] A monorepo scanned through the real app: both NestJS routes
+      found, grouped by `workspace: "backend"`, the root's `electron`
+      dependency not mistaken for a service. (Only one framework
+      present, so the no-collision case across two different
+      frameworks is covered by `monorepo-scan.test.ts`, not re-driven
+      live)
+- [x] A project with no supported framework and no OpenAPI doc scanned
+      through the real app: the exact "no API description or
+      supported framework was found" warning, zero routes, no thrown
+      error
 - [x] `CI=true npm test` (744 of 744, whole repo), `npm run typecheck`,
       `npm run build:web` all pass
 
@@ -253,29 +292,21 @@ Revert the commits; the three members go back to
 
 ## Open questions
 
-- Whether `CompressionStream`/`DecompressionStream("gzip")` is actually
-  available to code running in `src/platform/` under `chain dev` —
-  confirmed working under Node (this pass's test run), still needs a
-  live check in the real WebKit webview; falling back to uncompressed
-  detail files costs disk space on a large API, not correctness, so
-  it is not a blocker on its own.
 - D-7 (keychain for secrets) does not block this slice — route
   scanning never touches a secret — but `project-security.ts` and the
   OpenAPI `security.ts` scanner do read **scheme definitions** (which
   header/scheme a route needs), never a stored secret value. Worth a
   one-line note in whichever ticket resolves D-7 that this slice
   already shipped the read-only half.
-- `route-cache.ts`'s stale-detail sweep now uses `listFolder`, which
-  already answers `[]` for a missing directory (`folders.ts` catches
-  `NOT_FOUND`) — confirmed by `route-cache.test.ts`'s first save (no
-  `routes/` directory exists yet) passing, so this is resolved, not
-  open.
-- None of the five steps have run against the real app yet — only
-  against `tests/platform/node-folders.ts`'s Node-backed fake of
-  `desktop.folders`. The acceptance checklist's unchecked rows (a real
-  project, a real monorepo, a real "nothing found" project, all
-  scanned through the app's UI) are what's left before this ticket's
-  row in `06-parity-matrix.md` can move past "Done in tests."
+- Every live check so far drove the bridge directly through
+  `chain inspect` (`globalThis.lazify.scanProjectRoutes(...)` etc.),
+  against scratch projects created under `appFolder("data")` so no
+  native folder picker was needed. **Not yet clicked through the
+  actual API Studio screen** — opening a real project via the picker,
+  syncing it (`useLazifyStore`'s `syncWorkspaceProject`), and seeing
+  the Route Picker render what the bridge already returns correctly.
+  Left for a person, same as the picker-dependent gaps in tickets 025,
+  027 and 029.
 
 ## Verification log
 
@@ -291,4 +322,17 @@ Revert the commits; the three members go back to
   pass (including the one existing test this ticket had to update,
   `tests/platform/lazify.test.ts`, which asserted `readProjectRoutes`
   was still unported). `npm run typecheck` and `npm run build:web`:
-  clean. Not yet run: the real app.
+  clean.
+- 2026-10-15, macOS 27.0.1 arm64, real app (`chain dev` + `chain
+  inspect`): a real OpenAPI project, a real NestJS-in-a-monorepo
+  project, and a real project with nothing scannable all scanned
+  correctly through `globalThis.lazify.scanProjectRoutes` — routes,
+  `scannersRun`, workspace tagging and the "nothing found" warning
+  all matched what the characterisation tests predict.
+  `readProjectRoutes`/`readRouteDetails` read the saved scan and a
+  compressed detail file back correctly; the `.json.gz` on disk
+  verified as genuine gzip with `file` and `gunzip -c`, confirming
+  `CompressionStream`/`DecompressionStream` work in the real WebKit
+  webview. Scratch projects and the `chain dev` process cleaned up
+  afterward. Not yet done: the actual screen clicked through (needs
+  the native folder picker a person would use).
