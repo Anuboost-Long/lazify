@@ -65,6 +65,9 @@
       "minSize": { "width": 1180, "height": 728 },
       "title": "Lazify",
       "tabFocus": "all"
+    },
+    "permissions": {
+      "appleEvents": "Styles the Finder window a built .dmg mounts in."
     }
   }
 }

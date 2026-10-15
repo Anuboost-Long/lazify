@@ -13,9 +13,59 @@ background and a volume icon, build, and get back a `.dmg` beside the
 app (or wherever chosen) with a real drag-to-Applications installer
 window — or a clear reason it didn't work.
 
-## Status — 2026-10-15
+## Status — 2026-10-16
 
-In progress. No Chain request needed: every external tool
+In progress, down to one step that needs a person at the real app.
+[Chain-sdk request 20](../chain-sdk-requests/20-apple-events-permission.md)
+(an `appleEvents` key for chain-sdk's `chain.permissions` mechanism,
+declaring `NSAppleEventsUsageDescription`) was filed and shipped the
+same day. With the key added to this app's `package.json`, a full
+live `compileDmg` run against a real `.app` (Calculator.app) now
+**succeeds**: a genuine, valid `.dmg` — `ditto`'d bundle, the
+`Applications` symlink, correctly compressed, mounted and detached
+cleanly (confirmed by attaching it read-only afterward and listing
+its contents).
+
+Two real things came out of that first full run, not visible in any
+of the earlier piecemeal checks:
+
+- **A second bug, now fixed.** Writing the volume icon
+  (`.VolumeIcon.icns`) failed with "outside every folder the app was
+  granted" — `writeIcns()` (`images.ts`) wrote the file through
+  `ditto`/`sips` via `process-runner` (unrestricted, correct), but
+  then re-checked it existed with `pathExists()` from
+  `@/platform/folders.ts`, which enforces the same grant boundary as
+  every other `desktop.folders` call — and a freshly mounted DMG
+  volume is never inside any grant the user picked. Swapped for
+  `pathExistsOnDisk()` (`@/platform/exec.ts`, shell-based, already
+  used elsewhere for exactly this "check outside every grant" need).
+  Confirmed live afterward: the rebuilt `.dmg`'s volume icon file is
+  present, right size, right permissions.
+- **The Automation permission genuinely needs a human click — the
+  Info.plist key alone isn't enough**, which is exactly what this
+  ticket said from the start, now with hard evidence instead of an
+  inconclusive symptom. With the key in place, the full compile no
+  longer hangs or exits — it **succeeds**, with a precise warning:
+  `"The window layout could not be applied, so the image opens as a
+  plain folder. Allow Lazify to control Finder in System Settings ›
+  Privacy & Security › Automation, then build again."` No TCC record
+  for Lazify exists yet (checked `TCC.db` directly) — `chain inspect`
+  drives the app headlessly, with nobody at the screen to click the
+  system dialog the Info.plist key now makes possible, so the Apple
+  Event fails closed rather than waiting. This is the literal
+  "needs a person once" case, now isolated to exactly one click.
+
+**What's left is only that click**: open the real app (not through
+`chain inspect`), build a DMG for any `.app` once, click "Allow" when
+macOS asks whether Lazify can control Finder, and the window layout
+(background, icon positions) should apply on the next build with no
+further action. Everything up to and including a valid, working
+installer image already works without it.
+
+Everything below this reflects what was true before request 20 and
+the `writeIcns` fix, plus the full live run above. No chain request
+was needed for the parts that already worked from the start. Every
+external tool
 (`ditto`/`hdiutil`/`osascript`/`sips`/`xattr`/`plutil`/`ln`) runs through
 `process-runner`, exactly like `node-path`/`java-runtime`/Prettier
 already do. The renderer and the type stand-ins are already ported
@@ -92,6 +142,11 @@ checked out individually. Left for a person to click through once.
   rather than Node's `fs`; `run()` wraps `execFile`, converting its
   thrown `ExecFileError` back into the `{code, stdout, stderr}` shape
   `compile.ts`'s own step-checking logic already expects.
+- `images.ts`'s `writeIcns()` checks its own output with
+  `pathExistsOnDisk()` (`@/platform/exec.ts`), not `pathExists()`
+  (`@/platform/folders.ts`) — found live (see Status) once the
+  destination was a freshly mounted DMG volume, never inside any
+  grant.
 
 ## Acceptance checklist and evidence
 
@@ -114,8 +169,11 @@ checked out individually. Left for a person to click through once.
 - [x] In the app, against a real `.app` (Calculator.app, copied into the
       app's own granted temp folder so no native picker was needed):
       `inspectAppBundle` answered real name/version/identifier/size/icon;
-      `ditto`, `ln -s` and `hdiutil create` each ran and produced the
-      right file on disk. Mounting onward: see Status
+      a full `compileDmg` produced a real, valid `.dmg` — attached
+      read-only afterward and listed: `Calculator.app`, the
+      `Applications` symlink, and a correct, non-empty
+      `.VolumeIcon.icns`. Only the Finder window layout didn't apply,
+      with the exact warning naming the one remaining step (see Status)
 - [x] A refused build (wrong extension, output inside the app itself)
       answers with the message, not a crash — covered in `compile.test.ts`
 - [x] `CI=true npm test`, `npm run typecheck`, `npm run build:web` pass
@@ -135,19 +193,17 @@ Revert the commit; the six members go back to their stubs.
   which is why Electron never set `treatPackageAsDirectory`) or lets the
   user descend into it — not yet checked live; needs the native picker,
   which the dev inspector can't drive.
-- The mount-through-convert half (`hdiutil attach` onward) needs a
-  person: the one-time Finder Automation permission, and a `chain dev`
-  session stable enough to drive it, which the inspector alone wasn't in
-  this pass.
-- Neither `.chain/native/tauri.conf.json` nor anywhere else in this
-  repo declares an Apple Events usage string
-  (`NSAppleEventsUsageDescription`) or entitlement for scripting
-  Finder — `01-capability-inventory.md` already flagged this as needed
-  for Chain's bundle config, before this ticket existed. Without it,
-  macOS may never show the permission prompt a person would otherwise
-  click "Allow" on, rather than only needing a click. Worth checking
-  against a signed, packaged build (not `chain dev`) before assuming a
-  person clicking through fixes this on its own.
+- **Resolved**: the mount-through-convert half works — a real,
+  attachable, correctly populated `.dmg` came out of a full live
+  `compileDmg` run. Only the Finder window styling needs a person.
+- **Resolved**: request 20 shipped `appleEvents`; the package.json key
+  is in place. What's left is purely the human click this ticket
+  always said it would need — confirmed, not assumed, by a live run
+  that fails closed with no TCC record rather than hanging. Worth
+  checking again against a signed, packaged `chain build` (not `chain
+  dev`) once that's set up, in case a hardened-runtime build behaves
+  differently from an unsigned dev run — not expected to, but not
+  checked either.
 
 ## Verification log
 
@@ -164,3 +220,24 @@ Revert the commit; the six members go back to their stubs.
   own, was followed immediately by `chain dev`'s window process exiting
   cleanly (exit code 0, nothing left mounted). Scratch files cleaned up
   afterward.
+- 2026-10-16, macOS 27.0.1 arm64: with chain-sdk request 20
+  (`appleEvents` permission) shipped and the `package.json` key added,
+  restarted `chain dev` and confirmed `.chain/native/Info.plist` and
+  `Entitlements.plist` carried the right keys. `tccutil reset
+  AppleEvents dev.chain.lazify-chain` found no existing record (no
+  stale denial from the earlier attempts). A fresh `compileDmg` against
+  a real Calculator.app: `success: true`, a real `.dmg` written. Hit a
+  second bug live — `writeIcns`'s own existence check rejected with
+  "outside every folder the app was granted" on the mounted volume's
+  icon path; fixed (`pathExistsOnDisk` instead of `pathExists`) and
+  reverified in the same session: rebuilt `.dmg` attached read-only and
+  listed `Calculator.app`, `Applications` (symlink) and a real,
+  correctly sized `.VolumeIcon.icns`. The window-layout step itself
+  reported `"Allow Lazify to control Finder in System Settings ›
+  Privacy & Security › Automation, then build again"` — `TCC.db` still
+  had no record for the app afterward, confirming the Apple Event
+  failed closed with nobody at the screen to click the prompt, rather
+  than the call hanging as it had before request 20. `CI=true npm
+  test`, `npm run typecheck`, `npm run build:web` all pass with the
+  `writeIcns` fix. Scratch files, the mounted volume and the `chain
+  dev` process cleaned up afterward.

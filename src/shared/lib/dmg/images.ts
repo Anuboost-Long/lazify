@@ -1,4 +1,5 @@
 import { appTempPath, createFolder, deletePath, pathExists, readFileBytes } from "@/platform/folders";
+import { pathExistsOnDisk } from "@/platform/exec";
 import path from "@/shared/lib/path";
 
 import { run } from "./run";
@@ -90,5 +91,8 @@ export async function writeIcns(source: string, destination: string): Promise<bo
 		? await run("ditto", [source, destination])
 		: await run("sips", ["-s", "format", "icns", "-z", "512", "512", source, "--out", destination]);
 
-	return code === 0 && (await pathExists(destination));
+	// Not `pathExists`: the destination can be a freshly mounted DMG volume,
+	// outside every folder the app was granted. `ditto`/`sips` already wrote
+	// it unrestricted through process-runner; this check must be unrestricted too.
+	return code === 0 && (await pathExistsOnDisk(destination));
 }
