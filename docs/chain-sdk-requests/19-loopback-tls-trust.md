@@ -87,10 +87,31 @@ common case for a local dev server — is unaffected either way.
 
 ## macOS / Windows
 
-Not yet surveyed on either — this is a request made ahead of any
-platform-specific testing, since the capability doesn't exist yet to
-test. Node's own `rejectUnauthorized: false` (what Electron's
-`tls-trust.ts` relies on via undici) works identically on both
-platforms; whatever native TLS stack Chain's `http` capability uses
-(likely `reqwest`/`rustls` or the OS's own TLS library) would need its
-own equivalent checked on both.
+Not yet surveyed on Windows. Verified on macOS, both in chain-sdk's
+own unit tests and from Lazify (ticket 036), against a real
+`openssl`-generated self-signed localhost certificate: refused without
+the flag, accepted with it (at `127.0.0.1` too, where the certificate
+names no matching identity), through the real app's webview.
+
+## What shipped — 2026-10-15
+
+`trustLoopbackCertificates?: boolean` on `HttpRequestConfig` (default
+`false`), honored by `desktop.http.request()` and every method
+shortcut. Chain decides what counts as loopback itself (`localhost`,
+`*.localhost`, `127.0.0.0/8`, `::1`, `0.0.0.0`, `::`) — a non-loopback
+host ignores the flag and is always verified normally, so Lazify's own
+`isLoopbackHost` check is now redundant but kept anyway (no harm, and
+it is still the thing that decides whether to pass the flag at all).
+
+One difference from Electron: a loopback host that redirects to a
+non-loopback host rejects (`NATIVE_FAILURE`, "redirected off loopback
+to \<url\>, which trustLoopbackCertificates won't follow") rather than
+following the redirect with strict validation — `reqwest`'s TLS
+settings apply to the whole client, not per connection, so following
+would have reached the remote host unverified. Not expected to matter
+in practice (a dev server redirecting its own API off-box would be
+unusual) and not yet seen.
+
+No `chain update` needed — shipped in `chain-sdk`'s own packages, not
+the app templates. `src/platform/http.ts`'s `requestBytes` passes it
+through on every API Studio request.
