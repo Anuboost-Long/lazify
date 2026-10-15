@@ -1,4 +1,5 @@
 import * as agents from "./agents";
+import * as apiStudio from "./api-studio";
 import * as autopilot from "./autopilot";
 import * as codeIntelligence from "./code-intelligence";
 import * as commands from "./commands";
@@ -110,9 +111,9 @@ export const lazify: LazifyApi = {
 	watchCollectionDocDraft: rejects(unported.apiDocs),
 	unwatchCollectionDocDraft: rejects(unported.apiDocs),
 	onCollectionDocDraftChanged: noSubscription,
-	scanProjectRoutes: rejects(unported.apiStudio),
-	readProjectRoutes: rejects(unported.apiStudio),
-	readRouteDetails: rejects(unported.apiStudio),
+	scanProjectRoutes: apiStudio.scanProjectRoutes,
+	readProjectRoutes: apiStudio.readProjectRoutes,
+	readRouteDetails: apiStudio.readRouteDetails,
 	readApiEnvironments: rejects(unported.apiStudio),
 	saveApiEnvironments: rejects(unported.apiStudio),
 	exportPostmanCollection: rejects(unported.apiStudio),
