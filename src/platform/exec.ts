@@ -91,6 +91,17 @@ export const currentOs = (): Promise<ChainOs> => platformInfo().then(({ os }) =>
 
 export const currentArch = () => platformInfo().then(({ arch }) => arch);
 
+/**
+ * `desktop.folders` has no file-mode option, so an owner-only file (a
+ * secrets store) gets this afterward. Windows ACLs aren't POSIX mode bits,
+ * so this is a POSIX-only extra, not the file's only protection.
+ */
+export async function restrictToOwner(filePath: string): Promise<void> {
+	if ((await currentOs()) === "windows") return;
+
+	await execFile("chmod", ["600", filePath]).catch(() => undefined);
+}
+
 const variables = new Map<string, Promise<string | null>>();
 
 export function environmentVariable(name: string): Promise<string | null> {
@@ -110,7 +121,7 @@ export function environmentVariable(name: string): Promise<string | null> {
 async function passing(test: "-f" | "-e", paths: string[]): Promise<Set<string>> {
 	if (paths.length === 0) return new Set();
 
-	const script = `for p; do [ ${test} "$p" ] && printf "%s\\n" "$p"; done; exit 0`;
+	const script = String.raw`for p; do [ ${test} "$p" ] && printf "%s\n" "$p"; done; exit 0`;
 	const { stdout } = await execFile("/bin/sh", ["-c", script, "sh", ...paths]);
 
 	return new Set(stdout.split("\n").filter(Boolean));

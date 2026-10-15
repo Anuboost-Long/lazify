@@ -15,8 +15,11 @@ vi.mock("@chain/sdk", () => ({ desktop: { folders: nodeFolders } }));
 
 /** chmod's real effect is the thing under test, so this runs it for real rather than faking it. */
 vi.mock("@/platform/exec", () => ({
-	currentOs: async () => (process.platform === "win32" ? "windows" : "macos"),
-	execFile: (command: string, args: string[]) => promisify(nodeExecFile)(command, args),
+	restrictToOwner: async (filePath: string) => {
+		if (process.platform === "win32") return;
+
+		await promisify(nodeExecFile)("chmod", ["600", filePath]);
+	},
 }));
 
 const { readEnvironments, saveEnvironments } =

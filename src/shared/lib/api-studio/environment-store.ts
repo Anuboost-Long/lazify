@@ -1,4 +1,4 @@
-import { currentOs, execFile } from "@/platform/exec";
+import { restrictToOwner } from "@/platform/exec";
 import { appDataPath, createFolder, readTextFile, writeTextFile } from "@/platform/folders";
 import path from "@/shared/lib/path";
 import { ignoreLazifyDirectory } from "@/shared/lib/projects/lazify-directory";
@@ -137,13 +137,6 @@ export async function readEnvironments(projectPath: string): Promise<ApiEnvironm
 		})),
 		names: withRenamedKeys(presets?.names ?? {}),
 	};
-}
-
-/** Windows ACLs aren't POSIX mode bits; the owner-only restriction is a POSIX-only extra. */
-async function restrictToOwner(filePath: string) {
-	if ((await currentOs()) === "windows") return;
-
-	await execFile("chmod", ["600", filePath]).catch(() => undefined);
 }
 
 export async function saveEnvironments(
