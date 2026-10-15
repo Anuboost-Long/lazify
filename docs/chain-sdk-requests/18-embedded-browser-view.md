@@ -209,3 +209,81 @@ both are reflected above already.
   WebKit does offer are enough on their own, and the one real per-request
   hook (camera/mic/geolocation) isn't needed since Lazify always answers
   it the same way anyway.
+
+## What's next, pinned down ahead of time (2026-10-16)
+
+Still not part of this request — Lazy Shield and media picture-in-picture
+each stay their own request, filed once this one is built and there's a
+real guest to build against. This section exists so the embedding
+primitive's shape doesn't have to be revisited once that happens; it's
+exactly what each one needs from *this* request, read from Electron's
+source (`src/main/browser/lazy-shield.ts`, 380 lines;
+`src/main/media/media-pip.ts`, 108 lines), not speculation.
+
+- **Lazy Shield's network half needs the same per-request information a
+  blocking webRequest hook gets in Electron**: the destination URL, the
+  resource type (document, script, image, stylesheet, xhr/fetch, font,
+  media, websocket, ping, other — Chromium's own list, which the
+  underlying filter library's matching is written against), the
+  initiating frame's URL, whether that frame is the guest's main frame,
+  and the HTTP method. The decision needs to come back before the
+  request is sent: allow, cancel, or (rare, and only for a response
+  Electron itself can carry out — see the `honourable()` comment in
+  `lazy-shield.ts` for why a `data:` redirect from this exact library
+  fails outright in Electron, which is probably platform-specific
+  rather than universal and worth re-checking once there's a WebKit
+  guest to try it against) redirect to a substitute body. A second,
+  separate hook reads response headers before they reach the page (for
+  rules that key off the response rather than the request) — same
+  shape, allow-or-modify rather than allow-or-cancel.
+- **Lazy Shield's cosmetic half needs the guest to run an app-supplied
+  script and talk back to the host.** After a page's content is ready,
+  a script needs to run *inside* the guest (not the host) that can ask
+  the host "what should this page hide" (by URL) and get back a set of
+  CSS selectors/rules, then apply them to the DOM in the guest itself.
+  This is two things request 18 alone doesn't cover: running
+  app-supplied script inside a guest's own context, and a request/response
+  channel from that script back to the host app (today's
+  `ipcMain.handle` pair in Electron). It needs to run once per
+  navigation, not once per guest's lifetime — the same page's SPA
+  navigation to a new in-page URL needs its own answer.
+- **Media picture-in-picture needs nothing beyond running
+  app-supplied script in a guest frame and reading back its return
+  value** — the floating player itself is the Web Platform's own
+  `Element.requestPictureInPicture()`/`document.exitPictureInPicture()`,
+  called *from inside* the guest by a script the host injects, walked
+  over the guest's main frame and every nested frame until one answers
+  (a `<video>` can be in an ad network's iframe, not the top page).
+  **This is the same "run a script in the guest, get the result" need
+  cosmetic filtering above already has** — if request 18's own contract
+  ends up offering a generic "execute this script in the guest (or one
+  of its frames) and resolve with what it returns" primitive for any
+  reason, both of these later requests become almost free; if it
+  doesn't, both will ask for it separately.
+- **A third, bigger thing Electron also calls "picture-in-picture"
+  isn't the media kind above, and doesn't obviously belong to this
+  request at all**: popping the *whole page* (not a video — a dev
+  server's preview, say) out into its own small, always-on-top OS
+  window, one at a time, sharing the same named session as wherever it
+  came from (`src/main/media/picture-in-picture.ts`, 169 lines). That's
+  closer in shape to today's `desktop.browser` (a separate OS window)
+  than to an embedded guest — except `desktop.browser` can't share a
+  session with an embedded guest today, can't stay always-on-top, and
+  restricts navigation in ways this doesn't need. Likely its own
+  request building on both capabilities once they exist, not this one
+  — named here only so it isn't mistaken for the media case above when
+  it comes up.
+- **Isolation and storage are already specified above** (named,
+  persistent sessions; no app-origin content; no nested guest) and
+  don't need anything further for either Lazy Shield or PiP — Lazy
+  Shield's network/cosmetic hooks are scoped to one named session only
+  (the browser's, never the preview's) using exactly the session
+  identity this request already asks for.
+- **Placement and sizing are already specified above** too (position,
+  size and visibility the app controls, shown/hidden/resized with the
+  rest of the layout) — nothing from Lazy Shield or PiP needs more than
+  that. Electron's own embedding (`BrowserGuest.tsx`) keeps every open
+  tab's guest alive and stacks them with `z-index` rather than
+  mounting/unmounting on switch, which is already implied by "closed
+  independently of the app's own window" plus ordinary visibility
+  control, not a new ask.
