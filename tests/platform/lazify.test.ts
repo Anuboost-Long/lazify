@@ -9,8 +9,8 @@ describe("unported bridge members", () => {
 		await expect(lazify.checkForUpdates()).rejects.toThrow(
 			"Updating Lazify isn't available in Lazify Chain yet.",
 		);
-		await expect(lazify.exportPostmanCollection("/work/shop")).rejects.toThrow(
-			"API Studio isn't available in Lazify Chain yet.",
+		await expect(lazify.readCollectionDoc("/work/shop", "collection-1")).rejects.toThrow(
+			"API documentation isn't available in Lazify Chain yet.",
 		);
 	});
 
