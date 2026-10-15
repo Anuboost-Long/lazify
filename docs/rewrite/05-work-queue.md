@@ -121,7 +121,8 @@ sent and not yet built; the browser ticket itself waits on it.
 | [033](tickets/033-dmg-compiler.md) | DMG compiler: `ditto`/`hdiutil`/`osascript`/`sips` to turn a built `.app` into a drag-to-install `.dmg` (`dmgBuilder`, 6) | **In progress.** No Chain request needed. 30 characterisation/orchestration tests pass; `inspectAppBundle` and the staging steps (`ditto`, `ln -s`, `hdiutil create`) verified individually against a real app in the dev inspector. Left: mounting onward (`attach`→styling→`detach`→`convert`), which needs the one-time Finder Automation permission and a person at the real app — the inspector couldn't drive it without the session exiting |
 | — | Browser: embedded guest view, popup policy, Lazy Shield, media PiP | Waiting on request 18 |
 | [034](tickets/034-api-studio-route-inventory.md) | API Studio: route inventory/scanners | **Done.** `scanProjectRoutes`/`readProjectRoutes`/`readRouteDetails` real; 95 characterisation cases plus a real OpenAPI project, a real monorepo and a real "nothing found" project scanned through the live app. Left: the Route Picker screen clicked through (needs the native folder picker) |
-| — | API Studio: environments/secrets → request execution → scripts → collections → response files/exports → docs | Not started |
+| [035](tickets/035-api-studio-environments.md) | API Studio: environments/secrets | **Done.** `readApiEnvironments`/`saveApiEnvironments` real; 15 characterisation cases plus a real save/read cycle (secret split, 0600 file mode) verified through the live app. Left: the Environment screens clicked through |
+| — | API Studio: request execution → scripts → collections → response files/exports → docs | Not started |
 
 ## Chain SDK requests
 
