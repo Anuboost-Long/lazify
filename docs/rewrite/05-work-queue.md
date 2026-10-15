@@ -124,7 +124,8 @@ sent and not yet built; the browser ticket itself waits on it.
 | [035](tickets/035-api-studio-environments.md) | API Studio: environments/secrets | **Done.** `readApiEnvironments`/`saveApiEnvironments` real; 15 characterisation cases plus a real save/read cycle (secret split, 0600 file mode) verified through the live app. Left: the Environment screens clicked through |
 | [036](tickets/036-api-studio-request-execution.md) | API Studio: request execution | **Done.** `sendApiRequest`/`readAllowedHosts`/`allowApiHost`/`forgetApiHost` real; chain-sdk request 19 (loopback TLS trust) sent and shipped same day. 44 characterisation cases plus a real self-signed HTTPS server, a real binary response, and a real connection failure verified through the live app. Left: the Request/Response screens clicked through |
 | [037](tickets/037-api-studio-scripts.md) | API Studio: scripts | **Done.** `runApiRequest`/`readScriptSettings`/`saveScriptSettings` real; the sandbox runs in a Web Worker (no `node:vm` in the webview) — no chain-sdk capability needed. 29 new cases plus a real pre+post-request script pair and a real genuinely-interrupted infinite loop verified through the live app. Left: the Scripts panel screen clicked through |
-| — | API Studio: collections → response files/exports → docs | Not started |
+| [038](tickets/038-api-studio-collections.md) | API Studio: collections | **Done.** `readApiRequests`/`saveApiRequest`/`forgetApiRequest`/`setApiRequestStorage`/`readApiResponseBody` real. 21 characterisation cases plus a real save/read/storage-switch/forget cycle verified through the live app. Left: the Request/Response screens clicked through |
+| — | API Studio: response files/exports → docs | Not started |
 
 ## Chain SDK requests
 

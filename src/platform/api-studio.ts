@@ -1,5 +1,14 @@
 import { allowHost, forgetHost, readAllowedHosts as readHosts } from "@/shared/lib/api-studio/allowed-hosts";
 import { readEnvironments, saveEnvironments } from "@/shared/lib/api-studio/environment-store";
+import {
+	forgetRequest,
+	readRequests,
+	readResponseBody,
+	saveRequest,
+	setRequestStorage,
+	type RequestStorage,
+	type SavedRequest,
+} from "@/shared/lib/api-studio/request-store";
 import { readRouteDetails as readDetails, readRouteScan, saveRouteScan } from "@/shared/lib/api-studio/route-cache";
 import { runApiRequest as runRequest } from "@/shared/lib/api-studio/runner/run-request";
 import { sendApiRequest as sendRequest } from "@/shared/lib/api-studio/runner/send-request";
@@ -59,4 +68,24 @@ export function readScriptSettings(projectPath: string) {
 
 export function saveScriptSettings(projectPath: string, settings: ScriptSettings) {
 	return saveSettings(projectPath, settings);
+}
+
+export function readApiRequests(projectPath: string) {
+	return readRequests(projectPath);
+}
+
+export function saveApiRequest(projectPath: string, routeId: string, request: SavedRequest) {
+	return saveRequest(projectPath, routeId, request);
+}
+
+export function forgetApiRequest(projectPath: string, routeId: string) {
+	return forgetRequest(projectPath, routeId);
+}
+
+export function readApiResponseBody(projectPath: string, bodyFile: string) {
+	return readResponseBody(projectPath, bodyFile);
+}
+
+export function setApiRequestStorage(projectPath: string, location: RequestStorage) {
+	return setRequestStorage(projectPath, location);
 }
