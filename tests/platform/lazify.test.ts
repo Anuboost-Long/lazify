@@ -14,9 +14,10 @@ describe("unported bridge members", () => {
 		);
 	});
 
-	it("throw the same message from synchronous members", () => {
-		expect(() => lazify.pathForDroppedFile(new File([], "a.txt"))).toThrow(
-			"Dropping files isn't available in Lazify Chain yet.",
-		);
+});
+
+describe("pathForDroppedFile", () => {
+	it("answers no path, as Electron does for a file not on disk — drops arrive natively", () => {
+		expect(lazify.pathForDroppedFile(new File([], "a.txt"))).toBe("");
 	});
 });

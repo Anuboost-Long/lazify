@@ -126,6 +126,12 @@ export async function exportPathFor(suggestedName: string): Promise<string | nul
 	return grant ? path.join(grant.path, suggestedName) : null;
 }
 
+export async function chooseUploadFile(): Promise<string | null> {
+	const [grant] = await desktop.folders.pick({ files: true });
+
+	return grant?.path ?? null;
+}
+
 export async function exportPostmanCollection(projectPath: string) {
 	const filePath = await exportPathFor(`${path.basename(path.resolve(projectPath))}.postman_collection.json`);
 

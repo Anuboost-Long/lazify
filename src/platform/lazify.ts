@@ -23,23 +23,14 @@ import * as workflow from "./workflow";
 import * as zoom from "./zoom";
 
 const unported = {
-	apiDocs: "API documentation",
-	apiStudio: "API Studio",
-	droppedFiles: "Dropping files",
 	lazyShield: "Lazy Shield",
-	pastedImages: "Pasting images",
 	pictureInPicture: "Picture in picture",
-	restart: "Restarting Lazify",
 	updates: "Updating Lazify",
-	uploadPicker: "Choosing a file to upload",
 };
 
 const notYet = (feature: string) => new Error(`${feature} isn't available in Lazify Chain yet.`);
 
 const rejects = (feature: string) => () => Promise.reject(notYet(feature));
-const throws = (feature: string) => () => {
-	throw notYet(feature);
-};
 const noSubscription = () => () => undefined;
 const ignored = () => undefined;
 
@@ -219,15 +210,15 @@ export const lazify: LazifyApi = {
 	deleteContextEntry: prompts.deleteContextEntry,
 	buildPrompt: prompts.buildPrompt,
 	suggestPromptPreset: prompts.suggestPromptPreset,
-	relaunchApp: rejects(unported.restart),
+	relaunchApp: system.relaunchApp,
 	getDiagnosticsPaths: diagnostics.getDiagnosticsPaths,
-	saveClipboardImage: rejects(unported.pastedImages),
-	pathForDroppedFile: throws(unported.droppedFiles),
+	saveClipboardImage: system.saveClipboardImage,
+	pathForDroppedFile: dmg.pathForDroppedFile,
 	listHighlightingAssets: codeIntelligence.listHighlightingAssets,
 	openHighlightingFolder: codeIntelligence.openHighlightingFolder,
 	detectEditors: environment.detectEditors,
 	openInEditor: environment.openInEditor,
-	chooseUploadFile: rejects(unported.uploadPicker),
+	chooseUploadFile: apiStudio.chooseUploadFile,
 	readZoom: zoom.readZoom,
 	setZoom: zoom.setZoom,
 	stepZoom: zoom.stepZoom,

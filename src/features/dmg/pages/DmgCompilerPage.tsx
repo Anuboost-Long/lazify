@@ -30,7 +30,7 @@ export function DmgCompilerPage() {
   const { t } = useTranslation();
   const [dragging, setDragging] = useState(false);
   const compiler = useDmgCompiler();
-  const { app, progress, result, error, building, chooseApp, dropApp, reset } = compiler;
+  const { app, progress, result, error, building, chooseApp, reset } = compiler;
 
   if (globalThis.lazify.platform !== "darwin") return <MacOnlyNotice />;
 
@@ -78,7 +78,6 @@ export function DmgCompilerPage() {
         onDrop={(event) => {
           event.preventDefault();
           setDragging(false);
-          if (!building) void dropApp(event.dataTransfer.files);
         }}
         className={clsx(
           "group relative overflow-hidden rounded-2xl border bg-soft p-6",

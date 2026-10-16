@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 
+import { onAppDropped } from "@/platform/dmg";
+
 /**
  * The state behind one build: which app, what it will be called, where it goes.
  *
@@ -66,31 +68,13 @@ export function useDmgCompiler() {
   }, [loadApp]);
 
   /**
-   * Takes the first thing dropped on the page.
+   * Takes the first thing dropped on the window, while no build is running.
    *
    * Only the first: dropping a folder of builds is a reasonable thing to try,
    * and quietly packaging one of them would be worse than packaging the one the
    * user let go of first. `inspectAppBundle` rejects whatever is not a bundle.
    */
-  const dropApp = useCallback(
-    async (files: FileList) => {
-      const dropped = files.item(0);
-      if (!dropped) return;
-
-      const appPath = globalThis.lazify.pathForDroppedFile(dropped);
-
-      if (!appPath) {
-        setApp(null);
-        setError(null);
-        // Nothing with a path on disk — there is no bundle here to read, and the
-        // picker is right there.
-        return;
-      }
-
-      await loadApp(appPath);
-    },
-    [loadApp],
-  );
+  useEffect(() => (building ? undefined : onAppDropped((appPath) => void loadApp(appPath))), [building, loadApp]);
 
   const chooseDestination = useCallback(async () => {
     if (!app) return;
@@ -166,7 +150,6 @@ export function useDmgCompiler() {
     error,
     building,
     chooseApp,
-    dropApp,
     chooseDestination,
     chooseImage,
     clearImage,
