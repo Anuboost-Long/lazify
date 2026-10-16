@@ -117,10 +117,11 @@ code:**
   blockers use, it covers both "block requests by rules" and "hide
   elements by rules" above, and lists are added/removed at runtime. A
   single compiled list has a rule limit (150k at last report); several
-  lists can be attached. Ghostery maintains a Safari content-blocker
-  conversion of its lists, so Lazify can supply rules in this form if
-  that's the contract's shape. Lazify will confirm the converter before
-  relying on it.
+  lists can be attached. **Corrected 2026-10-17:** no published Ghostery
+  converter targets this format. Its published converter
+  (`@ghostery/urlfilter2dnr`), like eyeo's `@eyeo/abp2dnr`, targets
+  Chrome's declarativeNetRequest (DNR) format. If Chain's format stays
+  content-blocker-shaped, Lazify converts app-side; that's Lazify's work.
 - Blocked-count notifications exist only on a private
   `WKNavigationDelegate` method, so the count stays optional.
 - `WKUserScript` (injection time `.atDocumentStart`,
