@@ -38,6 +38,12 @@ export class Guest extends EventTarget {
 	#state: BrowserViewState;
 	/** The page the view shows, which `state.url` stops being the moment a load starts. */
 	#pageUrl: string;
+	/**
+	 * An address that failed to load. WebKit leaves the view on the page before
+	 * it, where Chromium showed an error page at the failed address; this keeps
+	 * Chromium's answer, so the address bar and "Try again" mean the failed one.
+	 */
+	#failedUrl: string | null = null;
 	#spentInputAt = 0;
 	#closed = false;
 
@@ -59,13 +65,16 @@ export class Guest extends EventTarget {
 		else this.#emit("dom-ready");
 	}
 
-	getURL = () => this.#state.url;
-	getTitle = () => this.#state.title;
+	getURL = () => this.#failedUrl ?? this.#state.url;
+	getTitle = () => (this.#failedUrl ? hostOf(this.#failedUrl) : this.#state.title);
 	canGoBack = () => this.#state.canGoBack;
 	canGoForward = () => this.#state.canGoForward;
 
 	loadURL = (url: string) => this.#id.then((id) => desktop.browserView.load(id, url));
-	reload = () => this.#drive((id) => desktop.browserView.reload(id));
+	reload = () =>
+		this.#drive((id) =>
+			this.#failedUrl ? desktop.browserView.load(id, this.#failedUrl) : desktop.browserView.reload(id),
+		);
 	stop = () => this.#drive((id) => desktop.browserView.stop(id));
 	goBack = () => this.#drive((id) => desktop.browserView.back(id));
 	goForward = () => this.#drive((id) => desktop.browserView.forward(id));
@@ -95,13 +104,17 @@ export class Guest extends EventTarget {
 		this.#state = next;
 		if (!next.loading) this.#pageUrl = next.url;
 
-		if (next.loading && !previous.loading) this.#emit("did-start-loading");
+		if (next.loading && !previous.loading) {
+			this.#failedUrl = null;
+			this.#emit("did-start-loading");
+		}
 		if (next.title && next.title !== previous.title) this.#emit("page-title-updated", { title: next.title });
-		if (!next.loading && (previous.loading || next.url !== previous.url)) this.#emit("did-navigate", { url: next.url });
+		if (!next.loading && (previous.loading || next.url !== previous.url)) this.#emit("did-navigate", { url: this.getURL() });
 		if (!next.loading && previous.loading) this.#emit("did-stop-loading");
 	}
 
 	receiveFailure({ url, reason, description, nativeCode }: BrowserViewLoadFailure) {
+		this.#failedUrl = url;
 		this.#emit("did-fail-load", {
 			reason,
 			errorCode: nativeCode,
@@ -109,6 +122,7 @@ export class Guest extends EventTarget {
 			validatedURL: url,
 			isMainFrame: true,
 		});
+		this.#emit("did-navigate", { url });
 	}
 
 	receiveCrash() {
@@ -149,6 +163,15 @@ export class Guest extends EventTarget {
 
 	#emit(type: string, detail: Record<string, unknown> = {}) {
 		this.dispatchEvent(Object.assign(new Event(type), detail));
+	}
+}
+
+/** What Chromium titled its error page: the host that failed. */
+function hostOf(url: string): string {
+	try {
+		return new URL(url).host;
+	} catch {
+		return url;
 	}
 }
 

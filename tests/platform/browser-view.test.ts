@@ -107,6 +107,27 @@ describe("a guest's events", () => {
 
 		expect(failures[0]).toMatchObject({ reason: "host-not-found", errorCode: -1003, validatedURL: "https://nope.invalid/", isMainFrame: true });
 	});
+
+	it("stays on a failed address, as Chromium's error page did, and retries it", async () => {
+		const { desktop } = await import("@chain/sdk");
+		const load = vi.fn(async () => undefined);
+		Object.assign(desktop.browserView, { load, reload: vi.fn(async () => undefined) });
+		const { guest, events } = await opened("browser");
+
+		listeners.state(state({ url: "https://nope.invalid/", loading: true }) as never);
+		listeners.failed({ id: "view-1", url: "https://nope.invalid/", reason: "host-not-found", description: "", nativeCode: -1003, nativeDomain: "" } as never);
+		listeners.state(state({ url: "https://example.com/", loading: false }) as never);
+
+		expect(guest.getURL()).toBe("https://nope.invalid/");
+		expect(guest.getTitle()).toBe("nope.invalid");
+		expect(events).toContain("did-fail-load");
+		guest.reload();
+		await vi.waitFor(() => expect(load).toHaveBeenCalledWith("view-1", "https://nope.invalid/"));
+
+		listeners.state(state({ url: "https://nope.invalid/", loading: true }) as never);
+		listeners.state(state({ url: "https://example.com/", loading: false }) as never);
+		expect(guest.getURL()).toBe("https://example.com/");
+	});
 });
 
 describe("the browser page's policy, carried out", () => {

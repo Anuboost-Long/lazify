@@ -1,4 +1,4 @@
-# 042 — Browser and agent preview on `desktop.browserView` (Phase 6 / In progress)
+# 042 — Browser and agent preview on `desktop.browserView` (Phase 6 / In progress — browser verified, preview left)
 
 **Read this whole ticket before touching code.** The browser page's tabs
 and the Agents page's preview pane, moved from Electron's `<webview>` to
@@ -15,8 +15,28 @@ a dev server and sends everything off-machine to the system browser.
 
 ## Status — 2026-10-17
 
-`chain update` brought in `desktop.browserView`; `cargo check` with the
-dev features passes. Implementation starting.
+The browser page runs on `desktop.browserView` in the app; the agent
+preview is wired the same way but not yet seen with a real dev server.
+
+Verified in the app (`chain dev`, macOS 27): a real site loads in a
+native view placed exactly over the tab's area; address bar, title,
+Back and its disabled state follow the page; a failed host shows
+Lazify's own error screen (the view steps aside) with WebKit's wording
+and code, keeps the failed address in the bar, and "Try again" retries
+that address; a same-site `window.open` became a front tab; a
+cross-site one and a page redirecting itself on a timer were both held
+in the notice strip; the History dropdown opens over a page that steps
+aside.
+
+Found and fixed live: after a failed load WebKit leaves the view on the
+previous page, so the bar, the history entry's title and "Try again"
+all pointed at the page before. The guest now answers with the failed
+address and its host as the title, as Chromium's error page did.
+
+Lazy Shield and media picture-in-picture: [chain-sdk request
+21](../../chain-sdk-requests/21-filter-and-script-embedded-pages.md),
+sent 2026-10-17; chain-sdk plans it as two increments on
+`desktop.browserView` (rules, then scripts).
 
 ## Source-of-truth references
 
@@ -73,20 +93,23 @@ dev features passes. Implementation starting.
 
 ## Acceptance checklist and evidence
 
-- [ ] Golden fixture from Electron: `siteOf`, `isCrossSite`,
-      `isLoopbackUrl`
-- [ ] Characterisation tests: every branch of the browser policy (same
+- [x] Golden fixture from Electron (`../scripts/browser-policy-recorder/`,
+      Electron at `c9abefc`): `siteOf`, `isCrossSite`, `isLoopbackUrl`, 40 cases
+- [x] Characterisation tests (`guest-policy.test.ts`, 16; `platform/browser-view.test.ts`, 9): every branch of the browser policy (same
       site, allowed opener, no initiator, fresh input spent once, nested
       frame, modified clicks, blank popups) and the preview policy
-- [ ] Electron's seven browser renderer tests pass on the copy (guest
-      navigation and page errors adapted to the `Guest` events)
-- [ ] In the app: open a site, navigate, back/forward, reload/stop,
+- [x] Electron's seven browser renderer tests pass on the copy (guest
+      navigation and page errors on a fake `Guest`; the error cases sort
+      by reason; "stays quiet when the load was merely stopped" dropped —
+      Chain never reports one)
+- [ ] In the app — done except the preview and Cmd-click (no real click
+      from the inspector): open a site, navigate, back/forward, reload/stop,
       a popup opened as a tab and a cross-site one held, Cmd-click to a
       background tab, an error screen, the preview on a real dev server
       with an external link sent to the system browser
 - [ ] For chain-sdk: trackpad swipe, element fullscreen, Inspect Element,
       middle/secondary buttons, the file-upload panel
-- [ ] `CI=true npm test`, `npm run typecheck`, `npm run build:web`
+- [x] `CI=true npm test`, `npm run typecheck`, `npm run build:web`
 
 ## Not removed
 
@@ -97,4 +120,21 @@ Nothing in the Electron repo is changed.
 Revert the commits; the guests go back to an unrendered `<webview>` tag
 and the bridge members to their stubs.
 
+## Keeping the two copies in step
+
+```sh
+npx vitest run --root docs/rewrite/scripts/browser-policy-recorder
+```
+
+Move the snapshot over
+`tests/shared/lib/browser/__snapshots__/policy.golden.test.ts.snap`,
+then check with `CI=true npm test`.
+
 ## Verification log
+
+- 2026-10-17, macOS 27 arm64: golden recorded from Electron at `c9abefc`,
+  copy matches. In `chain dev`: example.com, iana.org, Back, a failed
+  `nope.invalid`, and a local test page (same-site popup, cross-site
+  popup, timed cross-site redirect) — results above. Test tabs closed
+  and the test server stopped afterward; the visits stay in the dev
+  profile's browser history.
