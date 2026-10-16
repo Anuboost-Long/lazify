@@ -1,4 +1,4 @@
-# 033 — DMG compiler (Phase 6 / In progress)
+# 033 — DMG compiler (Phase 6 / Done)
 
 **Read this whole ticket before touching code.** Turns a built `.app`
 into a drag-to-install `.dmg`: `ditto` to stage the bundle, `hdiutil` to
@@ -15,7 +15,11 @@ window — or a clear reason it didn't work.
 
 ## Status — 2026-10-16
 
-In progress, down to one step that needs a person at the real app.
+Done. The owner allowed Lazify to control Finder and built
+`~/Downloads/Lazify-1.0.0.dmg` from the real app: UDZO, with
+`Lazify.app`, the `Applications` symlink, `.VolumeIcon.icns`, and a
+`.DS_Store` carrying Finder's icon positions and window view — the
+window layout applied. The rest of this section is how it got there.
 [Chain-sdk request 20](../chain-sdk-requests/20-apple-events-permission.md)
 (an `appleEvents` key for chain-sdk's `chain.permissions` mechanism,
 declaring `NSAppleEventsUsageDescription`) was filed and shipped the
@@ -55,7 +59,7 @@ of the earlier piecemeal checks:
   Event fails closed rather than waiting. This is the literal
   "needs a person once" case, now isolated to exactly one click.
 
-**What's left is only that click**: open the real app (not through
+**What was left was only that click** (done 2026-10-16): open the real app (not through
 `chain inspect`), build a DMG for any `.app` once, click "Allow" when
 macOS asks whether Lazify can control Finder, and the window layout
 (background, icon positions) should apply on the next build with no
@@ -241,3 +245,8 @@ Revert the commit; the six members go back to their stubs.
   test`, `npm run typecheck`, `npm run build:web` all pass with the
   `writeIcns` fix. Scratch files, the mounted volume and the `chain
   dev` process cleaned up afterward.
+- 2026-10-16, later: the owner gave the Finder Automation grant in the
+  real app and built `Lazify-1.0.0.dmg` (122 MB). Attached read-only:
+  UDZO, `Lazify.app`, `Applications` symlink, `.VolumeIcon.icns`, and a
+  `.DS_Store` holding Finder's icon-location and window-view records —
+  the styling step ran. Detached cleanly.
