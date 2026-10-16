@@ -1,7 +1,9 @@
+import type { Guest } from "@/platform/browser-view";
+
 export type MediaPipResult = import("@/shared/lib/media/media-pip").MediaPipResult;
 
 export async function toggleMediaPictureInPicture(
-  view: LazifyWebviewElement
+  view: Guest
 ): Promise<MediaPipResult> {
   try {
     return await globalThis.lazify.toggleMediaPictureInPicture(view.getWebContentsId());

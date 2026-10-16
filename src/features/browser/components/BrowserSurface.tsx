@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { translation } from "@/i18n/translation";
+import type { Guest } from "@/platform/browser-view";
 import { usePictureInPicture } from "@/shared/hooks/use-picture-in-picture";
 import { toggleMediaPictureInPicture } from "@/shared/lib/media-pip";
 import { SmallText } from "@/shared/typography";
@@ -134,8 +135,8 @@ export function BrowserSurface({ visible }: Readonly<BrowserSurfaceProps>) {
     .map((id) => tabs.find((tab) => tab.id === id))
     .filter((tab): tab is BrowserTab => Boolean(tab?.url));
 
-  const views = useRef(new Map<string, LazifyWebviewElement>());
-  const registerView = useCallback((tabId: string, view: LazifyWebviewElement | null) => {
+  const views = useRef(new Map<string, Guest>());
+  const registerView = useCallback((tabId: string, view: Guest | null) => {
     if (view) views.current.set(tabId, view);
     else views.current.delete(tabId);
   }, []);
@@ -165,7 +166,7 @@ export function BrowserSurface({ visible }: Readonly<BrowserSurfaceProps>) {
 
   /** Runs a command against the active guest; every method throws when detached. */
   const drive = useCallback(
-    (action: (view: LazifyWebviewElement) => void) => {
+    (action: (view: Guest) => void) => {
       const view = views.current.get(activeId);
       if (!view || !status.ready) return;
       try {

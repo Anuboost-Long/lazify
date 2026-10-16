@@ -3,14 +3,14 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { translation } from "@/i18n/translation";
+import type { Guest } from "@/platform/browser-view";
 import { usePictureInPicture } from "@/shared/hooks/use-picture-in-picture";
 import { toggleMediaPictureInPicture } from "@/shared/lib/media-pip";
 import { MonoText, SmallText } from "@/shared/typography";
+import { GuestView } from "@/shared/ui/GuestView";
 
 import { normalizePreviewUrl } from "./preview-url";
 import { Control } from "./PreviewControl";
-
-const PREVIEW_PARTITION = "persist:lazify-preview";
 
 interface AgentPreviewPanelProps {
 	detectedUrl: string | null;
@@ -26,7 +26,7 @@ export function AgentPreviewPanel({
 	visible,
 }: Readonly<AgentPreviewPanelProps>) {
 	const { t } = useTranslation();
-	const viewRef = useRef<LazifyWebviewElement | null>(null);
+	const viewRef = useRef<Guest | null>(null);
 
 	const [target, setTarget] = useState<string | null>(null);
 
@@ -99,15 +99,7 @@ export function AgentPreviewPanel({
 			syncHistory();
 		};
 		const onFail = (event: Event) => {
-			const { errorCode, validatedURL, isMainFrame } = event as Event & {
-				errorCode?: number;
-				validatedURL?: string;
-				isMainFrame?: boolean;
-			};
-
-			if (isMainFrame === false) return;
-
-			if (errorCode === -3) return;
+			const { validatedURL } = event as Event & { validatedURL?: string };
 
 			setFailedUrl(validatedURL ?? target);
 			setLoading(false);
@@ -131,12 +123,9 @@ export function AgentPreviewPanel({
 	}, [target]);
 
 	const drive = useCallback(
-		(action: (view: LazifyWebviewElement) => void) => {
+		(action: (view: Guest) => void) => {
 			const view = viewRef.current;
-			if (!view || !ready) return;
-			try {
-				action(view);
-			} catch {}
+			if (view && ready) action(view);
 		},
 		[ready],
 	);
@@ -251,15 +240,6 @@ export function AgentPreviewPanel({
 				/>
 
 				<Control
-					icon="bug"
-					label={t(translation.Agents.PreviewDevtools)}
-					disabled={!target || !ready}
-					onClick={() =>
-						drive((view) => (view.isDevToolsOpened() ? view.closeDevTools() : view.openDevTools()))
-					}
-				/>
-
-				<Control
 					icon="open-new-window"
 					label={t(translation.Agents.PreviewOpenExternal)}
 					disabled={!target}
@@ -281,14 +261,14 @@ export function AgentPreviewPanel({
 
 			<div className="relative min-h-0 flex-1">
 				{target ? (
-					<webview
-						ref={viewRef as React.Ref<HTMLElement>}
-						src={initialSrc.current ?? undefined}
-
-						webpreferences="backgroundThrottling=no" // NOSONAR: Electron's <webview>, typed in vite-env.d.ts
-						partition={PREVIEW_PARTITION} // NOSONAR: Electron's <webview>, typed in vite-env.d.ts
-
-						className="absolute inset-0 flex bg-white"
+					<GuestView
+						session="preview"
+						url={initialSrc.current ?? target}
+						visible={visible && !failedUrl}
+						onGuest={(guest) => {
+							viewRef.current = guest;
+						}}
+						className="absolute inset-0"
 					/>
 				) : null}
 

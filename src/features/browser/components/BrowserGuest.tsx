@@ -1,12 +1,11 @@
-import clsx from "clsx";
 import { memo, useEffect, useRef, useState } from "react";
+
+import type { Guest } from "@/platform/browser-view";
+import { GuestView } from "@/shared/ui/GuestView";
 
 import type { BrowserTab } from "../hooks/use-browser-tabs";
 import { usePageLoadError } from "../hooks/use-page-load-error";
 import { BrowserErrorPage } from "./errors";
-
-/** Session for the browser page. Must match BROWSER_PARTITION in main. */
-const BROWSER_PARTITION = "persist:lazify-web";
 
 export interface GuestStatus {
 	ready: boolean;
@@ -21,7 +20,7 @@ interface BrowserGuestProps {
 	/** False while the whole browser page is off-screen. */
 	surfaceVisible: boolean;
 	/** Hands the element to the surface so the toolbar can drive it. */
-	onRegister: (tabId: string, view: LazifyWebviewElement | null) => void;
+	onRegister: (tabId: string, view: Guest | null) => void;
 	onStatus: (tabId: string, status: Partial<GuestStatus>) => void;
 	onNavigate: (tabId: string, url: string, title: string) => void;
 }
@@ -41,13 +40,9 @@ export const BrowserGuest = memo(function BrowserGuest({
 	onStatus,
 	onNavigate,
 }: Readonly<BrowserGuestProps>) {
-	const viewRef = useRef<LazifyWebviewElement | null>(null);
+	const viewRef = useRef<Guest | null>(null);
 	const [ready, setReady] = useState(false);
 	const { error, retry } = usePageLoadError(viewRef, tab);
-
-	// Written once. Later addresses go through loadURL, so a re-render never
-	// reloads the page underneath the user.
-	const initialSrc = useRef(tab.url);
 
 	/**
 	 * The address we last asked this guest to load.
@@ -143,54 +138,25 @@ export const BrowserGuest = memo(function BrowserGuest({
 		requestedUrl.current = tab.url;
 		requestedSeq.current = tab.navSeq;
 
-		// NOSONAR: a detached guest throws out of loadURL itself rather than rejecting,
-		// so the .catch() alone would not hold it, and the load has to stay synchronous
-		try {
-			void view.loadURL(tab.url).catch(() => undefined);
-		} catch {
-			// Detached mid-flight; the next dom-ready resyncs it.
-		}
+		void view.loadURL(tab.url).catch(() => undefined);
 	}, [ready, tab.navSeq, tab.url]);
 
 	return (
-		<div
-			className="absolute inset-0"
-			// Hidden, never unmounted and never removed from layout: Chromium keeps
-			// media running in an occluded guest but stops painting it.
-			//
-			// Both conditions are checked here rather than relying on the surface to
-			// hide us. `visibility: hidden` on an ancestor loses to `visible` on a
-			// descendant, so a guest that only consulted `active` would keep painting
-			// over the whole app while the user was on another page.
-			style={{
-				visibility: active && surfaceVisible ? "visible" : "hidden",
-				zIndex: active ? 1 : 0,
-			}}
-		>
-			<webview
-				ref={(element) => {
-					viewRef.current = element as LazifyWebviewElement | null;
-					onRegister(tab.id, viewRef.current);
+		<div className="absolute inset-0" style={{ zIndex: active ? 1 : 0 }}>
+			{/* A tab keeps its view for as long as it exists — hidden, never closed —
+			    so whatever it is playing keeps playing. It steps aside for the
+			    error screen, which it would otherwise draw over. */}
+			<GuestView
+				session="browser"
+				url={tab.url}
+				visible={active && surfaceVisible && !error}
+				onGuest={(guest) => {
+					viewRef.current = guest;
+					onRegister(tab.id, guest);
 				}}
-				src={initialSrc.current}
-				// Occluding a guest is what stops it painting, but Chromium also
-				// freezes its timers when hidden, which stops playback dead. Opting out
-				// of throttling is what lets it be invisible and still audible.
-				webpreferences="backgroundThrottling=no" // NOSONAR: Electron's <webview>, typed in vite-env.d.ts
-				partition={BROWSER_PARTITION} // NOSONAR: Electron's <webview>, typed in vite-env.d.ts
-				// Without this the guest's window.open returns null outright, and the
-				// popup never reaches main to be turned into a tab.
-				//
-				// It has to be spread in as a string. Written as the bare attribute the
-				// typings ask for, React reads it as `true` and then drops it — React
-				// omits `true` for any attribute it does not know to be boolean — so it
-				// never reaches the DOM and every popup is blocked before Electron sees
-				// it. Spreading also sidesteps that `allowpopups?: boolean` typing.
-				{...({ allowpopups: "" } as Record<string, string>)}
-				className={clsx("absolute inset-0 flex bg-white")}
+				className="absolute inset-0"
 			/>
 
-			{/* Over the guest, so Chromium's own error page never shows through. */}
 			{error ? (
 				<div className="absolute inset-0 z-10 bg-bg">
 					<BrowserErrorPage

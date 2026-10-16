@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { translation } from "@/i18n/translation";
 import { formatDate, formatTime, useDateTimeFormat } from "@/shared/hooks/use-date-time-format";
 import { CaptionText, SmallText } from "@/shared/typography";
+import { useCoverGuests } from "@/shared/ui/GuestView";
 import { IconButton } from "@/shared/ui/IconButton";
 import { Tooltip } from "@/shared/ui/Tooltip";
 import UiIcon from "@/shared/ui/icons/UiIcon";
@@ -24,6 +25,7 @@ export function HistoryButton({ onOpenUrl, onExpand }: Readonly<HistoryButtonPro
 	const { dateFormat, timeFormat } = useDateTimeFormat();
 	const { history, removeEntry, clearHistory } = useBrowserHistory();
 	const [open, setOpen] = useState(false);
+	useCoverGuests(open);
 	const [query, setQuery] = useState("");
 	const rootRef = useRef<HTMLDivElement | null>(null);
 

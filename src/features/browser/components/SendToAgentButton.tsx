@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { translation } from "@/i18n/translation";
 import type { PtySession } from "@/shared/types/lazify";
 import { CaptionText, SmallText } from "@/shared/typography";
+import { useCoverGuests } from "@/shared/ui/GuestView";
 import { Tooltip } from "@/shared/ui/Tooltip";
 import UiIcon from "@/shared/ui/icons/UiIcon";
 
@@ -26,6 +27,7 @@ interface SendToAgentButtonProps {
 export function SendToAgentButton({ url, title }: Readonly<SendToAgentButtonProps>) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
+  useCoverGuests(open);
   const [agents, setAgents] = useState<PtySession[]>([]);
   const [sentTo, setSentTo] = useState<string | null>(null);
   const rootRef = useRef<HTMLDivElement | null>(null);

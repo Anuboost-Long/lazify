@@ -2,6 +2,7 @@ import * as agents from "./agents";
 import * as apiDocs from "./api-docs";
 import * as apiStudio from "./api-studio";
 import * as autopilot from "./autopilot";
+import * as browserView from "./browser-view";
 import * as codeIntelligence from "./code-intelligence";
 import * as commands from "./commands";
 import * as diagnostics from "./diagnostics";
@@ -131,9 +132,9 @@ export const lazify: LazifyApi = {
 	setLazyShield: rejects(unported.lazyShield),
 	onLazyShieldBlocked: noSubscription,
 	onBrowserSwipeProgress: noSubscription,
-	onBrowserOpenTab: noSubscription,
-	onBrowserPopupBlocked: noSubscription,
-	allowPopupsFrom: rejects(unported.lazyShield),
+	onBrowserOpenTab: browserView.onBrowserOpenTab,
+	onBrowserPopupBlocked: browserView.onBrowserPopupBlocked,
+	allowPopupsFrom: browserView.allowPopupsFrom,
 	findSymbolDefinition: codeIntelligence.findSymbolDefinition,
 	selectAppBundle: dmg.selectAppBundle,
 	selectDmgDestination: dmg.selectDmgDestination,

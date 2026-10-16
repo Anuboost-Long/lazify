@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 
 import { translation } from "@/i18n/translation";
 import { CaptionText, CardTitle, MonoText, SmallText } from "@/shared/typography";
+import { useCoverGuests } from "@/shared/ui/GuestView";
 import UiIcon from "@/shared/ui/icons/UiIcon";
 import { Tooltip } from "@/shared/ui/Tooltip";
 
@@ -121,6 +122,7 @@ export function LazyShieldPanel({
 }: Readonly<LazyShieldPanelProps>) {
 	const { t } = useTranslation();
 	const [open, setOpen] = useState(false);
+	useCoverGuests(open);
 	const rootRef = useRef<HTMLDivElement | null>(null);
 
 	// Click-away and Escape, so the panel behaves like the popover it looks like.
