@@ -111,15 +111,15 @@ history are checked in 023's parity pass rather than a ticket of their own.
 ## Phase 6 — complex tools
 
 D-3: the embedded browser stays in scope for Chain, decided 2026-10-15.
-Its embedding primitive is [chain-sdk request 18](../chain-sdk-requests/18-embedded-browser-view.md),
-sent and not yet built; the browser ticket itself waits on it.
+Its embedding primitive is [chain-sdk request 18](../chain-sdk-requests/18-embedded-browser-view.md):
+contract drafted 2026-10-16 as `desktop.browserView`, macOS implementation under way; the browser ticket starts when it ships.
 
 | Ticket | Scope | Status |
 | --- | --- | --- |
 | [031](tickets/031-diagnostics.md) | Diagnostics: the log file, and the fatal-error screen for an error nothing caught (no `linting`/`extensions` preload group — called from `main.ts`/`main.tsx` only) | **Done.** Electron's logger cases pass on the copy; a real uncaught error showed the fatal screen and logged, a real unhandled rejection from an unported feature only logged (a first pass got that backwards and showed the screen for both — fixed and reverified); `getDiagnosticsPaths` answers for real in Settings |
 | [032](tickets/032-agents-workbench-monitor.md) | Agents workbench and live monitor mode: confirm the ported Monitor Wall owns each concurrent PTY correctly | **Done.** No code changed — the pool was already the right shape. Two real concurrent sessions checked live: isolated output, correct two-panel rendering, both reattaching after a reload with no gap or duplication, a stop on one leaving the other untouched |
 | [033](tickets/033-dmg-compiler.md) | DMG compiler: `ditto`/`hdiutil`/`osascript`/`sips` to turn a built `.app` into a drag-to-install `.dmg` (`dmgBuilder`, 6) | **Done.** Chain-sdk request 20 (`appleEvents` permission) shipped; with the owner's Finder grant a real `Lazify-1.0.0.dmg` came out with the app, the `Applications` symlink, the volume icon and the Finder window layout. Left: a signed `chain build` run, once Phase 7 sets one up |
-| — | Browser: embedded guest view, popup policy, Lazy Shield, media PiP | Waiting on request 18 |
+| — | Browser: embedded guest view, popup policy, Lazy Shield, media PiP | Waiting on request 18 (contract drafted, being built). Lazy Shield and media PiP then need a later request for running script in a view |
 | [041](tickets/041-system-leftovers.md) | Upload picker, dropped apps, pasted images, restart: the last four `system` stubs | **Done.** No chain request: `folders.pick`, `folders.onDrop`, `osascript` for the clipboard, and a reload for restart (different by design). Pasting a real image checked in the app; also fixes text paste in terminals. Left: the picker, a Finder drag and the restart button clicked by a person |
 | [034](tickets/034-api-studio-route-inventory.md) | API Studio: route inventory/scanners | **Done.** `scanProjectRoutes`/`readProjectRoutes`/`readRouteDetails` real; 95 characterisation cases plus a real OpenAPI project, a real monorepo and a real "nothing found" project scanned through the live app. Left: the Route Picker screen clicked through (needs the native folder picker) |
 | [035](tickets/035-api-studio-environments.md) | API Studio: environments/secrets | **Done.** `readApiEnvironments`/`saveApiEnvironments` real; 15 characterisation cases plus a real save/read cycle (secret split, 0600 file mode) verified through the live app. Left: the Environment screens clicked through |
