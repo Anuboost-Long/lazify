@@ -20,24 +20,22 @@ This is the scaffold produced by `chain init`:
   `chain dev`/`chain build`, which wrap the real `tauri dev`/`tauri build`
   behind condensed output — this was deliberately changed from
   `create-tauri-app`'s default, where those names only ran Vite. Use
-  `npm run dev:web`/`npm run build:web` for frontend-only iteration. Don't
-  rename `dev:web`/`build:web`: the generated
-  `.chain/native/tauri.conf.json` runs them as `beforeDevCommand`/
-  `beforeBuildCommand`, and pointing those at `dev`/`build` would recurse
-  forever.
+  `npm run dev:web`/`npm run build:web` for frontend-only iteration; keep
+  those two script names — the native project's `beforeDevCommand`/
+  `beforeBuildCommand` run them.
 - The Tauri native project (Rust/Cargo side) lives at `.chain/native/`,
-  not the usual `src-tauri/` — dot-prefixed and hidden on purpose, since
-  it's generated/framework-owned the same way `node_modules` is, and you
-  should almost never need to open it (the real native logic lives in
-  `chain-sdk`'s `crates/core`). `chain dev`/`chain build` point Tauri at
-  it via the `TAURI_APP_PATH` env var, so running `tauri dev`/`tauri
-  build` directly (instead of through `chain`) won't find it.
-  `chain dev`, `chain build`, `chain clean` and `chain update` regenerate
-  it from chain-sdk's templates and `package.json`'s `"chain"` block
-  (`app.name`, `app.identifier`, `permissions`, `updates`), with the
-  version from `"version"`. Hand edits there are overwritten, and only its
-  `Cargo.lock` is committed. The identifier names the folder users' data
-  lives in: once the app is released, never change it.
+  not the usual `src-tauri/`, and is **generated**, like Next.js's
+  `.next`: `chain dev`, `chain build` and `chain update` write it from
+  chain-sdk's templates plus this app's `package.json`, every time. A
+  deleted, stale or broken `.chain/native` comes back on the next run;
+  edits there are overwritten. Native settings live in `package.json`
+  `"chain"` (`window`, `permissions`, `readOnlyFolders`, `updates`, ...),
+  and the app's identity in `"chain.app"`: `name` and `identifier` —
+  **never change `identifier`**, it decides where users' data is. The
+  version is `package.json`'s own. Only `.chain/native/Cargo.lock` is
+  committed (it pins crate versions); git ignores the rest. `chain
+  dev`/`chain build` point Tauri at it via `TAURI_APP_PATH`, so running
+  `tauri dev`/`tauri build` directly won't find it.
 - Tailwind CSS v4, wired through `@tailwindcss/vite` in `vite.config.ts`.
   `src/styles.css` is the ported Lazify renderer's stylesheet: its `@theme`
   block defines Lazify's tokens (`bg`, `soft`, `text`, `muted`, `accent`,
@@ -136,17 +134,16 @@ you haven't touched pick up the new template silently; files you've
 edited merge cleanly if the changes don't overlap, or get real `<<<<<<< /
 ======= / >>>>>>>` conflict markers if they do (resolve those before
 `npm install` or building). `.chain/baseline/` is the merge ancestor this
-depends on — **commit it to git, don't delete or gitignore it**. The one
-exception is `.chain/baseline/.chain/native/`: native files are generated,
-not merged, so `chain update` deletes that part itself; commit the
-deletion.
+depends on — **commit it to git, don't delete or gitignore it**. It
+covers the app-side files only; `.chain/native` is regenerated, never
+merged.
 
 ## Replacing the icon
 
 1. Replace `asset/app-icon.svg` with your own square SVG.
 2. Regenerate the desktop set: `npx tauri icon asset/app-icon.svg --output asset/icons`
-   (run from this app's root, after installing the Tauri CLI). The next
-   `chain dev`/`chain build` picks them up.
+   (run from this app's root, after installing the Tauri CLI).
+3. The next `chain dev`/`chain build` copies them into the native project.
 
 ## Next steps
 
