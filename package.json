@@ -61,15 +61,23 @@
       "~/.codex/auth.json"
     ],
     "window": {
+      "titleBarStyle": "overlay",
+      "titleBarSize": "medium",
+      "windowButtons": {
+        "position": {
+          "left": 12,
+          "centerY": 20
+        }
+      },
       "backgroundColor": "#0b1220",
       "showWhen": "firstPaint",
       "size": {
         "width": 1440,
-        "height": 888
+        "height": 920
       },
       "minSize": {
         "width": 1180,
-        "height": 728
+        "height": 760
       },
       "title": "Lazify",
       "tabFocus": "all"

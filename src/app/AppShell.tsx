@@ -180,6 +180,7 @@ export function AppShell() {
               the sidebar. The description rides along inline when there is
               room, and stays as the hover title when there is not. */}
 					<div
+						data-chain-drag-region
 						className={clsx("flex h-10 shrink-0 items-center gap-2", "border-b border-border bg-bg px-4")}
 					>
 						{/* Shown only where there is somewhere to go up to, so the bar

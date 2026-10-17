@@ -18,7 +18,7 @@ export function FatalErrorScreen() {
 	}, []);
 
 	return (
-		<div className="flex h-screen w-screen flex-col items-center justify-center gap-6 bg-bg px-6">
+		<div data-chain-drag-region className="flex h-screen w-screen flex-col items-center justify-center gap-6 bg-bg px-6">
 			<div className="flex max-w-xl flex-col items-center gap-3">
 				<span className="flex h-12 w-12 items-center justify-center rounded-2xl border border-error/30 bg-error/6 text-error">
 					<UiIcon name="warning-triangle" className="h-6 w-6" />

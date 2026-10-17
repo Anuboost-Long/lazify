@@ -52,7 +52,11 @@ export function Sidebar({
 				collapsed ? "w-[72px]" : "w-[280px]",
 			)}
 		>
-			<div className="flex h-full flex-col p-3">
+			<div className="flex h-full flex-col px-3 pb-3">
+				{/* The window buttons sit over this strip, and the window is dragged
+				    from it. In full screen macOS hides the buttons and it shrinks. */}
+				<div data-chain-drag-region className="-mx-3 h-(--chain-title-bar-height,40px) min-h-3 shrink-0" />
+
 				{/* ── Header ─────────────────────────────── */}
 				<SidebarHeader
 					collapsed={collapsed}
