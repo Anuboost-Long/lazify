@@ -34,11 +34,11 @@ Kinds of evidence, in order of strength:
 | Dependencies | `shared/lib/packages`, `shared/lib/package-version-matcher` (golden) | — | In the app |
 | Environment files | `shared/lib/projects/env-files` (Electron's); Electron's `env-pane` (`features/workspace`, ported 2026-10-17; one case was already failing in Electron at `c9abefc` and checks the shipped warning instead) | — | In the app |
 | Developer environment | `shared/lib/environment` (6) | `main/environment/node-path`, `java-path`, `ports` | In the app |
-| Formatting and code quality | `node/formatter` (golden, 2); `shared/lib/linting` (8); `shared/lib/extensions` (golden); `shared/lib/code-intelligence` (golden); `features/settings/formatter-section` (Electron's) | `main/formatting/format-changed-files`; `main/extensions/{archive,install-jobs,java-runtime,project-manifest,store,sonarlint-provider}`; `main/extensions/{sonarlint,tailwind-engine}.e2e`; `code-diagnostics`, `finding-groups`, `findings-panel` | In the app |
+| Formatting and code quality | `node/formatter` (golden, 2); `shared/lib/linting` (8); `shared/lib/extensions` (golden); `shared/lib/code-intelligence` (golden); `features/settings/formatter-section` (Electron's) | `main/formatting/format-changed-files`; `main/extensions/{archive,install-jobs,java-runtime,project-manifest,store,sonarlint-provider}`; `main/extensions/{sonarlint,tailwind-engine}.e2e`; Electron's `code-diagnostics`, `finding-groups`, `findings-panel` ported to `shared/ui/code` 2026-10-17 | In the app |
 | Browser and PiP | `features/browser` (Electron's 7); `shared/lib/browser` (golden policy, converter); `shared/lib/media`; `platform/browser-view`, `platform/lazy-shield` | `main/lazy-shield-startup` (a different startup here, see ticket 043); `main/browser-swipe-navigation` (Electron's preload gesture; swiping is native in Chain) | In the app |
 | API Studio scanning | `shared/lib/api-studio` (characterisation, shared by the three API Studio rows: 27 files) | — | In the app |
-| API Studio requests | (above) | `main/api-studio/request-scripts`, `main/api-studio/hidden-runs`, `api-studio/suggestions` | In the app |
-| API Studio collections/docs | (above) | `api-studio/{collection,collection-doc,collection-export,collection-memory,collection-order,collection-shape,collection-tree,examples,requests,responses,tabs}` | In the app |
+| API Studio requests | (above) | `main/api-studio/request-scripts`, `main/api-studio/hidden-runs`; Electron's `suggestions` ported to `features/api-studio` 2026-10-17 | In the app |
+| API Studio collections/docs | (above) | — (Electron's 11, with their two harness files, ported to `features/api-studio` 2026-10-17) | In the app |
 | DMG compiler | `shared/lib/dmg` (4, characterisation; Electron had none) | — | In the app |
 | Updates/diagnostics | `shared/lib/diagnostics`; `platform/updates` (Electron's updater cases, ticket 044) | `main/crash-handlers` (signals and native crash dumps; ticket 031 says they don't carry over) | In the app (dev build only) |
 | Localization/accessibility | Electron's `language-loading` (`i18n`, ported 2026-10-17) | — | In the app (ticket 020) |
@@ -50,12 +50,12 @@ only `src/platform/` imports `@chain/sdk`.
 
 ## The gap
 
-Started 2026-10-17 at 83 of Electron's test files. Since then 47 are
+Started 2026-10-17 at 83 of Electron's test files. Since then 62 are
 ported (the updater in ticket 044, then the terminal, agent, monitor,
-workspace, settings, prompt, starter, template, env and language rows) and
-2 found not to apply (`instance-dirs`; `keep-awake`'s store, which
-`platform/zoom-keep-awake` covers). 34 are left: the files still listed
-above, mostly API Studio, extensions and linting. Most are renderer tests of
+workspace, settings, prompt, starter, template, env, language, API Studio
+screen and code-quality screen rows) and 2 found not to apply
+(`instance-dirs`; `keep-awake`'s store, which `platform/zoom-keep-awake`
+covers). 19 are left: the main-process files still listed above. Most are renderer tests of
 screens that were ported folder for folder (ticket 015), so they should run
 with only their imports changed, as `features/browser` did. Several API
 Studio, extension and environment rows are covered by this repo's
