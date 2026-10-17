@@ -7,7 +7,10 @@
 
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
-@theme {
+/* inline: utilities carry rgb(var(--lz-…)) themselves, so an element that
+   redefines --lz-accent (the Home desktop's tints) recolours its own subtree,
+   as Tailwind 3 did. */
+@theme inline {
   --color-bg: rgb(var(--lz-bg));
   --color-soft: rgb(var(--lz-bg-soft));
   --color-terminal: rgb(var(--lz-terminal));
@@ -329,6 +332,8 @@ body {
 
 * {
 	box-sizing: border-box;
+	scrollbar-width: none;
+	-ms-overflow-style: none;
 }
 
 *::selection {
@@ -362,11 +367,6 @@ i[class*=" devicon-"] {
 	border-radius: 999px;
 	background: rgb(var(--lz-accent) / 0.35);
 	background-clip: content-box;
-}
-
-* {
-	scrollbar-width: none;
-	-ms-overflow-style: none;
 }
 
 .scroll-visible {
