@@ -22,7 +22,7 @@ Apple's.
 
 1. **The app's name and identifier.** The scaffold's are still in place:
    `lazify-chain`, `dev.chain.lazify-chain`, version 0.1.0
-   (`.chain/native/tauri.conf.json`, `package.json`).
+   (`package.json`: `chain.app.name`, `chain.app.identifier`, `version`).
    - The identifier names the data folder
      (`~/Library/Application Support/<identifier>/app`), so it must be
      final before anyone installs: changing it later leaves every user's
