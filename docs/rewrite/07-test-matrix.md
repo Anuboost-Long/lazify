@@ -34,7 +34,7 @@ Kinds of evidence, in order of strength:
 | Dependencies | `shared/lib/packages`, `shared/lib/package-version-matcher` (golden) | — | In the app |
 | Environment files | `shared/lib/projects/env-files` (Electron's); Electron's `env-pane` (`features/workspace`, ported 2026-10-17; one case was already failing in Electron at `c9abefc` and checks the shipped warning instead) | — | In the app |
 | Developer environment | `shared/lib/environment` (6); Electron's `java-path`, `node-path`, `ports`, rewritten 2026-10-17 for the async Chain modules (Electron's "never the Electron binary" and Linux `ss` cases have no counterpart) | — | In the app |
-| Formatting and code quality | `node/formatter` (golden, 2); `shared/lib/linting` (8); `shared/lib/extensions` (golden); `shared/lib/code-intelligence` (golden); `features/settings/formatter-section` (Electron's) | `main/formatting/format-changed-files`; `main/extensions/{archive,install-jobs,java-runtime,project-manifest,store,sonarlint-provider}`; `main/extensions/{sonarlint,tailwind-engine}.e2e`; Electron's `code-diagnostics`, `finding-groups`, `findings-panel` ported to `shared/ui/code` 2026-10-17 | In the app |
+| Formatting and code quality | `node/formatter` (golden, 2); `shared/lib/linting` (8); `shared/lib/extensions` (golden); `shared/lib/code-intelligence` (golden); `features/settings/formatter-section` (Electron's); Electron's extension `store`, `project-manifest`, `java-runtime`, `install-jobs`, `sonarlint-provider` rewritten 2026-10-17 for the async Chain modules (`shared/lib/extensions`) | `main/formatting/format-changed-files`; `main/extensions/{sonarlint,tailwind-engine}.e2e` (real engines; they belong with the end-to-end suite, below); `main/extensions/archive` doesn't apply (Chain unpacks natively, request 17); Electron's `code-diagnostics`, `finding-groups`, `findings-panel` ported to `shared/ui/code` 2026-10-17 | In the app |
 | Browser and PiP | `features/browser` (Electron's 7); `shared/lib/browser` (golden policy, converter); `shared/lib/media`; `platform/browser-view`, `platform/lazy-shield` | `main/lazy-shield-startup` (a different startup here, see ticket 043); `main/browser-swipe-navigation` (Electron's preload gesture; swiping is native in Chain) | In the app |
 | API Studio scanning | `shared/lib/api-studio` (characterisation, shared by the three API Studio rows: 27 files) | — | In the app |
 | API Studio requests | (above) | `main/api-studio/request-scripts`, `main/api-studio/hidden-runs`; Electron's `suggestions` ported to `features/api-studio` 2026-10-17 | In the app |
@@ -50,22 +50,25 @@ only `src/platform/` imports `@chain/sdk`.
 
 ## The gap
 
-Started 2026-10-17 at 83 of Electron's test files. Since then 65 are
-ported (the updater in ticket 044, then the terminal, agent, monitor,
-workspace, settings, prompt, starter, template, env, language, API Studio
-screen and code-quality screen rows) and 2 found not to apply
-(`instance-dirs`; `keep-awake`'s store, which `platform/zoom-keep-awake`
-covers). 16 are left: the main-process files still listed above. Most are renderer tests of
-screens that were ported folder for folder (ticket 015), so they should run
-with only their imports changed, as `features/browser` did. Several API
-Studio, extension and environment rows are covered by this repo's
-characterisation or golden cases instead, which test the same logic from
-the other side; a port settles which of Electron's cases they miss.
+On 2026-10-17, 83 of Electron's test files had no counterpart here. Since
+then:
+- **62 ported** with only their imports changed (a few small adaptations,
+  noted in their rows): the updater (ticket 044), then the terminal,
+  agent, monitor, workspace, settings, prompt, starter, template, env,
+  language, API Studio screen and code-quality screen rows.
+- **8 rewritten** for Lazify Chain's async modules on the platform layer,
+  keeping Electron's cases: `java-path`, `node-path`, `ports`, and the
+  extension `store`, `project-manifest`, `java-runtime`, `install-jobs`,
+  `sonarlint-provider`.
+- **3 don't apply**: `instance-dirs` (no process ids, ticket 007),
+  `keep-awake`'s store (`platform/zoom-keep-awake` covers its four cases),
+  `archive` (Chain unpacks natively, request 17).
+- **10 left**, still listed in the rows above. Two are end-to-end runs of
+  the real SonarLint and Tailwind engines, which belong with the end-to-end
+  suite below.
 
-To close it: one ticket that ports them a row at a time, records each one
-that can't apply to Chain (and why) here, and adds the `@chain/sdk`
-import-boundary test. Until then a row backed only by "In the app" and
-characterisation can't move to `Pass`.
+A row backed only by "In the app" and characterisation can't move to
+`Pass` until its Electron tests are ported or ruled out here.
 
 ## Suites the roadmap asks for (Test strategy)
 
