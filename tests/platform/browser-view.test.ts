@@ -31,6 +31,11 @@ vi.mock("@/platform/folders", () => ({
 
 vi.mock("@/platform/system", () => ({ openExternalUrl }));
 
+vi.mock("@/platform/lazy-shield", () => ({
+	startLazyShield: async () => undefined,
+	isBlockedPopup: (url: string) => url === "https://blocked.example/",
+}));
+
 files = { "/data/popup-allowlist.json": JSON.stringify({ sites: ["trusted.com"] }) };
 
 const { allowPopupsFrom, onBrowserOpenTab, onBrowserPopupBlocked, openGuest } = await import("@/platform/browser-view");
@@ -167,6 +172,19 @@ describe("the browser page's policy, carried out", () => {
 
 		expect(blocked).toHaveBeenCalledWith(expect.objectContaining({ sourceUrl: "https://example.com/" }));
 		stop();
+	});
+
+	it("refuses a popup Lazy Shield's lists name", async () => {
+		await opened("browser");
+		const opens = vi.fn();
+		const blocked = vi.fn();
+		const stops = [onBrowserOpenTab(opens), onBrowserPopupBlocked(blocked)];
+
+		listeners.newWindow({ ...request("https://blocked.example/"), features: {} } as never);
+
+		expect(opens).not.toHaveBeenCalled();
+		expect(blocked).not.toHaveBeenCalled();
+		stops.forEach((stop) => stop());
 	});
 
 	it("opens popups from a site the user trusted, and remembers a new one", async () => {

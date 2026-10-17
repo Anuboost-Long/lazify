@@ -34,7 +34,7 @@ Each request:
 | 18 | [An embedded, isolated web view inside the app's own window](18-embedded-browser-view.md) | Contract drafted 2026-10-16 as `desktop.browserView` (chain-sdk `agent-docs/capabilities/browser-view/CONTRACT.md`); macOS implementation under way. Reviewed by Lazify: fits, with two asks sent (an `inspectable` option for the preview's devtools, and documenting the right-click menu). Running script in a view stays out — a later request for media PiP and Lazy Shield's cosmetic half |
 | 19 | [Trust a self-signed certificate on a loopback request](19-loopback-tls-trust.md) | Sent and shipped same day 2026-10-15, as `trustLoopbackCertificates` on `desktop.http.request()`; verified from Lazify against a real self-signed localhost HTTPS server, in the app |
 | 20 | [An `appleEvents` app permission](20-apple-events-permission.md) | Sent and shipped 2026-10-16 as the `appleEvents` key in `chain.permissions`; ticket 033's Finder layout verified in the app after the owner's grant |
-| 21 | [Filter and script the pages in an embedded view](21-filter-and-script-embedded-pages.md) | Sent 2026-10-17. Lazy Shield (block and hide by rules, early in-page script with a reply channel) and media picture-in-picture (script in every frame on demand) |
+| 21 | [Filter and script the pages in an embedded view](21-filter-and-script-embedded-pages.md) | Sent and shipped 2026-10-17 on `desktop.browserView` (rules, page scripts, `ask()`, `runInFrames`, `allowPictureInPicture`); used by tickets 042 (media PiP) and 043 (Lazy Shield), verified in the app |
 
 Overlap with Mneme: request 01's read-only allow-list design fork would also
 answer Mneme's request 11 (`external-file-read`).

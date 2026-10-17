@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { translation } from "@/i18n/translation";
-import { CaptionText, CardTitle, MonoText, SmallText } from "@/shared/typography";
+import { CaptionText, CardTitle, MonoText } from "@/shared/typography";
 import { useCoverGuests } from "@/shared/ui/GuestView";
 import UiIcon from "@/shared/ui/icons/UiIcon";
 import { Tooltip } from "@/shared/ui/Tooltip";
@@ -33,7 +33,7 @@ function descriptionOf(enabled: boolean, ready: boolean): string {
 }
 
 /** The popover behind the toolbar shield: the switch, the count, the caveat. */
-function ShieldCard({ enabled, ready, blocked, busy, onToggle }: Readonly<LazyShieldPanelProps>) {
+function ShieldCard({ enabled, ready, busy, onToggle }: Readonly<LazyShieldPanelProps>) {
 	const { t } = useTranslation();
 
 	return (
@@ -89,15 +89,9 @@ function ShieldCard({ enabled, ready, blocked, busy, onToggle }: Readonly<LazySh
 				</label>
 			</div>
 
+			{/* No count: WebKit doesn't say when its rules block something. */}
 			<div className="px-4 py-3">
-				<div className="flex items-baseline gap-2">
-					<MonoText as="span" className="text-2xl text-text">
-						{enabled ? blocked : "—"}
-					</MonoText>
-					<SmallText className="text-muted!">{t(translation.LazyShield.BlockedLabel)}</SmallText>
-				</div>
-
-				<CaptionText tone="muted" className="mt-2 block leading-relaxed">
+				<CaptionText tone="muted" className="block leading-relaxed">
 					{t(descriptionOf(enabled, ready))}
 				</CaptionText>
 			</div>

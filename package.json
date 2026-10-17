@@ -18,6 +18,7 @@
     "@chain/sdk": "file:../chain-sdk/packages/sdk",
     "@fontsource-variable/manrope": "^5.3.0",
     "@fontsource/chakra-petch": "^5.3.0",
+    "@ghostery/adblocker": "^2.18.2",
     "@tauri-apps/api": "^2",
     "@tauri-apps/plugin-opener": "^2",
     "@xterm/addon-fit": "^0.11.0",
@@ -30,7 +31,8 @@
     "react-dom": "^19.1.0",
     "react-i18next": "^17.0.16",
     "react-router-dom": "^7",
-    "shiki": "^4.5.0"
+    "shiki": "^4.5.0",
+    "tldts-experimental": "^7.4.18"
   },
   "devDependencies": {
     "@chain/cli": "file:../chain-sdk/packages/cli",
@@ -61,8 +63,14 @@
     "window": {
       "backgroundColor": "#0b1220",
       "showWhen": "firstPaint",
-      "size": { "width": 1440, "height": 888 },
-      "minSize": { "width": 1180, "height": 728 },
+      "size": {
+        "width": 1440,
+        "height": 888
+      },
+      "minSize": {
+        "width": 1180,
+        "height": 728
+      },
       "title": "Lazify",
       "tabFocus": "all"
     },

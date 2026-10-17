@@ -22,6 +22,7 @@ import { BROWSER_SESSION, PREVIEW_SESSION } from "@/shared/lib/browser/preview-g
 import { logError } from "@/shared/lib/diagnostics/logger";
 
 import { appDataPath, readTextFile, writeTextFile } from "./folders";
+import { isBlockedPopup, startLazyShield } from "./lazy-shield";
 import { openExternalUrl } from "./system";
 
 export type GuestSession = "browser" | "preview";
@@ -149,6 +150,7 @@ export class Guest extends EventTarget {
 		return {
 			pageUrl: this.#pageUrl,
 			isOpenerAllowed,
+			isBlockedPopup,
 			spendUserActivation: (inputAgeMs) => {
 				if (inputAgeMs === null || inputAgeMs > USER_ACTIVATION_MS) return false;
 
@@ -179,6 +181,17 @@ function hostOf(url: string): string {
 	}
 }
 
+/**
+ * How long a browser page waits for Lazy Shield before loading anyway. A page
+ * whose first scripts arrived unfiltered and whose later ones did not is its
+ * own kind of broken, so the first load waits — but not so long that a cold
+ * shield is the worse failure of the two.
+ */
+const SHIELD_WAIT_MS = 5000;
+
+const shieldFirst = () =>
+	Promise.race([startLazyShield(), new Promise<void>((resolve) => setTimeout(resolve, SHIELD_WAIT_MS))]);
+
 const guests = new Map<string, Guest>();
 const byHandle = new Map<number, Guest>();
 let nextHandle = 1;
@@ -186,7 +199,7 @@ let nextHandle = 1;
 export function openGuest(session: GuestSession, url: string, bounds: BrowserViewBounds, visible: boolean): Guest {
 	listenToViews();
 
-	const id = loadAllowedOpeners().then(() =>
+	const id = Promise.all([loadAllowedOpeners(), session === "browser" ? shieldFirst() : undefined]).then(() =>
 		desktop.browserView.create({
 			url,
 			session: session === "browser" ? BROWSER_SESSION : PREVIEW_SESSION,

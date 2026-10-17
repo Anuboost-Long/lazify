@@ -46,6 +46,7 @@ function context(patch: Partial<BrowserGuestContext> = {}): BrowserGuestContext 
 	return {
 		pageUrl: PAGE,
 		isOpenerAllowed: () => false,
+		isBlockedPopup: () => false,
 		spendUserActivation: (inputAgeMs) => {
 			if (spent || inputAgeMs === null || inputAgeMs > USER_ACTIVATION_MS) return false;
 			spent = true;
@@ -153,6 +154,16 @@ describe("the browser page's popups", () => {
 			url: AD,
 			background: false,
 		});
+	});
+});
+
+describe("Lazy Shield's lists", () => {
+	it("refuse a popup they name, without offering it", () => {
+		const shielded = context({ isBlockedPopup: (url) => url === AD, isOpenerAllowed: () => true });
+
+		expect(decideBrowserNewWindow(newWindow(AD), shielded)).toEqual({ action: "refuse" });
+		const click = navigation(AD, { kind: "link", modifiers: { shift: false, control: false, alt: false, meta: true } });
+		expect(decideBrowserNavigation(click, shielded)).toEqual({ action: "refuse" });
 	});
 });
 

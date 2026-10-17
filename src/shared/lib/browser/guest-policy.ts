@@ -21,6 +21,8 @@ export interface BrowserGuestContext {
 	/** The page the view shows — what "the same site" is measured against. */
 	pageUrl: string;
 	isOpenerAllowed: (sourceUrl: string) => boolean;
+	/** Lazy Shield's lists name it: refused outright, never offered. */
+	isBlockedPopup: (url: string, sourceUrl: string) => boolean;
 	/** True once per real click or key press, inside the activation window. */
 	spendUserActivation: (inputAgeMs: number | null) => boolean;
 }
@@ -35,12 +37,15 @@ const wantsBackground = ({ modifiers, button }: BrowserViewInitiator) =>
 const wantsNewTab = (initiator: BrowserViewInitiator) => wantsBackground(initiator) || initiator.modifiers.shift;
 
 /**
- * Whether a popup may become a tab on its own: a popup to the site the user is
- * already on is the site's own doing and passes, and anything leading
- * elsewhere is held for the user unless they have already trusted this site.
+ * Whether a popup may become a tab on its own. Three answers, in the order
+ * they are cheap to give: the filter lists refuse outright, a popup to the
+ * site the user is already on is the site's own doing and passes, and
+ * anything leading elsewhere is held for the user unless they have already
+ * trusted this site.
  */
 function deliver(url: string, background: boolean, context: BrowserGuestContext): GuestDecision {
 	const sourceUrl = context.pageUrl;
+	if (context.isBlockedPopup(url, sourceUrl)) return refuse;
 	if (!isCrossSite(url, sourceUrl) || context.isOpenerAllowed(sourceUrl)) {
 		return { action: "open-tab", url, background };
 	}

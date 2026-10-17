@@ -12,6 +12,7 @@ import * as extensions from "./extensions";
 import * as formatting from "./formatting";
 import * as git from "./git";
 import * as keepAwakeGroup from "./keep-awake";
+import * as lazyShield from "./lazy-shield";
 import * as packages from "./packages";
 import type { LazifyApi } from "./lazify-api";
 import * as linting from "./linting";
@@ -24,7 +25,6 @@ import * as workflow from "./workflow";
 import * as zoom from "./zoom";
 
 const unported = {
-	lazyShield: "Lazy Shield",
 	pageWindow: "Opening a page in its own window",
 	updates: "Updating Lazify",
 };
@@ -128,8 +128,8 @@ export const lazify: LazifyApi = {
 	forgetApiHost: apiStudio.forgetApiHost,
 	readScriptSettings: apiStudio.readScriptSettings,
 	saveScriptSettings: apiStudio.saveScriptSettings,
-	getLazyShieldState: rejects(unported.lazyShield),
-	setLazyShield: rejects(unported.lazyShield),
+	getLazyShieldState: lazyShield.getLazyShieldState,
+	setLazyShield: lazyShield.setLazyShield,
 	onLazyShieldBlocked: noSubscription,
 	onBrowserSwipeProgress: noSubscription,
 	onBrowserOpenTab: browserView.onBrowserOpenTab,

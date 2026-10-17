@@ -9,8 +9,8 @@ describe("unported bridge members", () => {
 		await expect(lazify.checkForUpdates()).rejects.toThrow(
 			"Updating Lazify isn't available in Lazify Chain yet.",
 		);
-		await expect(lazify.getLazyShieldState()).rejects.toThrow(
-			"Lazy Shield isn't available in Lazify Chain yet.",
+		await expect(lazify.openPictureInPicture("https://example.com", "browser")).rejects.toThrow(
+			"Opening a page in its own window isn't available in Lazify Chain yet.",
 		);
 	});
 
