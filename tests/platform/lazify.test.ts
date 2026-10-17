@@ -13,6 +13,15 @@ describe("unported bridge members", () => {
 
 });
 
+describe("the page window, until it's ported", () => {
+	it("is never open, so asking or closing answers closed rather than failing", async () => {
+		const closed = { open: false, url: null, source: null };
+
+		await expect(lazify.getPictureInPictureState()).resolves.toEqual(closed);
+		await expect(lazify.closePictureInPicture()).resolves.toEqual(closed);
+	});
+});
+
 describe("pathForDroppedFile", () => {
 	it("answers no path, as Electron does for a file not on disk — drops arrive natively", () => {
 		expect(lazify.pathForDroppedFile(new File([], "a.txt"))).toBe("");

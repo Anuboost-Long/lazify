@@ -33,6 +33,8 @@ const notYet = (feature: string) => new Error(`${feature} isn't available in Laz
 
 const rejects = (feature: string) => () => Promise.reject(notYet(feature));
 const noSubscription = () => () => undefined;
+/** Until it's ported there is never a page window, so asking about or closing one answers "closed". */
+const noPageWindow = async () => ({ open: false, url: null, source: null });
 const ignored = () => undefined;
 
 export const lazify: LazifyApi = {
@@ -186,8 +188,8 @@ export const lazify: LazifyApi = {
 	createPhaseTasks: linting.createPhaseTasks,
 	onSonarScan: linting.onSonarScan,
 	openPictureInPicture: rejects(unported.pageWindow),
-	closePictureInPicture: rejects(unported.pageWindow),
-	getPictureInPictureState: rejects(unported.pageWindow),
+	closePictureInPicture: noPageWindow,
+	getPictureInPictureState: noPageWindow,
 	onPictureInPictureChanged: noSubscription,
 	toggleMediaPictureInPicture: browserView.toggleMediaPictureInPicture,
 	searchNpmPackages: packages.searchNpmPackages,
