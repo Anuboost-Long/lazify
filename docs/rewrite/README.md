@@ -25,10 +25,10 @@ Read first:
 | [04-architecture-decisions](04-architecture-decisions.md) | Accepted and open decisions | D-6's feed location open (first release) |
 | [05-work-queue](05-work-queue.md) | Extraction tickets and Chain requests, in order | Active |
 | [06-parity-matrix](06-parity-matrix.md) | Old-versus-new release gate | Phase 1–4 areas Partial on macOS; no row `Pass` yet |
-| [07-test-matrix](07-test-matrix.md) | Tests mapped to parity rows | Not started |
+| [07-test-matrix](07-test-matrix.md) | Tests mapped to parity rows | Mapped; 83 Electron test files not yet ported |
 | [08-migration-ledger](08-migration-ledger.md) | Each data migration and its validation | Backup and SQLite import |
-| [09-rollback-and-recovery](09-rollback-and-recovery.md) | Fallback per slice | Not started |
-| [10-release-readiness](10-release-readiness.md) | Signing, updater, cutover | Not started |
+| [09-rollback-and-recovery](09-rollback-and-recovery.md) | Fallback per slice | Written |
+| [10-release-readiness](10-release-readiness.md) | Signing, updater, cutover | Written; three owner decisions and request 22 open |
 | [tickets/](tickets/README.md) | One doc per change set (merged ticket and feature-doc format) | 001–041 built |
 | [evidence/](evidence/README.md) | Test output, fixtures, recordings | Empty |
 
