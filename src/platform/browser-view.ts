@@ -17,6 +17,7 @@ import {
 	type GuestDecision,
 } from "@/shared/lib/browser/guest-policy";
 import { siteOf, type BlockedPopup } from "@/shared/lib/browser/popup-policy";
+import { toggleMediaPictureInPicture as toggleIn, type MediaPipResult } from "@/shared/lib/media/media-pip";
 import { BROWSER_SESSION, PREVIEW_SESSION } from "@/shared/lib/browser/preview-guard";
 import { logError } from "@/shared/lib/diagnostics/logger";
 
@@ -49,6 +50,8 @@ export class Guest extends EventTarget {
 
 	constructor(
 		readonly session: GuestSession,
+		/** Stands in for Electron's `webContents` id where the bridge passes one. */
+		readonly handle: number,
 		url: string,
 		id: Promise<string>,
 	) {
@@ -84,6 +87,7 @@ export class Guest extends EventTarget {
 
 	close() {
 		this.#closed = true;
+		byHandle.delete(this.handle);
 		void this.#id.then((id) => {
 			guests.delete(id);
 			return desktop.browserView.close(id);
@@ -95,9 +99,9 @@ export class Guest extends EventTarget {
 	closeDevTools = () => undefined;
 	isDevToolsOpened = () => false;
 
-	/** Running script inside a view is a later chain-sdk request (media picture-in-picture). */
-	executeJavaScript = () => Promise.reject(new Error("Running script in a page isn't available in Lazify Chain yet."));
-	getWebContentsId = () => -1;
+	/** Runs an async function body in the page and every nested frame, as if the user had just clicked. */
+	runInFrames = (body: string) => this.#id.then((id) => desktop.browserView.runInFrames(id, body));
+	getWebContentsId = () => this.handle;
 
 	receiveState(next: BrowserViewState) {
 		const previous = this.#state;
@@ -176,6 +180,8 @@ function hostOf(url: string): string {
 }
 
 const guests = new Map<string, Guest>();
+const byHandle = new Map<number, Guest>();
+let nextHandle = 1;
 
 export function openGuest(session: GuestSession, url: string, bounds: BrowserViewBounds, visible: boolean): Guest {
 	listenToViews();
@@ -190,9 +196,11 @@ export function openGuest(session: GuestSession, url: string, bounds: BrowserVie
 			allowFullscreen: true,
 			swipeNavigation: session === "browser",
 			inspectable: session === "preview",
+			allowPictureInPicture: true,
 		}),
 	);
-	const guest = new Guest(session, url, id);
+	const guest = new Guest(session, nextHandle++, url, id);
+	byHandle.set(guest.handle, guest);
 	id.then(
 		(viewId) => guest.attach(viewId),
 		(error) => logError("browser", "A page couldn't be placed in the window", error),
@@ -217,6 +225,11 @@ function listenToViews() {
 		else void desktop.browserView.answer(request.requestId, false).catch(() => undefined);
 	});
 	desktop.browserView.onNewWindow((request) => guests.get(request.id)?.decideNewWindow(request));
+}
+
+export function toggleMediaPictureInPicture(handle: number): Promise<MediaPipResult> {
+	const guest = byHandle.get(handle);
+	return guest ? toggleIn(guest.runInFrames) : Promise.resolve("none");
 }
 
 const openTabListeners = new Set<(event: { url: string; background: boolean }) => void>();

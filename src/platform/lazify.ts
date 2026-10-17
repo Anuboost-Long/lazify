@@ -25,7 +25,7 @@ import * as zoom from "./zoom";
 
 const unported = {
 	lazyShield: "Lazy Shield",
-	pictureInPicture: "Picture in picture",
+	pageWindow: "Opening a page in its own window",
 	updates: "Updating Lazify",
 };
 
@@ -185,11 +185,11 @@ export const lazify: LazifyApi = {
 	sonarScanState: linting.sonarScanState,
 	createPhaseTasks: linting.createPhaseTasks,
 	onSonarScan: linting.onSonarScan,
-	openPictureInPicture: rejects(unported.pictureInPicture),
-	closePictureInPicture: rejects(unported.pictureInPicture),
-	getPictureInPictureState: rejects(unported.pictureInPicture),
+	openPictureInPicture: rejects(unported.pageWindow),
+	closePictureInPicture: rejects(unported.pageWindow),
+	getPictureInPictureState: rejects(unported.pageWindow),
 	onPictureInPictureChanged: noSubscription,
-	toggleMediaPictureInPicture: rejects(unported.pictureInPicture),
+	toggleMediaPictureInPicture: browserView.toggleMediaPictureInPicture,
 	searchNpmPackages: packages.searchNpmPackages,
 	getNpmOutdated: packages.getNpmOutdated,
 	getNpmAudit: packages.getNpmAudit,
