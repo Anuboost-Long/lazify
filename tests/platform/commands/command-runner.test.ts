@@ -152,6 +152,7 @@ describe("CommandRunner.runCommand", () => {
 			},
 		]);
 
+		expect(runner.chooseCommandOption(prompts[0].id, "not-offered")).toBe(false);
 		expect(runner.chooseCommandOption(prompts[0].id, "yes")).toBe(true);
 		await tick();
 		expect(processes[0].stdin).toEqual(["y\n"]);
