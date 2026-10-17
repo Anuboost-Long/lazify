@@ -392,6 +392,8 @@ export const translation = {
 		UpdateError: "settings.update_error",
 		UpdateUnsupported: "settings.update_unsupported",
 		UpdateUnsupportedPackageManager: "settings.update_unsupported_package_manager",
+		UpdateReadOnly: "settings.update_read_only",
+		UpdateNotConfigured: "settings.update_not_configured",
 		UpdateInstallTitle: "settings.update_install_title",
 		UpdateInstallDesc: "settings.update_install_desc",
 		Diagnostics: "settings.diagnostics",

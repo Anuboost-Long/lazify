@@ -21,12 +21,12 @@ import * as prompts from "./prompts";
 import * as scripts from "./scripts";
 import * as system from "./system";
 import * as tasks from "./tasks";
+import * as updates from "./updates";
 import * as workflow from "./workflow";
 import * as zoom from "./zoom";
 
 const unported = {
 	pageWindow: "Opening a page in its own window",
-	updates: "Updating Lazify",
 };
 
 const notYet = (feature: string) => new Error(`${feature} isn't available in Lazify Chain yet.`);
@@ -245,11 +245,11 @@ export const lazify: LazifyApi = {
 	deleteImportedTemplate: workflow.deleteImportedTemplate,
 	getTemplatePackageManifest: workflow.getTemplatePackageManifest,
 	saveImportedTemplate: workflow.saveImportedTemplate,
-	getUpdateState: rejects(unported.updates),
-	checkForUpdates: rejects(unported.updates),
-	downloadUpdate: rejects(unported.updates),
-	quitAndInstallUpdate: rejects(unported.updates),
-	onUpdateStateChanged: noSubscription,
+	getUpdateState: updates.getUpdateState,
+	checkForUpdates: updates.checkForUpdates,
+	downloadUpdate: updates.downloadUpdate,
+	quitAndInstallUpdate: updates.quitAndInstallUpdate,
+	onUpdateStateChanged: updates.onUpdateStateChanged,
 	createProject: workflow.createProject,
 	installPackage: packages.installPackage,
 	onWorkflowProgress: workflow.onWorkflowProgress,

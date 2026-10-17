@@ -39,18 +39,27 @@ Apple's.
    be confused with. A new public repo is simplest: the app reads it
    anonymously.
 3. **The update signing key.** Request 22 signs updates with a key only
-   the owner holds; the app carries the public half. Generate it once,
-   store the private half outside every repo (a password manager or a CI
-   secret), and never lose it: an app can only accept updates signed
-   with the key it shipped with.
+   the owner holds; the app carries the public half. Generate it once
+   (`chain updates key <file>`, outside this repo), store the private half
+   somewhere safe (a password manager or a CI secret), and never lose it:
+   an app can only accept updates signed with the key it shipped with.
+4. **A self-signed code-signing certificate, or not.** chain-sdk verified
+   that ad-hoc builds lose microphone, Apple Events and Files and Folders
+   access on every update: macOS asks again each time. Signing every
+   build with one self-signed certificate (Keychain Access, "Code
+   Signing", no Apple membership; `CHAIN_SIGNING_IDENTITY` for
+   `chain build`) keeps them. Like the key, it must be kept and backed up:
+   a new certificate asks for every permission once more. chain-sdk
+   recommends it from the first release. Moving to it later, or to a
+   Developer ID, costs one round of prompts after that update.
 
 ### Waiting on chain-sdk
 
 - [Request 22](../chain-sdk-requests/22-update-the-app-in-place.md),
-  `desktop.updates`: contract drafted, being verified, including what an
-  ad-hoc update does to granted permissions. Then: port
-  `src/main/updater.ts` (the five bridge members) and Electron's
-  `updater.test.ts`.
+  `desktop.updates`: shipped and verified by chain-sdk 2026-10-17, ported
+  in [ticket 044](tickets/044-updates.md). Left: an https feed, a
+  universal build and a first launch from a quarantined download, which
+  chain-sdk hasn't tried, and a real update between two Lazify builds.
 - [Request 23](../chain-sdk-requests/23-floating-page-window.md), the
   floating page window: queued after 22. Not a release blocker; the
   button names itself as unavailable until then.

@@ -17,6 +17,14 @@ const ACTION_BUTTON = clsx(
 	"disabled:cursor-not-allowed disabled:opacity-50",
 );
 
+const UNSUPPORTED_MESSAGES = {
+	development: translation.Settings.UpdateUnsupported,
+	// A .deb or .rpm is not a broken updater — it is one owned by apt.
+	"package-manager": translation.Settings.UpdateUnsupportedPackageManager,
+	"read-only": translation.Settings.UpdateReadOnly,
+	"not-configured": translation.Settings.UpdateNotConfigured,
+};
+
 export function UpdateSection() {
 	const { t } = useTranslation();
 	const { state, check, download, install } = useAppUpdate();
@@ -40,10 +48,7 @@ export function UpdateSection() {
 			case "error":
 				return `${t(translation.Settings.UpdateError)} — ${state.message}`;
 			case "unsupported":
-				// A .deb or .rpm is not a broken updater — it is one owned by apt.
-				return state.reason === "package-manager"
-					? t(translation.Settings.UpdateUnsupportedPackageManager)
-					: t(translation.Settings.UpdateUnsupported);
+				return t(UNSUPPORTED_MESSAGES[state.reason ?? "development"]);
 			default:
 				return t(translation.Settings.UpdateIdle);
 		}

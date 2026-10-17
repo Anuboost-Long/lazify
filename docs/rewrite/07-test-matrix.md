@@ -40,7 +40,7 @@ Kinds of evidence, in order of strength:
 | API Studio requests | (above) | `main/api-studio/request-scripts`, `main/api-studio/hidden-runs`, `api-studio/suggestions` | In the app |
 | API Studio collections/docs | (above) | `api-studio/{collection,collection-doc,collection-export,collection-memory,collection-order,collection-shape,collection-tree,examples,requests,responses,tabs}` | In the app |
 | DMG compiler | `shared/lib/dmg` (4, characterisation; Electron had none) | — | In the app |
-| Updates/diagnostics | `shared/lib/diagnostics` | `main/updater` (waits on request 22) | — |
+| Updates/diagnostics | `shared/lib/diagnostics`; `platform/updates` (Electron's updater cases, ticket 044) | — | In the app (dev build only) |
 | Localization/accessibility | — | `language-loading` | In the app (ticket 020) |
 | Packaging/platforms | — | — | — |
 

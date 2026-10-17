@@ -392,6 +392,8 @@
     "update_error": "Update failed",
     "update_unsupported": "Updates are only available in the installed app",
     "update_unsupported_package_manager": "This build updates through your package manager",
+    "update_read_only": "Lazify can't update itself where it's installed. Download the new version instead",
+    "update_not_configured": "This build of Lazify doesn't receive updates",
     "update_install_title": "Restart to install?",
     "update_install_desc": "Lazify will close and reopen. Running agents, scripts, and terminals will stop.",
     "log_file": "Log file",

@@ -379,6 +379,8 @@
     "update_error": "更新失败",
     "update_unsupported": "仅在已安装的应用中可用",
     "update_unsupported_package_manager": "此版本通过你的软件包管理器更新",
+    "update_read_only": "Lazify 无法在当前安装位置自行更新，请改为下载新版本",
+    "update_not_configured": "此版本的 Lazify 不接收更新",
     "update_install_title": "重启以安装？",
     "update_install_desc": "Lazify 将关闭并重新打开。正在运行的代理、脚本和终端都会停止。",
     "log_file": "日志文件",
