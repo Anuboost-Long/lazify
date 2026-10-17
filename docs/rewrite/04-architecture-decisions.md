@@ -152,9 +152,27 @@ user-added custom agents, tickets 008/019) are already settled in
 practice by what shipped. Auto-update is the one piece of D-4 still
 genuinely open.
 
+### D-4 (auto-update) In the first release
+
+Decided 2026-10-17 by the owner. The first Chain release updates itself:
+check, download and install-and-relaunch, each on the user's click, as
+Electron's Settings offers them. It needs a Chain capability,
+[request 22](../chain-sdk-requests/22-update-the-app-in-place.md), and
+it has to work on ad-hoc signed builds (D-6), which Electron's updater
+never did on macOS.
+
+### D-6 Ad-hoc signing for now
+
+Decided 2026-10-17 by the owner. Chain builds stay ad-hoc signed, as
+Electron's are: users approve an "unidentified developer" prompt on
+first launch, and there's no notarisation. The owner will buy an Apple
+Developer membership later; Developer ID signing and notarisation
+follow then. Still open: where the Chain builds' update feed is
+hosted. It must not collide with Electron's `lazify-dist` releases, whose
+`Lazify-arm64.zip` name the Chain build would otherwise share.
+
 ## Open — owner decisions
 
 | ID | Decision | Blocks |
 | --- | --- | --- |
-| D-4 (remainder) | First-release scope: auto-update | Phase 7 |
-| D-6 | Signing, notarisation and update-feed ownership for Chain builds | Phase 7 |
+| D-6 (remainder) | Where the Chain builds' update feed is hosted | First release |

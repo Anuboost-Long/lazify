@@ -22,7 +22,7 @@ Read first:
 | [01-capability-inventory](01-capability-inventory.md) | Each area mapped to its Electron source and the Chain capability it needs | First pass |
 | [02-contract-manifest](02-contract-manifest.md) | All 217 preload members, generated from source | First pass (no schemas yet) |
 | [03-data-inventory](03-data-inventory.md) | SQLite, app JSON, project `.lazify/`, renderer `localStorage` | First pass (no record schemas yet) |
-| [04-architecture-decisions](04-architecture-decisions.md) | Accepted and open decisions | D-4 (remainder) and D-6 open (later phases) |
+| [04-architecture-decisions](04-architecture-decisions.md) | Accepted and open decisions | D-6's feed location open (first release) |
 | [05-work-queue](05-work-queue.md) | Extraction tickets and Chain requests, in order | Active |
 | [06-parity-matrix](06-parity-matrix.md) | Old-versus-new release gate | Phase 1–4 areas Partial on macOS; no row `Pass` yet |
 | [07-test-matrix](07-test-matrix.md) | Tests mapped to parity rows | Not started |

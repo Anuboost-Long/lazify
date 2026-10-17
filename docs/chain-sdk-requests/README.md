@@ -35,6 +35,7 @@ Each request:
 | 19 | [Trust a self-signed certificate on a loopback request](19-loopback-tls-trust.md) | Sent and shipped same day 2026-10-15, as `trustLoopbackCertificates` on `desktop.http.request()`; verified from Lazify against a real self-signed localhost HTTPS server, in the app |
 | 20 | [An `appleEvents` app permission](20-apple-events-permission.md) | Sent and shipped 2026-10-16 as the `appleEvents` key in `chain.permissions`; ticket 033's Finder layout verified in the app after the owner's grant |
 | 21 | [Filter and script the pages in an embedded view](21-filter-and-script-embedded-pages.md) | Sent and shipped 2026-10-17 on `desktop.browserView` (rules, page scripts, `ask()`, `runInFrames`, `allowPictureInPicture`); used by tickets 042 (media PiP) and 043 (Lazy Shield), verified in the app |
+| 22 | [Update the app in place](22-update-the-app-in-place.md) | Sent 2026-10-17: check, download, install-and-relaunch on ad-hoc signed builds (D-4, D-6) |
 
 Overlap with Mneme: request 01's read-only allow-list design fork would also
 answer Mneme's request 11 (`external-file-read`).
@@ -42,4 +43,4 @@ answer Mneme's request 11 (`external-file-read`).
 Planned and not yet written: importing Electron data, notifications,
 keep-awake, keychain secrets, ports and process stop, language-server stdio,
 archive unpacking, tracker/ad blocking and media PiP for the browser view
-(request 18), the updater, the app menu and zoom. See `../rewrite/01-capability-inventory.md`.
+(request 18), the app menu and zoom. See `../rewrite/01-capability-inventory.md`.
