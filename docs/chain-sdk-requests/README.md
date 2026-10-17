@@ -36,6 +36,7 @@ Each request:
 | 20 | [An `appleEvents` app permission](20-apple-events-permission.md) | Sent and shipped 2026-10-16 as the `appleEvents` key in `chain.permissions`; ticket 033's Finder layout verified in the app after the owner's grant |
 | 21 | [Filter and script the pages in an embedded view](21-filter-and-script-embedded-pages.md) | Sent and shipped 2026-10-17 on `desktop.browserView` (rules, page scripts, `ask()`, `runInFrames`, `allowPictureInPicture`); used by tickets 042 (media PiP) and 043 (Lazy Shield), verified in the app |
 | 22 | [Update the app in place](22-update-the-app-in-place.md) | Sent 2026-10-17: check, download, install-and-relaunch on ad-hoc signed builds (D-4, D-6) |
+| 23 | [A page in a small window that floats above everything](23-floating-page-window.md) | Sent 2026-10-17: the browser's and preview's "keep this page on screen" window, on their sessions, with navigation decisions and Lazy Shield |
 
 Overlap with Mneme: request 01's read-only allow-list design fork would also
 answer Mneme's request 11 (`external-file-read`).
