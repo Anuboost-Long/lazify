@@ -46,14 +46,23 @@ pub fn setup(app: &tauri::App) {
                 after_hold(&app, move || core::drop_held(&held_id));
                 Ok(())
             }
+            Event::Message(message) => {
+                let request_id = message.request_id.clone();
+                after(&app, core::ASK_TIMEOUT, move || core::reply(&request_id, Err("the app didn't answer in time".to_string())));
+                app.emit("chain://browser-view-message", message)
+            }
         };
     });
 }
 
 fn after_hold(app: &tauri::AppHandle, f: impl FnOnce() + Send + 'static) {
+    after(app, core::HOLD_TIMEOUT, f);
+}
+
+fn after(app: &tauri::AppHandle, delay: std::time::Duration, f: impl FnOnce() + Send + 'static) {
     let app = app.clone();
     std::thread::spawn(move || {
-        std::thread::sleep(core::HOLD_TIMEOUT);
+        std::thread::sleep(delay);
         let _ = app.run_on_main_thread(f);
     });
 }
@@ -66,6 +75,21 @@ async fn on_main<T: Send + 'static>(
     let (tx, rx) = mpsc::channel();
     app.run_on_main_thread(move || {
         let _ = tx.send(f());
+    })
+    .map_err(|e| e.to_string())?;
+    wait(rx).await
+}
+
+// For native calls that finish later, on the main thread, through `done`.
+async fn on_main_until_done<T: Send + 'static>(
+    app: &tauri::AppHandle,
+    f: impl FnOnce(Box<dyn FnOnce(Result<T, BrowserViewError>)>) + Send + 'static,
+) -> Result<T, String> {
+    let (tx, rx) = mpsc::channel();
+    app.run_on_main_thread(move || {
+        f(Box::new(move |result| {
+            let _ = tx.send(result);
+        }))
     })
     .map_err(|e| e.to_string())?;
     wait(rx).await
@@ -91,6 +115,10 @@ pub struct Availability {
     fullscreen: bool,
     swipe_navigation: bool,
     inspectable: bool,
+    picture_in_picture: bool,
+    rules: bool,
+    page_scripts: bool,
+    run_in_frames: bool,
 }
 
 #[tauri::command]
@@ -106,7 +134,18 @@ pub fn browser_view_availability() -> Availability {
         fullscreen: all,
         swipe_navigation: all,
         inspectable: all,
+        picture_in_picture: core::picture_in_picture_supported(),
+        rules: all,
+        page_scripts: all,
+        run_in_frames: all,
     }
+}
+
+fn session_name(session: &str) -> Result<String, String> {
+    chain_core::browser::session_name(Some(session)).map_err(|e| match e {
+        chain_core::browser::BrowserError::InvalidArgument(m) => format!("INVALID_ARGUMENT: {m}"),
+        other => format!("{other:?}"),
+    })
 }
 
 #[derive(serde::Deserialize)]
@@ -118,6 +157,7 @@ pub struct CreateOptions {
     visible: Option<bool>,
     decide_navigation: Option<bool>,
     allow_fullscreen: Option<bool>,
+    allow_picture_in_picture: Option<bool>,
     swipe_navigation: Option<bool>,
     inspectable: Option<bool>,
 }
@@ -129,10 +169,7 @@ pub async fn browser_view_create(app: tauri::AppHandle, webview: tauri::Webview,
     }
     let app_origin = app.config().build.dev_url.clone();
     core::view_url(&options.url, app_origin.as_ref()).map_err(to_browser_view_command_error)?;
-    let session = chain_core::browser::session_name(Some(&options.session)).map_err(|e| match e {
-        chain_core::browser::BrowserError::InvalidArgument(m) => format!("INVALID_ARGUMENT: {m}"),
-        other => format!("{other:?}"),
-    })?;
+    let session = session_name(&options.session)?;
     let bounds = options.bounds.checked().map_err(to_browser_view_command_error)?;
     let (tx, rx) = mpsc::channel();
     #[cfg(target_os = "macos")]
@@ -141,12 +178,14 @@ pub async fn browser_view_create(app: tauri::AppHandle, webview: tauri::Webview,
             let _ = tx.send(core::create(core::Create {
                 page: page.inner(),
                 session_key: chain_core::browser::session_key(&session),
+                session: &session,
                 url: &options.url,
                 bounds,
                 visible: options.visible.unwrap_or(true),
                 app_origin,
                 decide_navigation: options.decide_navigation.unwrap_or(false),
                 allow_fullscreen: options.allow_fullscreen.unwrap_or(false),
+                allow_picture_in_picture: options.allow_picture_in_picture.unwrap_or(false),
                 swipe_navigation: options.swipe_navigation.unwrap_or(false),
                 inspectable: options.inspectable.unwrap_or(false),
             }));
@@ -241,4 +280,72 @@ pub async fn browser_view_answer(app: tauri::AppHandle, request_id: String, allo
         Ok(())
     })
     .await
+}
+
+fn list_id(id: &str) -> Result<(), String> {
+    if id.is_empty() {
+        return Err("INVALID_ARGUMENT: id is empty".to_string());
+    }
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn browser_view_set_rules(app: tauri::AppHandle, session: String, id: String, rules: Vec<serde_json::Value>) -> Result<(), String> {
+    let session = session_name(&session)?;
+    list_id(&id)?;
+    let rules = core::parse_rules(rules).map_err(to_browser_view_command_error)?;
+    let rules_json = core::content_rules_json(&rules).map_err(to_browser_view_command_error)?;
+    let session_key = chain_core::browser::session_key(&session);
+    on_main_until_done(&app, move |done| core::set_rules(&session, session_key, &id, rules_json, done)).await
+}
+
+#[tauri::command]
+pub async fn browser_view_remove_rules(app: tauri::AppHandle, session: String, id: String) -> Result<(), String> {
+    let session = session_name(&session)?;
+    let session_key = chain_core::browser::session_key(&session);
+    on_main(&app, move || {
+        core::remove_rules(&session, session_key, &id);
+        Ok(())
+    })
+    .await
+}
+
+#[tauri::command]
+pub async fn browser_view_set_script(app: tauri::AppHandle, session: String, id: String, source: String) -> Result<(), String> {
+    let session = session_name(&session)?;
+    list_id(&id)?;
+    on_main(&app, move || {
+        core::set_script(&session, &id, &source);
+        Ok(())
+    })
+    .await
+}
+
+#[tauri::command]
+pub async fn browser_view_remove_script(app: tauri::AppHandle, session: String, id: String) -> Result<(), String> {
+    let session = session_name(&session)?;
+    on_main(&app, move || {
+        core::remove_script(&session, &id);
+        Ok(())
+    })
+    .await
+}
+
+/// `value` is the app's answer as JSON; `error` says why there's none.
+#[tauri::command]
+pub async fn browser_view_reply(app: tauri::AppHandle, request_id: String, value: Option<String>, error: Option<String>) -> Result<(), String> {
+    let answer = match (value, error) {
+        (Some(json), None) => Ok(json),
+        (_, error) => Err(error.unwrap_or_else(|| "no answer".to_string())),
+    };
+    on_main(&app, move || {
+        core::reply(&request_id, answer);
+        Ok(())
+    })
+    .await
+}
+
+#[tauri::command]
+pub async fn browser_view_run_in_frames(app: tauri::AppHandle, id: String, body: String) -> Result<Vec<core::FrameResult>, String> {
+    on_main_until_done(&app, move |done| core::run_in_frames(&id, &body, done)).await
 }
