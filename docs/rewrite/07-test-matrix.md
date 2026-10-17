@@ -33,7 +33,7 @@ Kinds of evidence, in order of strength:
 | Imported templates | `shared/lib/scaffolding` (shared with the row above); Electron's `templates-page`, `templates-flow`, `template-tree-editor` (`features/templates`), ported 2026-10-17 | — | In the app |
 | Dependencies | `shared/lib/packages`, `shared/lib/package-version-matcher` (golden) | — | In the app |
 | Environment files | `shared/lib/projects/env-files` (Electron's); Electron's `env-pane` (`features/workspace`, ported 2026-10-17; one case was already failing in Electron at `c9abefc` and checks the shipped warning instead) | — | In the app |
-| Developer environment | `shared/lib/environment` (6) | `main/environment/node-path`, `java-path`, `ports` | In the app |
+| Developer environment | `shared/lib/environment` (6); Electron's `java-path`, `node-path`, `ports`, rewritten 2026-10-17 for the async Chain modules (Electron's "never the Electron binary" and Linux `ss` cases have no counterpart) | — | In the app |
 | Formatting and code quality | `node/formatter` (golden, 2); `shared/lib/linting` (8); `shared/lib/extensions` (golden); `shared/lib/code-intelligence` (golden); `features/settings/formatter-section` (Electron's) | `main/formatting/format-changed-files`; `main/extensions/{archive,install-jobs,java-runtime,project-manifest,store,sonarlint-provider}`; `main/extensions/{sonarlint,tailwind-engine}.e2e`; Electron's `code-diagnostics`, `finding-groups`, `findings-panel` ported to `shared/ui/code` 2026-10-17 | In the app |
 | Browser and PiP | `features/browser` (Electron's 7); `shared/lib/browser` (golden policy, converter); `shared/lib/media`; `platform/browser-view`, `platform/lazy-shield` | `main/lazy-shield-startup` (a different startup here, see ticket 043); `main/browser-swipe-navigation` (Electron's preload gesture; swiping is native in Chain) | In the app |
 | API Studio scanning | `shared/lib/api-studio` (characterisation, shared by the three API Studio rows: 27 files) | — | In the app |
@@ -50,12 +50,12 @@ only `src/platform/` imports `@chain/sdk`.
 
 ## The gap
 
-Started 2026-10-17 at 83 of Electron's test files. Since then 62 are
+Started 2026-10-17 at 83 of Electron's test files. Since then 65 are
 ported (the updater in ticket 044, then the terminal, agent, monitor,
 workspace, settings, prompt, starter, template, env, language, API Studio
 screen and code-quality screen rows) and 2 found not to apply
 (`instance-dirs`; `keep-awake`'s store, which `platform/zoom-keep-awake`
-covers). 19 are left: the main-process files still listed above. Most are renderer tests of
+covers). 16 are left: the main-process files still listed above. Most are renderer tests of
 screens that were ported folder for folder (ticket 015), so they should run
 with only their imports changed, as `features/browser` did. Several API
 Studio, extension and environment rows are covered by this repo's
