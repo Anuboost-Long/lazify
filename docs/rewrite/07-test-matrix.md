@@ -20,7 +20,7 @@ Kinds of evidence, in order of strength:
 | Parity row | Tests in this repo | Electron tests not ported | macOS |
 | --- | --- | --- | --- |
 | Launch and recovery | `shared/lib/diagnostics` (logger cases, 2 files); `shared/lib/migration` (import, 5) | — | In the app |
-| Navigation/settings | `platform/lazify`; `platform/zoom-keep-awake`; Electron's `app-zoom`, `settings-behavior` (`features/settings`), `pinned-tools` (`app`), `home-desktop`, `desktop-window-frame` (`features/home`), `calendar-grid`, `failure-toast` (`shared/ui`), `fuzzy-match` (`shared/lib`), `init-project-route` (`routes`), ported 2026-10-17 | `main/window-zoom` | In the app |
+| Navigation/settings | `platform/lazify`; `platform/zoom-keep-awake`; Electron's `app-zoom`, `settings-behavior` (`features/settings`), `pinned-tools` (`app`), `home-desktop`, `desktop-window-frame` (`features/home`), `calendar-grid`, `failure-toast` (`shared/ui`), `fuzzy-match` (`shared/lib`), `init-project-route` (`routes`), ported 2026-10-17 | — (Electron's `main/window-zoom` cases are in `platform/zoom-keep-awake`; its "window that has gone" case doesn't apply: Chain zooms the page) | In the app |
 | Projects | `shared/lib/stack-detection` (golden, 4); `shared/lib/projects/importer` (golden); `platform/projects`; Electron's `lazify-directory` (on Node stand-ins for the platform layer, ported 2026-10-17) | — | In the app |
 | Workspace files | `shared/lib/projects/{project-asset-reader,project-search}` (Electron's); `platform/fs`; Electron's `workspace-page` (`features/workspace`), `editor-pane-previews`, `project-tree-list`, `tree-context-menu` (`shared/ui/project-tree`), `file-preview-kind`, `code-surface`, `code-find-selection`, `code-selection-menu` (`shared/ui/code`), ported 2026-10-17 | — | In the app |
 | Git | `shared/lib/git` (golden, 2); `features/workspace/git-status-visual` (Electron's) | — | In the app |
@@ -34,19 +34,19 @@ Kinds of evidence, in order of strength:
 | Dependencies | `shared/lib/packages`, `shared/lib/package-version-matcher` (golden) | — | In the app |
 | Environment files | `shared/lib/projects/env-files` (Electron's); Electron's `env-pane` (`features/workspace`, ported 2026-10-17; one case was already failing in Electron at `c9abefc` and checks the shipped warning instead) | — | In the app |
 | Developer environment | `shared/lib/environment` (6); Electron's `java-path`, `node-path`, `ports`, rewritten 2026-10-17 for the async Chain modules (Electron's "never the Electron binary" and Linux `ss` cases have no counterpart) | — | In the app |
-| Formatting and code quality | `node/formatter` (golden, 2); `shared/lib/linting` (8); `shared/lib/extensions` (golden); `shared/lib/code-intelligence` (golden); `features/settings/formatter-section` (Electron's); Electron's extension `store`, `project-manifest`, `java-runtime`, `install-jobs`, `sonarlint-provider` rewritten 2026-10-17 for the async Chain modules (`shared/lib/extensions`) | `main/formatting/format-changed-files`; `main/extensions/{sonarlint,tailwind-engine}.e2e` (real engines; they belong with the end-to-end suite, below); `main/extensions/archive` doesn't apply (Chain unpacks natively, request 17); Electron's `code-diagnostics`, `finding-groups`, `findings-panel` ported to `shared/ui/code` 2026-10-17 | In the app |
-| Browser and PiP | `features/browser` (Electron's 7); `shared/lib/browser` (golden policy, converter); `shared/lib/media`; `platform/browser-view`, `platform/lazy-shield` | `main/lazy-shield-startup` (a different startup here, see ticket 043); `main/browser-swipe-navigation` (Electron's preload gesture; swiping is native in Chain) | In the app |
+| Formatting and code quality | `node/formatter` (golden, 2; Electron's `format-changed-files` cases are in its "no config" scenario: ignore file, named files, a path outside, an unparseable file); `shared/lib/linting` (8); `shared/lib/extensions` (golden); `shared/lib/code-intelligence` (golden); `features/settings/formatter-section` (Electron's); Electron's extension `store`, `project-manifest`, `java-runtime`, `install-jobs`, `sonarlint-provider` rewritten 2026-10-17 for the async Chain modules (`shared/lib/extensions`) | `main/extensions/{sonarlint,tailwind-engine}.e2e` (real engines; they belong with the end-to-end suite, below); `main/extensions/archive` doesn't apply (Chain unpacks natively, request 17); Electron's `code-diagnostics`, `finding-groups`, `findings-panel` ported to `shared/ui/code` 2026-10-17 | In the app |
+| Browser and PiP | `features/browser` (Electron's 7); `shared/lib/browser` (golden policy, converter); `shared/lib/media`; `platform/browser-view`, `platform/lazy-shield`; Electron's `lazy-shield-startup` cases in `platform/browser-view` (its "on the session before the engine is built" has no counterpart) | — (`main/browser-swipe-navigation` doesn't apply: Electron's gesture script; Chain's view swipes natively) | In the app |
 | API Studio scanning | `shared/lib/api-studio` (characterisation, shared by the three API Studio rows: 27 files) | — | In the app |
-| API Studio requests | (above) | `main/api-studio/request-scripts`, `main/api-studio/hidden-runs`; Electron's `suggestions` ported to `features/api-studio` 2026-10-17 | In the app |
+| API Studio requests | (above; Electron's `request-scripts` cases were split across `scripting-sandbox`, `run-request` and `run-scripted` in ticket 037); `platform/agents` (Electron's `hidden-runs`: a hidden run stays out of the list) | — (Electron's `suggestions` ported to `features/api-studio` 2026-10-17) | In the app |
 | API Studio collections/docs | (above) | — (Electron's 11, with their two harness files, ported to `features/api-studio` 2026-10-17) | In the app |
 | DMG compiler | `shared/lib/dmg` (4, characterisation; Electron had none) | — | In the app |
-| Updates/diagnostics | `shared/lib/diagnostics`; `platform/updates` (Electron's updater cases, ticket 044) | `main/crash-handlers` (signals and native crash dumps; ticket 031 says they don't carry over) | In the app (dev build only) |
+| Updates/diagnostics | `shared/lib/diagnostics`; `platform/updates` (Electron's updater cases, ticket 044) | — (Electron's `crash-handlers`: the portable cases are `shared/lib/diagnostics/global-errors`; signals, native dumps and dialogs don't apply, ticket 031) | In the app (dev build only) |
 | Localization/accessibility | Electron's `language-loading` (`i18n`, ported 2026-10-17) | — | In the app (ticket 020) |
 | Packaging/platforms | — | — | — |
 
-`renderer/main-imports` checked that Electron's page never imported Node or
-Electron. Its Chain equivalent is a rule this repo states but doesn't test:
-only `src/platform/` imports `@chain/sdk`.
+`tests/architecture/imports` is Electron's `renderer/main-imports` for this
+repo's rule: only `src/platform/` calls `@chain/sdk` (type imports aside),
+and nothing in `src/` loads Node, Electron or Tauri.
 
 ## The gap
 
@@ -63,9 +63,18 @@ then:
 - **3 don't apply**: `instance-dirs` (no process ids, ticket 007),
   `keep-awake`'s store (`platform/zoom-keep-awake` covers its four cases),
   `archive` (Chain unpacks natively, request 17).
-- **10 left**, still listed in the rows above. Two are end-to-end runs of
-  the real SonarLint and Tailwind engines, which belong with the end-to-end
-  suite below.
+- **Already covered elsewhere** (found while rewriting): `request-scripts`
+  (split across three files in ticket 037), `format-changed-files` (the
+  formatter's golden scenarios), `hidden-runs` (`platform/agents`),
+  `crash-handlers` (its portable part, ticket 031); and `window-zoom` and
+  `lazy-shield-startup`, whose missing cases were added to
+  `platform/zoom-keep-awake` and `platform/browser-view`. `main-imports` is
+  `tests/architecture/imports`.
+- **Doesn't apply either:** `browser-swipe-navigation` (Electron's gesture
+  script; Chain swipes natively).
+- **Left: 2**, the end-to-end runs of the real SonarLint and Tailwind
+  engines (`main/extensions/*.e2e`), which belong with the end-to-end suite
+  below.
 
 A row backed only by "In the app" and characterisation can't move to
 `Pass` until its Electron tests are ported or ruled out here.

@@ -81,6 +81,16 @@ describe("page zoom", () => {
 
 		expect(pageZoom).toBe(1.5);
 	});
+
+	it("comes back to normal when what was stored makes no sense", async () => {
+		const zoom = await import("@/platform/zoom");
+
+		files["/app/window-zoom.json"] = "{ not json";
+		await expect(zoom.readZoom()).resolves.toBe(1);
+
+		files["/app/window-zoom.json"] = JSON.stringify({ factor: "huge" });
+		await expect(zoom.readZoom()).resolves.toBe(1);
+	});
 });
 
 describe("keep awake", () => {

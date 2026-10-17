@@ -2,6 +2,9 @@ import type { BrowserViewNavigationRequest, BrowserViewState } from "@chain/sdk"
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const listeners: Record<string, (payload: never) => void> = {};
+const create = vi.fn(async () => "view-1");
+/** How the shield's start goes, per test: up at once unless a test holds it. */
+let shieldStarting: () => Promise<void> = async () => undefined;
 const answer = vi.fn(async () => undefined);
 const openExternalUrl = vi.fn(async () => undefined);
 let files: Record<string, string> = {};
@@ -9,7 +12,7 @@ let files: Record<string, string> = {};
 vi.mock("@chain/sdk", () => ({
 	desktop: {
 		browserView: {
-			create: vi.fn(async () => "view-1"),
+			create,
 			close: vi.fn(async () => undefined),
 			answer,
 			onState: (listener: never) => (listeners.state = listener),
@@ -32,7 +35,7 @@ vi.mock("@/platform/folders", () => ({
 vi.mock("@/platform/system", () => ({ openExternalUrl }));
 
 vi.mock("@/platform/lazy-shield", () => ({
-	startLazyShield: async () => undefined,
+	startLazyShield: () => shieldStarting(),
 	isBlockedPopup: (url: string) => url === "https://blocked.example/",
 }));
 
@@ -80,6 +83,8 @@ async function opened(session: "browser" | "preview", url = "https://example.com
 beforeEach(() => {
 	answer.mockClear();
 	openExternalUrl.mockClear();
+	create.mockClear();
+	shieldStarting = async () => undefined;
 });
 
 describe("a guest's events", () => {
@@ -211,5 +216,44 @@ describe("the agent preview's policy, carried out", () => {
 		listeners.navigation(request("https://react.dev/") as never);
 		expect(answer).toHaveBeenLastCalledWith("request-1", false);
 		expect(openExternalUrl).toHaveBeenCalledWith("https://react.dev/");
+	});
+});
+
+// Electron's lazy-shield-startup cases, on Chain's mechanism: the browser's
+// view isn't created until the shield is up, for at most 5 s. Electron's "on
+// the session before the engine is built" has no counterpart — the rules only
+// exist once built.
+describe("the browser's first page and Lazy Shield", () => {
+	it("holds the first page until the shield can answer for it", async () => {
+		let raise = () => {};
+		shieldStarting = () => new Promise<void>((resolve) => (raise = resolve));
+
+		openGuest("browser", "https://example.com/", BOUNDS, true);
+		await new Promise((resolve) => setTimeout(resolve, 0));
+		expect(create).not.toHaveBeenCalled();
+
+		raise();
+		await vi.waitFor(() => expect(create).toHaveBeenCalledOnce());
+	});
+
+	it("lets the page through, unfiltered, when the shield takes too long", async () => {
+		vi.useFakeTimers();
+		shieldStarting = () => new Promise<void>(() => {});
+
+		openGuest("browser", "https://example.com/", BOUNDS, true);
+		await vi.advanceTimersByTimeAsync(4_999);
+		expect(create).not.toHaveBeenCalled();
+
+		await vi.advanceTimersByTimeAsync(1);
+		expect(create).toHaveBeenCalledOnce();
+		vi.useRealTimers();
+	});
+
+	it("never makes the agent preview wait for it", async () => {
+		shieldStarting = () => new Promise<void>(() => {});
+
+		openGuest("preview", "http://localhost:5173/", BOUNDS, true);
+
+		await vi.waitFor(() => expect(create).toHaveBeenCalledOnce());
 	});
 });
