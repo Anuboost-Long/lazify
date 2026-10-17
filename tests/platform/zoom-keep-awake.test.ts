@@ -111,6 +111,17 @@ describe("keep awake", () => {
 		expect(assertionCalls).toEqual(["start", "stop"]);
 	});
 
+	it("never holds the Mac awake while switched off", async () => {
+		const keepAwake = await import("@/platform/keep-awake");
+		await keepAwake.setKeepAwake(false);
+
+		keepAwake.setAgentBusy("run-1", true);
+		await settle();
+
+		expect(assertion).toBeNull();
+		expect(assertionCalls).toEqual([]);
+	});
+
 	it("follows the switch, even mid-run", async () => {
 		const keepAwake = await import("@/platform/keep-awake");
 		keepAwake.setAgentBusy("run-1", true);
