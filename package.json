@@ -76,6 +76,10 @@
     },
     "permissions": {
       "appleEvents": "Styles the Finder window a built .dmg mounts in."
+    },
+    "app": {
+      "name": "lazify-chain",
+      "identifier": "dev.chain.lazify-chain"
     }
   }
 }

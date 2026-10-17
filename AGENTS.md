@@ -20,11 +20,11 @@ This is the scaffold produced by `chain init`:
   `chain dev`/`chain build`, which wrap the real `tauri dev`/`tauri build`
   behind condensed output — this was deliberately changed from
   `create-tauri-app`'s default, where those names only ran Vite. Use
-  `npm run dev:web`/`npm run build:web` for frontend-only iteration. If
-  you ever rename `dev:web`/`build:web`, update
-  `.chain/native/tauri.conf.json`'s `beforeDevCommand`/`beforeBuildCommand`
-  to match, or `npm run dev`/`npm run build` will recurse into
-  themselves infinitely.
+  `npm run dev:web`/`npm run build:web` for frontend-only iteration. Don't
+  rename `dev:web`/`build:web`: the generated
+  `.chain/native/tauri.conf.json` runs them as `beforeDevCommand`/
+  `beforeBuildCommand`, and pointing those at `dev`/`build` would recurse
+  forever.
 - The Tauri native project (Rust/Cargo side) lives at `.chain/native/`,
   not the usual `src-tauri/` — dot-prefixed and hidden on purpose, since
   it's generated/framework-owned the same way `node_modules` is, and you
@@ -32,6 +32,12 @@ This is the scaffold produced by `chain init`:
   `chain-sdk`'s `crates/core`). `chain dev`/`chain build` point Tauri at
   it via the `TAURI_APP_PATH` env var, so running `tauri dev`/`tauri
   build` directly (instead of through `chain`) won't find it.
+  `chain dev`, `chain build`, `chain clean` and `chain update` regenerate
+  it from chain-sdk's templates and `package.json`'s `"chain"` block
+  (`app.name`, `app.identifier`, `permissions`, `updates`), with the
+  version from `"version"`. Hand edits there are overwritten, and only its
+  `Cargo.lock` is committed. The identifier names the folder users' data
+  lives in: once the app is released, never change it.
 - Tailwind CSS v4, wired through `@tailwindcss/vite` in `vite.config.ts`.
   `src/styles.css` is the ported Lazify renderer's stylesheet: its `@theme`
   block defines Lazify's tokens (`bg`, `soft`, `text`, `muted`, `accent`,
@@ -85,11 +91,9 @@ This is the scaffold produced by `chain init`:
     windows would be a deliberate later choice.
 - Lazify's icon: `asset/app-icon.svg` is Electron Lazify's
   `build/app-icon.svg` (see its `build/BRAND.md`; the in-app mark is the
-  ported `Logo`), and `asset/icons/` is the desktop set generated from it,
-  also copied into
-  `.chain/native/icons/` where Tauri's bundler actually reads them from
-  (`.chain/native/tauri.conf.json`'s `bundle.icon` already points there —
-  no config change needed to use them).
+  ported `Logo`), and `asset/icons/` is the desktop set generated from it.
+  `chain dev`/`chain build` copy them into the generated
+  `.chain/native/icons/`, where Tauri's bundler reads them.
 
 ## Tests and parity
 
@@ -132,15 +136,17 @@ you haven't touched pick up the new template silently; files you've
 edited merge cleanly if the changes don't overlap, or get real `<<<<<<< /
 ======= / >>>>>>>` conflict markers if they do (resolve those before
 `npm install` or building). `.chain/baseline/` is the merge ancestor this
-depends on — **commit it to git, don't delete or gitignore it**.
+depends on — **commit it to git, don't delete or gitignore it**. The one
+exception is `.chain/baseline/.chain/native/`: native files are generated,
+not merged, so `chain update` deletes that part itself; commit the
+deletion.
 
 ## Replacing the icon
 
 1. Replace `asset/app-icon.svg` with your own square SVG.
 2. Regenerate the desktop set: `npx tauri icon asset/app-icon.svg --output asset/icons`
-   (run from this app's root, after installing the Tauri CLI).
-3. Copy the regenerated files from `asset/icons/` into `.chain/native/icons/`
-   — that's the copy Tauri's bundler actually uses.
+   (run from this app's root, after installing the Tauri CLI). The next
+   `chain dev`/`chain build` picks them up.
 
 ## Next steps
 
