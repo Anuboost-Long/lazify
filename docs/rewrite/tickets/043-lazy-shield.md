@@ -75,7 +75,6 @@ that it loads unfiltered and the next load is filtered.
   engine never cancelled a main frame; here the list ends by letting every
   first-party document through. Same-site ad frames (an `ads.` subdomain
   framed by its own site) get through too.
-
 - **No blocked counter.** WebKit reports blocks only through unpublished
   API; the toolbar shows the shield on or off, without a number.
 - **Scriptlets and strict pages.** Electron ran scriptlets with
