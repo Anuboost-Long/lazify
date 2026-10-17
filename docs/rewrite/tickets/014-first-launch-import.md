@@ -57,3 +57,6 @@ ported (Phase 4, D-1).
 - [ ] The owner's first run on the real profile, after `chain dev`
       restarts: the screen opens on its own, the counts match ticket 010's
       shell reading, Import succeeds, and projects can be granted
+- [x] Offered again from Settings → About → "Import from Lazify" (D-8),
+      added 2026-10-17: the button opens the import screen, which found the
+      Electron profile in the app

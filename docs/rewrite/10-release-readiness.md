@@ -78,9 +78,6 @@ Apple's.
   update signing key as a secret.
 - **The unported tests** (`07-test-matrix.md`, "The gap"): 83 of
   Electron's test files, mostly renderer tests of ported screens.
-- **"Import from Lazify" in Settings.** D-8 says the import stays
-  available from Settings. The `/import` screen exists, but nothing in
-  Settings links to it.
 - **An update from a prior release**, end to end: install release N, use
   it, update to N+1 through the app, and check data, open projects, task
   history, the shield preference and granted permissions survive

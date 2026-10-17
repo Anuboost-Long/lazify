@@ -41,7 +41,8 @@ export from Chain to Electron. Going back means losing, in Electron:
 Project-local `.lazify/` changes do carry back (shared, above).
 
 What Electron did meanwhile isn't lost either way: it stays in Electron's
-profile. Running the import again in the Chain app picks up
+profile. Running the import again (Settings → About → Import from
+Lazify) picks up
 Electron's new records without duplicating old ones (tickets 011–013:
 `INSERT OR IGNORE` by id, existing files and keys kept). It doesn't
 overwrite a record both apps changed: the Chain copy wins.
@@ -66,8 +67,8 @@ overwrite a record both apps changed: the Chain copy wins.
 - **The app won't start or shows the fatal-error screen:** the log is
   `<data>/logs/lazify.log` (ticket 031; Settings shows the path). Send
   it with the report. Quitting and reopening reloads the page.
-- **A bad import:** run the import again (the `/import` screen; nothing in
-  Settings links to it yet, though D-8 asks for it). To start clean,
+- **A bad import:** Settings → About → Import from Lazify runs it again.
+  To start clean,
   quit, delete the Chain data folder, reopen; the first-launch import is
   offered again (D-8).
 - **A bad update:** install the previous release by hand (above). The
