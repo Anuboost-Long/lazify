@@ -33,7 +33,9 @@ Found live and changed: a condition per rule on the page's own address
 list 150 MB and slow to build (re-enabling took 72–110 s). One closing
 rule letting first-party documents through says the same: 50 MB, a fresh
 compile ≈ 25 s, re-enabling ≈ 13 s, a relaunch with unchanged lists ≈ 9 s
-end to end (Chain's `setRules` 7.4 s of it). The browser's first page
+end to end (Chain's `setRules` 7.4 s of it, in a debug build: chain-sdk
+measured its own part at ≈ 2.6 s debug and ≈ 0.2 s release, so a release
+build should start well under this). The browser's first page
 waits up to 5 s for the shield, as Electron held early requests; past
 that it loads unfiltered and the next load is filtered.
 
