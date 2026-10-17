@@ -49,7 +49,8 @@ export function Sidebar({
 				"relative z-40 flex h-full shrink-0 flex-col",
 				"border-r border-border bg-soft",
 				"transition-[width] duration-200 ease-out",
-				collapsed ? "w-[72px]" : "w-[280px]",
+				// Collapsed, it is as wide as the window buttons plus their 12px on each side.
+				collapsed ? "w-21" : "w-70",
 			)}
 		>
 			<div className="flex h-full flex-col px-3 pb-3">
