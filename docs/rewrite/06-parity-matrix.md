@@ -56,3 +56,7 @@ An untested OS is `Not tested`, never `Pass`.
 
 - File reads become limited to granted project roots. Today they are not
   limited (`02-contract-manifest.md`, "Contract hazards").
+- Settings → About shows "Diagnostics" and its description. Electron's
+  language files never had those two strings, so Electron shows the raw
+  keys (`settings.diagnostics`, `settings.diagnostics_desc`). Fixed here
+  2026-10-17, in all three languages.
