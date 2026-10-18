@@ -21,9 +21,10 @@ Electron Lazify's renderer (ticket 015); this records what changed on Chain.
   app's failure toast instead of showing an empty list.
 - The date widget follows the ticking clock, so it turns over at midnight.
 - The focus timer's length is set from the widget while it is idle: Set
-  length opens a picker with a wheel (snaps to the middle row) and a typed
-  minutes field, kept in step, for 1 to 180 minutes. The length is
-  remembered, and reset returns to it.
+  length opens a picker like a timer app's: hours and minutes wheels that
+  snap to the middle row, and typed hours and minutes fields kept in step,
+  from 1 minute to 23 h 59 m. Past an hour the countdown reads h:mm:ss. The
+  length is remembered, and reset returns to it.
 
 ## Source
 

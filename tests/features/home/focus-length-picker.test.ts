@@ -32,27 +32,46 @@ const renderPicker = (minutes = 25) => {
 	const onChange = vi.fn();
 	const onClose = vi.fn();
 	render(createElement(FocusLengthPicker, { minutes, anchor, onChange, onClose }));
-	return { onChange, onClose, field: screen.getByRole("spinbutton", { name: "home.timer_minutes" }) };
+	return {
+		onChange,
+		onClose,
+		hours: screen.getByRole("spinbutton", { name: "home.timer_hours" }) as HTMLInputElement,
+		minutesField: screen.getByRole("spinbutton", { name: "home.timer_minutes" }) as HTMLInputElement,
+	};
+};
+
+const retype = async (field: HTMLElement, value: string) => {
+	await userEvent.clear(field);
+	await userEvent.type(field, `${value}{Enter}`);
 };
 
 describe("focus length picker", () => {
-	it("opens on the current length and takes a typed one", async () => {
-		const { onChange, field } = renderPicker(25);
-		expect((field as HTMLInputElement).value).toBe("25");
+	it("opens on the current length split into hours and minutes", () => {
+		const { hours, minutesField } = renderPicker(95);
 
-		await userEvent.clear(field);
-		await userEvent.type(field, "50{Enter}");
-
-		expect(onChange).toHaveBeenLastCalledWith(50);
+		expect(hours.value).toBe("1");
+		expect(minutesField.value).toBe("35");
 	});
 
-	it("keeps a typed length between 1 and 180 minutes", async () => {
-		const { onChange, field } = renderPicker();
+	it("sets hours and minutes typed separately", async () => {
+		const { onChange, hours, minutesField } = renderPicker(25);
 
-		await userEvent.clear(field);
-		await userEvent.type(field, "999{Enter}");
-		expect(onChange).toHaveBeenLastCalledWith(180);
-		expect((field as HTMLInputElement).value).toBe("180");
+		await retype(hours, "2");
+		expect(onChange).toHaveBeenLastCalledWith(145);
+
+		await retype(minutesField, "5");
+		expect(onChange).toHaveBeenLastCalledWith(125);
+	});
+
+	it("keeps each field in range, and never sets no time at all", async () => {
+		const { onChange, hours, minutesField } = renderPicker(25);
+
+		await retype(minutesField, "99");
+		expect(minutesField.value).toBe("59");
+
+		await retype(hours, "0");
+		await retype(minutesField, "0");
+		expect(onChange).toHaveBeenLastCalledWith(1);
 	});
 
 	it("closes on Esc and on a press outside, but not on its own button", () => {

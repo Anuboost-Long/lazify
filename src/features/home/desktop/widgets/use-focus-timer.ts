@@ -3,7 +3,7 @@ import { atom, useAtom } from "jotai";
 const MINUTE_MS = 60 * 1000;
 const DEFAULT_MS = 25 * MINUTE_MS;
 export const MIN_FOCUS_MINUTES = 1;
-export const MAX_FOCUS_MINUTES = 180;
+export const MAX_FOCUS_MINUTES = 23 * 60 + 59;
 const STORAGE_KEY = "lazify-desktop-focus-timer";
 
 interface FocusTimer {
@@ -68,5 +68,8 @@ export function useFocusTimer(now: Date) {
 
 export function formatCountdown(ms: number) {
 	const seconds = Math.ceil(ms / 1000);
-	return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
+	const hours = Math.floor(seconds / 3600);
+	const minutes = Math.floor(seconds / 60) % 60;
+	const rest = String(seconds % 60).padStart(2, "0");
+	return hours > 0 ? `${hours}:${String(minutes).padStart(2, "0")}:${rest}` : `${minutes}:${rest}`;
 }

@@ -12,10 +12,144 @@ const ROW = 32;
 const VISIBLE_ROWS = 5;
 const PAD = ROW * Math.floor(VISIBLE_ROWS / 2);
 const SETTLE_MS = 120;
-const OPTIONS = Array.from(
-	{ length: MAX_FOCUS_MINUTES - MIN_FOCUS_MINUTES + 1 },
-	(_, index) => MIN_FOCUS_MINUTES + index,
-);
+const WIDTH = 224;
+const HOURS = Array.from({ length: 24 }, (_, hour) => hour);
+const MINUTES = Array.from({ length: 60 }, (_, minute) => minute);
+
+const clampTotal = (total: number) => Math.min(MAX_FOCUS_MINUTES, Math.max(MIN_FOCUS_MINUTES, total));
+
+interface WheelProps {
+	values: number[];
+	value: number;
+	unit: string;
+	onSettle: (value: number) => void;
+}
+
+/** A column that snaps to the row in its middle band and reports it once it stops moving. */
+function Wheel({ values, value, unit, onSettle }: Readonly<WheelProps>) {
+	const wheel = useRef<HTMLDivElement>(null);
+	const settle = useRef<ReturnType<typeof setTimeout> | null>(null);
+	const [centred, setCentred] = useState(value);
+
+	const scrollTo = (target: number, smooth: boolean) =>
+		wheel.current?.scrollTo({ top: values.indexOf(target) * ROW, behavior: smooth ? "smooth" : "auto" });
+
+	useLayoutEffect(() => {
+		scrollTo(value, false);
+		// Opens on the current value; later moves follow `value` below.
+	}, []);
+
+	// A typed value moves the wheel; the wheel's own settling arrives here already centred.
+	useEffect(() => {
+		if (value === centred) return;
+		setCentred(value);
+		scrollTo(value, true);
+	}, [value]);
+
+	useEffect(
+		() => () => {
+			if (settle.current) clearTimeout(settle.current);
+		},
+		[],
+	);
+
+	function onScroll() {
+		const index = Math.round((wheel.current?.scrollTop ?? 0) / ROW);
+		const next = values[Math.min(values.length - 1, Math.max(0, index))];
+		setCentred(next);
+		if (settle.current) clearTimeout(settle.current);
+		settle.current = setTimeout(() => onSettle(next), SETTLE_MS);
+	}
+
+	return (
+		<div className="relative flex-1">
+			<div
+				ref={wheel}
+				onScroll={onScroll}
+				style={{ height: ROW * VISIBLE_ROWS, paddingBlock: PAD }}
+				className={clsx(
+					"relative snap-y snap-mandatory overflow-y-auto overscroll-contain",
+					"scrollbar-none [&::-webkit-scrollbar]:hidden",
+					"mask-[linear-gradient(transparent,black_35%,black_65%,transparent)]",
+				)}
+			>
+				{values.map((option) => (
+					<button
+						key={option}
+						type="button"
+						tabIndex={-1}
+						onClick={() => scrollTo(option, true)}
+						style={{ height: ROW }}
+						className={clsx(
+							"block w-full snap-center pr-7 text-right tabular-nums transition-colors",
+							option === centred ? "text-lg font-semibold text-text" : "text-sm text-muted",
+						)}
+					>
+						{option}
+					</button>
+				))}
+			</div>
+			<CaptionText
+				as="span"
+				tone="muted"
+				className="pointer-events-none absolute right-1 -translate-y-1/2"
+				style={{ top: PAD + ROW / 2 }}
+			>
+				{unit}
+			</CaptionText>
+		</div>
+	);
+}
+
+interface FieldProps {
+	label: string;
+	value: number;
+	max: number;
+	onCommit: (value: number) => void;
+}
+
+/** The typed counterpart of a wheel, and the control keyboard and screen-reader users get. */
+function Field({ label, value, max, onCommit }: Readonly<FieldProps>) {
+	const id = useId();
+	const [draft, setDraft] = useState(String(value));
+
+	useEffect(() => setDraft(String(value)), [value]);
+
+	function commit() {
+		const typed = Number.parseInt(draft, 10);
+		if (Number.isNaN(typed)) {
+			setDraft(String(value));
+			return;
+		}
+		onCommit(Math.min(max, Math.max(0, typed)));
+	}
+
+	return (
+		<label htmlFor={id} className="flex flex-1 items-center gap-1.5">
+			<input
+				id={id}
+				type="number"
+				inputMode="numeric"
+				min={0}
+				max={max}
+				value={draft}
+				onChange={(event) => setDraft(event.target.value)}
+				onBlur={commit}
+				onKeyDown={(event) => {
+					if (event.key === "Enter") commit();
+				}}
+				className={clsx(
+					"h-8 w-full min-w-0 rounded-lg border border-border bg-bg px-2",
+					"text-right text-sm tabular-nums text-text",
+					"focus-visible:border-accent focus-visible:outline-hidden",
+				)}
+			/>
+			<CaptionText as="span" tone="muted">
+				{label}
+			</CaptionText>
+		</label>
+	);
+}
 
 interface FocusLengthPickerProps {
 	minutes: number;
@@ -25,26 +159,13 @@ interface FocusLengthPickerProps {
 	onClose: () => void;
 }
 
-/**
- * The focus length, typed or turned on a wheel. Both write the same value; the
- * wheel snaps to the row in its middle band and commits once it stops moving.
- */
+/** Hours and minutes, on wheels as a timer app has them, or typed. */
 export function FocusLengthPicker({ minutes, anchor, onChange, onClose }: Readonly<FocusLengthPickerProps>) {
 	const { t } = useTranslation();
-	const inputId = useId();
 	const popover = useRef<HTMLDivElement>(null);
-	const wheel = useRef<HTMLDivElement>(null);
-	const settle = useRef<ReturnType<typeof setTimeout> | null>(null);
-	const [draft, setDraft] = useState(String(minutes));
-	const [centred, setCentred] = useState(minutes);
-
-	const scrollTo = (value: number, smooth: boolean) =>
-		wheel.current?.scrollTo({ top: (value - MIN_FOCUS_MINUTES) * ROW, behavior: smooth ? "smooth" : "auto" });
-
-	useLayoutEffect(() => {
-		scrollTo(minutes, false);
-		// Opens on the current value only; later changes come from the wheel itself.
-	}, []);
+	const [total, setTotal] = useState(minutes);
+	const hours = Math.floor(total / 60);
+	const rest = total % 60;
 
 	useEffect(() => {
 		function closeOnEscape(event: KeyboardEvent) {
@@ -59,97 +180,37 @@ export function FocusLengthPicker({ minutes, anchor, onChange, onClose }: Readon
 		return () => {
 			document.removeEventListener("keydown", closeOnEscape);
 			document.removeEventListener("pointerdown", closeOutside);
-			if (settle.current) clearTimeout(settle.current);
 		};
 	}, [anchor, onClose]);
 
-	function onWheelScroll() {
-		const top = wheel.current?.scrollTop ?? 0;
-		const value = Math.min(MAX_FOCUS_MINUTES, MIN_FOCUS_MINUTES + Math.round(top / ROW));
-		setCentred(value);
-		setDraft(String(value));
-		if (settle.current) clearTimeout(settle.current);
-		settle.current = setTimeout(() => onChange(value), SETTLE_MS);
+	// 0 h 0 m is not a length, so it becomes the shortest one.
+	function apply(nextHours: number, nextMinutes: number) {
+		const next = clampTotal(nextHours * 60 + nextMinutes);
+		setTotal(next);
+		onChange(next);
 	}
 
-	function commitDraft() {
-		const typed = Number.parseInt(draft, 10);
-		if (Number.isNaN(typed)) {
-			setDraft(String(centred));
-			return;
-		}
-		const value = Math.min(MAX_FOCUS_MINUTES, Math.max(MIN_FOCUS_MINUTES, typed));
-		setDraft(String(value));
-		setCentred(value);
-		scrollTo(value, true);
-		onChange(value);
-	}
-
-	const width = 176;
 	const rect = anchor.getBoundingClientRect();
-	const left = Math.min(Math.max(rect.right - width, 12), globalThis.innerWidth - width - 12);
+	const left = Math.min(Math.max(rect.right - WIDTH, 12), globalThis.innerWidth - WIDTH - 12);
 
 	return createPortal(
 		<div
 			ref={popover}
-			style={{ top: rect.bottom + 8, left, width }}
+			style={{ top: rect.bottom + 8, left, width: WIDTH }}
 			className={clsx("fixed z-60 p-3", "rounded-2xl border border-border bg-soft shadow-panel")}
 		>
-			<label htmlFor={inputId} className="flex items-center justify-between gap-2">
-				<CaptionText as="span" tone="muted">
-					{t(translation.Home.TimerMinutes)}
-				</CaptionText>
-				<input
-					id={inputId}
-					type="number"
-					inputMode="numeric"
-					min={MIN_FOCUS_MINUTES}
-					max={MAX_FOCUS_MINUTES}
-					value={draft}
-					onChange={(event) => setDraft(event.target.value)}
-					onBlur={commitDraft}
-					onKeyDown={(event) => {
-						if (event.key === "Enter") commitDraft();
-					}}
-					className={clsx(
-						"h-8 w-16 rounded-lg border border-border bg-bg px-2",
-						"text-right text-sm tabular-nums text-text",
-						"focus-visible:border-accent focus-visible:outline-hidden",
-					)}
-				/>
-			</label>
+			<div className="flex items-center gap-3">
+				<Field label={t(translation.Home.TimerHours)} value={hours} max={23} onCommit={(h) => apply(h, rest)} />
+				<Field label={t(translation.Home.TimerMinutes)} value={rest} max={59} onCommit={(m) => apply(hours, m)} />
+			</div>
 
-			<div className="relative mt-3" aria-hidden="true">
+			<div className="relative mt-3 flex" aria-hidden="true">
 				<div
 					className="pointer-events-none absolute inset-x-0 rounded-lg bg-accent/10"
 					style={{ top: PAD, height: ROW }}
 				/>
-				<div
-					ref={wheel}
-					onScroll={onWheelScroll}
-					style={{ height: ROW * VISIBLE_ROWS, paddingBlock: PAD }}
-					className={clsx(
-						"relative snap-y snap-mandatory overflow-y-auto overscroll-contain",
-						"scrollbar-none [&::-webkit-scrollbar]:hidden",
-						"mask-[linear-gradient(transparent,black_35%,black_65%,transparent)]",
-					)}
-				>
-					{OPTIONS.map((option) => (
-						<button
-							key={option}
-							type="button"
-							tabIndex={-1}
-							onClick={() => scrollTo(option, true)}
-							style={{ height: ROW }}
-							className={clsx(
-								"block w-full snap-center text-center tabular-nums transition-colors",
-								option === centred ? "text-base font-semibold text-accent" : "text-sm text-muted",
-							)}
-						>
-							{option}
-						</button>
-					))}
-				</div>
+				<Wheel values={HOURS} value={hours} unit={t(translation.Home.TimerHoursUnit)} onSettle={(h) => apply(h, rest)} />
+				<Wheel values={MINUTES} value={rest} unit={t(translation.Home.TimerMinutesUnit)} onSettle={(m) => apply(hours, m)} />
 			</div>
 		</div>,
 		document.body,
