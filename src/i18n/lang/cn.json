@@ -282,6 +282,12 @@
     "new_workflow": "开始新的工作流",
     "open_settings": "打开设置",
     "quick_open": "转到此项目中的文件",
+    "go_home": "转到首页",
+    "go_workspace": "转到工作区",
+    "go_agents": "转到 AI 代理",
+    "go_browser": "转到浏览器",
+    "go_templates": "转到模板",
+    "go_tools": "转到工具",
     "zoom_in": "放大",
     "zoom_out": "缩小",
     "reset_zoom": "实际大小"

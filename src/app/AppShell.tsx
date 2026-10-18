@@ -55,6 +55,11 @@ export function AppShell() {
 	const sidebarCombo = useShortcutCombo("toggle-sidebar");
 	const sidebarCollapsed = compactSidebar || !sidebarOpen;
 
+	// Sidebar links and their shortcuts both return to the sub-route last seen there.
+	function goTo(path: string) {
+		navigate(rememberRoute ? recall(path) : path);
+	}
+
 	function toggleSidebar() {
 		if (!compactSidebar) setSidebarOpen((open) => !open);
 	}
@@ -62,6 +67,12 @@ export function AppShell() {
 	useShortcut("toggle-sidebar", toggleSidebar);
 	useShortcut("new-workflow", () => navigate(appRoute.initProject));
 	useShortcut("open-settings", () => navigate(appRoute.settings));
+	useShortcut("go-home", () => goTo(appRoute.home));
+	useShortcut("go-workspace", () => goTo(appRoute.workspace));
+	useShortcut("go-agents", () => goTo(appRoute.agents));
+	useShortcut("go-browser", () => goTo(appRoute.browser));
+	useShortcut("go-templates", () => goTo(appRoute.templates));
+	useShortcut("go-tools", () => goTo(appRoute.tools));
 	useShortcut("zoom-in", zoomIn);
 	useShortcut("zoom-out", zoomOut);
 	useShortcut("reset-zoom", resetZoom);
@@ -202,7 +213,7 @@ export function AppShell() {
 					collapsed={sidebarCollapsed}
 					theme={resolvedTheme}
 					onStartWorkflow={() => navigate(appRoute.initProject)}
-					onNavigate={(path) => navigate(rememberRoute ? recall(path) : path)}
+					onNavigate={goTo}
 					onToggleTheme={() => setThemePreference(resolvedTheme === "dark" ? "light" : "dark")}
 				/>
 

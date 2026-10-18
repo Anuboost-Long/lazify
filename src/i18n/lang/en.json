@@ -282,6 +282,12 @@
     "new_workflow": "Start a new workflow",
     "open_settings": "Open settings",
     "quick_open": "Go to a file in this project",
+    "go_home": "Go to Home",
+    "go_workspace": "Go to Workspace",
+    "go_agents": "Go to AI Agents",
+    "go_browser": "Go to Browser",
+    "go_templates": "Go to Templates",
+    "go_tools": "Go to Tools",
     "zoom_in": "Zoom in",
     "zoom_out": "Zoom out",
     "reset_zoom": "Actual size"

@@ -11,12 +11,15 @@ Mneme's (`mneme/docs/features/32-keyboard-shortcuts.md`).
 | Start a new workflow | ⌘N | Ctrl+N |
 | Open settings | ⌘, | Ctrl+, |
 | Go to a file in this project | ⌘P | Ctrl+P |
+| Go to Home, Workspace, Agents, Browser, Templates, Tools | ⌘1 – ⌘6 | Ctrl+1 – Ctrl+6 |
 | Zoom in | ⌘= | Ctrl+= |
 | Zoom out | ⌘- | Ctrl+- |
 | Actual size | ⌘0 | Ctrl+0 |
 
 - "Go to a file" only does something on a project's workbench, where the
   quick-open palette lives.
+- The page shortcuts go where the sidebar link goes, including back to the
+  sub-route last seen there when **Remember last route** is on.
 - The three zoom shortcuts restore Electron Lazify's View-menu accelerators
   (`lazify/src/main/app-menu.ts`), which nothing handled on Chain.
 - "Show or hide the sidebar" does nothing while **Compact sidebar** is on,
@@ -38,7 +41,7 @@ Mneme's (`mneme/docs/features/32-keyboard-shortcuts.md`).
   settings. A change applies everywhere at once.
 - `src/features/settings/components/KeyboardSection.tsx` — the settings
   screen.
-- Wired in `src/app/AppShell.tsx` (sidebar, workflow, settings, zoom) and
+- Wired in `src/app/AppShell.tsx` (sidebar, workflow, settings, pages, zoom) and
   `src/shared/ui/command-palette/useFileQuickOpen.ts` (quick open).
 
 ## Dependencies
