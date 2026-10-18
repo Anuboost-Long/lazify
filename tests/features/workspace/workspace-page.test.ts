@@ -160,11 +160,12 @@ describe("WorkspacePage empty state", () => {
 
 	it("titles a failed sync by what went wrong", async () => {
 		const user = userEvent.setup();
-		const onSyncProject = vi.fn().mockRejectedValueOnce(new AlreadySyncedError("This project is already synced."));
+		const onSyncProject = vi.fn().mockRejectedValueOnce(new AlreadySyncedError(1));
 		renderPage({ onSyncProject });
 
 		await user.click(screen.getByRole("button", { name: "workspace.sync_project" }));
 		expect((await screen.findByRole("alert")).textContent).toContain("workspace.already_synced");
+		expect(screen.getByRole("alert").textContent).toContain("workspace.already_synced_desc");
 
 		onSyncProject.mockRejectedValueOnce(new Error("Permission denied"));
 		await user.click(screen.getByRole("button", { name: "workspace.sync_project" }));

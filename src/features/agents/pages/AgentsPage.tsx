@@ -243,14 +243,17 @@ export function AgentsPage({
 
 			if (synced) setProjectPath(synced.projectPath);
 		} catch (error) {
-			setSyncError({
-				title: t(
-					error instanceof AlreadySyncedError
-						? translation.Workspace.AlreadySynced
-						: translation.Workspace.SyncFailed,
-				),
-				message: error instanceof Error ? error.message : t(translation.Workspace.SyncError),
-			});
+			setSyncError(
+				error instanceof AlreadySyncedError
+					? {
+							title: t(translation.Workspace.AlreadySynced),
+							message: t(translation.Workspace.AlreadySyncedDesc, { count: error.count }),
+						}
+					: {
+							title: t(translation.Workspace.SyncFailed),
+							message: error instanceof Error ? error.message : t(translation.Workspace.SyncError),
+						},
+			);
 		} finally {
 			setSyncing(false);
 		}

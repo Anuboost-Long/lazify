@@ -7,7 +7,15 @@ import { statusMessageAtom, syncedWorkspaceProjectsAtom, workflowStatusAtom } fr
 import { persistWorkspaceProjects } from "./storage";
 
 /** Every picked folder is already in the workspace — told apart from a sync that failed. */
-export class AlreadySyncedError extends Error {}
+export class AlreadySyncedError extends Error {
+	constructor(readonly count: number) {
+		super(
+			count === 1
+				? "This project is already synced to the workspace."
+				: "Those projects are already synced to the workspace.",
+		);
+	}
+}
 
 export function useWorkspaceProjects() {
 	const syncedWorkspaceProjects = useAtomValue(syncedWorkspaceProjectsAtom);
@@ -29,11 +37,7 @@ export function useWorkspaceProjects() {
 				: pickedPaths;
 
 			if (pathsToSync.length === 0) {
-				throw new AlreadySyncedError(
-					pickedPaths.length === 1
-						? "This project is already synced to the workspace."
-						: "Those projects are already synced to the workspace.",
-				);
+				throw new AlreadySyncedError(pickedPaths.length);
 			}
 
 			const syncedProjects: SyncedWorkspaceProject[] = [];
