@@ -3,7 +3,7 @@ import { translation } from "@/i18n/translation";
 import type { UiIconName } from "@/shared/ui/icons/UiIcon";
 
 export type SettingsSection =
-	"appearance" | "behavior" | "formatting" | "extensions" | "language" | "browser" | "about";
+	"appearance" | "behavior" | "keyboard" | "formatting" | "extensions" | "language" | "browser" | "about";
 
 export const settingsNavItems: {
 	id: SettingsSection;
@@ -22,6 +22,12 @@ export const settingsNavItems: {
 		label: translation.Settings.Behavior,
 		icon: "settings",
 		description: translation.Settings.BehaviorDesc,
+	},
+	{
+		id: "keyboard",
+		label: translation.Settings.Keyboard,
+		icon: "keyboard",
+		description: translation.Settings.KeyboardDesc,
 	},
 	{
 		id: "formatting",

@@ -8,7 +8,6 @@ import { BodyText, Typography } from "@/shared/typography";
 import UiIcon from "@/shared/ui/icons/UiIcon";
 import { Tooltip } from "@/shared/ui/Tooltip";
 
-import { SidebarHeader } from "./SidebarHeader";
 import { SidebarMiniItem } from "./SidebarMiniItem";
 import { SidebarNavItem } from "./SidebarNavItem";
 import { SidebarPinnedTools } from "./SidebarPinnedTools";
@@ -20,9 +19,7 @@ interface SidebarProps {
 	activePage: AppPageId | null;
 	collapsed: boolean;
 	theme: "light" | "dark";
-	compactMode?: boolean;
 	onStartWorkflow: () => void;
-	onToggleSidebar: () => void;
 	onNavigate: (path: string) => void;
 	onToggleTheme: () => void;
 }
@@ -34,9 +31,7 @@ export function Sidebar({
 	activePage,
 	collapsed,
 	theme,
-	compactMode = false,
 	onStartWorkflow,
-	onToggleSidebar,
 	onNavigate,
 	onToggleTheme,
 }: Readonly<SidebarProps>) {
@@ -57,13 +52,6 @@ export function Sidebar({
 				{/* The window buttons sit over this strip, and the window is dragged
 				    from it. In full screen macOS hides the buttons and it shrinks. */}
 				<div data-chain-drag-region className="-mx-3 h-(--chain-title-bar-height,40px) min-h-3 shrink-0" />
-
-				{/* ── Header ─────────────────────────────── */}
-				<SidebarHeader
-					collapsed={collapsed}
-					compactMode={compactMode}
-					onToggleSidebar={onToggleSidebar}
-				/>
 
 				{/* ── New workflow button ─────────────────── */}
 				<Tooltip content={collapsed ? t(translation.Sidebar.StartNewWorkflow) : null} side="right">

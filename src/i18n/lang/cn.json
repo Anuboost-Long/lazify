@@ -268,17 +268,23 @@
     "limit_reached": "已达上限"
   },
   "sidebar": {
-    "app_name": "Lazify",
-    "app_subtitle": "桌面工作流",
     "start_new_workflow": "开始新工作流",
     "new_workflow": "新工作流",
     "toggle_theme": "切换主题",
     "theme": "主题",
     "expand": "展开侧栏",
     "collapse": "折叠侧栏",
-    "open": "打开侧栏",
     "init_project": "初始化项目",
     "init_project_desc": "选择技术栈以开始新项目。"
+  },
+  "shortcuts": {
+    "toggle_sidebar": "显示或隐藏侧边栏",
+    "new_workflow": "开始新的工作流",
+    "open_settings": "打开设置",
+    "quick_open": "转到此项目中的文件",
+    "zoom_in": "放大",
+    "zoom_out": "缩小",
+    "reset_zoom": "实际大小"
   },
   "settings": {
     "eyebrow": "应用程序",
@@ -429,7 +435,21 @@
     "format_trailing_none": "无",
     "format_trailing_es5": "ES5 中有效之处",
     "format_trailing_all": "所有位置",
-    "format_preview": "预览"
+    "format_preview": "预览",
+    "keyboard": "键盘",
+    "keyboard_desc": "常用操作的快捷键",
+    "keyboard_shortcuts": "键盘快捷键",
+    "keyboard_shortcuts_desc": "更改常用操作的按键。更改立即生效。",
+    "press_new_keys": "请按下新的按键",
+    "change_shortcut": "更改",
+    "reset_shortcut": "重置",
+    "reset_all_shortcuts": "重置所有快捷键",
+    "change_shortcut_label": "更改“{{action}}”",
+    "cancel_shortcut_label": "取消更改“{{action}}”",
+    "reset_shortcut_label": "重置“{{action}}”",
+    "shortcut_no_modifier": "请包含 {{modifiers}}，以免在输入时触发快捷键。",
+    "shortcut_reserved": "{{combo}} 已被 macOS 或 Lazify 使用。请选择其他按键。",
+    "shortcut_taken": "{{combo}} 已用于“{{action}}”。请选择其他按键，或先更改那个快捷键。"
   },
   "workspace": {
     "eyebrow": "桌面工作流编排器",

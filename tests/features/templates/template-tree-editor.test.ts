@@ -3,6 +3,7 @@
 import { act, cleanup, renderHook } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import { isMac } from "@/shared/lib/shortcuts";
 import { useFileQuickOpen } from "@/shared/ui/command-palette/useFileQuickOpen";
 import { useTemplateTree } from "@/features/templates/components/useTemplateTree";
 import type { ProjectTreeNode } from "@/shared/types/lazify";
@@ -81,7 +82,13 @@ describe("template tree editor", () => {
 
     act(() => {
       window.dispatchEvent(
-        new KeyboardEvent("keydown", { key: "p", metaKey: true, bubbles: true })
+        new KeyboardEvent("keydown", {
+          key: "p",
+          code: "KeyP",
+          metaKey: isMac,
+          ctrlKey: !isMac,
+          bubbles: true
+        })
       );
     });
     act(() => result.current.setQuery("styles"));

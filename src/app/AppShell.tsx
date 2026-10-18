@@ -10,10 +10,13 @@ import { availableTools } from "@/features/tools/catalog";
 import { usePinnedTools } from "@/features/tools/hooks/use-pinned-tools";
 import { translation } from "@/i18n/translation";
 import { useAccentColor } from "@/shared/hooks/use-accent-color";
+import { useAppZoom } from "@/shared/hooks/use-app-zoom";
 import { useInterfaceSettings } from "@/shared/hooks/use-interface-settings";
 import { useLazifyStore } from "@/shared/hooks/use-lazify-store";
 import { useRouteMemory } from "@/shared/hooks/use-route-memory";
+import { useShortcut, useShortcutCombo } from "@/shared/hooks/use-shortcuts";
 import { useSetResolvedTheme, useTheme } from "@/shared/hooks/use-theme";
+import { formatCombo } from "@/shared/lib/shortcuts";
 import UiIcon from "@/shared/ui/icons/UiIcon";
 import { FailureToastHost } from "@/shared/ui/toast/FailureToastHost";
 import { Tooltip } from "@/shared/ui/Tooltip";
@@ -48,6 +51,20 @@ export function AppShell() {
 		return stored === null ? true : stored === "true";
 	});
 	const { bootstrap, bindEvents } = useLazifyStore();
+	const { zoomIn, zoomOut, resetZoom } = useAppZoom();
+	const sidebarCombo = useShortcutCombo("toggle-sidebar");
+	const sidebarCollapsed = compactSidebar || !sidebarOpen;
+
+	function toggleSidebar() {
+		if (!compactSidebar) setSidebarOpen((open) => !open);
+	}
+
+	useShortcut("toggle-sidebar", toggleSidebar);
+	useShortcut("new-workflow", () => navigate(appRoute.initProject));
+	useShortcut("open-settings", () => navigate(appRoute.settings));
+	useShortcut("zoom-in", zoomIn);
+	useShortcut("zoom-out", zoomOut);
+	useShortcut("reset-zoom", resetZoom);
 
 	// Recorded here rather than on the agents page: an agent asks or finishes
 	// while the user is wherever they happen to be, and the feed has to have it.
@@ -182,13 +199,9 @@ export function AppShell() {
 					pinnedTools={pinnedTools}
 					activePath={location.pathname}
 					activePage={activePageId}
-					collapsed={compactSidebar || !sidebarOpen}
+					collapsed={sidebarCollapsed}
 					theme={resolvedTheme}
-					compactMode={compactSidebar}
 					onStartWorkflow={() => navigate(appRoute.initProject)}
-					onToggleSidebar={() => {
-						if (!compactSidebar) setSidebarOpen((c) => !c);
-					}}
 					onNavigate={(path) => navigate(rememberRoute ? recall(path) : path)}
 					onToggleTheme={() => setThemePreference(resolvedTheme === "dark" ? "light" : "dark")}
 				/>
@@ -203,6 +216,27 @@ export function AppShell() {
 						data-chain-drag-region
 						className={clsx("flex h-10 shrink-0 items-center gap-2", "border-b border-border bg-bg px-4")}
 					>
+						{/* Compact mode keeps the rail collapsed, so there is nothing to toggle. */}
+						{compactSidebar ? null : (
+							<Tooltip
+								content={`${t(sidebarCollapsed ? translation.Sidebar.Expand : translation.Sidebar.Collapse)}  ${formatCombo(sidebarCombo)}`}
+								side="bottom"
+							>
+								<button
+									type="button"
+									aria-label={t(sidebarCollapsed ? translation.Sidebar.Expand : translation.Sidebar.Collapse)}
+									aria-expanded={!sidebarCollapsed}
+									onClick={toggleSidebar}
+									className={clsx(
+										"-ml-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-md",
+										"text-muted transition-colors hover:bg-text/4 hover:text-accent",
+									)}
+								>
+									<UiIcon name={sidebarCollapsed ? "sidebar-expand" : "sidebar-collapse"} className="h-4 w-4" />
+								</button>
+							</Tooltip>
+						)}
+
 						{/* Shown only where there is somewhere to go up to, so the bar
                 stays a breadcrumb rather than growing a permanent control. */}
 						{location.pathname !== activePage.path ? (

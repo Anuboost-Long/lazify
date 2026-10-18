@@ -268,17 +268,23 @@
     "limit_reached": "ដល់ដែនកំណត់"
   },
   "sidebar": {
-    "app_name": "Lazify",
-    "app_subtitle": "លំហូរការងារ Desktop",
     "start_new_workflow": "ចាប់ផ្ដើមលំហូរការងារថ្មី",
     "new_workflow": "លំហូរការងារថ្មី",
     "toggle_theme": "ប្ដូរមូលបទ",
     "theme": "មូលបទ",
     "expand": "ពង្រីកបន្ទាំងចំហៀង",
     "collapse": "បង្រួមបន្ទាំងចំហៀង",
-    "open": "បើកបន្ទាំងចំហៀង",
     "init_project": "Init project",
     "init_project_desc": "ជ្រើសរើស stack ដើម្បីចាប់ផ្ដើមគម្រោងថ្មី។"
+  },
+  "shortcuts": {
+    "toggle_sidebar": "បង្ហាញ ឬលាក់របារចំហៀង",
+    "new_workflow": "ចាប់ផ្ដើមលំហូរការងារថ្មី",
+    "open_settings": "បើកការកំណត់",
+    "quick_open": "ទៅកាន់ឯកសារក្នុងគម្រោងនេះ",
+    "zoom_in": "ពង្រីក",
+    "zoom_out": "បង្រួម",
+    "reset_zoom": "ទំហំដើម"
   },
   "settings": {
     "eyebrow": "កម្មវិធី",
@@ -429,7 +435,21 @@
     "format_trailing_none": "គ្មាន",
     "format_trailing_es5": "កន្លែងដែលត្រឹមត្រូវក្នុង ES5",
     "format_trailing_all": "គ្រប់ទីកន្លែង",
-    "format_preview": "មើលជាមុន"
+    "format_preview": "មើលជាមុន",
+    "keyboard": "ក្ដារចុច",
+    "keyboard_desc": "ផ្លូវកាត់សម្រាប់សកម្មភាពទូទៅ",
+    "keyboard_shortcuts": "ផ្លូវកាត់ក្ដារចុច",
+    "keyboard_shortcuts_desc": "ប្ដូរគ្រាប់ចុចសម្រាប់សកម្មភាពទូទៅ។ ការផ្លាស់ប្ដូរមានប្រសិទ្ធភាពភ្លាមៗ។",
+    "press_new_keys": "ចុចគ្រាប់ចុចថ្មី",
+    "change_shortcut": "ប្ដូរ",
+    "reset_shortcut": "កំណត់ឡើងវិញ",
+    "reset_all_shortcuts": "កំណត់ផ្លូវកាត់ទាំងអស់ឡើងវិញ",
+    "change_shortcut_label": "ប្ដូរ «{{action}}»",
+    "cancel_shortcut_label": "បោះបង់ការប្ដូរ «{{action}}»",
+    "reset_shortcut_label": "កំណត់ «{{action}}» ឡើងវិញ",
+    "shortcut_no_modifier": "បញ្ចូល {{modifiers}} ដើម្បីកុំឱ្យផ្លូវកាត់ដំណើរការពេលអ្នកវាយអក្សរ។",
+    "shortcut_reserved": "{{combo}} ត្រូវបានប្រើដោយ macOS ឬ Lazify រួចហើយ។ សូមជ្រើសរើសផ្សេង។",
+    "shortcut_taken": "{{combo}} កំពុងប្រើសម្រាប់ «{{action}}» រួចហើយ។ សូមជ្រើសរើសផ្សេង ឬប្ដូរមួយនោះជាមុនសិន។"
   },
   "workspace": {
     "eyebrow": "ប្រព័ន្ធគ្រប់គ្រងលំហូរការងារ Desktop",

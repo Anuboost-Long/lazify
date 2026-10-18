@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import { useShortcut } from "@/shared/hooks/use-shortcuts";
 import {
   FileSearchEngine,
   type FileSearchEntry,
@@ -76,20 +77,6 @@ export function useFileQuickOpen(
     setIndexVersion((current) => current + 1);
   }, [engine, tree]);
 
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      const mod = event.metaKey || event.ctrlKey;
-      if (mod && !event.shiftKey && !event.altKey && event.key.toLowerCase() === "p") {
-        event.preventDefault();
-        setQuery("");
-        setOpen(true);
-      }
-    };
-
-    window.addEventListener("keydown", onKeyDown, true);
-    return () => window.removeEventListener("keydown", onKeyDown, true);
-  }, []);
-
   const results = useMemo(
     () => (open ? engine.search(query, RESULT_LIMIT) : []),
     // indexVersion stands in for the mutable engine's contents.
@@ -100,6 +87,8 @@ export function useFileQuickOpen(
     setQuery("");
     setOpen(true);
   }, []);
+
+  useShortcut("quick-open", openPalette);
 
   const close = useCallback(() => setOpen(false), []);
 

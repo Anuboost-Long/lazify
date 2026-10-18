@@ -29,6 +29,7 @@ import {
 	Import,
 	JournalPage,
 	Key,
+	KeyCommand,
 	MediaImage,
 	MediaVideo,
 	Menu,
@@ -55,6 +56,8 @@ import {
 	Shield,
 	ShieldCheck,
 	ShieldXmark,
+	SidebarCollapse,
+	SidebarExpand,
 	Sparks,
 	SunLight,
 	Terminal,
@@ -113,6 +116,7 @@ export type UiIconName =
 	| "import"
 	| "journal-page"
 	| "key"
+	| "keyboard"
 	| "media-image"
 	| "media-video"
 	| "more"
@@ -128,6 +132,8 @@ export type UiIconName =
 	| "shield"
 	| "shield-check"
 	| "shield-off"
+	| "sidebar-collapse"
+	| "sidebar-expand"
 	| "sparks"
 	| "sun"
 	| "terminal"
@@ -183,6 +189,7 @@ const iconMap: Record<UiIconName, ComponentType<SVGProps<SVGSVGElement>>> = {
 	import: Import,
 	"journal-page": JournalPage,
 	key: Key,
+	keyboard: KeyCommand,
 	"media-image": MediaImage,
 	"media-video": MediaVideo,
 	more: MoreHoriz,
@@ -200,6 +207,8 @@ const iconMap: Record<UiIconName, ComponentType<SVGProps<SVGSVGElement>>> = {
 	shield: Shield,
 	"shield-check": ShieldCheck,
 	"shield-off": ShieldXmark,
+	"sidebar-collapse": SidebarCollapse,
+	"sidebar-expand": SidebarExpand,
 	sparks: Sparks,
 	sun: SunLight,
 	terminal: Terminal,

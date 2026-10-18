@@ -268,17 +268,23 @@
     "limit_reached": "Limit reached"
   },
   "sidebar": {
-    "app_name": "Lazify",
-    "app_subtitle": "Desktop workflow",
     "start_new_workflow": "Start new workflow",
     "new_workflow": "New workflow",
     "toggle_theme": "Toggle theme",
     "theme": "Theme",
     "expand": "Expand sidebar",
     "collapse": "Collapse sidebar",
-    "open": "Open sidebar",
     "init_project": "Init project",
     "init_project_desc": "Choose a stack to begin a new project."
+  },
+  "shortcuts": {
+    "toggle_sidebar": "Show or hide the sidebar",
+    "new_workflow": "Start a new workflow",
+    "open_settings": "Open settings",
+    "quick_open": "Go to a file in this project",
+    "zoom_in": "Zoom in",
+    "zoom_out": "Zoom out",
+    "reset_zoom": "Actual size"
   },
   "settings": {
     "eyebrow": "Application",
@@ -429,7 +435,21 @@
     "format_trailing_none": "None",
     "format_trailing_es5": "Where valid in ES5",
     "format_trailing_all": "Everywhere",
-    "format_preview": "Preview"
+    "format_preview": "Preview",
+    "keyboard": "Keyboard",
+    "keyboard_desc": "Shortcuts for common actions",
+    "keyboard_shortcuts": "Keyboard shortcuts",
+    "keyboard_shortcuts_desc": "Change the keys for common actions. Changes apply right away.",
+    "press_new_keys": "Press the new keys",
+    "change_shortcut": "Change",
+    "reset_shortcut": "Reset",
+    "reset_all_shortcuts": "Reset all shortcuts",
+    "change_shortcut_label": "Change “{{action}}”",
+    "cancel_shortcut_label": "Cancel changing “{{action}}”",
+    "reset_shortcut_label": "Reset “{{action}}”",
+    "shortcut_no_modifier": "Include {{modifiers}} so the shortcut doesn’t fire while you type.",
+    "shortcut_reserved": "{{combo}} is already used by macOS or by Lazify. Choose another.",
+    "shortcut_taken": "{{combo}} already does “{{action}}”. Choose another, or change that one first."
   },
   "workspace": {
     "eyebrow": "Desktop Workflow Orchestrator",
