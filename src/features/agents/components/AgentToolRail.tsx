@@ -27,7 +27,6 @@ interface AgentToolRailProps {
 
   onOpenConsole: () => void;
 
-  onOpenMonitor: () => void;
 }
 
 export interface RailButtonProps {
@@ -105,7 +104,6 @@ export function AgentToolRail({
   activityUnread,
   onPickPath,
   onOpenConsole,
-  onOpenMonitor,
 }: Readonly<AgentToolRailProps>) {
   const { t } = useTranslation();
 
@@ -116,15 +114,6 @@ export function AgentToolRail({
         "border-l border-border bg-soft py-2"
       )}
     >
-
-      <RailButton
-        icon="multi-window"
-        label={t(translation.Agents.LiveMonitor)}
-        selected={false}
-        onClick={onOpenMonitor}
-      />
-
-      <span aria-hidden className="my-1 h-px w-5 shrink-0 rounded-full bg-border" />
 
       {showDebug ? (
         <RailButton

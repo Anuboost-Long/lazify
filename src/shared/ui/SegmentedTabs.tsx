@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 
 import { SmallText } from "@/shared/typography";
 import UiIcon, { type UiIconName } from "@/shared/ui/icons/UiIcon";
+import { Tooltip } from "@/shared/ui/Tooltip";
 
 export interface SegmentedTab<TId extends string> {
   id: TId;
@@ -11,6 +12,8 @@ export interface SegmentedTab<TId extends string> {
   icon: UiIconName;
   /** Shown as a count beside the label, when there is one worth showing. */
   badge?: number;
+  /** Already translated; shown on hover, for a segment whose label alone does not explain it. */
+  hint?: string;
 }
 
 interface SegmentedTabsProps<TId extends string> {
@@ -36,7 +39,7 @@ export function SegmentedTabs<TId extends string>({
       {tabs.map((tab) => {
         const selected = tab.id === active;
 
-        return (
+        const button = (
           <button
             key={tab.id}
             type="button"
@@ -65,6 +68,14 @@ export function SegmentedTabs<TId extends string>({
               </span>
             ) : null}
           </button>
+        );
+
+        return tab.hint ? (
+          <Tooltip key={tab.id} content={tab.hint} side="bottom">
+            {button}
+          </Tooltip>
+        ) : (
+          button
         );
       })}
     </div>

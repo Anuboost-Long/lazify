@@ -5,6 +5,7 @@ export const shortcuts = [
 	{ id: "new-workflow", label: translation.Shortcuts.NewWorkflow, combo: "Mod+N" },
 	{ id: "open-settings", label: translation.Shortcuts.OpenSettings, combo: "Mod+," },
 	{ id: "quick-open", label: translation.Shortcuts.QuickOpen, combo: "Mod+P" },
+	{ id: "switch-agent-view", label: translation.Shortcuts.SwitchAgentView, combo: "Mod+Shift+M" },
 	{ id: "go-home", label: translation.Shortcuts.GoHome, combo: "Mod+1" },
 	{ id: "go-workspace", label: translation.Shortcuts.GoWorkspace, combo: "Mod+2" },
 	{ id: "go-agents", label: translation.Shortcuts.GoAgents, combo: "Mod+3" },

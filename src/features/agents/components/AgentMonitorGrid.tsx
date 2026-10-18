@@ -58,7 +58,6 @@ interface AgentMonitorGridProps {
 	onCreateAgent: (input: { label: string; command: string; image?: string }) => Promise<void>;
 	onDeleteAgent: (agentId: string) => Promise<void>;
 
-	onExit: () => void;
 }
 
 export function AgentMonitorGrid({
@@ -80,7 +79,6 @@ export function AgentMonitorGrid({
 	availableAgents,
 	onCreateAgent,
 	onDeleteAgent,
-	onExit,
 }: Readonly<AgentMonitorGridProps>) {
 	const { t } = useTranslation();
 
@@ -201,13 +199,6 @@ export function AgentMonitorGrid({
 						title={t(translation.Agents.MonitorLayout)}
 						aria-label={t(translation.Agents.MonitorLayout)}
 						onClick={() => setPickingLayout(true)}
-					/>
-
-					<IconButton
-						icon="xmark"
-						title={t(translation.Agents.LiveMonitorExit)}
-						aria-label={t(translation.Agents.LiveMonitorExit)}
-						onClick={onExit}
 					/>
 				</div>
 			</div>

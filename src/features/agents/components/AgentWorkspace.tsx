@@ -70,7 +70,6 @@ interface AgentWorkspaceProps {
   activityUnread: number;
   onPickPath: (() => void) | null;
   onOpenConsole: () => void;
-  onOpenMonitor: () => void;
 }
 
 export function AgentWorkspace({
@@ -118,7 +117,6 @@ export function AgentWorkspace({
   activityUnread,
   onPickPath,
   onOpenConsole,
-  onOpenMonitor,
 }: Readonly<AgentWorkspaceProps>) {
   return (
     <div
@@ -195,7 +193,6 @@ export function AgentWorkspace({
             activityUnread={activityUnread}
             onPickPath={onPickPath}
             onOpenConsole={onOpenConsole}
-            onOpenMonitor={onOpenMonitor}
           />
         </div>
       </div>

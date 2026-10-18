@@ -68,7 +68,6 @@ export function AgentMonitorWall({
 			availableAgents={availableAgents}
 			onCreateAgent={onCreateAgent}
 			onDeleteAgent={onDeleteAgent}
-			onExit={() => monitor.setMonitorMode(false)}
 		/>
 	);
 }

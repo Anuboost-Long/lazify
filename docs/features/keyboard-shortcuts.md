@@ -11,6 +11,7 @@ Mneme's (`mneme/docs/features/32-keyboard-shortcuts.md`).
 | Start a new workflow | ⌘N | Ctrl+N |
 | Open settings | ⌘, | Ctrl+, |
 | Go to a file in this project | ⌘P | Ctrl+P |
+| Switch between tabs and the live monitor (Agents) | ⌘⇧M | Ctrl+Shift+M |
 | Go to Home, Workspace, Agents, Browser, Templates, Tools | ⌘1 – ⌘6 | Ctrl+1 – Ctrl+6 |
 | Zoom in | ⌘= | Ctrl+= |
 | Zoom out | ⌘- | Ctrl+- |

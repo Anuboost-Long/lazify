@@ -2,8 +2,11 @@ import { useAtom } from "jotai";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import { PageActions } from "@/app/components/PageChrome";
 import { translation } from "@/i18n/translation";
 import { AlreadySyncedError } from "@/shared/hooks/lazify-store/use-workspace-projects";
+import { useShortcut, useShortcutCombo } from "@/shared/hooks/use-shortcuts";
+import { formatCombo } from "@/shared/lib/shortcuts";
 import type { SyncedWorkspaceProject } from "@/shared/types/lazify";
 import {
 	CodeQualityActionsProvider,
@@ -14,6 +17,7 @@ import type {
 	CodeSelectionContext,
 } from "@/shared/ui/code/menu/code-selection";
 import { CodeSelectionActionsProvider } from "@/shared/ui/code/menu/selection-actions";
+import { SegmentedTabs } from "@/shared/ui/SegmentedTabs";
 import { Toast } from "@/shared/ui/toast/Toast";
 
 import { AgentFileModal } from "../components/AgentFileModal";
@@ -267,6 +271,9 @@ export function AgentsPage({
 
 	const hasProjects = projects.length > 0;
 	const showMonitorWall = hasProjects && monitorMode;
+	const viewCombo = formatCombo(useShortcutCombo("switch-agent-view"));
+
+	useShortcut("switch-agent-view", () => setMonitorMode(!monitorMode), hasProjects);
 	const branches = gitStatus?.isGitRepo ? gitStatus.branches : [];
 
 	const railPanels = (
@@ -353,6 +360,30 @@ export function AgentsPage({
 						/>
 					)}
 
+					{hasProjects && (
+						<PageActions>
+							<SegmentedTabs
+								tabs={[
+									{
+										id: "tabs",
+										label: translation.Agents.ViewTabs,
+										icon: "terminal",
+										hint: `${t(translation.Agents.ViewTabsHint)}  ${viewCombo}`,
+									},
+									{
+										id: "monitor",
+										label: translation.Agents.LiveMonitor,
+										icon: "multi-window",
+										badge: monitorPanels.panels.length,
+										hint: `${t(translation.Agents.ViewMonitorHint)}  ${viewCombo}`,
+									},
+								]}
+								active={monitorMode ? "monitor" : "tabs"}
+								onSelect={(view) => setMonitorMode(view === "monitor")}
+							/>
+						</PageActions>
+					)}
+
 					{!hasProjects && (
 						<AgentNoProjectState
 							agents={availableAgents}
@@ -418,7 +449,6 @@ export function AgentsPage({
 							activityUnread={activityUnread}
 							onPickPath={pickPath}
 							onOpenConsole={() => void globalThis.lazify.openTerminal(projectPath)}
-							onOpenMonitor={() => setMonitorMode(true)}
 						/>
 					)}
 
