@@ -28,7 +28,7 @@ export async function loadManifest(path: string): Promise<Manifest> {
 }`;
 
 const SELECT_CLASS =
-  "w-56 rounded-[10px] border border-border bg-bg px-3 py-1.5 text-xs font-semibold text-text outline-hidden focus:border-accent";
+  "w-56 rounded-xl border border-border bg-bg px-3 py-1.5 text-xs font-semibold text-text outline-hidden focus:border-accent";
 
 function ThemeSelect({
   value,
@@ -131,7 +131,7 @@ export function CodeThemeSection() {
             <button
               type="button"
               onClick={() => void globalThis.lazify.openHighlightingFolder()}
-              className="flex items-center gap-1.5 rounded-[10px] border border-border bg-bg px-3 py-1.5 text-xs font-semibold text-text transition-colors hover:border-accent hover:text-accent"
+              className="flex items-center gap-1.5 rounded-xl border border-border bg-bg px-3 py-1.5 text-xs font-semibold text-text transition-colors hover:border-accent hover:text-accent"
             >
               <UiIcon name="folder" className="h-3.5 w-3.5" />
               {t(translation.GlobalTerm.Open)}
@@ -140,7 +140,7 @@ export function CodeThemeSection() {
               type="button"
               onClick={() => void handleReload()}
               disabled={reloading}
-              className="flex items-center gap-1.5 rounded-[10px] border border-border bg-bg px-3 py-1.5 text-xs font-semibold text-text transition-colors hover:border-accent hover:text-accent disabled:opacity-50"
+              className="flex items-center gap-1.5 rounded-xl border border-border bg-bg px-3 py-1.5 text-xs font-semibold text-text transition-colors hover:border-accent hover:text-accent disabled:opacity-50"
             >
               <UiIcon name="refresh-circle" className="h-3.5 w-3.5" />
               {t(translation.GlobalTerm.Refresh)}
@@ -154,7 +154,7 @@ export function CodeThemeSection() {
             {userCount > 0 ? ` — ${userCount}` : ""}
           </SmallText>
 
-          <div className="h-56 overflow-hidden rounded-[14px] border border-border">
+          <div className="h-56 overflow-hidden rounded-xl border border-border">
             <CodeSurface variant="flush" content={PREVIEW} fileName="preview.ts" />
           </div>
         </div>

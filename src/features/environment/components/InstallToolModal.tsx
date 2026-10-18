@@ -88,7 +88,7 @@ export function InstallToolModal({
 								{t(translation.InstallToolModal.WillRun, { name: tool.displayName })}
 							</BodyText>
 
-							<div className="rounded-[16px] border border-border bg-bg px-4 py-3">
+							<div className="rounded-2xl border border-border bg-bg px-4 py-3">
 								<OverlineText className="mb-2 text-muted">{t(translation.GlobalTerm.Command)}</OverlineText>
 								<MonoText as="code" className="break-all text-sm text-accent">
 									{tool.installCommand}
@@ -96,7 +96,7 @@ export function InstallToolModal({
 							</div>
 
 							{tool.installNote && (
-								<div className="flex items-start gap-2.5 rounded-[16px] border border-border/60 bg-bg/60 px-3.5 py-3">
+								<div className="flex items-start gap-2.5 rounded-2xl border border-border/60 bg-bg/60 px-3.5 py-3">
 									<UiIcon name="warning-triangle" className="mt-0.5 h-3.5 w-3.5 shrink-0 text-warning" />
 									<BodyText className="text-xs text-muted">{tool.installNote}</BodyText>
 								</div>
@@ -126,7 +126,7 @@ export function InstallToolModal({
 						<div className="space-y-3">
 							<div
 								className={clsx(
-									"rounded-[20px] border px-4 py-4",
+									"rounded-2xl border px-4 py-4",
 									success ? "border-success/20 bg-success/5" : "border-error/20 bg-error/5",
 								)}
 							>
@@ -157,7 +157,7 @@ export function InstallToolModal({
 							</div>
 
 							{output && (
-								<CodeField className="max-h-40 overflow-y-auto rounded-[16px] border border-border bg-bg px-4 py-3 font-mono text-[10px] leading-5 text-muted/70 whitespace-pre-wrap">
+								<CodeField className="max-h-40 overflow-y-auto rounded-2xl border border-border bg-bg px-4 py-3 font-mono text-[10px] leading-5 text-muted/70 whitespace-pre-wrap">
 									{output}
 								</CodeField>
 							)}
@@ -172,14 +172,14 @@ export function InstallToolModal({
 							<button
 								type="button"
 								onClick={onClose}
-								className="rounded-[16px] border border-border bg-bg px-4 py-2.5 text-sm font-semibold text-muted transition-colors duration-150 hover:border-accent/30 hover:text-text"
+								className="rounded-2xl border border-border bg-bg px-4 py-2.5 text-sm font-semibold text-muted transition-colors duration-150 hover:border-accent/30 hover:text-text"
 							>
 								{t(translation.GlobalTerm.Cancel)}
 							</button>
 							<button
 								type="button"
 								onClick={handleInstall}
-								className="rounded-[16px] border border-transparent bg-accent px-5 py-2.5 text-sm font-semibold text-bg transition-[background-color] duration-150 hover:bg-accentHover"
+								className="rounded-2xl border border-transparent bg-accent px-5 py-2.5 text-sm font-semibold text-bg transition-[background-color] duration-150 hover:bg-accentHover"
 							>
 								{t(translation.GlobalTerm.Install)}
 							</button>
@@ -190,7 +190,7 @@ export function InstallToolModal({
 						<button
 							type="button"
 							onClick={onClose}
-							className="rounded-[16px] border border-transparent bg-accent px-5 py-2.5 text-sm font-semibold text-bg transition-[background-color] duration-150 hover:bg-accentHover"
+							className="rounded-2xl border border-transparent bg-accent px-5 py-2.5 text-sm font-semibold text-bg transition-[background-color] duration-150 hover:bg-accentHover"
 						>
 							{t(translation.GlobalTerm.Done)}
 						</button>

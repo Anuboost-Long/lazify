@@ -33,7 +33,7 @@ export function SourceModeCard({
       onClick={onClick}
       aria-pressed={active}
       className={clsx(
-        "group relative overflow-hidden rounded-[20px] border p-4 text-left",
+        "group relative overflow-hidden rounded-2xl border p-4 text-left",
         "transition-[transform,box-shadow,border-color] duration-300 hover:-translate-y-0.5",
         active
           ? "border-accent bg-accent-gradient-135 shadow-panel"
@@ -47,7 +47,7 @@ export function SourceModeCard({
       <div className="relative flex items-center gap-3">
         <div
           className={clsx(
-            "flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] border",
+            "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border",
             "transition-[transform,box-shadow] duration-300",
             "group-hover:-rotate-3 group-hover:scale-105",
             active

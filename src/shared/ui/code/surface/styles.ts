@@ -5,7 +5,7 @@
  */
 export const STYLES = {
 	panel: {
-		frame: "rounded-[20px] border border-accent/15 bg-bg/60",
+		frame: "rounded-2xl border border-accent/15 bg-bg/60",
 		gutter: "w-14 px-3 py-4 text-xs leading-[25px]",
 		code: "px-5 py-4 text-sm leading-[25px]",
 	},

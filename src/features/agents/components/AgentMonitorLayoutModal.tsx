@@ -33,7 +33,7 @@ function LayoutPreview({ columns }: Readonly<{ columns: MonitorColumns }>) {
 			{[0, 1].map((row) => (
 				<div key={row} className="flex flex-1 gap-[3px]">
 					{Array.from({ length: across }, (_, cell) => `${row}-${cell}`).map((cellKey) => (
-						<span key={cellKey} className="flex-1 rounded-[2px] bg-text/20" />
+						<span key={cellKey} className="flex-1 rounded-xs bg-text/20" />
 					))}
 				</div>
 			))}

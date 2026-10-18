@@ -103,7 +103,7 @@ export function ProjectTreeEditorPanel<TNode extends ProjectTreeListNode>({
         </div>
       ) : null}
 
-      <div className="min-h-0 flex-1 overflow-hidden rounded-[18px] border border-border bg-bg">
+      <div className="min-h-0 flex-1 overflow-hidden rounded-2xl border border-border bg-bg">
         <SplitPane
           className="h-full"
           storageKey="lazify-project-workbench-split"

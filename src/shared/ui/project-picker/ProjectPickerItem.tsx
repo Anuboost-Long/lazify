@@ -49,7 +49,7 @@ export function ProjectPickerItem({
 			style={{ animationDelay: `${index * 45}ms` }}
 			className={clsx(
 				"group relative flex w-full animate-fadeIn flex-col gap-2.5 overflow-hidden",
-				"rounded-[20px] border p-3 text-left",
+				"rounded-2xl border p-3 text-left",
 				"transition-[transform,box-shadow,border-color] duration-300",
 				"hover:-translate-y-1 hover:shadow-panel active:scale-[0.98]",
 				interactionProps?.draggable === true && "cursor-grab active:cursor-grabbing",

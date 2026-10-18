@@ -27,7 +27,7 @@ export function StackPickerCard({
       type="button"
       onClick={() => onSelect(template.id)}
       className={clsx(
-        "group relative overflow-hidden rounded-[26px] border p-5 text-left",
+        "group relative overflow-hidden rounded-3xl border p-5 text-left",
         "animate-fadeIn opacity-0 transition-[transform,box-shadow,border-color] duration-300 ease-out hover:-translate-y-1",
         active
           ? "border-accent bg-accent-gradient-180 text-text shadow-panel"
@@ -43,7 +43,7 @@ export function StackPickerCard({
         <div className="flex items-start gap-4">
           <div
             className={clsx(
-              "flex h-14 w-14 shrink-0 items-center justify-center rounded-[18px] border shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]",
+              "flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]",
               "transition-transform duration-300 group-hover:-rotate-3 group-hover:scale-105",
               presentation.frameClassName,
               active && presentation.activeGlow

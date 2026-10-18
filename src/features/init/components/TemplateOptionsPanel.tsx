@@ -23,7 +23,7 @@ export function TemplateOptionsPanel({
   }
 
   return (
-    <section className="rounded-[30px] border border-border bg-soft p-6 shadow-panel">
+    <section className="rounded-shell border border-border bg-soft p-6 shadow-panel">
       <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted">
         Scaffold options
       </p>

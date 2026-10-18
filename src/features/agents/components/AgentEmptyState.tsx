@@ -10,8 +10,8 @@ function BackdropArt() {
     <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
 
       <div className="absolute -left-10 top-12 h-40 w-40 rotate-12 rounded-shell border border-text/10" />
-      <div className="absolute right-10 top-16 h-28 w-28 -rotate-6 rounded-[22px] border border-border bg-text/2" />
-      <div className="absolute bottom-10 left-1/4 h-24 w-24 rotate-18 rounded-[20px] border border-text/8" />
+      <div className="absolute right-10 top-16 h-28 w-28 -rotate-6 rounded-3xl border border-border bg-text/2" />
+      <div className="absolute bottom-10 left-1/4 h-24 w-24 rotate-18 rounded-2xl border border-text/8" />
 
       <div className="absolute -right-8 bottom-16 h-44 w-44 rounded-full border border-border" />
       <div className="absolute left-16 bottom-24 h-3 w-3 rounded-full bg-text/10" />
@@ -48,7 +48,7 @@ export function AgentEmptyState() {
       >
         <div
           className={clsx(
-            "flex h-14 w-14 items-center justify-center rounded-[20px]",
+            "flex h-14 w-14 items-center justify-center rounded-2xl",
             "border border-border bg-text/6 text-accent"
           )}
         >

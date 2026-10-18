@@ -77,7 +77,7 @@ export function DesktopWindow({
 			}}
 			className={clsx(
 				"absolute flex flex-col overflow-hidden",
-				maximized ? "rounded-none" : "rounded-[14px]",
+				maximized ? "rounded-none" : "rounded-xl",
 				"border bg-bg",
 				focused ? "border-accent/30 shadow-glow" : "border-border shadow-panel",
 			)}

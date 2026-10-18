@@ -49,14 +49,14 @@ export function TabBar<T extends string>({
     <div
       className={clsx(
         "relative isolate flex overflow-x-auto",
-        "rounded-[18px] border border-border bg-soft p-1.5",
+        "rounded-2xl border border-border bg-soft p-1.5",
         className
       )}
     >
       <span
         className={clsx(
           "absolute top-1/2 z-0 h-[38px] -translate-y-1/2",
-          "rounded-[14px] border border-accent/40 bg-accent/12",
+          "rounded-xl border border-accent/40 bg-accent/12",
           "transition-all duration-300 ease-out"
         )}
         style={{ left: indicator.left, width: indicator.width }}
@@ -75,7 +75,7 @@ export function TabBar<T extends string>({
             onClick={() => onChange(tab.key)}
             className={clsx(
               "relative z-10 flex min-h-[38px] shrink-0 items-center gap-2 whitespace-nowrap",
-              "rounded-[14px] px-3 py-2 text-[12px] font-semibold",
+              "rounded-xl px-3 py-2 text-[12px] font-semibold",
               "transition-colors duration-200",
               isActive ? "text-accent" : "text-muted hover:bg-bg/60 hover:text-text"
             )}

@@ -215,7 +215,7 @@ export function DependencyPane({ projectPath }: Readonly<DependencyPaneProps>) {
 
 				{/* ── Add Package panel ── */}
 				{showAddPanel && !loading && (
-					<div className="rounded-[20px] border border-accent/20 bg-accent/3 p-4">
+					<div className="rounded-2xl border border-accent/20 bg-accent/3 p-4">
 						<OverlineText className="mb-3 text-accent">
 							{t(translation.DependencyPane.AddPanelTitle)}
 						</OverlineText>
@@ -232,27 +232,27 @@ export function DependencyPane({ projectPath }: Readonly<DependencyPaneProps>) {
 								value={searchQuery}
 								onChange={(e) => setSearchQuery(e.target.value)}
 								placeholder={t(translation.DependencyPane.AddPanelSearch)}
-								className="w-full rounded-[14px] border border-border bg-bg py-2.5 pl-10 pr-4 text-sm text-text placeholder:text-muted focus:border-accent focus:outline-hidden"
+								className="w-full rounded-xl border border-border bg-bg py-2.5 pl-10 pr-4 text-sm text-text placeholder:text-muted focus:border-accent focus:outline-hidden"
 							/>
 						</div>
 
 						{/* Results area */}
 						<div className="mt-3">
 							{searchQuery.trim().length < 2 && (
-								<div className="rounded-[14px] border border-dashed border-border/60 px-4 py-4 text-center text-sm text-muted">
+								<div className="rounded-xl border border-dashed border-border/60 px-4 py-4 text-center text-sm text-muted">
 									{t(translation.DependencyPane.AddPanelMinChars)}
 								</div>
 							)}
 
 							{searching && (
-								<div className="flex items-center gap-2 rounded-[14px] border border-dashed border-border/60 px-4 py-4 text-sm text-muted">
+								<div className="flex items-center gap-2 rounded-xl border border-dashed border-border/60 px-4 py-4 text-sm text-muted">
 									<UiIcon name="refresh-circle" className="h-4 w-4 animate-spin text-accent" />
 									{t(translation.DependencyPane.AddPanelSearching)}
 								</div>
 							)}
 
 							{!searching && searchError && (
-								<div className="rounded-[14px] border border-dashed border-border/60 px-4 py-4 text-sm text-muted">
+								<div className="rounded-xl border border-dashed border-border/60 px-4 py-4 text-sm text-muted">
 									{searchError}
 								</div>
 							)}
@@ -261,7 +261,7 @@ export function DependencyPane({ projectPath }: Readonly<DependencyPaneProps>) {
 								!searchError &&
 								searchQuery.trim().length >= 2 &&
 								searchResults.length === 0 && (
-									<div className="rounded-[14px] border border-dashed border-border/60 px-4 py-4 text-center text-sm text-muted">
+									<div className="rounded-xl border border-dashed border-border/60 px-4 py-4 text-center text-sm text-muted">
 										{t(translation.DependencyPane.AddPanelNoResults)}
 									</div>
 								)}
@@ -330,7 +330,7 @@ export function DependencyPane({ projectPath }: Readonly<DependencyPaneProps>) {
 
 						{/* Package rows */}
 						{filteredPackages.length === 0 ? (
-							<div className="flex items-center justify-center rounded-[20px] border border-dashed border-border bg-soft/30 py-8 text-sm text-muted">
+							<div className="flex items-center justify-center rounded-2xl border border-dashed border-border bg-soft/30 py-8 text-sm text-muted">
 								{t(translation.DependencyPane.Empty)}
 							</div>
 						) : (
@@ -351,7 +351,7 @@ export function DependencyPane({ projectPath }: Readonly<DependencyPaneProps>) {
 
 				{/* ── Empty state ── */}
 				{!loading && !loadError && packages.length === 0 && (
-					<div className="flex flex-col items-center justify-center rounded-[20px] border border-dashed border-border bg-soft/30 py-12 text-center">
+					<div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-soft/30 py-12 text-center">
 						<div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-border bg-soft text-muted">
 							<UiIcon name="package" className="h-6 w-6" />
 						</div>

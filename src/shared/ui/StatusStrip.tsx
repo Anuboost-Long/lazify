@@ -31,7 +31,7 @@ export function StatusStrip({ environment, label, workflowStatus, statusMessage 
   return (
     <div
       className={clsx(
-        "rounded-[24px] border px-4 py-3 shadow-panel",
+        "rounded-3xl border px-4 py-3 shadow-panel",
         tone
       )}
     >

@@ -19,7 +19,7 @@ export function AuditVulnRow({ vuln }: Readonly<{ vuln: AuditVulnerability }>) {
 	const title = typeof firstVia === "object" && "title" in firstVia ? firstVia.title : null;
 
 	return (
-		<div className={clsx("rounded-[14px] border px-3.5 py-2.5", SEVERITY_ROW[vuln.severity])}>
+		<div className={clsx("rounded-xl border px-3.5 py-2.5", SEVERITY_ROW[vuln.severity])}>
 			<div className="flex items-start gap-2">
 				<div className="min-w-0 flex-1">
 					<div className="flex flex-wrap items-center gap-2">

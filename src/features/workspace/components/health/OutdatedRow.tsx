@@ -16,7 +16,7 @@ export function OutdatedRow({
 	const hasNewerMajor = info.latest && info.latest !== info.wanted;
 
 	return (
-		<div className="rounded-[14px] border border-warning/20 bg-warning/5 px-3.5 py-2.5">
+		<div className="rounded-xl border border-warning/20 bg-warning/5 px-3.5 py-2.5">
 			<MonoText className="block truncate text-[12px] font-semibold text-text">{name}</MonoText>
 
 			<div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted">

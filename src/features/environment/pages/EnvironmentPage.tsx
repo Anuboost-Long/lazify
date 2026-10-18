@@ -106,7 +106,7 @@ export function EnvironmentPage({ report, loading, onRefresh }: Readonly<Environ
 					disabled={loading}
 					className={clsx(
 						"group inline-flex items-center gap-1.5",
-						"rounded-[8px] border border-border bg-bg px-3 py-1",
+						"rounded-lg border border-border bg-bg px-3 py-1",
 						"text-xs font-semibold text-muted",
 						"hover:border-accent hover:text-text",
 						"disabled:cursor-not-allowed disabled:opacity-60",

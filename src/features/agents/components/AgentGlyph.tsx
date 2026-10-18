@@ -142,7 +142,7 @@ export function AgentGlyph({ agentId, className, image }: Readonly<AgentGlyphPro
       <img
         src={image}
         alt=""
-        className={clsx("h-4 w-4 rounded-[5px] object-cover", className)}
+        className={clsx("h-4 w-4 rounded-md object-cover", className)}
       />
     );
   }

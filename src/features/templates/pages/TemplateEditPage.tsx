@@ -99,7 +99,7 @@ export function TemplateEditPage({
       </PageCrumb>
 
       {loadError ? (
-        <BodyText className="rounded-[16px] border border-error/30 bg-error/10 px-4 py-3 text-error">
+        <BodyText className="rounded-2xl border border-error/30 bg-error/10 px-4 py-3 text-error">
           {loadError}
         </BodyText>
       ) : null}
@@ -107,7 +107,7 @@ export function TemplateEditPage({
       {!template && !loadError ? (
         <BodyText
           tone="muted"
-          className="rounded-[20px] border border-border bg-soft px-5 py-4"
+          className="rounded-2xl border border-border bg-soft px-5 py-4"
         >
           {t(translation.ProjectTree.LoadingFilePreview)}
         </BodyText>
@@ -115,7 +115,7 @@ export function TemplateEditPage({
 
       {template ? (
         <>
-          <section className="relative overflow-hidden rounded-[26px] border border-border bg-soft p-6 shadow-panel">
+          <section className="relative overflow-hidden rounded-3xl border border-border bg-soft p-6 shadow-panel">
             <div className="absolute inset-y-0 left-0 w-1 bg-accent" />
             <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
               <label className="block flex-1">
@@ -144,7 +144,7 @@ export function TemplateEditPage({
                   type="button"
                   disabled={busy}
                   onClick={() => setConfirmingDelete(true)}
-                  className="inline-flex items-center justify-center rounded-[16px] border border-error/30 bg-error/10 px-4 py-3 text-sm font-semibold text-error hover:border-error/60 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="inline-flex items-center justify-center rounded-2xl border border-error/30 bg-error/10 px-4 py-3 text-sm font-semibold text-error hover:border-error/60 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {t(translation.Templates.RemoveTemplate)}
                 </button>
@@ -152,7 +152,7 @@ export function TemplateEditPage({
                   type="button"
                   disabled={busy}
                   onClick={() => void handleSave()}
-                  className="inline-flex items-center justify-center rounded-[16px] border border-transparent bg-accent px-4 py-3 text-sm font-semibold text-white hover:bg-accentHover disabled:cursor-not-allowed disabled:opacity-60"
+                  className="inline-flex items-center justify-center rounded-2xl border border-transparent bg-accent px-4 py-3 text-sm font-semibold text-white hover:bg-accentHover disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {t(translation.Templates.SaveChanges)}
                 </button>

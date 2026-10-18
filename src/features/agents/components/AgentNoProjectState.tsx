@@ -26,8 +26,8 @@ function BackdropArt() {
       className="pointer-events-none absolute inset-0 overflow-hidden"
     >
 
-      <div className="absolute -left-12 -top-8 h-44 w-44 rotate-12 rounded-[32px] border border-border" />
-      <div className="absolute -bottom-10 right-10 h-32 w-32 -rotate-6 rounded-[24px] border border-accent/20 bg-accent/4" />
+      <div className="absolute -left-12 -top-8 h-44 w-44 rotate-12 rounded-shell border border-border" />
+      <div className="absolute -bottom-10 right-10 h-32 w-32 -rotate-6 rounded-3xl border border-accent/20 bg-accent/4" />
 
       <div className="absolute -right-10 -top-12 h-40 w-40 rounded-full border border-border" />
 
@@ -52,14 +52,14 @@ function SheetArt() {
 
       <div
         className={clsx(
-          "absolute left-3 top-2 h-[88px] w-[68px] -rotate-6 rounded-[14px]",
+          "absolute left-3 top-2 h-[88px] w-[68px] -rotate-6 rounded-xl",
           "border border-border bg-bg transition-transform duration-300",
           "group-hover:-rotate-12"
         )}
       />
       <div
         className={clsx(
-          "absolute left-1.5 top-1 h-[92px] w-[72px] rotate-3 rounded-[14px]",
+          "absolute left-1.5 top-1 h-[92px] w-[72px] rotate-3 rounded-xl",
           "border border-border bg-soft transition-transform duration-300",
           "group-hover:rotate-6"
         )}
@@ -67,7 +67,7 @@ function SheetArt() {
 
       <div
         className={clsx(
-          "absolute left-0 top-0 h-[96px] w-[76px] rounded-[14px]",
+          "absolute left-0 top-0 h-[96px] w-[76px] rounded-xl",
           "border border-accent/25 bg-bg transition-transform duration-300",
           "group-hover:-translate-y-1"
         )}
@@ -84,7 +84,7 @@ function SheetArt() {
         <div
           className={clsx(
             "absolute -bottom-3 left-3 flex h-8 w-8 items-center justify-center",
-            "rounded-[11px] bg-accent text-white shadow-glow",
+            "rounded-xl bg-accent text-white shadow-glow",
             "transition-transform duration-300 group-hover:rotate-6"
           )}
         >
@@ -106,7 +106,7 @@ export function AgentNoProjectState({
     <div className="flex flex-1 items-center justify-center">
       <section
         className={clsx(
-          "group relative w-full max-w-3xl overflow-hidden rounded-[24px]",
+          "group relative w-full max-w-3xl overflow-hidden rounded-3xl",
           "border border-border bg-soft p-6 shadow-panel md:p-8",
           "animate-fadeIn"
         )}
@@ -166,7 +166,7 @@ export function AgentNoProjectState({
                 disabled={syncing}
                 onClick={onSync}
                 className={clsx(
-                  "group/sync inline-flex items-center gap-2 rounded-[18px] px-5 py-2.5",
+                  "group/sync inline-flex items-center gap-2 rounded-2xl px-5 py-2.5",
                   "bg-accent text-sm font-semibold text-white shadow-glow",
                   "transition-all duration-300 hover:-translate-y-0.5 hover:bg-accentHover",
                   "active:scale-[0.98]",

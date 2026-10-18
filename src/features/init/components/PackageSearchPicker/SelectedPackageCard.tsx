@@ -15,7 +15,7 @@ export function SelectedPackageCard({ pkg, busy, onRemove }: Readonly<SelectedPa
 	const { t } = useTranslation();
 
 	return (
-		<div className="rounded-[18px] border border-border bg-bg px-4 py-3">
+		<div className="rounded-2xl border border-border bg-bg px-4 py-3">
 			<div className="flex items-start justify-between gap-4">
 				<div className="min-w-0">
 					<div className="flex flex-wrap items-center gap-2">

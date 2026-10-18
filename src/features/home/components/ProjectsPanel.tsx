@@ -50,7 +50,7 @@ export function ProjectsPanel({
 							>
 								<span
 									className={clsx(
-										"flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] border",
+										"flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border",
 										active
 											? "border-accent/30 bg-accent/10 text-accent"
 											: "border-border bg-bg/50 text-muted group-hover:text-text",

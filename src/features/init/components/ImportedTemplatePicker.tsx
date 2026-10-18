@@ -20,7 +20,7 @@ export function ImportedTemplatePicker({
 
 	if (templates.length === 0) {
 		return (
-			<section className="rounded-[24px] border border-border bg-soft p-6 shadow-panel">
+			<section className="rounded-3xl border border-border bg-soft p-6 shadow-panel">
 				<BodyText tone="muted" className="leading-6">
 					{t(translation.InitProject.NoTemplatesSaved)}
 				</BodyText>

@@ -47,7 +47,7 @@ export function LogPanel({ logs }: LogPanelProps) {
 
       <CodeField
         revision={logs}
-        className="h-120 overflow-y-auto rounded-[22px] border border-border bg-bg px-4 py-3 font-mono text-sm shadow-inner"
+        className="h-120 overflow-y-auto rounded-3xl border border-border bg-bg px-4 py-3 font-mono text-sm shadow-inner"
       >
         {logs.length === 0 ? (
           <div className="flex h-full items-center justify-center text-muted">

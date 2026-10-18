@@ -150,7 +150,7 @@ export function NodeVersionPane({
 
 				{/* ── nvm unavailable ── */}
 				{!loading && versionList && !nvmAvailable && (
-					<div className="flex flex-col items-center justify-center rounded-[20px] border border-dashed border-border bg-soft/30 py-10 text-center">
+					<div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-soft/30 py-10 text-center">
 						<div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-border bg-soft text-muted">
 							<UiIcon name="activity" className="h-6 w-6" />
 						</div>

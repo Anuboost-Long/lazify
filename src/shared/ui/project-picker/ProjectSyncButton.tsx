@@ -29,7 +29,7 @@ export function ProjectSyncButton({
         disabled={syncing}
         onClick={onClick}
         className={clsx(
-          "group/add flex w-full items-center rounded-[18px] text-left",
+          "group/add flex w-full items-center rounded-2xl text-left",
           "border border-dashed border-border bg-bg/60",
           "transition-[transform,box-shadow] duration-300",
           "hover:-translate-y-0.5 hover:border-accent/50 hover:bg-bg hover:shadow-panel",
@@ -40,7 +40,7 @@ export function ProjectSyncButton({
       >
         <span
           className={clsx(
-            "flex shrink-0 items-center justify-center rounded-[12px]",
+            "flex shrink-0 items-center justify-center rounded-xl",
             "border border-border bg-soft text-accent",
             "transition-transform duration-300",
             !syncing && "group-hover/add:rotate-90",

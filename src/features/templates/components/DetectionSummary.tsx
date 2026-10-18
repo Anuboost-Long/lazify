@@ -24,7 +24,7 @@ export function DetectionSummary({
   const { t } = useTranslation();
 
   return (
-    <section className="relative overflow-hidden rounded-[26px] border border-border bg-soft p-6 shadow-panel">
+    <section className="relative overflow-hidden rounded-3xl border border-border bg-soft p-6 shadow-panel">
       <div className="absolute inset-y-0 left-0 w-1 bg-accent" />
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
@@ -57,7 +57,7 @@ export function DetectionSummary({
         ].map(([label, value]) => (
           <div
             key={label}
-            className="rounded-[18px] border border-border bg-bg/70 px-4 py-3"
+            className="rounded-2xl border border-border bg-bg/70 px-4 py-3"
           >
             <OverlineText
               tone="muted"
@@ -79,7 +79,7 @@ export function DetectionSummary({
       ) : null}
 
       {stackDetection.warnings.length > 0 ? (
-        <BodyText className="mt-4 rounded-[16px] border border-amber-300/40 bg-amber-50 px-4 py-3 text-amber-800 dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-300">
+        <BodyText className="mt-4 rounded-2xl border border-amber-300/40 bg-amber-50 px-4 py-3 text-amber-800 dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-300">
           {stackDetection.warnings.join(" ")}
         </BodyText>
       ) : null}

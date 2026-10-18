@@ -48,7 +48,7 @@ export function TechStackStrip() {
             key={item.key}
             className={clsx(
               "flex items-center gap-3",
-              "rounded-[20px] border border-border bg-bg px-4 py-3"
+              "rounded-2xl border border-border bg-bg px-4 py-3"
             )}
           >
             <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-border bg-soft text-accent">

@@ -58,7 +58,7 @@ export function TasksPanel({
 					type="button"
 					onClick={onAddTask}
 					className={clsx(
-						"inline-flex h-8 items-center gap-2 rounded-[10px] border border-accent/70 bg-accent px-3.5",
+						"inline-flex h-8 items-center gap-2 rounded-xl border border-accent/70 bg-accent px-3.5",
 						"text-xs font-semibold text-white transition-colors hover:bg-accentHover",
 						"focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-accent/50",
 					)}
@@ -94,7 +94,7 @@ export function TasksPanel({
 							type="button"
 							onClick={onAddTask}
 							className={clsx(
-								"rounded-[10px] border border-accent/30 bg-accent/10 px-4 py-2",
+								"rounded-xl border border-accent/30 bg-accent/10 px-4 py-2",
 								"text-[12px] font-semibold text-accent hover:bg-accent/15",
 								"focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-accent/50",
 							)}

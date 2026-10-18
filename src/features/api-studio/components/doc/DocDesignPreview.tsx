@@ -81,7 +81,7 @@ export function DocDesignPreview({ doc }: Readonly<DocDesignPreviewProps>) {
               </div>
 
               <div
-                className="rounded-[3px] px-1 py-[3px] text-[5px]"
+                className="rounded-xs px-1 py-[3px] text-[5px]"
                 style={{ background: PAPER.soft, border: `1px solid ${PAPER.line}` }}
               >
                 /payments
@@ -89,7 +89,7 @@ export function DocDesignPreview({ doc }: Readonly<DocDesignPreviewProps>) {
 
               {theme.curl ? (
                 <div
-                  className={clsx("rounded-[3px] px-1 py-[4px] font-mono text-[4.5px] leading-[1.6]")}
+                  className={clsx("rounded-xs px-1 py-[4px] font-mono text-[4.5px] leading-[1.6]")}
                   style={{
                     background: theme.darkCode ? "#0f172a" : PAPER.soft,
                     color: theme.darkCode ? "#e2e8f0" : PAPER.ink,

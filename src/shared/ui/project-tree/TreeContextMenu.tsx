@@ -101,7 +101,7 @@ export function TreeContextMenu({
 	 */
 	return createPortal(
 		<div
-			className="fixed z-60 min-w-42 rounded-[16px] border border-border bg-soft p-2 shadow-panel"
+			className="fixed z-60 min-w-42 rounded-2xl border border-border bg-soft p-2 shadow-panel"
 			style={{ left, top }}
 		>
 			{menuItems.map((item) => (

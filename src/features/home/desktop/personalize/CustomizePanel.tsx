@@ -91,7 +91,7 @@ function Choice({
 			onClick={onSelect}
 			aria-pressed={selected}
 			className={clsx(
-				"rounded-[10px] border px-3 py-1.5 text-xs font-semibold transition-colors",
+				"rounded-xl border px-3 py-1.5 text-xs font-semibold transition-colors",
 				selected
 					? "border-accent/40 bg-accent/10 text-accent"
 					: "border-border bg-transparent text-muted hover:text-text",

@@ -160,14 +160,14 @@ export function PackageManagerModal({
 					<button
 						type="button"
 						onClick={onClose}
-						className="rounded-[16px] border border-border bg-bg px-4 py-2.5 text-sm font-semibold text-muted transition-colors duration-150 hover:border-accent/30 hover:text-text"
+						className="rounded-2xl border border-border bg-bg px-4 py-2.5 text-sm font-semibold text-muted transition-colors duration-150 hover:border-accent/30 hover:text-text"
 					>
 						{t(translation.GlobalTerm.Cancel)}
 					</button>
 					<button
 						type="button"
 						onClick={handleConfirm}
-						className="rounded-[16px] border border-transparent bg-accent px-5 py-2.5 text-sm font-semibold text-bg transition-colors duration-150 hover:bg-accentHover"
+						className="rounded-2xl border border-transparent bg-accent px-5 py-2.5 text-sm font-semibold text-bg transition-colors duration-150 hover:bg-accentHover"
 					>
 						{t(translation.Settings.SelectPackageManager)}
 					</button>

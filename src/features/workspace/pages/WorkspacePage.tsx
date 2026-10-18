@@ -129,14 +129,14 @@ export function WorkspacePage({
               <span className="text-xs font-semibold text-muted">
                 {t(translation.Workspace.SortLabel)}
               </span>
-              <div className="flex items-center gap-1.5 rounded-[14px] border border-border bg-bg p-1">
+              <div className="flex items-center gap-1.5 rounded-xl border border-border bg-bg p-1">
                 {sortOptions.map((option) => (
                   <button
                     key={option.id}
                     type="button"
                     onClick={() => setSortKey(option.id)}
                     className={clsx(
-                      "rounded-[10px] px-3 py-1 text-xs font-semibold transition-all duration-100",
+                      "rounded-xl px-3 py-1 text-xs font-semibold transition-all duration-100",
                       sortKey === option.id
                         ? "bg-accentSoft text-accent"
                         : "text-muted hover:text-text",
@@ -187,7 +187,7 @@ export function WorkspacePage({
         </>
       ) : (
         <div className="rounded-shell border border-dashed border-border bg-bg/70 px-6 py-10 text-center">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-[22px] border border-border bg-soft text-accent">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl border border-border bg-soft text-accent">
             <UiIcon name="folder" className="h-8 w-8" />
           </div>
           <CardTitle className="mt-5">
@@ -203,7 +203,7 @@ export function WorkspacePage({
             <button
               type="button"
               onClick={() => navigate(appRoute.initProject)}
-              className="inline-flex items-center justify-center gap-2 rounded-[18px] border border-transparent bg-accent px-4 py-2.5 text-sm font-semibold text-white shadow-glow hover:bg-accentHover"
+              className="inline-flex items-center justify-center gap-2 rounded-2xl border border-transparent bg-accent px-4 py-2.5 text-sm font-semibold text-white shadow-glow hover:bg-accentHover"
             >
               <UiIcon name="plus" className="h-4 w-4" />
               {t(translation.Workspace.AddNewProject)}
@@ -212,7 +212,7 @@ export function WorkspacePage({
               type="button"
               disabled={syncingProjectPath !== null}
               onClick={() => void handleSyncProject()}
-              className="inline-flex items-center justify-center gap-2 rounded-[18px] border border-border bg-soft px-4 py-2.5 text-sm font-semibold text-text hover:border-accent disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex items-center justify-center gap-2 rounded-2xl border border-border bg-soft px-4 py-2.5 text-sm font-semibold text-text hover:border-accent disabled:cursor-not-allowed disabled:opacity-60"
             >
               <UiIcon
                 name="refresh-circle"

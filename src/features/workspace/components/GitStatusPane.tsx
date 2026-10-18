@@ -82,7 +82,7 @@ export function GitStatusPane({
 				<div
 					className={clsx(
 						"mt-4 flex flex-1 items-center justify-center p-8 text-center",
-						!flush && "rounded-[20px] border border-dashed border-border bg-soft/30",
+						!flush && "rounded-2xl border border-dashed border-border bg-soft/30",
 					)}
 				>
 					<div>
@@ -152,7 +152,7 @@ export function GitStatusPane({
 		<div
 			className={clsx(
 				"flex flex-col overflow-hidden bg-bg",
-				flush ? "h-full" : "h-176 rounded-[26px] border border-border shadow-panel",
+				flush ? "h-full" : "h-176 rounded-3xl border border-border shadow-panel",
 			)}
 		>
 			{/* Header */}
@@ -198,7 +198,7 @@ export function GitStatusPane({
 					<div
 						className={clsx(
 							"flex h-full items-center justify-center p-8 text-center",
-							!flush && "rounded-[20px] border border-dashed border-border bg-soft/30",
+							!flush && "rounded-2xl border border-dashed border-border bg-soft/30",
 						)}
 					>
 						<div>
@@ -213,7 +213,7 @@ export function GitStatusPane({
 					<div
 						className={clsx(
 							"flex h-full items-center justify-center p-8 text-center",
-							!flush && "rounded-[20px] border border-dashed border-border bg-soft/30",
+							!flush && "rounded-2xl border border-dashed border-border bg-soft/30",
 						)}
 					>
 						<div className="max-w-sm">

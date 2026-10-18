@@ -14,7 +14,7 @@ export function MajorAvailableList({
 	const { t } = useTranslation();
 
 	return (
-		<div className="rounded-[14px] border border-border bg-soft/40 px-3.5 py-2.5">
+		<div className="rounded-xl border border-border bg-soft/40 px-3.5 py-2.5">
 			<OverlineText className="text-muted">
 				{t(translation.HealthPane.MajorAvailable, { count: packages.length })}
 			</OverlineText>

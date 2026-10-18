@@ -36,7 +36,7 @@ export function CardShapes({ variant = 0, className }: Readonly<CardShapesProps>
     >
       {variant === 0 ? (
         <>
-          <div className="absolute -right-6 -top-8 h-24 w-24 rotate-12 rounded-[22px] border border-current" />
+          <div className="absolute -right-6 -top-8 h-24 w-24 rotate-12 rounded-3xl border border-current" />
           <div className="absolute right-8 bottom-4 h-2 w-12 -rotate-12 rounded-full bg-current opacity-30" />
           <GridMarks className="absolute right-4 top-16" />
         </>
@@ -45,14 +45,14 @@ export function CardShapes({ variant = 0, className }: Readonly<CardShapesProps>
       {variant === 1 ? (
         <>
           <div className="absolute -bottom-6 -right-10 h-28 w-28 rounded-full border border-current" />
-          <div className="absolute right-6 top-6 h-16 w-16 -rotate-6 rounded-[18px] border border-current" />
+          <div className="absolute right-6 top-6 h-16 w-16 -rotate-6 rounded-2xl border border-current" />
           <div className="absolute right-20 bottom-6 h-2 w-10 rotate-12 rounded-full bg-current opacity-30" />
         </>
       ) : null}
 
       {variant === 2 ? (
         <>
-          <div className="absolute -right-8 top-4 h-20 w-20 rotate-18 rounded-[20px] border border-current" />
+          <div className="absolute -right-8 top-4 h-20 w-20 rotate-18 rounded-2xl border border-current" />
           <div className="absolute right-10 bottom-2 h-10 w-10 rounded-full border border-current" />
           <GridMarks className="absolute right-24 top-8" />
         </>

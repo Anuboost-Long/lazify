@@ -51,7 +51,7 @@ function SizePreview({ size }: Readonly<{ size: MonitorPanelSize }>) {
 			{CELLS.map((cell, index) => (
 				<span
 					key={cell}
-					className={clsx("rounded-[2px]", SIZE_CELLS[size][index] ? "bg-accent/70" : "bg-text/10")}
+					className={clsx("rounded-xs", SIZE_CELLS[size][index] ? "bg-accent/70" : "bg-text/10")}
 				/>
 			))}
 		</div>

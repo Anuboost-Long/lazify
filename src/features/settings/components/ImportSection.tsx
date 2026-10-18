@@ -9,7 +9,7 @@ import UiIcon from "@/shared/ui/icons/UiIcon";
 import { SectionLabel } from "./SectionLabel";
 
 const ACTION_BUTTON = clsx(
-	"flex items-center gap-1.5 rounded-[14px] border border-border bg-bg px-3 py-1.5",
+	"flex items-center gap-1.5 rounded-xl border border-border bg-bg px-3 py-1.5",
 	"text-xs font-semibold text-muted transition-colors duration-150",
 	"hover:border-accent/30 hover:text-text",
 );

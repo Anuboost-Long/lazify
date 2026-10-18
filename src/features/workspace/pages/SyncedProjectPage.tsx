@@ -212,7 +212,7 @@ export function SyncedProjectPage({
 					<button
 						type="button"
 						onClick={() => setAddingTask(true)}
-						className="inline-flex items-center gap-1.5 rounded-[8px] border border-border px-3 py-1 text-xs font-semibold text-text transition-colors hover:border-accent/40 hover:text-accent"
+						className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1 text-xs font-semibold text-text transition-colors hover:border-accent/40 hover:text-accent"
 					>
 						<UiIcon name="check-circle" className="h-3.5 w-3.5" />
 						{t(translation.Tasks.AddTask)}
@@ -222,7 +222,7 @@ export function SyncedProjectPage({
 						type="button"
 						onClick={() => void handleInstallDependencies()}
 						disabled={busy || installing}
-						className="inline-flex items-center gap-1.5 rounded-[8px] bg-accent px-3 py-1 text-xs font-semibold text-white transition-colors hover:bg-accentHover focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent disabled:cursor-not-allowed disabled:opacity-60"
+						className="inline-flex items-center gap-1.5 rounded-lg bg-accent px-3 py-1 text-xs font-semibold text-white transition-colors hover:bg-accentHover focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent disabled:cursor-not-allowed disabled:opacity-60"
 					>
 						<UiIcon
 							name={installing ? "refresh-circle" : "package"}
@@ -240,8 +240,8 @@ export function SyncedProjectPage({
 				<section
 					className={
 						installFeedback.tone === "success"
-							? "shrink-0 rounded-[12px] border border-border bg-soft px-4 py-3"
-							: "shrink-0 rounded-[12px] border border-error/30 bg-error/10 px-4 py-3"
+							? "shrink-0 rounded-xl border border-border bg-soft px-4 py-3"
+							: "shrink-0 rounded-xl border border-error/30 bg-error/10 px-4 py-3"
 					}
 				>
 					<BodyText
@@ -258,7 +258,7 @@ export function SyncedProjectPage({
 
 			{/* ── Feedback: project no longer in workspace ── */}
 			{!syncedProject && (
-				<section className="shrink-0 rounded-[12px] border border-border bg-soft px-4 py-3">
+				<section className="shrink-0 rounded-xl border border-border bg-soft px-4 py-3">
 					<BodyText tone="muted" className="text-sm leading-6">
 						{t(translation.SyncedProject.NotSyncedAnymore)}
 					</BodyText>
@@ -267,14 +267,14 @@ export function SyncedProjectPage({
 
 			{/* ── Feedback: failed to load project index ── */}
 			{errorMessage && (
-				<section className="shrink-0 rounded-[12px] border border-error/30 bg-error/10 px-4 py-3">
+				<section className="shrink-0 rounded-xl border border-error/30 bg-error/10 px-4 py-3">
 					<BodyText className="text-sm leading-6 text-error">{errorMessage}</BodyText>
 				</section>
 			)}
 
 			{/* ── Feedback: project index loading ── */}
 			{loading && !projectData && (
-				<section className="shrink-0 rounded-[12px] border border-border bg-soft px-4 py-3">
+				<section className="shrink-0 rounded-xl border border-border bg-soft px-4 py-3">
 					<div className="flex items-center gap-3 text-sm text-muted">
 						<UiIcon name="refresh-circle" className="h-4 w-4 animate-spin text-accent" />
 						{t(translation.SyncedProject.Loading)}

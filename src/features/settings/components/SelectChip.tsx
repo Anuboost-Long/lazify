@@ -26,14 +26,14 @@ export function SelectChip({ options, value, onChange }: Readonly<SelectChipProp
 	}
 
 	return (
-		<div className="flex items-center gap-1.5 rounded-[14px] border border-border bg-bg p-1">
+		<div className="flex items-center gap-1.5 rounded-xl border border-border bg-bg p-1">
 			{options.map((option) => (
 				<button
 					key={option.id}
 					type="button"
 					onClick={() => handleSelect(option.id)}
 					className={clsx(
-						"rounded-[10px] px-3 py-1 text-xs font-semibold transition-all duration-100",
+						"rounded-xl px-3 py-1 text-xs font-semibold transition-all duration-100",
 						selected === option.id ? "bg-accentSoft text-accent" : "text-muted hover:text-text",
 					)}
 				>

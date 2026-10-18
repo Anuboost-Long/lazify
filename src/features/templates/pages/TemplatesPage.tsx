@@ -107,7 +107,7 @@ export function TemplatesPage({
 
       {importedTemplateOptions.length === 0 ? (
         <section className="relative overflow-hidden rounded-shell border border-dashed border-border bg-bg/55 px-6 py-12 text-center">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-[22px] border border-accent/20 bg-accent/[0.07] text-accent">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl border border-accent/20 bg-accent/[0.07] text-accent">
             <UiIcon name="package" className="h-7 w-7" />
           </div>
           <SectionTitle className="mt-5 text-xl">
@@ -147,8 +147,8 @@ export function TemplatesPage({
               ))}
             </section>
           ) : (
-            <section className="rounded-[26px] border border-dashed border-border bg-bg/50 px-6 py-12 text-center">
-              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-[16px] border border-border bg-soft text-muted">
+            <section className="rounded-3xl border border-dashed border-border bg-bg/50 px-6 py-12 text-center">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl border border-border bg-soft text-muted">
                 <UiIcon name="search" className="h-5 w-5" />
               </div>
               <SectionTitle className="mt-4 text-lg">

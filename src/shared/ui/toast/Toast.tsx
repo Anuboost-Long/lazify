@@ -60,7 +60,7 @@ export function Toast({ title, message, variant = "warning", onClick, onClose }:
       role="alert"
       aria-live="assertive"
       className={[
-        "fixed right-5 top-5 z-100 w-[340px] overflow-hidden rounded-[20px] border bg-soft shadow-panel",
+        "fixed right-5 top-5 z-100 w-[340px] overflow-hidden rounded-2xl border bg-soft shadow-panel",
         styles.border,
         "transition-[opacity,transform] duration-300 ease-out",
         visible ? "translate-x-0 opacity-100" : "translate-x-6 opacity-0",

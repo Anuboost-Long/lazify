@@ -92,7 +92,7 @@ export function UpdateToolModal({
 				<div className="p-6">
 					{/* Result: up to date */}
 					{state === "result" && !hasUpdate && (
-						<div className="flex items-start gap-3 rounded-[20px] border border-success/20 bg-success/5 px-4 py-4">
+						<div className="flex items-start gap-3 rounded-2xl border border-success/20 bg-success/5 px-4 py-4">
 							<div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-success/25 bg-success/10 text-success">
 								<UiIcon name="check-circle" className="h-4 w-4" />
 							</div>
@@ -113,7 +113,7 @@ export function UpdateToolModal({
 					{/* Result: update available */}
 					{state === "result" && hasUpdate && tool && (
 						<div className="space-y-4">
-							<div className="rounded-[20px] border border-accent/20 bg-accent/5 px-4 py-4">
+							<div className="rounded-2xl border border-accent/20 bg-accent/5 px-4 py-4">
 								<div className="flex items-center gap-3">
 									<div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-accent/25 bg-accent/10 text-accent">
 										<UiIcon name="activity" className="h-4 w-4" />
@@ -144,7 +144,7 @@ export function UpdateToolModal({
 								</div>
 							</div>
 
-							<div className="rounded-[16px] border border-border bg-bg px-4 py-3">
+							<div className="rounded-2xl border border-border bg-bg px-4 py-3">
 								<OverlineText className="mb-2 text-muted">{t(translation.GlobalTerm.Command)}</OverlineText>
 								<MonoText as="code" className="break-all text-sm text-accent">
 									{tool.updateCommand}
@@ -175,7 +175,7 @@ export function UpdateToolModal({
 						<div className="space-y-3">
 							<div
 								className={clsx(
-									"rounded-[20px] border px-4 py-4",
+									"rounded-2xl border px-4 py-4",
 									success ? "border-success/20 bg-success/5" : "border-error/20 bg-error/5",
 								)}
 							>
@@ -205,7 +205,7 @@ export function UpdateToolModal({
 								</div>
 							</div>
 							{output && (
-								<CodeField className="max-h-40 overflow-y-auto rounded-[16px] border border-border bg-bg px-4 py-3 font-mono text-[10px] leading-5 text-muted/70 whitespace-pre-wrap">
+								<CodeField className="max-h-40 overflow-y-auto rounded-2xl border border-border bg-bg px-4 py-3 font-mono text-[10px] leading-5 text-muted/70 whitespace-pre-wrap">
 									{output}
 								</CodeField>
 							)}
@@ -220,14 +220,14 @@ export function UpdateToolModal({
 							<button
 								type="button"
 								onClick={onClose}
-								className="rounded-[16px] border border-border bg-bg px-4 py-2.5 text-sm font-semibold text-muted transition-colors duration-150 hover:border-accent/30 hover:text-text"
+								className="rounded-2xl border border-border bg-bg px-4 py-2.5 text-sm font-semibold text-muted transition-colors duration-150 hover:border-accent/30 hover:text-text"
 							>
 								{t(translation.GlobalTerm.Cancel)}
 							</button>
 							<button
 								type="button"
 								onClick={handleUpdate}
-								className="rounded-[16px] border border-transparent bg-accent px-5 py-2.5 text-sm font-semibold text-bg transition-[background-color] duration-150 hover:bg-accentHover"
+								className="rounded-2xl border border-transparent bg-accent px-5 py-2.5 text-sm font-semibold text-bg transition-[background-color] duration-150 hover:bg-accentHover"
 							>
 								{t(translation.GlobalTerm.Update)}
 							</button>
@@ -245,7 +245,7 @@ export function UpdateToolModal({
 										}
 									: onClose
 							}
-							className="rounded-[16px] border border-transparent bg-accent px-5 py-2.5 text-sm font-semibold text-bg transition-[background-color] duration-150 hover:bg-accentHover"
+							className="rounded-2xl border border-transparent bg-accent px-5 py-2.5 text-sm font-semibold text-bg transition-[background-color] duration-150 hover:bg-accentHover"
 						>
 							{t(translation.GlobalTerm.Done)}
 						</button>

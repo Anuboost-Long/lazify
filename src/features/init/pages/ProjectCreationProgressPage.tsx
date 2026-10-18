@@ -72,7 +72,7 @@ export function ProjectCreationProgressPage({
 				<span className="text-xs font-medium text-text">{t(translation.Console.CreationStep)}</span>
 			</PageCrumb>
 
-			<section className="relative overflow-hidden rounded-[30px] border border-border bg-soft px-6 py-5 shadow-panel">
+			<section className="relative overflow-hidden rounded-shell border border-border bg-soft px-6 py-5 shadow-panel">
 				<div className="absolute inset-y-0 left-0 w-1 bg-accent" />
 				<div className="absolute -right-12 -top-16 h-40 w-40 rotate-12 rounded-[36px] border border-accent/15 bg-accent/4" />
 
@@ -131,7 +131,7 @@ export function ProjectCreationProgressPage({
 			{commandChoicePrompt ? (
 				<section
 					aria-labelledby="command-choice-title"
-					className="rounded-[24px] border border-accent/30 bg-accent/6 p-5 shadow-panel"
+					className="rounded-3xl border border-accent/30 bg-accent/6 p-5 shadow-panel"
 				>
 					<div className="flex items-start gap-3">
 						<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-accent/25 bg-accent/10 text-accent">

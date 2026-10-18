@@ -42,7 +42,7 @@ export function ScanToolbar({
 					type="button"
 					onClick={running ? onStop : onScan}
 					className={clsx(
-						"inline-flex shrink-0 items-center gap-1.5 rounded-[8px] px-3 py-1 text-xs font-semibold transition-colors",
+						"inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1 text-xs font-semibold transition-colors",
 						running
 							? "border border-border text-text hover:border-error/40 hover:text-error"
 							: "bg-accent text-white hover:bg-accentHover",
@@ -68,7 +68,7 @@ export function ScanToolbar({
 					<button
 						type="button"
 						onClick={onFixInPhases}
-						className="shrink-0 rounded-[8px] border border-border px-2.5 py-1 text-xs text-accent transition-colors hover:border-accent/40"
+						className="shrink-0 rounded-lg border border-border px-2.5 py-1 text-xs text-accent transition-colors hover:border-accent/40"
 					>
 						{t(translation.SonarScan.FixInPhases)}
 					</button>

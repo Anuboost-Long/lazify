@@ -48,7 +48,7 @@ function WidgetCell({ cell }: Readonly<{ cell: Cell }>) {
 		<>
 			<span
 				className={clsx(
-					"flex h-9 w-9 shrink-0 items-center justify-center rounded-[11px]",
+					"flex h-9 w-9 shrink-0 items-center justify-center rounded-xl",
 					"bg-accent/10 text-accent",
 				)}
 			>

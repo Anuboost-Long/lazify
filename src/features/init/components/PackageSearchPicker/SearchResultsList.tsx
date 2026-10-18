@@ -29,7 +29,7 @@ export function SearchResultsList({
 	const trimmedQuery = query.trim();
 
 	return (
-		<div className="mt-3 min-h-12 rounded-[20px] border border-dashed border-border bg-bg p-2">
+		<div className="mt-3 min-h-12 rounded-2xl border border-dashed border-border bg-bg p-2">
 			{trimmedQuery.length < 2 ? (
 				<div className="flex min-h-8 items-center px-3 text-sm text-muted">
 					{t(translation.PackageSearch.MinChars)}

@@ -129,7 +129,7 @@ export function CategorySection({
             it fills is the label's rather than a container's. */}
 				<span
 					className={clsx(
-						"flex h-8 w-8 shrink-0 items-center justify-center rounded-[12px]",
+						"flex h-8 w-8 shrink-0 items-center justify-center rounded-xl",
 						"bg-accent/10 text-accent",
 						"transition-colors duration-300 group-hover/section:bg-accent/18",
 					)}

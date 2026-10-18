@@ -135,7 +135,7 @@ export function ImportTemplatePage({
         </span>
       </PageCrumb>
 
-      <section className="relative overflow-hidden rounded-[30px] border border-border bg-soft px-6 py-6 shadow-panel lg:px-8 lg:py-8">
+      <section className="relative overflow-hidden rounded-shell border border-border bg-soft px-6 py-6 shadow-panel lg:px-8 lg:py-8">
         <div className="absolute -right-14 -top-20 h-48 w-48 rotate-12 rounded-[52px] border border-accent/15 bg-accent/4" />
         <div className="relative grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(480px,0.9fr)] xl:items-end">
           <div>
@@ -172,7 +172,7 @@ export function ImportTemplatePage({
             ).map(([number, label, icon], index) => (
               <div key={number} className="contents">
                 {index > 0 ? <div className="h-px bg-border" /> : null}
-                <div className="rounded-[18px] border border-border bg-bg/70 p-3">
+                <div className="rounded-2xl border border-border bg-bg/70 p-3">
                   <div className="flex items-center justify-between gap-2">
                     <PillText tone={index === 0 ? "accent" : "muted"}>
                       {number}
@@ -196,15 +196,15 @@ export function ImportTemplatePage({
         </div>
       </section>
 
-      <section className="relative overflow-hidden rounded-[26px] border border-border bg-soft p-6 shadow-panel">
+      <section className="relative overflow-hidden rounded-3xl border border-border bg-soft p-6 shadow-panel">
         <div className="absolute inset-y-0 left-0 w-1 bg-accent" />
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="min-w-0 flex-1">
             <OverlineText className="tracking-[0.22em]">
               {t(translation.ImportProject.ProjectFolder)}
             </OverlineText>
-            <div className="mt-3 flex min-w-0 items-center gap-3 rounded-[18px] border border-border bg-bg/70 px-4 py-3">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[12px] bg-accent/10 text-accent">
+            <div className="mt-3 flex min-w-0 items-center gap-3 rounded-2xl border border-border bg-bg/70 px-4 py-3">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-accent/10 text-accent">
                 <UiIcon name="folder" className="h-4 w-4" />
               </div>
               <MonoText className="min-w-0 truncate text-text/80">
@@ -229,7 +229,7 @@ export function ImportTemplatePage({
               type="button"
               disabled={busy}
               onClick={() => void handleChooseFolder()}
-              className="inline-flex items-center justify-center gap-2 rounded-[16px] bg-accent px-4 py-2.5 text-sm font-semibold text-white hover:bg-accentHover disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-accent px-4 py-2.5 text-sm font-semibold text-white hover:bg-accentHover disabled:cursor-not-allowed disabled:opacity-60"
             >
               <UiIcon
                 name={busy ? "refresh-circle" : "folder-plus"}
@@ -242,7 +242,7 @@ export function ImportTemplatePage({
                 type="button"
                 disabled={busy}
                 onClick={() => void handleRescan()}
-                className="inline-flex items-center justify-center rounded-[16px] border border-border bg-bg px-4 py-2.5 text-sm font-semibold text-text hover:border-accent disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex items-center justify-center rounded-2xl border border-border bg-bg px-4 py-2.5 text-sm font-semibold text-text hover:border-accent disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {t(translation.GlobalTerm.Rescan)}
               </button>
@@ -251,7 +251,7 @@ export function ImportTemplatePage({
         </div>
 
         {errorMessage ? (
-          <BodyText className="mt-4 rounded-[16px] border border-error/30 bg-error/10 px-4 py-3 text-error">
+          <BodyText className="mt-4 rounded-2xl border border-error/30 bg-error/10 px-4 py-3 text-error">
             {errorMessage}
           </BodyText>
         ) : null}
@@ -274,7 +274,7 @@ export function ImportTemplatePage({
         </>
       ) : (
         <section className="rounded-shell border border-dashed border-border bg-bg/55 px-6 py-12 text-center">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-[22px] border border-accent/20 bg-accent/[0.07] text-accent">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl border border-accent/20 bg-accent/[0.07] text-accent">
             <UiIcon name="folder-plus" className="h-7 w-7" />
           </div>
           <SectionTitle className="mt-5 text-xl">

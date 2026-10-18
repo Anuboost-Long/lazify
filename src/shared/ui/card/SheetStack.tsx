@@ -17,8 +17,8 @@ interface SheetStackProps {
 }
 
 const SIZES = {
-  sm: { root: "h-12 w-12", sheet: "h-10 w-8", chip: "h-6 w-6 rounded-[8px]" },
-  md: { root: "h-16 w-16", sheet: "h-14 w-11", chip: "h-8 w-8 rounded-[10px]" },
+  sm: { root: "h-12 w-12", sheet: "h-10 w-8", chip: "h-6 w-6 rounded-lg" },
+  md: { root: "h-16 w-16", sheet: "h-14 w-11", chip: "h-8 w-8 rounded-xl" },
 } as const;
 
 export function SheetStack({
@@ -34,7 +34,7 @@ export function SheetStack({
       {/* Back sheet — drifts further out on hover. */}
       <div
         className={clsx(
-          "absolute left-1.5 top-0 rotate-[8deg] rounded-[8px] border",
+          "absolute left-1.5 top-0 rotate-[8deg] rounded-lg border",
           "transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:rotate-14",
           scale.sheet,
           active ? "border-accent/40 bg-accent/10" : "border-border bg-bg"
@@ -44,7 +44,7 @@ export function SheetStack({
       {/* Front sheet with a folded corner. */}
       <div
         className={clsx(
-          "absolute left-0 top-1 -rotate-6 overflow-hidden rounded-[8px] border",
+          "absolute left-0 top-1 -rotate-6 overflow-hidden rounded-lg border",
           "transition-transform duration-300 group-hover:rotate-[-10deg]",
           scale.sheet,
           active ? "border-accent/60 bg-accent/[0.14]" : "border-border bg-soft"

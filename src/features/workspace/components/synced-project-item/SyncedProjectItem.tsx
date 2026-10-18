@@ -39,7 +39,7 @@ export function SyncedProjectItem({
 	return (
 		<article
 			className={clsx(
-				"group relative cursor-pointer overflow-hidden rounded-[24px] border bg-bg/80 p-5",
+				"group relative cursor-pointer overflow-hidden rounded-3xl border bg-bg/80 p-5",
 				"transition-[transform,box-shadow,border-color] duration-300",
 				"hover:-translate-y-1.5 hover:rotate-[0.4deg] hover:shadow-panel active:scale-[0.99]",
 				active ? "border-accent shadow-panel" : "border-border",
@@ -54,7 +54,7 @@ export function SyncedProjectItem({
 				type="button"
 				onClick={() => onOpen(project.projectPath)}
 				aria-label={`Open ${project.projectName}`}
-				className="absolute inset-0 z-10 rounded-[24px] focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent/60"
+				className="absolute inset-0 z-10 rounded-3xl focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent/60"
 			/>
 
 			<div className="relative flex items-start justify-between gap-3">
@@ -118,7 +118,7 @@ export function SyncedProjectItem({
 						e.stopPropagation();
 						onResync(project.projectPath);
 					}}
-					className="relative z-20 inline-flex items-center justify-center gap-2 rounded-[16px] border border-border bg-soft px-4 py-2 text-sm font-semibold text-text hover:border-accent disabled:cursor-not-allowed disabled:opacity-60"
+					className="relative z-20 inline-flex items-center justify-center gap-2 rounded-2xl border border-border bg-soft px-4 py-2 text-sm font-semibold text-text hover:border-accent disabled:cursor-not-allowed disabled:opacity-60"
 				>
 					<UiIcon name="refresh-circle" className={syncing ? "h-4 w-4 animate-spin" : "h-4 w-4"} />
 					Resync

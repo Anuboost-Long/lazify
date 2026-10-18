@@ -152,7 +152,7 @@ export function PackageSearchPicker({
 	};
 
 	return (
-		<div className="rounded-[30px] border border-border bg-soft p-6 shadow-panel">
+		<div className="rounded-shell border border-border bg-soft p-6 shadow-panel">
 			<div className="flex flex-wrap items-start justify-between gap-3">
 				<div>
 					<OverlineText className="text-accent">{t(translation.PackageSearch.NpmPackages)}</OverlineText>

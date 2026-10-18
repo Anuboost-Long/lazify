@@ -117,7 +117,7 @@ export function ScriptsPane({ projectPath }: Readonly<ScriptsPaneProps>) {
 
 				{/* ── Empty ── */}
 				{!loading && !loadError && scriptEntries.length === 0 && (
-					<div className="flex flex-col items-center justify-center rounded-[20px] border border-dashed border-border bg-soft/30 py-12 text-center">
+					<div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-soft/30 py-12 text-center">
 						<div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-border bg-soft text-muted">
 							<UiIcon name="terminal" className="h-6 w-6" />
 						</div>
@@ -146,7 +146,7 @@ export function ScriptsPane({ projectPath }: Readonly<ScriptsPaneProps>) {
 				)}
 
 				{/* ── Terminal panel — always visible, tabs separate from script runs ── */}
-				<div className="overflow-hidden rounded-[20px] border border-black/6 dark:border-white/4">
+				<div className="overflow-hidden rounded-2xl border border-black/6 dark:border-white/4">
 					<ScriptTerminalTabs
 						tabs={tabs}
 						activeTabId={activeTabId}

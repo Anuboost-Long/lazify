@@ -21,7 +21,7 @@ export function SearchResultCard({ pkg, selected, busy, onAdd }: Readonly<Search
 			onClick={() => onAdd(pkg)}
 			disabled={busy || selected}
 			className={clsx(
-				"group w-full rounded-[18px] border px-4 py-3 text-left",
+				"group w-full rounded-2xl border px-4 py-3 text-left",
 				"transition-[transform,box-shadow,border-color] duration-300",
 				"enabled:hover:-translate-y-1 enabled:hover:shadow-panel enabled:active:scale-[0.99]",
 				selected

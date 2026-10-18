@@ -124,7 +124,7 @@ export function NodeVersionModal({ open, onClose, onSelect }: Readonly<NodeVersi
 					{/* nvm not installed */}
 					{state === "nvm-missing" && (
 						<div className="space-y-3">
-							<div className="rounded-[20px] border border-warning/20 bg-warning/5 px-4 py-4">
+							<div className="rounded-2xl border border-warning/20 bg-warning/5 px-4 py-4">
 								<div className="flex items-start gap-3">
 									<div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-warning/25 bg-warning/10 text-warning">
 										<UiIcon name="warning-triangle" className="h-4 w-4" />
@@ -144,7 +144,7 @@ export function NodeVersionModal({ open, onClose, onSelect }: Readonly<NodeVersi
 								type="button"
 								onClick={handleInstall}
 								className={clsx(
-									"group relative w-full overflow-hidden rounded-[20px] border border-accent/30 bg-accent/8 px-4 py-4",
+									"group relative w-full overflow-hidden rounded-2xl border border-accent/30 bg-accent/8 px-4 py-4",
 									"text-left transition-colors duration-150 hover:border-accent/50 hover:bg-accent/12",
 								)}
 							>
@@ -173,7 +173,7 @@ export function NodeVersionModal({ open, onClose, onSelect }: Readonly<NodeVersi
 					{/* nvm found but no versions listed */}
 					{state === "nvm-empty" && (
 						<div className="space-y-3">
-							<div className="rounded-[20px] border border-border/60 bg-bg px-4 py-4">
+							<div className="rounded-2xl border border-border/60 bg-bg px-4 py-4">
 								<div className="flex items-start gap-3">
 									<div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-warning/25 bg-warning/10 text-warning">
 										<UiIcon name="warning-triangle" className="h-4 w-4" />
@@ -191,7 +191,7 @@ export function NodeVersionModal({ open, onClose, onSelect }: Readonly<NodeVersi
 							<button
 								type="button"
 								onClick={load}
-								className="w-full rounded-[20px] border border-border bg-bg px-4 py-3 text-sm font-semibold text-muted transition-colors duration-150 hover:border-accent/30 hover:text-text"
+								className="w-full rounded-2xl border border-border bg-bg px-4 py-3 text-sm font-semibold text-muted transition-colors duration-150 hover:border-accent/30 hover:text-text"
 							>
 								{t(translation.GlobalTerm.Retry)}
 							</button>
@@ -220,7 +220,7 @@ export function NodeVersionModal({ open, onClose, onSelect }: Readonly<NodeVersi
 						<div className="space-y-3">
 							<div
 								className={clsx(
-									"rounded-[20px] border px-4 py-4",
+									"rounded-2xl border px-4 py-4",
 									installSuccess ? "border-success/20 bg-success/5" : "border-error/20 bg-error/5",
 								)}
 							>
@@ -253,7 +253,7 @@ export function NodeVersionModal({ open, onClose, onSelect }: Readonly<NodeVersi
 							</div>
 
 							{installOutput && (
-								<CodeField className="max-h-36 overflow-y-auto rounded-[16px] border border-border bg-bg px-4 py-3 font-mono text-[10px] leading-5 text-muted/70 whitespace-pre-wrap">
+								<CodeField className="max-h-36 overflow-y-auto rounded-2xl border border-border bg-bg px-4 py-3 font-mono text-[10px] leading-5 text-muted/70 whitespace-pre-wrap">
 									{installOutput}
 								</CodeField>
 							)}
@@ -262,7 +262,7 @@ export function NodeVersionModal({ open, onClose, onSelect }: Readonly<NodeVersi
 								<button
 									type="button"
 									onClick={() => globalThis.lazify.relaunchApp()}
-									className="relative w-full overflow-hidden rounded-[20px] border border-accent/30 bg-accent/10 px-4 py-3 text-sm font-semibold text-accent transition-colors duration-150 hover:border-accent/50 hover:bg-accent/15"
+									className="relative w-full overflow-hidden rounded-2xl border border-accent/30 bg-accent/10 px-4 py-3 text-sm font-semibold text-accent transition-colors duration-150 hover:border-accent/50 hover:bg-accent/15"
 								>
 									<div className="pointer-events-none absolute inset-x-0 top-0 h-px" style={ACCENT_LINE} />
 									{t(translation.NodeVersionModal.RestartApp)}
@@ -280,7 +280,7 @@ export function NodeVersionModal({ open, onClose, onSelect }: Readonly<NodeVersi
 									type="button"
 									onClick={() => setSelected(ver.version)}
 									className={clsx(
-										"group relative w-full overflow-hidden rounded-[18px] border px-4 py-3.5 text-left",
+										"group relative w-full overflow-hidden rounded-2xl border px-4 py-3.5 text-left",
 										"animate-fadeIn opacity-0",
 										"transition-[border-color,background-color] duration-150",
 										selected === ver.version
@@ -347,7 +347,7 @@ export function NodeVersionModal({ open, onClose, onSelect }: Readonly<NodeVersi
 								type="button"
 								onClick={onClose}
 								disabled={!!applying}
-								className="rounded-[16px] border border-border bg-bg px-4 py-2.5 text-sm font-semibold text-muted transition-colors duration-150 hover:border-accent/30 hover:text-text disabled:opacity-50"
+								className="rounded-2xl border border-border bg-bg px-4 py-2.5 text-sm font-semibold text-muted transition-colors duration-150 hover:border-accent/30 hover:text-text disabled:opacity-50"
 							>
 								{t(translation.GlobalTerm.Cancel)}
 							</button>
@@ -357,7 +357,7 @@ export function NodeVersionModal({ open, onClose, onSelect }: Readonly<NodeVersi
 									onClick={() => void handleUseSession()}
 									disabled={!selected || !!applying}
 									className={clsx(
-										"flex-1 rounded-[16px] border border-transparent bg-accent px-4 py-2.5",
+										"flex-1 rounded-2xl border border-transparent bg-accent px-4 py-2.5",
 										"text-sm font-semibold text-bg",
 										"transition-[background-color,opacity] duration-150 hover:bg-accentHover",
 										"disabled:cursor-not-allowed disabled:opacity-50",
@@ -381,7 +381,7 @@ export function NodeVersionModal({ open, onClose, onSelect }: Readonly<NodeVersi
 									onClick={() => void handleSetDefault()}
 									disabled={!selected || !!applying}
 									className={clsx(
-										"relative flex-1 overflow-hidden rounded-[16px] border border-accent/25 bg-transparent px-4 py-2.5",
+										"relative flex-1 overflow-hidden rounded-2xl border border-accent/25 bg-transparent px-4 py-2.5",
 										"text-sm font-semibold text-accent/80",
 										"transition-colors duration-150 hover:border-accent/50 hover:bg-accent/10 hover:text-accent",
 										"disabled:cursor-not-allowed disabled:opacity-50",

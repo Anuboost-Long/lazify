@@ -211,7 +211,7 @@ export function GitInfoModal({ open, onClose, gitStatus, loading }: Readonly<Git
 
 	return (
 		<BaseModal open={open} onClose={onClose} contentClassName="p-6 md:p-8">
-			<div className="flex max-h-[82vh] w-[min(56rem,calc(100vw-4rem))] flex-col overflow-hidden rounded-[20px] border border-border bg-soft shadow-panel">
+			<div className="flex max-h-[82vh] w-[min(56rem,calc(100vw-4rem))] flex-col overflow-hidden rounded-2xl border border-border bg-soft shadow-panel">
 				{/* Header */}
 				<div className="flex shrink-0 items-center gap-3 border-b border-border px-6 py-4">
 					<div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border bg-bg text-accent">

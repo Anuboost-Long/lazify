@@ -51,7 +51,7 @@ export function DiagnosticCard({
 			onPointerEnter={onPointerEnter}
 			onPointerLeave={onPointerLeave}
 			className={clsx(
-				"fixed z-60 w-80 -translate-y-full rounded-[16px] border border-border",
+				"fixed z-60 w-80 -translate-y-full rounded-2xl border border-border",
 				"bg-soft p-3 shadow-panel",
 			)}
 			style={{ left, top: Math.max(VIEWPORT_MARGIN, y - POINTER_GAP) }}

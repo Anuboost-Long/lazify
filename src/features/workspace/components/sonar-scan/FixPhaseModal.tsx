@@ -143,7 +143,7 @@ function PhaseCard({
 					type="button"
 					disabled={busy || phases.length === 0}
 					onClick={() => void create()}
-					className="inline-flex items-center gap-1.5 rounded-[8px] bg-accent px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-accentHover disabled:cursor-not-allowed disabled:opacity-60"
+					className="inline-flex items-center gap-1.5 rounded-lg bg-accent px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-accentHover disabled:cursor-not-allowed disabled:opacity-60"
 				>
 					<UiIcon
 						name={busy ? "refresh-circle" : "check-circle"}

@@ -49,7 +49,7 @@ export function EditorPaneShell({
 		<div
 			className={clsx(
 				"flex flex-col overflow-hidden bg-bg",
-				flush ? "h-full" : "h-176 rounded-[26px] border border-border shadow-panel",
+				flush ? "h-full" : "h-176 rounded-3xl border border-border shadow-panel",
 			)}
 		>
 			<div
@@ -130,7 +130,7 @@ export function EditorPaneNotice({
 		<div
 			className={clsx(
 				"flex h-full items-center justify-center p-8 text-center",
-				!flush && "rounded-[20px] border border-dashed",
+				!flush && "rounded-2xl border border-dashed",
 				isError
 					? clsx("bg-error/5", !flush && "border-error/25")
 					: clsx(!flush && "border-border bg-soft/30"),

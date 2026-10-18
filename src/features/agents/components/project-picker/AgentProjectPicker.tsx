@@ -115,7 +115,7 @@ export function AgentProjectPicker({
   return (
     <aside
       className={clsx(
-        "flex min-h-0 w-full flex-col rounded-[24px] border border-border bg-soft",
+        "flex min-h-0 w-full flex-col rounded-3xl border border-border bg-soft",
         "transition-[width] duration-300 lg:shrink-0",
         collapsed ? "lg:w-[196px]" : "lg:w-[300px]"
       )}

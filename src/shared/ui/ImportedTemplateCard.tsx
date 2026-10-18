@@ -33,7 +33,7 @@ export function ImportedTemplateCard({
   return (
     <article
       className={clsx(
-        "group relative overflow-hidden rounded-[26px] border text-left",
+        "group relative overflow-hidden rounded-3xl border text-left",
         "transition-[transform,box-shadow,border-color] duration-300 ease-out hover:-translate-y-1",
         active
           ? "border-accent bg-accent-gradient-180 shadow-panel"
@@ -52,7 +52,7 @@ export function ImportedTemplateCard({
         <div className={clsx("flex items-start gap-4", onDelete && "pr-9")}>
           <div
             className={clsx(
-              "flex h-14 w-14 shrink-0 items-center justify-center rounded-[18px] border shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]",
+              "flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]",
               presentation.frameClassName,
               active && presentation.activeGlow
             )}
@@ -117,7 +117,7 @@ export function ImportedTemplateCard({
             onClick={(event) => onDelete(event, template.id, template.name)}
             aria-label={`${t(translation.TemplateCard.Delete)} ${template.name}`}
             className={clsx(
-              "absolute right-4 top-4 z-10 flex h-8 w-8 items-center justify-center rounded-[11px] border",
+              "absolute right-4 top-4 z-10 flex h-8 w-8 items-center justify-center rounded-xl border",
               "transition-[color,background-color,border-color,opacity] duration-150",
               isDeleting
                 ? "border-error/30 bg-error/5 opacity-60"

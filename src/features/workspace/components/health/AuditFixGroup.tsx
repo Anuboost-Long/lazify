@@ -18,7 +18,7 @@ export function AuditFixGroup({
 	);
 
 	return (
-		<div className="rounded-[14px] border border-border bg-soft/40 p-2.5">
+		<div className="rounded-xl border border-border bg-soft/40 p-2.5">
 			<div className="flex flex-wrap items-center gap-2">
 				<MonoText className="min-w-0 flex-1 truncate text-[12px] font-semibold text-text">
 					{target}

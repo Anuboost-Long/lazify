@@ -156,7 +156,7 @@ export function PackageVersionPane({ projectPath }: Readonly<PackageVersionPaneP
 			<div className="p-4">
 				{/* Idle — no scan yet */}
 				{!report && !scanning && (
-					<div className="flex items-center justify-center rounded-[20px] border border-dashed border-border bg-soft/30 py-12 text-center">
+					<div className="flex items-center justify-center rounded-2xl border border-dashed border-border bg-soft/30 py-12 text-center">
 						<div>
 							<CardTitle>{t(translation.PackageDoctor.CheckCompat)}</CardTitle>
 							<BodyText className="mt-2 text-muted">{t(translation.PackageDoctor.EmptyDesc)}</BodyText>
@@ -203,7 +203,7 @@ export function PackageVersionPane({ projectPath }: Readonly<PackageVersionPaneP
 
 						{/* All good */}
 						{allGood && (
-							<div className="flex items-center justify-center rounded-[20px] border border-dashed border-accent/25 bg-accent/5 py-8 text-center">
+							<div className="flex items-center justify-center rounded-2xl border border-dashed border-accent/25 bg-accent/5 py-8 text-center">
 								<div>
 									<CardTitle className="text-accent">{t(translation.PackageDoctor.AllCompatible)}</CardTitle>
 									<BodyText className="mt-1 text-muted">{t(translation.PackageDoctor.NoChanges)}</BodyText>
@@ -217,7 +217,7 @@ export function PackageVersionPane({ projectPath }: Readonly<PackageVersionPaneP
 								{report.packages.map((pkg) => (
 									<div
 										key={pkg.name}
-										className={clsx("rounded-[18px] border px-4 py-3", rowTone(pkg.action))}
+										className={clsx("rounded-2xl border px-4 py-3", rowTone(pkg.action))}
 									>
 										<div className="flex items-start justify-between gap-3">
 											<div className="min-w-0 flex-1">
@@ -257,7 +257,7 @@ export function PackageVersionPane({ projectPath }: Readonly<PackageVersionPaneP
 
 						{/* Unresolved */}
 						{report.unresolved.length > 0 && (
-							<div className="rounded-[18px] border border-border bg-soft/30 px-4 py-3">
+							<div className="rounded-2xl border border-border bg-soft/30 px-4 py-3">
 								<PillText className="text-muted">
 									{t(translation.PackageDoctor.Unresolved, { count: report.unresolved.length })}
 								</PillText>
@@ -277,7 +277,7 @@ export function PackageVersionPane({ projectPath }: Readonly<PackageVersionPaneP
 
 						{/* Install plan preview */}
 						{report.installPlan.length > 0 && (
-							<div className="rounded-[18px] border border-warning/20 bg-warning/5 px-4 py-3">
+							<div className="rounded-2xl border border-warning/20 bg-warning/5 px-4 py-3">
 								<PillText className="text-warning">
 									{t(translation.PackageDoctor.InstallPlan, { count: report.installPlan.length })}
 								</PillText>

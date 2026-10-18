@@ -167,7 +167,7 @@ export function SessionsPane() {
 	const hasActiveSessions = sessions.length > 0;
 
 	return (
-		<div className="overflow-hidden rounded-[26px] border border-border bg-bg shadow-panel">
+		<div className="overflow-hidden rounded-3xl border border-border bg-bg shadow-panel">
 			{/* ── Header ── */}
 			<div className="flex items-center gap-2 border-b border-border bg-soft px-5 py-3.5">
 				<UiIcon name="activity" className="h-4 w-4 text-muted" />
@@ -208,7 +208,7 @@ export function SessionsPane() {
 				{!firstLoad && (
 					<div className={clsx("transition-opacity duration-200", refreshing && "opacity-50")}>
 						{!hasActiveSessions && (
-							<div className="flex flex-col items-center justify-center rounded-[20px] border border-dashed border-border bg-soft/30 py-12 text-center">
+							<div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-soft/30 py-12 text-center">
 								<div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-border bg-soft text-muted">
 									<UiIcon name="terminal" className="h-6 w-6" />
 								</div>

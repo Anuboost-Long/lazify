@@ -63,7 +63,7 @@ export function WorkflowForm({
 
   return (
     <div className="flex flex-col gap-5 animate-fadeIn opacity-0">
-      <section className="rounded-[30px] border border-border bg-soft p-6 shadow-panel">
+      <section className="rounded-shell border border-border bg-soft p-6 shadow-panel">
         <div>
           {/* Header bar: back link on the left, stack pill on the right. */}
           <div className="flex flex-wrap items-center gap-4">
@@ -110,7 +110,7 @@ export function WorkflowForm({
                 {t(translation.WorkflowForm.WorkspaceDirectory)}
               </OverlineText>
               <div className="flex flex-col gap-3 md:flex-row">
-                <div className="flex min-h-[52px] flex-1 items-center rounded-[20px] border border-border bg-bg px-4 py-3 text-sm text-text">
+                <div className="flex min-h-[52px] flex-1 items-center rounded-2xl border border-border bg-bg px-4 py-3 text-sm text-text">
                   <BodyText
                     as="span"
                     className={projectDirectory ? "truncate" : "text-muted"}
@@ -125,7 +125,7 @@ export function WorkflowForm({
                   onClick={onBrowseDirectory}
                   className={clsx(
                     "group flex items-center justify-center gap-2",
-                    "rounded-[20px] border border-border bg-bg px-4 py-3",
+                    "rounded-2xl border border-border bg-bg px-4 py-3",
                     "text-sm font-semibold text-muted",
                     "hover:border-accent hover:text-text",
                     "disabled:cursor-not-allowed disabled:opacity-60",
@@ -164,7 +164,7 @@ export function WorkflowForm({
         />
       ) : null}
 
-      <div className="rounded-[30px] border border-border bg-soft p-6 shadow-panel">
+      <div className="rounded-shell border border-border bg-soft p-6 shadow-panel">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
           <div className="flex items-start gap-3">
             <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-border bg-soft text-accent">
@@ -190,7 +190,7 @@ export function WorkflowForm({
             disabled={!canContinue}
             onClick={onContinue}
             className={clsx(
-              "inline-flex self-end items-center justify-center gap-2 rounded-[18px] border border-transparent bg-accent px-5 py-3",
+              "inline-flex self-end items-center justify-center gap-2 rounded-2xl border border-transparent bg-accent px-5 py-3",
               "text-sm font-semibold text-white shadow-glow hover:-translate-y-0.5 hover:bg-accentHover",
               "disabled:cursor-not-allowed disabled:opacity-60",
             )}

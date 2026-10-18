@@ -45,7 +45,7 @@ export function LegalDocumentView({ doc }: Readonly<LegalDocumentViewProps>) {
 		<div className="mx-auto grid w-full max-w-5xl gap-8 lg:grid-cols-[minmax(0,1fr)_13rem]">
 			<article className="min-w-0">
 				{/* Hero header */}
-				<header className="rounded-[30px] border border-border bg-soft p-8 shadow-panel">
+				<header className="rounded-shell border border-border bg-soft p-8 shadow-panel">
 					<div className="flex items-center gap-3">
 						<span className="flex h-11 w-11 items-center justify-center rounded-2xl border border-border bg-bg text-accent">
 							<UiIcon name={doc.icon} className="h-5 w-5" />
@@ -66,7 +66,7 @@ export function LegalDocumentView({ doc }: Readonly<LegalDocumentViewProps>) {
 				</header>
 
 				{/* Body */}
-				<div className="mt-6 rounded-[30px] border border-border bg-soft p-8 shadow-panel">
+				<div className="mt-6 rounded-shell border border-border bg-soft p-8 shadow-panel">
 					{sections.map((section, index) => (
 						<section
 							key={section.id}

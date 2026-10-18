@@ -24,7 +24,7 @@ export function DesktopIcon({ label, icon, active, onOpen }: Readonly<DesktopIco
 		>
 			<span
 				className={clsx(
-					"flex h-12 w-12 items-center justify-center rounded-[14px] border transition-colors",
+					"flex h-12 w-12 items-center justify-center rounded-xl border transition-colors",
 					active
 						? "border-accent/40 bg-accent/10 text-accent"
 						: "border-border bg-soft text-muted group-hover:border-accent/30 group-hover:text-text",

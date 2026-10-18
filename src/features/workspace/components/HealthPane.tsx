@@ -310,7 +310,7 @@ export function HealthPane({ projectPath }: Readonly<HealthPaneProps>) {
 				{/* Overall health score strip */}
 				<div
 					className={clsx(
-						"flex items-center gap-2 rounded-[14px] border px-4 py-2.5",
+						"flex items-center gap-2 rounded-xl border px-4 py-2.5",
 						SCORE_STYLES[score],
 					)}
 				>
@@ -325,7 +325,7 @@ export function HealthPane({ projectPath }: Readonly<HealthPaneProps>) {
             nothing is hidden by switching — only the detail is. */}
 				<TabBar tabs={tabs} value={activeTab} onChange={setActiveTab} />
 
-				<TabPanel activeKey={activeTab} className="rounded-[18px] border border-border bg-soft/30 p-4">
+				<TabPanel activeKey={activeTab} className="rounded-2xl border border-border bg-soft/30 p-4">
 					{renderPanel()}
 				</TabPanel>
 			</div>

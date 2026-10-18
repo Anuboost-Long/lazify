@@ -71,7 +71,7 @@ export function CodeContextMenu({
       ref={rootRef}
       role="menu"
       className={clsx(
-        "fixed z-60 min-w-52 rounded-[16px] border border-border",
+        "fixed z-60 min-w-52 rounded-2xl border border-border",
         "bg-soft p-2 shadow-panel"
       )}
       style={{ left: Math.max(VIEWPORT_MARGIN, left), top: Math.max(VIEWPORT_MARGIN, top) }}

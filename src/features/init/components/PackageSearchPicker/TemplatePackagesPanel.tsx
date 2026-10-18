@@ -21,7 +21,7 @@ export function TemplatePackagesPanel({
 	const { t } = useTranslation();
 
 	return (
-		<div className="rounded-[20px] border border-border bg-bg p-4">
+		<div className="rounded-2xl border border-border bg-bg p-4">
 			<div className="flex flex-wrap items-start justify-between gap-3">
 				<div>
 					<OverlineText className="text-accent">
@@ -35,14 +35,14 @@ export function TemplatePackagesPanel({
 			</div>
 
 			{loading ? (
-				<div className="mt-3 flex min-h-8 items-center gap-2 rounded-[16px] border border-dashed border-border px-3 py-3 text-sm text-muted">
+				<div className="mt-3 flex min-h-8 items-center gap-2 rounded-2xl border border-dashed border-border px-3 py-3 text-sm text-muted">
 					<UiIcon name="refresh-circle" className="h-4 w-4 animate-spin text-accent" />
 					{t(translation.PackageSearch.QueryingNpm)}
 				</div>
 			) : null}
 
 			{!loading && error ? (
-				<div className="mt-3 rounded-[16px] border border-dashed border-border px-3 py-3 text-sm text-error">
+				<div className="mt-3 rounded-2xl border border-dashed border-border px-3 py-3 text-sm text-error">
 					{error}
 				</div>
 			) : null}
@@ -56,7 +56,7 @@ export function TemplatePackagesPanel({
 			) : null}
 
 			{!loading && !error && packages.length === 0 ? (
-				<div className="mt-3 rounded-[16px] border border-dashed border-border px-3 py-3 text-sm text-muted">
+				<div className="mt-3 rounded-2xl border border-dashed border-border px-3 py-3 text-sm text-muted">
 					{t(translation.PackageSearch.NoTemplateEntries)}
 				</div>
 			) : null}
