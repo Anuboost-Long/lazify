@@ -2,9 +2,8 @@ import { atom, useAtom } from "jotai";
 
 const MINUTE_MS = 60 * 1000;
 const DEFAULT_MS = 25 * MINUTE_MS;
-const STEP_MS = 5 * MINUTE_MS;
-const MIN_MS = 5 * MINUTE_MS;
-const MAX_MS = 120 * MINUTE_MS;
+export const MIN_FOCUS_MINUTES = 1;
+export const MAX_FOCUS_MINUTES = 180;
 const STORAGE_KEY = "lazify-desktop-focus-timer";
 
 interface FocusTimer {
@@ -56,13 +55,14 @@ export function useFocusTimer(now: Date) {
 		done: remainingMs === 0,
 		/** Not started, or reset: the length can still be changed. */
 		idle: !running && remainingMs === durationMs,
-		canShorten: durationMs > MIN_MS,
-		canLengthen: durationMs < MAX_MS,
+		minutes: Math.round(durationMs / MINUTE_MS),
 		start: () => setTimer({ ...timer, endsAt: Date.now() + timer.remainingMs }),
 		pause: () => setTimer({ ...timer, endsAt: null, remainingMs }),
 		reset: () => setTimer(fresh(durationMs)),
-		adjust: (direction: 1 | -1) =>
-			setTimer(fresh(Math.min(MAX_MS, Math.max(MIN_MS, durationMs + direction * STEP_MS)))),
+		setMinutes: (minutes: number) =>
+			setTimer(
+				fresh(Math.min(MAX_FOCUS_MINUTES, Math.max(MIN_FOCUS_MINUTES, Math.round(minutes))) * MINUTE_MS),
+			),
 	};
 }
 

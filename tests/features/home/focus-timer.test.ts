@@ -19,34 +19,29 @@ function renderTimer() {
 beforeEach(() => localStorage.clear());
 
 describe("focus timer length", () => {
-	it("starts at 25 minutes and changes in 5-minute steps while idle", () => {
+	it("starts at 25 minutes and takes any whole number of minutes while idle", () => {
 		const { result } = renderTimer();
 		expect(formatCountdown(result.current.remainingMs)).toBe("25:00");
 		expect(result.current.idle).toBe(true);
 
-		act(() => result.current.adjust(1));
-		expect(formatCountdown(result.current.remainingMs)).toBe("30:00");
-
-		act(() => result.current.adjust(-1));
-		act(() => result.current.adjust(-1));
-		expect(formatCountdown(result.current.remainingMs)).toBe("20:00");
+		act(() => result.current.setMinutes(42));
+		expect(formatCountdown(result.current.remainingMs)).toBe("42:00");
+		expect(result.current.minutes).toBe(42);
 	});
 
-	it("stays between 5 minutes and 2 hours", () => {
+	it("stays between 1 minute and 3 hours", () => {
 		const { result } = renderTimer();
 
-		for (let step = 0; step < 10; step++) act(() => result.current.adjust(-1));
-		expect(formatCountdown(result.current.remainingMs)).toBe("5:00");
-		expect(result.current.canShorten).toBe(false);
+		act(() => result.current.setMinutes(0));
+		expect(result.current.minutes).toBe(1);
 
-		for (let step = 0; step < 40; step++) act(() => result.current.adjust(1));
-		expect(formatCountdown(result.current.remainingMs)).toBe("120:00");
-		expect(result.current.canLengthen).toBe(false);
+		act(() => result.current.setMinutes(500));
+		expect(result.current.minutes).toBe(180);
 	});
 
 	it("is no longer idle once started, and reset returns to the chosen length", () => {
 		const { result } = renderTimer();
-		act(() => result.current.adjust(1));
+		act(() => result.current.setMinutes(30));
 
 		act(() => result.current.start());
 		expect(result.current.idle).toBe(false);

@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 
 import { translation } from "@/i18n/translation";
@@ -9,6 +9,7 @@ import { IconButton } from "@/shared/ui/IconButton";
 import UiIcon, { type UiIconName } from "@/shared/ui/icons/UiIcon";
 
 import { useNow } from "../clock/use-now";
+import { FocusLengthPicker } from "./FocusLengthPicker";
 import type { DesktopWidgetId } from "../personalize/use-desktop-personalization";
 import { useDesktopNote } from "./use-desktop-note";
 import { formatCountdown, useFocusTimer } from "./use-focus-timer";
@@ -141,25 +142,29 @@ function gitCell(
 function TimerControls({ timer }: Readonly<{ timer: ReturnType<typeof useFocusTimer> }>) {
 	const { t } = useTranslation();
 	const toggleLabel = t(timer.running ? translation.Home.TimerPause : translation.Home.TimerStart);
+	const [pickerAnchor, setPickerAnchor] = useState<HTMLElement | null>(null);
 
 	if (timer.idle) {
 		return (
 			<span className="flex shrink-0 items-center gap-0.5">
 				<IconButton
-					icon="minus"
-					title={t(translation.Home.TimerShorter)}
-					aria-label={t(translation.Home.TimerShorter)}
-					disabled={!timer.canShorten}
-					onClick={() => timer.adjust(-1)}
-				/>
-				<IconButton
-					icon="plus"
-					title={t(translation.Home.TimerLonger)}
-					aria-label={t(translation.Home.TimerLonger)}
-					disabled={!timer.canLengthen}
-					onClick={() => timer.adjust(1)}
+					icon="edit"
+					title={t(translation.Home.TimerSetLength)}
+					aria-label={t(translation.Home.TimerSetLength)}
+					aria-expanded={pickerAnchor !== null}
+					onClick={(event) =>
+						setPickerAnchor(pickerAnchor ? null : event.currentTarget)
+					}
 				/>
 				<IconButton icon="play" title={toggleLabel} aria-label={toggleLabel} onClick={timer.start} />
+				{pickerAnchor ? (
+					<FocusLengthPicker
+						minutes={timer.minutes}
+						anchor={pickerAnchor}
+						onChange={timer.setMinutes}
+						onClose={() => setPickerAnchor(null)}
+					/>
+				) : null}
 			</span>
 		);
 	}
