@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 
@@ -95,6 +95,26 @@ export function AppShell() {
 	useEffect(() => {
 		if (rememberRoute) remember(location.pathname);
 	}, [location.pathname, rememberRoute, remember]);
+
+	// Each page fades in, as in Mneme. Only the pathname counts, so a query change
+	// such as opening another file in the workbench does not blink the page.
+	const content = useRef<HTMLDivElement>(null);
+	const previousPath = useRef(location.pathname);
+	useLayoutEffect(() => {
+		const from = previousPath.current;
+		previousPath.current = location.pathname;
+		if (
+			from === location.pathname ||
+			reduceMotion ||
+			globalThis.matchMedia("(prefers-reduced-motion: reduce)").matches
+		)
+			return;
+		const animation = content.current?.animate([{ opacity: 0 }, { opacity: 1 }], {
+			duration: 160,
+			easing: "ease-out",
+		});
+		return () => animation?.cancel();
+	}, [location.pathname, reduceMotion]);
 
 	// The pages this OS can offer. Computed here rather than beside the list so
 	// it is not a module-load-time read of the preload bridge — a constant that
@@ -232,6 +252,7 @@ export function AppShell() {
 
 					<PageChromeContext.Provider value={chromeSlots}>
 						<div
+							ref={content}
 							className={clsx(
 								"relative min-h-0 flex-1",
 								fullBleed ? "overflow-hidden" : "overflow-y-auto",
