@@ -2,6 +2,8 @@ import { appRoute, getWorkspaceProjectRoute } from "@/app/app-routes";
 import { SessionsPane } from "@/features/workspace/components/SessionsPane";
 import { SyncedProjectItem } from "@/features/workspace/components/synced-project-item/SyncedProjectItem";
 import { translation } from "@/i18n/translation";
+import { AlreadySyncedError } from "@/shared/hooks/lazify-store/use-workspace-projects";
+import { sortByRecentlyOpened } from "@/shared/hooks/use-recent-projects";
 import type { SyncedWorkspaceProject } from "@/shared/types/lazify";
 import {
   BodyText,
@@ -21,6 +23,8 @@ type ProjectSortKey = "recent" | "name";
 
 interface WorkspacePageProps {
   syncedProjects: SyncedWorkspaceProject[];
+  recentProjectPaths: string[];
+  activeProjectPath: string | null;
   onSyncProject: (
     projectPath?: string | null,
   ) => Promise<SyncedWorkspaceProject | null>;
@@ -29,6 +33,8 @@ interface WorkspacePageProps {
 
 export function WorkspacePage({
   syncedProjects,
+  recentProjectPaths,
+  activeProjectPath,
   onSyncProject,
   onRemoveProject,
 }: Readonly<WorkspacePageProps>) {
@@ -37,7 +43,7 @@ export function WorkspacePage({
   const [syncingProjectPath, setSyncingProjectPath] = useState<string | null>(
     null,
   );
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [syncError, setSyncError] = useState<{ title: string; message: string } | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortKey, setSortKey] = useState<ProjectSortKey>("recent");
   const hasSyncedProjects = syncedProjects.length > 0;
@@ -57,25 +63,28 @@ export function WorkspacePage({
         )
       : syncedProjects;
 
-    return [...matched].sort((a, b) =>
-      sortKey === "name"
-        ? a.projectName.localeCompare(b.projectName)
-        : new Date(b.lastSyncedAt).getTime() -
-          new Date(a.lastSyncedAt).getTime(),
-    );
-  }, [syncedProjects, searchQuery, sortKey]);
+    return sortKey === "name"
+      ? [...matched].sort((a, b) => a.projectName.localeCompare(b.projectName))
+      : sortByRecentlyOpened(matched, recentProjectPaths);
+  }, [syncedProjects, searchQuery, sortKey, recentProjectPaths]);
 
   const handleSyncProject = async (projectPath?: string | null) => {
     try {
-      setErrorMessage(null);
+      setSyncError(null);
       setSyncingProjectPath(projectPath ?? "__new__");
       await onSyncProject(projectPath);
     } catch (error) {
-      setErrorMessage(
-        error instanceof Error
-          ? error.message
-          : t(translation.Workspace.SyncError),
-      );
+      setSyncError({
+        title: t(
+          error instanceof AlreadySyncedError
+            ? translation.Workspace.AlreadySynced
+            : translation.Workspace.SyncFailed,
+        ),
+        message:
+          error instanceof Error
+            ? error.message
+            : t(translation.Workspace.SyncError),
+      });
     } finally {
       setSyncingProjectPath(null);
     }
@@ -138,11 +147,11 @@ export function WorkspacePage({
             </div>
           </div>
 
-          {errorMessage ? (
+          {syncError ? (
             <Toast
-              title={t(translation.Workspace.AlreadySynced)}
-              message={errorMessage}
-              onClose={() => setErrorMessage(null)}
+              title={syncError.title}
+              message={syncError.message}
+              onClose={() => setSyncError(null)}
             />
           ) : null}
 
@@ -191,7 +200,7 @@ export function WorkspacePage({
                     return (
                       <SyncedProjectItem
                         key={project.id}
-                        active={false}
+                        active={project.projectPath === activeProjectPath}
                         project={project}
                         syncing={isSyncing}
                         onOpen={(path) =>

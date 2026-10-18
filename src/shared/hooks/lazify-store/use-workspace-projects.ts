@@ -6,6 +6,9 @@ import type { SyncedWorkspaceProject } from "@/shared/types/lazify";
 import { statusMessageAtom, syncedWorkspaceProjectsAtom, workflowStatusAtom } from "./atoms";
 import { persistWorkspaceProjects } from "./storage";
 
+/** Every picked folder is already in the workspace — told apart from a sync that failed. */
+export class AlreadySyncedError extends Error {}
+
 export function useWorkspaceProjects() {
 	const syncedWorkspaceProjects = useAtomValue(syncedWorkspaceProjectsAtom);
 	const setSyncedWorkspaceProjects = useSetAtom(syncedWorkspaceProjectsAtom);
@@ -26,7 +29,7 @@ export function useWorkspaceProjects() {
 				: pickedPaths;
 
 			if (pathsToSync.length === 0) {
-				throw new Error(
+				throw new AlreadySyncedError(
 					pickedPaths.length === 1
 						? "This project is already synced to the workspace."
 						: "Those projects are already synced to the workspace.",

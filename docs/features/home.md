@@ -28,6 +28,7 @@ Electron Lazify's renderer (ticket 015); this records what changed on Chain.
 - `src/shared/hooks/use-recent-projects.ts` — the last five opened project
   paths, in `localStorage` under `lazify-recent-projects`, recorded by
   `src/routes/SyncedProjectRoute.tsx` when a workbench opens.
+  `sortByRecentlyOpened` there also orders Workspace's "Recently opened" sort.
 
 ## Acceptance
 

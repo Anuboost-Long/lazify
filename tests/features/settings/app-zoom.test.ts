@@ -3,9 +3,14 @@
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { createElement } from "react";
+import { Provider } from "jotai";
+import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { SettingsPage } from "@/features/settings/pages/SettingsPage";
+import { SettingsRoute } from "@/routes/SettingsRoute";
+
+const renderSettings = () =>
+  render(createElement(Provider, null, createElement(MemoryRouter, null, createElement(SettingsRoute))));
 
 vi.mock("react-i18next", async (importOriginal) => ({
   ...(await importOriginal<typeof import("react-i18next")>()),
@@ -58,13 +63,13 @@ function zoomReading() {
 describe("scaling the whole app", () => {
   it("shows the size the window is actually at", async () => {
     readZoom.mockResolvedValue(1.25);
-    render(createElement(SettingsPage));
+    renderSettings();
 
     await waitFor(() => expect(zoomReading()).toBe("125%"));
   });
 
   it("takes it a step at a time", async () => {
-    render(createElement(SettingsPage));
+    renderSettings();
 
     await waitFor(() => expect(zoomReading()).toBe("100%"));
 
@@ -82,7 +87,7 @@ describe("scaling the whole app", () => {
 
   it("puts it back to normal, and only offers that when it is not", async () => {
     readZoom.mockResolvedValue(1.5);
-    render(createElement(SettingsPage));
+    renderSettings();
 
     const reset = await screen.findByRole("button", { name: /settings\.zoom_reset/i });
 
@@ -96,7 +101,7 @@ describe("scaling the whole app", () => {
   });
 
   it("follows the window when the change came from a shortcut", async () => {
-    render(createElement(SettingsPage));
+    renderSettings();
 
     await waitFor(() => expect(announce).not.toBeNull());
 

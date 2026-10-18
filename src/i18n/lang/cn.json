@@ -469,6 +469,7 @@
     "add_new_project": "添加新项目",
     "sync_project": "同步项目",
     "already_synced": "已同步",
+    "sync_failed": "无法同步项目",
     "empty_title": "您的工作区为空",
     "empty_desc": "添加项目以开始跟踪其结构和元数据。",
     "sync_existing": "同步现有项目",
@@ -479,7 +480,7 @@
     "sync_error": "无法同步所选项目。",
     "search_placeholder": "搜索项目",
     "sort_label": "排序方式",
-    "sort_by_recent": "最后同步",
+    "sort_by_recent": "最近打开",
     "sort_by_name": "名称",
     "no_search_results": "没有匹配的项目"
   },

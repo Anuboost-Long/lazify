@@ -1,6 +1,8 @@
 import { atom, useAtom } from "jotai";
 import { useCallback } from "react";
 
+import type { SyncedWorkspaceProject } from "@/shared/types/lazify";
+
 const RECENT_PROJECTS_KEY = "lazify-recent-projects";
 const KEPT = 5;
 
@@ -14,6 +16,16 @@ function readRecent(): string[] {
 }
 
 const recentAtom = atom(readRecent());
+
+/** Opened most recently first; projects never opened follow, synced most recently first. */
+export function sortByRecentlyOpened(projects: SyncedWorkspaceProject[], recent: string[]) {
+	const rank = (project: SyncedWorkspaceProject) => {
+		const at = recent.indexOf(project.projectPath);
+		return at === -1 ? recent.length : at;
+	};
+
+	return [...projects].sort((a, b) => rank(a) - rank(b) || b.lastSyncedAt.localeCompare(a.lastSyncedAt));
+}
 
 /** Project paths whose workbench was opened, latest first. */
 export function useRecentProjects() {

@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import type { Task, TaskStatus } from "@/shared/lib/tasks/types";
 import { appRoute, getAgentsRoute, getWorkspaceProjectRoute } from "@/app/app-routes";
 import { translation } from "@/i18n/translation";
-import { useRecentProjects } from "@/shared/hooks/use-recent-projects";
+import { sortByRecentlyOpened, useRecentProjects } from "@/shared/hooks/use-recent-projects";
 import type { SyncedWorkspaceProject } from "@/shared/types/lazify";
 import { ProjectPickerModal } from "@/shared/ui/project-picker/ProjectPickerModal";
 import { reportFailure } from "@/shared/ui/toast/failure-toast";
@@ -99,16 +99,7 @@ export function HomePage({
 
 	const shown = filter === "open" ? tasks.filter((task) => task.status !== "done") : tasks;
 
-	// Opened most recently first; until any has been opened, synced most recently.
-	const recentProjects = [...projects]
-		.sort((a, b) => {
-			const rank = (project: SyncedWorkspaceProject) => {
-				const at = recent.indexOf(project.projectPath);
-				return at === -1 ? recent.length : at;
-			};
-			return rank(a) - rank(b) || b.lastSyncedAt.localeCompare(a.lastSyncedAt);
-		})
-		.slice(0, RECENT_SHOWN);
+	const recentProjects = sortByRecentlyOpened(projects, recent).slice(0, RECENT_SHOWN);
 
 	const openProject = (projectPath: string) => {
 		onActiveProjectChange(projectPath);

@@ -3,9 +3,14 @@
 import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { createElement } from "react";
+import { Provider } from "jotai";
+import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { SettingsPage } from "@/features/settings/pages/SettingsPage";
+import { SettingsRoute } from "@/routes/SettingsRoute";
+
+const renderSettings = () =>
+  render(createElement(Provider, null, createElement(MemoryRouter, null, createElement(SettingsRoute))));
 
 vi.mock("react-i18next", async (importOriginal) => ({
   ...(await importOriginal<typeof import("react-i18next")>()),
@@ -44,7 +49,7 @@ afterEach(() => cleanup());
 
 describe("settings that are not appearance", () => {
   it("keeps behaviour out of the appearance section", async () => {
-    render(createElement(SettingsPage));
+    renderSettings();
 
     expect(screen.queryByText(/settings\.file_opens$/i)).toBeNull();
     expect(screen.queryByText(/settings\.open_agent_after_send$/i)).toBeNull();
@@ -52,7 +57,7 @@ describe("settings that are not appearance", () => {
   });
 
   it("gathers what the app does when you act under its own section", async () => {
-    render(createElement(SettingsPage));
+    renderSettings();
 
     await userEvent.click(screen.getByRole("button", { name: /settings\.behavior/i }));
 
@@ -62,7 +67,7 @@ describe("settings that are not appearance", () => {
   });
 
   it("offers the editors this machine actually has, and remembers the one picked", async () => {
-    render(createElement(SettingsPage));
+    renderSettings();
 
     await userEvent.click(screen.getByRole("button", { name: /settings\.behavior/i }));
     await userEvent.click(screen.getByRole("button", { name: /settings\.file_opens_in_editor/i }));
@@ -79,7 +84,7 @@ describe("settings that are not appearance", () => {
 
   it("says so when it finds no editor at all", async () => {
     detectEditors.mockResolvedValue([]);
-    render(createElement(SettingsPage));
+    renderSettings();
 
     await userEvent.click(screen.getByRole("button", { name: /settings\.behavior/i }));
     await userEvent.click(screen.getByRole("button", { name: /settings\.file_opens_in_editor/i }));
@@ -88,7 +93,7 @@ describe("settings that are not appearance", () => {
   });
 
   it("hides the picker again when files open in the app", async () => {
-    render(createElement(SettingsPage));
+    renderSettings();
 
     await userEvent.click(screen.getByRole("button", { name: /settings\.behavior/i }));
     await userEvent.click(screen.getByRole("button", { name: /settings\.file_opens_in_editor/i }));
@@ -100,7 +105,7 @@ describe("settings that are not appearance", () => {
   });
 
   it("shows keeping the computer awake as stored, and saves turning it off", async () => {
-    render(createElement(SettingsPage));
+    renderSettings();
 
     await userEvent.click(screen.getByRole("button", { name: /settings\.behavior/i }));
 

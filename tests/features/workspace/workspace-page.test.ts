@@ -6,6 +6,7 @@ import { createElement } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { WorkspacePage } from "@/features/workspace/pages/WorkspacePage";
+import { AlreadySyncedError } from "@/shared/hooks/lazify-store/use-workspace-projects";
 import type { SyncedWorkspaceProject } from "@/shared/types/lazify";
 
 const navigate = vi.hoisted(() => vi.fn());
@@ -64,6 +65,8 @@ function renderPage(
 	render(
 		createElement(WorkspacePage, {
 			syncedProjects: options.projects ?? [],
+			recentProjectPaths: [],
+			activeProjectPath: null,
 			onSyncProject,
 			onRemoveProject,
 		}),
@@ -153,6 +156,19 @@ describe("WorkspacePage empty state", () => {
 		expect((await screen.findByRole("alert")).textContent).toContain("Already synced here");
 		await user.click(screen.getByRole("button", { name: "global_term.dismiss" }));
 		await waitFor(() => expect(screen.queryByRole("alert")).toBeNull(), { timeout: 1000 });
+	});
+
+	it("titles a failed sync by what went wrong", async () => {
+		const user = userEvent.setup();
+		const onSyncProject = vi.fn().mockRejectedValueOnce(new AlreadySyncedError("This project is already synced."));
+		renderPage({ onSyncProject });
+
+		await user.click(screen.getByRole("button", { name: "workspace.sync_project" }));
+		expect((await screen.findByRole("alert")).textContent).toContain("workspace.already_synced");
+
+		onSyncProject.mockRejectedValueOnce(new Error("Permission denied"));
+		await user.click(screen.getByRole("button", { name: "workspace.sync_project" }));
+		await waitFor(() => expect(screen.getByRole("alert").textContent).toContain("workspace.sync_failed"));
 	});
 });
 

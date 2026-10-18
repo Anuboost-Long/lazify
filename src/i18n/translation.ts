@@ -469,6 +469,7 @@ export const translation = {
 		AddNewProject: "workspace.add_new_project",
 		SyncProject: "workspace.sync_project",
 		AlreadySynced: "workspace.already_synced",
+		SyncFailed: "workspace.sync_failed",
 		EmptyTitle: "workspace.empty_title",
 		EmptyDesc: "workspace.empty_desc",
 		EmptyLongDesc: "workspace.empty_long_desc",

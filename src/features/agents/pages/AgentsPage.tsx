@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { translation } from "@/i18n/translation";
+import { AlreadySyncedError } from "@/shared/hooks/lazify-store/use-workspace-projects";
 import type { SyncedWorkspaceProject } from "@/shared/types/lazify";
 import {
 	CodeQualityActionsProvider,
@@ -61,7 +62,7 @@ export function AgentsPage({
 	const projectPath = resolveAgentProjectPath(projects, activeProjectPath);
 	const setProjectPath = onActiveProjectChange;
 	const [syncing, setSyncing] = useState(false);
-	const [syncError, setSyncError] = useState<string | null>(null);
+	const [syncError, setSyncError] = useState<{ title: string; message: string } | null>(null);
 
 	const [attention, setAttention] = useState<{
 		projectName: string;
@@ -242,7 +243,14 @@ export function AgentsPage({
 
 			if (synced) setProjectPath(synced.projectPath);
 		} catch (error) {
-			setSyncError(error instanceof Error ? error.message : t(translation.Workspace.SyncError));
+			setSyncError({
+				title: t(
+					error instanceof AlreadySyncedError
+						? translation.Workspace.AlreadySynced
+						: translation.Workspace.SyncFailed,
+				),
+				message: error instanceof Error ? error.message : t(translation.Workspace.SyncError),
+			});
 		} finally {
 			setSyncing(false);
 		}
@@ -325,8 +333,8 @@ export function AgentsPage({
 				<div className="flex h-full min-h-0 flex-col gap-4">
 					{syncError && (
 						<Toast
-							title={t(translation.Workspace.AlreadySynced)}
-							message={syncError}
+							title={syncError.title}
+							message={syncError.message}
 							onClose={() => setSyncError(null)}
 						/>
 					)}

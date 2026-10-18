@@ -61,6 +61,10 @@ export const settingsNavItems: {
 	},
 ];
 
+export function isSettingsSection(value: string): value is SettingsSection {
+	return settingsNavItems.some((item) => item.id === value);
+}
+
 export const themeOptions: { id: string; label: string; icon: UiIconName }[] = [
 	{
 		id: "dark",
