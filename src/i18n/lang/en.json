@@ -1733,6 +1733,8 @@
     "timer_start": "Start timer",
     "timer_pause": "Pause timer",
     "timer_reset": "Reset timer",
+    "timer_shorter": "5 minutes shorter",
+    "timer_longer": "5 minutes longer",
     "note_placeholder": "Write a note…",
     "clock_style": "Style",
     "clock_size": "Size",

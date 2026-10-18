@@ -1732,6 +1732,8 @@ export const translation = {
 		TimerStart: "home.timer_start",
 		TimerPause: "home.timer_pause",
 		TimerReset: "home.timer_reset",
+		TimerShorter: "home.timer_shorter",
+		TimerLonger: "home.timer_longer",
 		NotePlaceholder: "home.note_placeholder",
 		ClockStyle: "home.clock_style",
 		ClockSize: "home.clock_size",

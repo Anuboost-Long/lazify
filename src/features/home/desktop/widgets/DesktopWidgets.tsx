@@ -142,6 +142,28 @@ function TimerControls({ timer }: Readonly<{ timer: ReturnType<typeof useFocusTi
 	const { t } = useTranslation();
 	const toggleLabel = t(timer.running ? translation.Home.TimerPause : translation.Home.TimerStart);
 
+	if (timer.idle) {
+		return (
+			<span className="flex shrink-0 items-center gap-0.5">
+				<IconButton
+					icon="minus"
+					title={t(translation.Home.TimerShorter)}
+					aria-label={t(translation.Home.TimerShorter)}
+					disabled={!timer.canShorten}
+					onClick={() => timer.adjust(-1)}
+				/>
+				<IconButton
+					icon="plus"
+					title={t(translation.Home.TimerLonger)}
+					aria-label={t(translation.Home.TimerLonger)}
+					disabled={!timer.canLengthen}
+					onClick={() => timer.adjust(1)}
+				/>
+				<IconButton icon="play" title={toggleLabel} aria-label={toggleLabel} onClick={timer.start} />
+			</span>
+		);
+	}
+
 	return (
 		<span className="flex shrink-0 items-center gap-0.5">
 			{timer.done ? null : (

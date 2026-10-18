@@ -1,6 +1,10 @@
 import { atom, useAtom } from "jotai";
 
-const FOCUS_MS = 25 * 60 * 1000;
+const MINUTE_MS = 60 * 1000;
+const DEFAULT_MS = 25 * MINUTE_MS;
+const STEP_MS = 5 * MINUTE_MS;
+const MIN_MS = 5 * MINUTE_MS;
+const MAX_MS = 120 * MINUTE_MS;
 const STORAGE_KEY = "lazify-desktop-focus-timer";
 
 interface FocusTimer {
@@ -8,17 +12,22 @@ interface FocusTimer {
 	endsAt: number | null;
 	/** Time left while paused. */
 	remainingMs: number;
+	/** The length the user chose; reset returns to it. */
+	durationMs: number;
 }
 
-const RESET: FocusTimer = { endsAt: null, remainingMs: FOCUS_MS };
+const fresh = (durationMs: number): FocusTimer => ({ endsAt: null, remainingMs: durationMs, durationMs });
 
 /** Kept by end time rather than by ticking, so it keeps counting while home is closed. */
 function readStored(): FocusTimer {
 	try {
-		const parsed = JSON.parse(globalThis.localStorage.getItem(STORAGE_KEY) ?? "null") as FocusTimer | null;
-		return typeof parsed?.remainingMs === "number" ? parsed : RESET;
+		const parsed = JSON.parse(globalThis.localStorage.getItem(STORAGE_KEY) ?? "null") as Partial<FocusTimer> | null;
+		if (typeof parsed?.remainingMs !== "number") return fresh(DEFAULT_MS);
+		// Saved before the length could be chosen.
+		const durationMs = typeof parsed.durationMs === "number" ? parsed.durationMs : DEFAULT_MS;
+		return { endsAt: parsed.endsAt ?? null, remainingMs: parsed.remainingMs, durationMs };
 	} catch {
-		return RESET;
+		return fresh(DEFAULT_MS);
 	}
 }
 
@@ -39,13 +48,21 @@ export function useFocusTimer(now: Date) {
 	const running = timer.endsAt !== null;
 	const remainingMs = running ? Math.max(0, (timer.endsAt ?? 0) - now.getTime()) : timer.remainingMs;
 
+	const { durationMs } = timer;
+
 	return {
 		running,
 		remainingMs,
 		done: remainingMs === 0,
-		start: () => setTimer({ endsAt: Date.now() + timer.remainingMs, remainingMs: timer.remainingMs }),
-		pause: () => setTimer({ endsAt: null, remainingMs }),
-		reset: () => setTimer(RESET),
+		/** Not started, or reset: the length can still be changed. */
+		idle: !running && remainingMs === durationMs,
+		canShorten: durationMs > MIN_MS,
+		canLengthen: durationMs < MAX_MS,
+		start: () => setTimer({ ...timer, endsAt: Date.now() + timer.remainingMs }),
+		pause: () => setTimer({ ...timer, endsAt: null, remainingMs }),
+		reset: () => setTimer(fresh(durationMs)),
+		adjust: (direction: 1 | -1) =>
+			setTimer(fresh(Math.min(MAX_MS, Math.max(MIN_MS, durationMs + direction * STEP_MS)))),
 	};
 }
 

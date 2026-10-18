@@ -1673,6 +1673,8 @@
     "timer_start": "ចាប់ផ្តើមកំណត់ពេល",
     "timer_pause": "ផ្អាកកំណត់ពេល",
     "timer_reset": "កំណត់ពេលឡើងវិញ",
+    "timer_shorter": "ខ្លីជាង ៥ នាទី",
+    "timer_longer": "វែងជាង ៥ នាទី",
     "note_placeholder": "សរសេរកំណត់ចំណាំ…",
     "clock_style": "រចនាប័ទ្ម",
     "clock_size": "ទំហំ",

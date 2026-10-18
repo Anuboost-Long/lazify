@@ -20,6 +20,9 @@ Electron Lazify's renderer (ticket 015); this records what changed on Chain.
   since agents and the workbench change them too. A failed fetch raises the
   app's failure toast instead of showing an empty list.
 - The date widget follows the ticking clock, so it turns over at midnight.
+- The focus timer's length is set on the widget: while it is idle, − and +
+  change it in 5-minute steps between 5 minutes and 2 hours. The length is
+  remembered, and reset returns to it.
 
 ## Source
 
