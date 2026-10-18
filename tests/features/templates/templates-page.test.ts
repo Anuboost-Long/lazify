@@ -1,9 +1,10 @@
 // @vitest-environment jsdom
 
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { createElement } from "react";
+import { createElement, Fragment, useState, type ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import { PageChromeContext } from "@/app/components/PageChrome";
 import { TemplatesPage } from "@/features/templates/pages/TemplatesPage";
 import { TemplateEditPage } from "@/features/templates/pages/TemplateEditPage";
 
@@ -28,15 +29,31 @@ afterEach(() => {
   projectTreeEditor.mockClear();
 });
 
+// Pages put their actions in the shell's top bar; this stands in for it.
+function Shell({ children }: Readonly<{ children: ReactNode }>) {
+  const [actions, setActions] = useState<HTMLElement | null>(null);
+
+  return createElement(
+    Fragment,
+    null,
+    createElement("div", { ref: setActions }),
+    createElement(PageChromeContext.Provider, { value: { crumb: null, actions } }, children),
+  );
+}
+
 describe("TemplatesPage", () => {
   it("shows one clear import action when the library is empty", () => {
     render(
-      createElement(TemplatesPage, {
-        importedTemplateOptions: [],
-        onSelectTemplate: vi.fn(),
-        onDeleteTemplate: vi.fn(),
-        onImportProject: vi.fn()
-      })
+      createElement(
+        Shell,
+        null,
+        createElement(TemplatesPage, {
+          importedTemplateOptions: [],
+          onSelectTemplate: vi.fn(),
+          onDeleteTemplate: vi.fn(),
+          onImportProject: vi.fn()
+        })
+      )
     );
 
     const buttons = screen.getAllByRole("button");

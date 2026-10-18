@@ -2,9 +2,10 @@
 
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { createElement } from "react";
+import { createElement, Fragment, useState, type ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { PageChromeContext } from "@/app/components/PageChrome";
 import { WorkspacePage } from "@/features/workspace/pages/WorkspacePage";
 import { AlreadySyncedError } from "@/shared/hooks/lazify-store/use-workspace-projects";
 import type { SyncedWorkspaceProject } from "@/shared/types/lazify";
@@ -52,6 +53,18 @@ function project(overrides: Partial<SyncedWorkspaceProject> = {}): SyncedWorkspa
 	};
 }
 
+// Pages put their actions in the shell's top bar; this stands in for it.
+function Shell({ children }: Readonly<{ children: ReactNode }>) {
+	const [actions, setActions] = useState<HTMLElement | null>(null);
+
+	return createElement(
+		Fragment,
+		null,
+		createElement("div", { ref: setActions }),
+		createElement(PageChromeContext.Provider, { value: { crumb: null, actions } }, children),
+	);
+}
+
 function renderPage(
 	options: {
 		projects?: SyncedWorkspaceProject[];
@@ -63,13 +76,17 @@ function renderPage(
 	const onRemoveProject = options.onRemoveProject ?? vi.fn();
 
 	render(
-		createElement(WorkspacePage, {
-			syncedProjects: options.projects ?? [],
-			recentProjectPaths: [],
-			activeProjectPath: null,
-			onSyncProject,
-			onRemoveProject,
-		}),
+		createElement(
+			Shell,
+			null,
+			createElement(WorkspacePage, {
+				syncedProjects: options.projects ?? [],
+				recentProjectPaths: [],
+				activeProjectPath: null,
+				onSyncProject,
+				onRemoveProject,
+			}),
+		),
 	);
 
 	return { onSyncProject, onRemoveProject };

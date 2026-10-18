@@ -6,7 +6,6 @@ import { translation } from "@/i18n/translation";
 import { CaptionText, CardTitle } from "@/shared/typography";
 import { Tooltip } from "@/shared/ui/Tooltip";
 import UiIcon from "@/shared/ui/icons/UiIcon";
-import { PageHero } from "@/shared/ui/PageHero";
 import { availableTools } from "../catalog";
 import { usePinnedTools } from "../hooks/use-pinned-tools";
 import { toolColorVars } from "../lib/tool-colors";
@@ -28,12 +27,6 @@ export function ToolsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHero
-        eyebrow={translation.Tools.Eyebrow}
-        title={translation.Tools.Title}
-        description={translation.Tools.Subtitle}
-      />
-
       <div className="grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-3">
         {tools.map((tool) => {
           const pinned = pinnedToolIds.includes(tool.id);

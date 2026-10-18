@@ -8,6 +8,7 @@ import type {
 import { BodyText, OverlineText, PillText } from "@/shared/typography";
 import { TextInput } from "@/shared/ui/form/FormInput";
 import { ConfirmModal } from "@/shared/ui/modal/ConfirmModal";
+import { Toast } from "@/shared/ui/toast/Toast";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -33,14 +34,14 @@ export function TemplateEditPage({
   const [draftName, setDraftName] = useState("");
   const [draftTree, setDraftTree] = useState<TreeNode[]>([]);
   const [busy, setBusy] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [failure, setFailure] = useState<{ title: string; message: string } | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   useEffect(() => {
     setDraftName(template?.name ?? "");
     setDraftTree(template?.tree ?? []);
-    setErrorMessage(null);
+    setFailure(null);
     setStatusMessage(null);
   }, [template]);
 
@@ -49,7 +50,7 @@ export function TemplateEditPage({
 
     try {
       setBusy(true);
-      setErrorMessage(null);
+      setFailure(null);
       const savedTemplate = await onSaveTemplate(template.id, {
         name: draftName,
         tree: draftTree,
@@ -60,11 +61,10 @@ export function TemplateEditPage({
         t(translation.Templates.SavedSuccess, { name: savedTemplate.name }),
       );
     } catch (error) {
-      setErrorMessage(
-        error instanceof Error
-          ? error.message
-          : t(translation.Templates.UpdateError),
-      );
+      setFailure({
+        title: t(translation.Templates.SaveFailed),
+        message: error instanceof Error ? error.message : t(translation.Templates.UpdateError),
+      });
     } finally {
       setBusy(false);
     }
@@ -76,15 +76,14 @@ export function TemplateEditPage({
 
     try {
       setBusy(true);
-      setErrorMessage(null);
+      setFailure(null);
       await onDeleteTemplate(template.id);
       onBack();
     } catch (error) {
-      setErrorMessage(
-        error instanceof Error
-          ? error.message
-          : t(translation.Templates.RemoveError),
-      );
+      setFailure({
+        title: t(translation.Templates.RemoveFailed),
+        message: error instanceof Error ? error.message : t(translation.Templates.RemoveError),
+      });
     } finally {
       setBusy(false);
     }
@@ -160,15 +159,16 @@ export function TemplateEditPage({
               </div>
             </div>
 
-            {errorMessage ? (
-              <BodyText className="mt-4 rounded-[16px] border border-error/30 bg-error/10 px-4 py-3 text-error">
-                {errorMessage}
-              </BodyText>
+            {failure ? (
+              <Toast title={failure.title} message={failure.message} onClose={() => setFailure(null)} />
             ) : null}
             {statusMessage ? (
-              <BodyText className="mt-4 rounded-[16px] border border-success/30 bg-success/10 px-4 py-3 text-success">
-                {statusMessage}
-              </BodyText>
+              <Toast
+                variant="success"
+                title={t(translation.GlobalTerm.Saved)}
+                message={statusMessage}
+                onClose={() => setStatusMessage(null)}
+              />
             ) : null}
           </section>
 

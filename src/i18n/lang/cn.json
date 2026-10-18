@@ -461,9 +461,6 @@
     "eyebrow": "桌面工作流编排器",
     "title": "工作区",
     "description": "跟踪此桌面应用允许读取的项目文件夹，保持技术栈元数据更新，并在需要新脚手架时跳回创建流程。",
-    "synced_projects": "已同步的项目",
-    "projects_available": "此工作区中的可用项目",
-    "projects_desc": "每个条目存储已批准的文件夹路径、检测到的技术栈和最后同步时间戳。",
     "no_synced_yet": "尚无已同步的项目",
     "no_projects_desc": "同步项目文件夹，让应用记住其路径和基本技术栈详情以供后续工作区访问。",
     "add_new_project": "添加新项目",
@@ -591,17 +588,11 @@
     "pin_and_switch": "锁定并切换"
   },
   "templates": {
-    "eyebrow": "已导入的模板",
-    "title": "模板",
-    "description": "将本地项目导入为可复用模板，并在此查看、重命名、编辑或删除。",
     "empty": "尚未保存任何模板。请导入本地项目来创建第一个可复用模板。",
     "saved_templates": "已保存的模板",
     "import_project": "导入项目",
-    "import_project_description": "将本地代码库转化为可复用的起点。",
     "empty_title": "模板库已准备就绪",
-    "library": "模板库",
     "search_placeholder": "按名称、技术栈或来源搜索模板…",
-    "search_hint": "查找可复用的项目起点",
     "clear_search": "清除模板搜索",
     "no_search_results": "没有匹配的模板",
     "no_search_results_desc": "没有找到与「{{query}}」匹配的模板。请尝试模板名称、技术或来源文件夹。",
@@ -617,7 +608,10 @@
     "removed_success": "已从已保存的导入模板中删除「{{name}}」。",
     "remove_confirm": "移除已导入的模板“{{name}}”？",
     "update_error": "无法更新已导入的模板。",
-    "remove_error": "无法移除已导入的模板。"
+    "remove_error": "无法移除已导入的模板。",
+    "remove_failed": "无法移除模板",
+    "save_failed": "无法保存模板",
+    "removed": "模板已移除"
   },
   "console": {
     "flow_eyebrow": "初始化项目 · 构建",
@@ -1329,9 +1323,6 @@
     "reopen": "重新打开"
   },
   "tools": {
-    "eyebrow": "项目工具",
-    "title": "工具",
-    "subtitle": "选择一个工具以打开。",
     "dmg_compiler": "DMG 构建器",
     "dmg_compiler_desc": "把 macOS 的 .app 打包成可安装的磁盘映像。",
     "prompt_builder": "提示词构建器",

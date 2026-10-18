@@ -1,12 +1,13 @@
 import { useMemo, useState } from "react";
 import { translation } from "@/i18n/translation";
-import { BodyText, OverlineText, PillText, SectionTitle } from "@/shared/typography";
+import { BodyText, PillText, SectionTitle } from "@/shared/typography";
 import type { ImportedTemplateOption } from "@/shared/types/lazify";
 import UiIcon from "@/shared/ui/icons/UiIcon";
 import { ImportedTemplateCard } from "@/shared/ui/ImportedTemplateCard";
-import { PageHero } from "@/shared/ui/PageHero";
+import { LabelButton } from "@/shared/ui/LabelButton";
+import { Toast } from "@/shared/ui/toast/Toast";
 import { useTranslation } from "react-i18next";
-import { PageCrumb } from "@/app/components/PageChrome";
+import { PageActions, PageCrumb } from "@/app/components/PageChrome";
 import { SearchInput } from "@/shared/ui/form/SearchInput";
 import { ConfirmModal } from "@/shared/ui/modal/ConfirmModal";
 
@@ -79,41 +80,29 @@ export function TemplatesPage({
         </span>
       </PageCrumb>
 
-      <PageHero
-        eyebrow={translation.Templates.Eyebrow}
-        title={translation.Templates.Title}
-        description={translation.Templates.Description}
-      >
-        <button
-          type="button"
-          aria-label={t(translation.Templates.ImportProject)}
+      <PageActions>
+        <LabelButton
+          label={translation.Templates.ImportProject}
+          icon="import"
+          variant="accent"
           onClick={onImportProject}
-          className="group inline-flex w-full max-w-[560px] items-center gap-3 self-start rounded-[18px] border border-accent/25 bg-accent/[0.07] px-4 py-3 text-left transition-[transform,border-color,background-color] hover:-translate-y-0.5 hover:border-accent hover:bg-accent/10 lg:ml-auto lg:self-auto"
-        >
-          <div className="flex h-10 w-10 items-center justify-center rounded-[13px] bg-accent text-white shadow-xs">
-            <UiIcon name="import" className="h-5 w-5" />
-          </div>
-          <span className="min-w-0 flex-1">
-            <BodyText className="font-semibold">
-              {t(translation.Templates.ImportProject)}
-            </BodyText>
-            <BodyText tone="muted" className="mt-0.5 text-xs">
-              {t(translation.Templates.ImportProjectDescription)}
-            </BodyText>
-          </span>
-          <UiIcon name="arrow-right" className="h-4 w-4 text-accent transition-transform group-hover:translate-x-1" />
-        </button>
-      </PageHero>
+        />
+      </PageActions>
 
       {errorMessage ? (
-        <BodyText className="rounded-[16px] border border-error/30 bg-error/10 px-4 py-3 text-error">
-          {errorMessage}
-        </BodyText>
+        <Toast
+          title={t(translation.Templates.RemoveFailed)}
+          message={errorMessage}
+          onClose={() => setErrorMessage(null)}
+        />
       ) : null}
       {statusMessage ? (
-        <BodyText className="rounded-[16px] border border-success/30 bg-success/10 px-4 py-3 text-success">
-          {statusMessage}
-        </BodyText>
+        <Toast
+          variant="success"
+          title={t(translation.Templates.Removed)}
+          message={statusMessage}
+          onClose={() => setStatusMessage(null)}
+        />
       ) : null}
 
       {importedTemplateOptions.length === 0 ? (
@@ -130,34 +119,19 @@ export function TemplatesPage({
         </section>
       ) : (
         <>
-          <section className="relative overflow-hidden rounded-[24px] border border-border bg-soft p-4 shadow-xs sm:p-5">
-            <div className="absolute inset-y-0 left-0 w-1 bg-accent/70" />
-            <div className="flex flex-col gap-4 xl:flex-row xl:items-center">
-              <div className="min-w-0 xl:w-64 xl:shrink-0">
-                <div className="flex items-center gap-2">
-                  <OverlineText className="tracking-[0.22em]">
-                    {t(translation.Templates.Library)}
-                  </OverlineText>
-                  <PillText className="rounded-full border border-border bg-bg px-2.5 py-1 text-muted">
-                    {filteredTemplates.length}/{importedTemplateOptions.length}
-                  </PillText>
-                </div>
-                <BodyText tone="muted" className="mt-1 text-xs">
-                  {t(translation.Templates.SearchHint)}
-                </BodyText>
-              </div>
-
-              <SearchInput
-                size="lg"
-                className="flex-1"
-                label={t(translation.Templates.SearchPlaceholder)}
-                clearLabel={t(translation.Templates.ClearSearch)}
-                value={searchQuery}
-                onValueChange={setSearchQuery}
-                wrapperClassName="bg-bg/80"
-              />
-            </div>
-          </section>
+          <div className="flex items-center gap-3">
+            <SearchInput
+              size="md"
+              className="sm:max-w-xs"
+              label={t(translation.Templates.SearchPlaceholder)}
+              clearLabel={t(translation.Templates.ClearSearch)}
+              value={searchQuery}
+              onValueChange={setSearchQuery}
+            />
+            <PillText className="tabular-nums">
+              {filteredTemplates.length}/{importedTemplateOptions.length}
+            </PillText>
+          </div>
 
           {filteredTemplates.length > 0 ? (
             <section className="grid gap-4 xl:grid-cols-2">

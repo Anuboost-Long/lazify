@@ -461,9 +461,6 @@
     "eyebrow": "Desktop Workflow Orchestrator",
     "title": "Workspace",
     "description": "Track the project folders this desktop app is allowed to read, keep their stack metadata fresh, and jump back into creation flow when you need a new scaffold.",
-    "synced_projects": "Synced projects",
-    "projects_available": "Projects available in this workspace",
-    "projects_desc": "Each item stores the approved folder path, detected stack, and the last sync timestamp.",
     "no_synced_yet": "No synced projects yet",
     "no_projects_desc": "Sync a project folder to let the app remember its path and basic stack details for later workspace access.",
     "add_new_project": "Add new project",
@@ -600,17 +597,11 @@
     "pin_and_switch": "Pin & switch"
   },
   "templates": {
-    "eyebrow": "Imported Templates",
-    "title": "Templates",
-    "description": "Import local projects as reusable templates, then review, rename, edit, or remove them here.",
     "empty": "No templates have been saved yet. Import a local project to create your first reusable template.",
     "saved_templates": "Saved templates",
     "import_project": "Import project",
-    "import_project_description": "Turn a local codebase into a reusable starting point.",
     "empty_title": "Your template shelf is ready",
-    "library": "Template library",
     "search_placeholder": "Search templates by name, stack, or source…",
-    "search_hint": "Find a reusable starting point",
     "clear_search": "Clear template search",
     "no_search_results": "No templates match your search",
     "no_search_results_desc": "Nothing matched “{{query}}”. Try a template name, technology, or source folder.",
@@ -626,7 +617,10 @@
     "removed_success": "Removed \"{{name}}\" from saved imported templates.",
     "remove_confirm": "Remove imported template \"{{name}}\"?",
     "update_error": "Unable to update the imported template.",
-    "remove_error": "Unable to remove the imported template."
+    "remove_error": "Unable to remove the imported template.",
+    "remove_failed": "Couldn’t remove the template",
+    "save_failed": "Couldn’t save the template",
+    "removed": "Template removed"
   },
   "console": {
     "flow_eyebrow": "Init Project · Build",
@@ -1389,9 +1383,6 @@
     "reopen": "Reopen"
   },
   "tools": {
-    "eyebrow": "Project Utilities",
-    "title": "Tools",
-    "subtitle": "Pick a tool to open it.",
     "dmg_compiler": "DMG Builder",
     "dmg_compiler_desc": "Turn a macOS .app into an installable disk image.",
     "prompt_builder": "Prompt Builder",
