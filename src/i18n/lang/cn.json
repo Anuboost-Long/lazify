@@ -1701,7 +1701,16 @@
     "icons_center": "时钟下方",
     "icons_left": "左侧边缘",
     "icons_right": "右侧边缘",
-    "icons_top": "顶部边缘"
+    "icons_top": "顶部边缘",
+    "attention_waiting": "{{count}} 个代理正在等待你",
+    "attention_waiting_one": "1 个代理正在等待你",
+    "attention_waiting_other": "{{count}} 个代理正在等待你",
+    "attention_doing": "{{count}} 个任务进行中",
+    "attention_doing_one": "1 个任务进行中",
+    "attention_doing_other": "{{count}} 个任务进行中",
+    "recent_projects": "最近的项目",
+    "tasks_not_loaded": "无法加载你的任务",
+    "tasks_not_loaded_desc": "你的任务仍已保存。切回 Lazify 或重新打开首页即可重试。"
   },
   "date_picker": {
     "select_date": "选择日期",

@@ -1761,7 +1761,16 @@
     "icons_center": "Under the clock",
     "icons_left": "Left edge",
     "icons_right": "Right edge",
-    "icons_top": "Top edge"
+    "icons_top": "Top edge",
+    "attention_waiting": "{{count}} agents are waiting for you",
+    "attention_waiting_one": "1 agent is waiting for you",
+    "attention_waiting_other": "{{count}} agents are waiting for you",
+    "attention_doing": "{{count}} tasks in progress",
+    "attention_doing_one": "1 task in progress",
+    "attention_doing_other": "{{count}} tasks in progress",
+    "recent_projects": "Recent projects",
+    "tasks_not_loaded": "Couldn’t load your tasks",
+    "tasks_not_loaded_desc": "Your tasks are still saved. Switch back to Lazify or reopen Home to try again."
   },
   "date_picker": {
     "select_date": "Select a date",

@@ -5,16 +5,20 @@ import { useNavigate } from "react-router-dom";
 import type { Task, TaskStatus } from "@/shared/lib/tasks/types";
 import { appRoute, getAgentsRoute, getWorkspaceProjectRoute } from "@/app/app-routes";
 import { translation } from "@/i18n/translation";
+import { useRecentProjects } from "@/shared/hooks/use-recent-projects";
 import type { SyncedWorkspaceProject } from "@/shared/types/lazify";
 import { ProjectPickerModal } from "@/shared/ui/project-picker/ProjectPickerModal";
+import { reportFailure } from "@/shared/ui/toast/failure-toast";
 
 import { useLiveAgentSessions } from "../../agents/hooks/use-live-agent-sessions";
 import { usePromptPresets } from "../../prompts";
 import { DeleteTaskConfirm } from "../../tasks/components/DeleteTaskConfirm";
 import { SendTaskModal } from "../../tasks/components/SendTaskModal";
 import { TaskDetailModal } from "../../tasks/components/TaskDetailModal";
+import { HomeAttention } from "../components/HomeAttention";
 import { LiveAgentPanel } from "../components/LiveAgentPanel";
 import { ProjectsPanel } from "../components/ProjectsPanel";
+import { RecentProjects } from "../components/RecentProjects";
 import { TasksPanel, type TaskFilter } from "../components/TasksPanel";
 import { WatchAgentsModal } from "../components/WatchAgentsModal";
 import { HomeDesktop, type DesktopShortcut, type DesktopWindowTitle } from "../desktop/HomeDesktop";
@@ -38,6 +42,8 @@ const NEXT_STATUS: Record<TaskStatus, TaskStatus> = {
 	done: "todo",
 };
 
+const RECENT_SHOWN = 4;
+
 /**
  * Where the app opens: a clock, a few icons, and nothing else until you ask.
  *
@@ -54,6 +60,7 @@ export function HomePage({
 	const navigate = useNavigate();
 	const { presets } = usePromptPresets();
 	const { sessions: liveAgents } = useLiveAgentSessions();
+	const { recent } = useRecentProjects();
 
 	const [tasks, setTasks] = useState<Task[]>([]);
 	const [watchChoice, setWatchChoice] = useState(false);
@@ -70,11 +77,19 @@ export function HomePage({
 	const clearWindowRequest = useCallback(() => setRequestedWindow(null), []);
 
 	const refresh = useCallback(async () => {
-		setTasks(await globalThis.lazify.listAllTasks());
+		try {
+			setTasks(await globalThis.lazify.listAllTasks());
+		} catch {
+			reportFailure(translation.Home.TasksNotLoaded, translation.Home.TasksNotLoadedDesc);
+		}
 	}, []);
 
+	// Agents and the workbench change tasks too, so coming back to the window asks again.
 	useEffect(() => {
 		void refresh();
+		const onFocus = () => void refresh();
+		globalThis.addEventListener("focus", onFocus);
+		return () => globalThis.removeEventListener("focus", onFocus);
 	}, [refresh]);
 
 	const projectNames = useMemo(
@@ -83,6 +98,22 @@ export function HomePage({
 	);
 
 	const shown = filter === "open" ? tasks.filter((task) => task.status !== "done") : tasks;
+
+	// Opened most recently first; until any has been opened, synced most recently.
+	const recentProjects = [...projects]
+		.sort((a, b) => {
+			const rank = (project: SyncedWorkspaceProject) => {
+				const at = recent.indexOf(project.projectPath);
+				return at === -1 ? recent.length : at;
+			};
+			return rank(a) - rank(b) || b.lastSyncedAt.localeCompare(a.lastSyncedAt);
+		})
+		.slice(0, RECENT_SHOWN);
+
+	const openProject = (projectPath: string) => {
+		onActiveProjectChange(projectPath);
+		navigate(getWorkspaceProjectRoute(projectPath));
+	};
 
 	const cycle = async (task: Task) => {
 		await globalThis.lazify.setTaskStatus(task.id, NEXT_STATUS[task.status]);
@@ -143,16 +174,16 @@ export function HomePage({
 			onSelect: startAgents,
 		},
 		{
-			id: "workspace",
-			label: t(translation.Navigation.Workspace),
-			icon: "multi-window",
-			onSelect: () => navigate(appRoute.workspace),
+			id: "new-task",
+			label: t(translation.Tasks.AddTask),
+			icon: "plus",
+			onSelect: startNewTask,
 		},
 		{
-			id: "settings",
-			label: t(translation.Navigation.Settings),
-			icon: "settings",
-			onSelect: () => navigate(appRoute.settings),
+			id: "new-workflow",
+			label: t(translation.Sidebar.NewWorkflow),
+			icon: "play",
+			onSelect: () => navigate(appRoute.initProject),
 		},
 		{
 			id: "customize",
@@ -215,10 +246,7 @@ export function HomePage({
 				projects={projects}
 				tasks={tasks}
 				activeProjectPath={activeProjectPath}
-				onOpenProject={(projectPath) => {
-					onActiveProjectChange(projectPath);
-					navigate(getWorkspaceProjectRoute(projectPath));
-				}}
+				onOpenProject={openProject}
 				onOpenWorkspace={() => navigate(appRoute.workspace)}
 			/>
 		);
@@ -229,8 +257,16 @@ export function HomePage({
 			<HomeDesktop
 				shortcuts={shortcuts}
 				windowTitle={windowTitle}
+				notice={
+					<HomeAttention
+						waitingAgents={liveAgents.filter((session) => session.waiting).length}
+						doingTasks={tasks.filter((task) => task.status === "doing").length}
+						onOpenAgents={startAgents}
+						onOpenTasks={() => setRequestedWindow("tasks")}
+					/>
+				}
+				recentProjects={<RecentProjects projects={recentProjects} onOpenProject={openProject} />}
 				widgetData={{
-					now: new Date(),
 					openTasks: tasks.filter((task) => task.status !== "done").length,
 					doneTasks: tasks.filter((task) => task.status === "done").length,
 					projectCount: projects.length,

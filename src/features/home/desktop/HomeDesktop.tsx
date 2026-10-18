@@ -48,6 +48,9 @@ interface HomeDesktopProps {
 	shortcuts: DesktopShortcut[];
 	windowTitle: (id: DesktopWindowId) => DesktopWindowTitle;
 	widgetData: DesktopWidgetData;
+	/** Said under the clock: what is waiting on the user. */
+	notice?: ReactNode;
+	recentProjects?: ReactNode;
 	onOpenAgents: () => void;
 	onOpenProject: (projectPath: string) => void;
 	requestedWindow?: DesktopWindowId | null;
@@ -59,6 +62,8 @@ export function HomeDesktop({
 	shortcuts,
 	windowTitle,
 	widgetData,
+	notice,
+	recentProjects,
 	onOpenAgents,
 	onOpenProject,
 	requestedWindow,
@@ -160,12 +165,16 @@ export function HomeDesktop({
 
 					{focus ? null : (
 						<>
+							{notice}
+
 							<DesktopWidgets
 								widgets={personalization.widgets}
 								data={widgetData}
 								onOpenAgents={onOpenAgents}
 								onOpenProject={onOpenProject}
 							/>
+
+							{recentProjects}
 
 							{placement === "center" ? shortcutIcons(false) : null}
 						</>

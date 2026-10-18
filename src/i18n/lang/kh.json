@@ -1701,7 +1701,16 @@
     "icons_center": "ក្រោមនាឡិកា",
     "icons_left": "គែមខាងឆ្វេង",
     "icons_right": "គែមខាងស្តាំ",
-    "icons_top": "គែមខាងលើ"
+    "icons_top": "គែមខាងលើ",
+    "attention_waiting": "ភ្នាក់ងារ {{count}} កំពុងរង់ចាំអ្នក",
+    "attention_waiting_one": "ភ្នាក់ងារ ១ កំពុងរង់ចាំអ្នក",
+    "attention_waiting_other": "ភ្នាក់ងារ {{count}} កំពុងរង់ចាំអ្នក",
+    "attention_doing": "កិច្ចការ {{count}} កំពុងធ្វើ",
+    "attention_doing_one": "កិច្ចការ ១ កំពុងធ្វើ",
+    "attention_doing_other": "កិច្ចការ {{count}} កំពុងធ្វើ",
+    "recent_projects": "គម្រោងថ្មីៗ",
+    "tasks_not_loaded": "មិនអាចផ្ទុកកិច្ចការរបស់អ្នកបានទេ",
+    "tasks_not_loaded_desc": "កិច្ចការរបស់អ្នកនៅតែរក្សាទុក។ ត្រឡប់មក Lazify វិញ ឬបើកទំព័រដើមម្ដងទៀតដើម្បីសាកល្បងម្ដងទៀត។"
   },
   "date_picker": {
     "select_date": "ជ្រើសរើសកាលបរិច្ឆេទ",

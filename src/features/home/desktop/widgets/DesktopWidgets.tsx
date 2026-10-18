@@ -15,7 +15,6 @@ import { formatCountdown, useFocusTimer } from "./use-focus-timer";
 import { useGitSummary, type GitSummary } from "./use-git-summary";
 
 export interface DesktopWidgetData {
-	now: Date;
 	openTasks: number;
 	doneTasks: number;
 	projectCount: number;
@@ -205,7 +204,7 @@ export function DesktopWidgets({
 			{
 				id: "date",
 				icon: "journal-page",
-				value: formatDate(data.now, dateFormat),
+				value: formatDate(now, dateFormat),
 				label: t(translation.Home.WidgetDate),
 			},
 			{

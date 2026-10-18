@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, render, renderHook, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { createElement } from "react";
 import { MemoryRouter } from "react-router-dom";
@@ -8,6 +8,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { balancedRows } from "@/features/home/desktop/widgets/DesktopWidgets";
 import { HomePage } from "@/features/home/pages/HomePage";
+import { useRecentProjects } from "@/shared/hooks/use-recent-projects";
+import type { Task } from "@/shared/lib/tasks/types";
+import type { SyncedWorkspaceProject } from "@/shared/types/lazify";
+import { dismissFailure, failureNotice } from "@/shared/ui/toast/failure-toast";
 
 vi.mock("react-i18next", async (importOriginal) => ({
 	...(await importOriginal<typeof import("react-i18next")>()),
@@ -281,6 +285,117 @@ describe("arranging the desktop", () => {
 		expect(screen.getByText(/^home\.greeting_(morning|afternoon|evening)$/)).toBeTruthy();
 
 		await userEvent.click(screen.getByRole("checkbox", { name: "home.greeting_show" }));
+	});
+});
+
+function withLazify(members: Record<string, unknown>) {
+	Object.defineProperty(globalThis, "lazify", {
+		writable: true,
+		value: new Proxy(members, {
+			get: (target, name) =>
+				Reflect.get(target, name) ??
+				(typeof name === "string" && name.startsWith("on") ? () => () => {} : async () => []),
+		}),
+	});
+}
+
+const task = (id: string, status: Task["status"]): Task => ({
+	id,
+	projectPath: "/Users/me/thing",
+	name: `Task ${id}`,
+	description: "",
+	requirements: [],
+	notes: "",
+	presetId: null,
+	status,
+	priority: "normal",
+	deadline: null,
+	sortOrder: 0,
+	createdAt: "2026-09-01T00:00:00.000Z",
+	updatedAt: "2026-09-01T00:00:00.000Z",
+	completedAt: null,
+});
+
+const project = (name: string, lastSyncedAt: string) =>
+	({
+		id: name,
+		projectName: name,
+		projectPath: `/Users/me/${name}`,
+		lastSyncedAt,
+	}) as SyncedWorkspaceProject;
+
+describe("what home says needs you", () => {
+	it("says nothing under the clock when nothing is waiting", async () => {
+		renderHome(null);
+
+		await waitFor(() => expect(screen.getByRole("button", { name: /home.tasks_window/ })).toBeTruthy());
+		expect(screen.queryByText(/home.attention_/)).toBeNull();
+	});
+
+	it("counts tasks in progress and opens them in their window", async () => {
+		withLazify({ listAllTasks: vi.fn().mockResolvedValue([task("1", "doing"), task("2", "todo")]) });
+		renderHome(null);
+
+		await userEvent.click(await screen.findByRole("button", { name: "home.attention_doing" }));
+		expect(screen.getByRole("region", { name: "home.your_tasks" })).toBeTruthy();
+	});
+
+	it("asks for tasks again when the window comes back into focus", async () => {
+		const listAllTasks = vi.fn().mockResolvedValue([]);
+		withLazify({ listAllTasks });
+		renderHome(null);
+		await waitFor(() => expect(listAllTasks).toHaveBeenCalledTimes(1));
+
+		listAllTasks.mockResolvedValue([task("1", "doing")]);
+		globalThis.dispatchEvent(new Event("focus"));
+
+		expect(await screen.findByRole("button", { name: "home.attention_doing" })).toBeTruthy();
+	});
+
+	it("says so when tasks cannot be loaded", async () => {
+		withLazify({ listAllTasks: vi.fn().mockRejectedValue(new Error("disk")) });
+		renderHome(null);
+
+		await waitFor(() => expect(failureNotice()?.titleKey).toBe("home.tasks_not_loaded"));
+		dismissFailure();
+	});
+});
+
+describe("home shortcuts and recent projects", () => {
+	it("starts a new workflow from its icon", async () => {
+		renderHome(null);
+
+		await userEvent.click(screen.getByRole("button", { name: /sidebar.new_workflow/ }));
+		expect(navigate).toHaveBeenCalledWith("/init-project");
+	});
+
+	it("puts the last opened project first, then the most recently synced", async () => {
+		const { result } = renderHook(() => useRecentProjects());
+		act(() => result.current.rememberProject("/Users/me/old"));
+		const onActiveProjectChange = vi.fn();
+		render(
+			createElement(
+				MemoryRouter,
+				null,
+				createElement(HomePage, {
+					projects: [
+						project("older", "2026-08-01T00:00:00.000Z"),
+						project("old", "2026-07-01T00:00:00.000Z"),
+						project("new", "2026-09-01T00:00:00.000Z"),
+					],
+					activeProjectPath: null,
+					onActiveProjectChange,
+				}),
+			),
+		);
+
+		const recent = screen.getByRole("region", { name: "home.recent_projects" });
+		const names = [...recent.querySelectorAll("button")].map((button) => button.textContent);
+		expect(names).toEqual(["old", "new", "older"]);
+
+		await userEvent.click(screen.getByRole("button", { name: "old" }));
+		expect(onActiveProjectChange).toHaveBeenCalledWith("/Users/me/old");
+		expect(navigate).toHaveBeenCalledWith(`/workspace/project/${encodeURIComponent("/Users/me/old")}`);
 	});
 });
 
