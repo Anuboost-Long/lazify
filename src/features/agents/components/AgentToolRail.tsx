@@ -109,6 +109,7 @@ export function AgentToolRail({
 
   return (
     <div
+      data-tour="agent-tools"
       className={clsx(
         "flex h-full w-10 shrink-0 flex-col items-center gap-1",
         "border-l border-border bg-soft py-2"

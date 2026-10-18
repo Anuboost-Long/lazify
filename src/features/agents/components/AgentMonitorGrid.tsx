@@ -196,6 +196,7 @@ export function AgentMonitorGrid({
 
 					<IconButton
 						icon="multi-window"
+						data-tour="monitor-layout"
 						title={t(translation.Agents.MonitorLayout)}
 						aria-label={t(translation.Agents.MonitorLayout)}
 						onClick={() => setPickingLayout(true)}
@@ -229,7 +230,12 @@ export function AgentMonitorGrid({
 						))}
 
 						{emptySlotNumbers.map((slot) => (
-							<AgentMonitorSlot key={`slot-${slot}`} index={slot} onAdd={openSetup} />
+							<AgentMonitorSlot
+								key={`slot-${slot}`}
+								index={slot}
+								invite={slot === panels.length + 1}
+								onAdd={openSetup}
+							/>
 						))}
 					</div>
 				</div>

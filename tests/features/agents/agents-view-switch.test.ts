@@ -46,6 +46,8 @@ function Shell({ children }: Readonly<{ children: ReactNode }>) {
 
 beforeEach(() => {
 	localStorage.clear();
+	globalThis.matchMedia = vi.fn().mockReturnValue({ matches: false }) as unknown as typeof matchMedia;
+	Element.prototype.scrollIntoView = vi.fn();
 	Object.defineProperty(globalThis, "ResizeObserver", {
 		writable: true,
 		value: class {
@@ -90,9 +92,12 @@ const renderAgents = (projects: SyncedWorkspaceProject[]) =>
 
 const segment = (name: string) => screen.getByRole("button", { name: new RegExp(`^${name}`) });
 
+const skipTour = () => userEvent.click(screen.getByRole("button", { name: "tour.skip" }));
+
 describe("agents view switch", () => {
 	it("says which view is showing and moves between the two", async () => {
 		renderAgents([project]);
+		await skipTour();
 
 		expect(segment("agents.view_tabs").getAttribute("aria-pressed")).toBe("true");
 		expect(segment("agents.live_monitor").getAttribute("aria-pressed")).toBe("false");
@@ -108,6 +113,7 @@ describe("agents view switch", () => {
 
 	it("switches with the keyboard shortcut", async () => {
 		renderAgents([project]);
+		await skipTour();
 
 		const mod = isMac ? "Meta" : "Control";
 		await userEvent.keyboard(`{${mod}>}{Shift>}m{/Shift}{/${mod}}`);
@@ -119,5 +125,41 @@ describe("agents view switch", () => {
 		renderAgents([]);
 
 		expect(screen.queryByRole("button", { name: /^agents.view_tabs/ })).toBeNull();
+	});
+});
+
+describe("agents tours", () => {
+	it("walks a first visit through the tabs view, once", async () => {
+		const first = renderAgents([project]);
+
+		expect(screen.getByRole("dialog", { name: "agents.tour_view_title" })).toBeTruthy();
+		await userEvent.click(screen.getByRole("button", { name: "tour.next" }));
+		expect(screen.getByRole("dialog", { name: "agents.tour_projects_title" })).toBeTruthy();
+		await skipTour();
+		expect(screen.queryByRole("dialog")).toBeNull();
+
+		first.unmount();
+		renderAgents([project]);
+		expect(screen.queryByRole("dialog")).toBeNull();
+	});
+
+	it("replays the tour from Show me how", async () => {
+		renderAgents([project]);
+		await skipTour();
+
+		await userEvent.click(screen.getByRole("button", { name: "agents.show_tour" }));
+
+		expect(screen.getByRole("dialog", { name: "agents.tour_view_title" })).toBeTruthy();
+	});
+
+	it("explains the live monitor the first time it opens, starting from an inviting slot", async () => {
+		renderAgents([project]);
+		await skipTour();
+
+		await userEvent.click(segment("agents.live_monitor"));
+
+		expect(screen.getByRole("dialog", { name: "agents.tour_slot_title" })).toBeTruthy();
+		const slot = document.querySelector('[data-tour="monitor-slot"]');
+		expect(slot?.textContent).toContain("agents.monitor_add_panel");
 	});
 });

@@ -17,7 +17,9 @@ import type {
 	CodeSelectionContext,
 } from "@/shared/ui/code/menu/code-selection";
 import { CodeSelectionActionsProvider } from "@/shared/ui/code/menu/selection-actions";
+import { IconButton } from "@/shared/ui/IconButton";
 import { SegmentedTabs } from "@/shared/ui/SegmentedTabs";
+import { Tour, useFirstTimeTour, type TourStep } from "@/shared/ui/Tour";
 import { Toast } from "@/shared/ui/toast/Toast";
 
 import { AgentFileModal } from "../components/AgentFileModal";
@@ -274,6 +276,27 @@ export function AgentsPage({
 	const viewCombo = formatCombo(useShortcutCombo("switch-agent-view"));
 
 	useShortcut("switch-agent-view", () => setMonitorMode(!monitorMode), hasProjects);
+
+	const tabsTour = useFirstTimeTour("agents-tabs", hasProjects && !monitorMode);
+	const monitorTour = useFirstTimeTour("agents-monitor", hasProjects && monitorMode);
+	const step = (target: string, title: string, body: string, values?: Record<string, string>): TourStep => ({
+		target,
+		title: t(title),
+		body: t(body, values),
+	});
+	const tabsSteps = [
+		step("agent-view", translation.Agents.TourViewTitle, translation.Agents.TourViewBody, { combo: viewCombo }),
+		step("agent-projects", translation.Agents.TourProjectsTitle, translation.Agents.TourProjectsBody),
+		step("agent-new", translation.Agents.TourNewTitle, translation.Agents.TourNewBody),
+		step("agent-tools", translation.Agents.TourToolsTitle, translation.Agents.TourToolsBody),
+		step("agent-tour", translation.Agents.TourReplayTitle, translation.Agents.TourReplayBody),
+	];
+	const monitorSteps = [
+		step("monitor-slot", translation.Agents.TourSlotTitle, translation.Agents.TourSlotBody),
+		step("monitor-layout", translation.Agents.TourLayoutTitle, translation.Agents.TourLayoutBody),
+		step("monitor-tools", translation.Agents.TourMonitorToolsTitle, translation.Agents.TourMonitorToolsBody),
+		step("agent-view", translation.Agents.TourBackTitle, translation.Agents.TourBackBody),
+	];
 	const branches = gitStatus?.isGitRepo ? gitStatus.branches : [];
 
 	const railPanels = (
@@ -362,27 +385,40 @@ export function AgentsPage({
 
 					{hasProjects && (
 						<PageActions>
-							<SegmentedTabs
-								tabs={[
-									{
-										id: "tabs",
-										label: translation.Agents.ViewTabs,
-										icon: "terminal",
-										hint: `${t(translation.Agents.ViewTabsHint)}  ${viewCombo}`,
-									},
-									{
-										id: "monitor",
-										label: translation.Agents.LiveMonitor,
-										icon: "multi-window",
-										badge: monitorPanels.panels.length,
-										hint: `${t(translation.Agents.ViewMonitorHint)}  ${viewCombo}`,
-									},
-								]}
-								active={monitorMode ? "monitor" : "tabs"}
-								onSelect={(view) => setMonitorMode(view === "monitor")}
+							<IconButton
+								icon="chat-question"
+								data-tour="agent-tour"
+								title={t(translation.Agents.ShowTour)}
+								aria-label={t(translation.Agents.ShowTour)}
+								onClick={monitorMode ? monitorTour.startTour : tabsTour.startTour}
 							/>
+							<div data-tour="agent-view">
+								<SegmentedTabs
+									size="compact"
+									tabs={[
+										{
+											id: "tabs",
+											label: translation.Agents.ViewTabs,
+											icon: "terminal",
+											hint: `${t(translation.Agents.ViewTabsHint)}  ${viewCombo}`,
+										},
+										{
+											id: "monitor",
+											label: translation.Agents.LiveMonitor,
+											icon: "multi-window",
+											badge: monitorPanels.panels.length,
+											hint: `${t(translation.Agents.ViewMonitorHint)}  ${viewCombo}`,
+										},
+									]}
+									active={monitorMode ? "monitor" : "tabs"}
+									onSelect={(view) => setMonitorMode(view === "monitor")}
+								/>
+							</div>
 						</PageActions>
 					)}
+
+					{tabsTour.touring && !monitorMode && <Tour steps={tabsSteps} onClose={tabsTour.endTour} />}
+					{monitorTour.touring && monitorMode && <Tour steps={monitorSteps} onClose={monitorTour.endTour} />}
 
 					{!hasProjects && (
 						<AgentNoProjectState

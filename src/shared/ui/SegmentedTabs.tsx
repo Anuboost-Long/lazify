@@ -20,6 +20,8 @@ interface SegmentedTabsProps<TId extends string> {
   tabs: SegmentedTab<TId>[];
   active: TId;
   onSelect: (id: TId) => void;
+  /** "compact" is 28px tall, to sit in the shell's top bar beside its other controls. */
+  size?: "regular" | "compact";
 }
 
 /**
@@ -30,12 +32,18 @@ interface SegmentedTabsProps<TId extends string> {
 export function SegmentedTabs<TId extends string>({
   tabs,
   active,
-  onSelect
+  onSelect,
+  size = "regular"
 }: Readonly<SegmentedTabsProps<TId>>) {
   const { t } = useTranslation();
 
   return (
-    <div className="flex items-center gap-1 rounded-full border border-border bg-soft p-1">
+    <div
+      className={clsx(
+        "flex items-center rounded-full border border-border bg-soft",
+        size === "compact" ? "gap-0.5 p-0.5" : "gap-1 p-1"
+      )}
+    >
       {tabs.map((tab) => {
         const selected = tab.id === active;
 
@@ -46,7 +54,8 @@ export function SegmentedTabs<TId extends string>({
             onClick={() => onSelect(tab.id)}
             aria-pressed={selected}
             className={clsx(
-              "flex items-center gap-2 rounded-full px-4 py-1.5 transition-colors",
+              "flex items-center rounded-full transition-colors",
+              size === "compact" ? "gap-1.5 px-3 py-0.5" : "gap-2 px-4 py-1.5",
               selected
                 ? "bg-accent/[0.14] text-accent shadow-xs"
                 : "text-muted hover:bg-text/4 hover:text-text"

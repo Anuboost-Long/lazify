@@ -267,7 +267,26 @@
     "format_proceed": "Format {{count}} files",
     "format_proceed_one": "Format {{count}} file",
     "format_proceed_other": "Format {{count}} files",
-    "limit_reached": "Limit reached"
+    "limit_reached": "Limit reached",
+    "show_tour": "Show me how",
+    "tour_view_title": "Two ways to watch agents",
+    "tour_view_body": "Tabs shows one agent at a time for the project you pick. Live monitor puts every session side by side, from any project. {{combo}} switches between them.",
+    "tour_projects_title": "Pick a project",
+    "tour_projects_body": "Agents run in the project chosen here. Its counts show what is running and what is waiting for you.",
+    "tour_new_title": "Start an agent",
+    "tour_new_body": "Open an AI agent or run a script in this project. Each one gets its own tab.",
+    "tour_tools_title": "Tools for this project",
+    "tour_tools_body": "See what the agents changed, browse files and Git, preview the app, and more.",
+    "tour_replay_title": "See this again any time",
+    "tour_replay_body": "Choose Show me how to replay the tour for the view you are in.",
+    "tour_slot_title": "Add an agent to the wall",
+    "tour_slot_body": "Each slot runs one agent or script, from any project. Start with this one.",
+    "tour_layout_title": "Arrange the wall",
+    "tour_layout_body": "Choose how many panels sit side by side. Drag a panel to move it, and change its size from its own controls.",
+    "tour_monitor_tools_title": "Tools follow the selected panel",
+    "tour_monitor_tools_body": "Click a panel to select it; these tools then work on its project.",
+    "tour_back_title": "Back to tabs any time",
+    "tour_back_body": "Switching views leaves the wall running. Clear the wall to stop its sessions."
   },
   "sidebar": {
     "start_new_workflow": "Start new workflow",
@@ -1778,5 +1797,11 @@
     "title": "Lazify hit an error it can't recover from",
     "message": "Nothing was sent anywhere. The details were written to the log below.",
     "reload": "Reload"
+  },
+  "tour": {
+    "step_count": "{{current}} of {{total}}",
+    "skip": "Skip tour",
+    "next": "Next",
+    "done": "Done"
   }
 }

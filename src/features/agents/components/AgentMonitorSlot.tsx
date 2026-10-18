@@ -7,16 +7,18 @@ import UiIcon from "@/shared/ui/icons/UiIcon";
 
 interface AgentMonitorSlotProps {
   index: number;
-
+  /** The slot to start with: says "Add agent" without waiting for a hover. */
+  invite?: boolean;
   onAdd: () => void;
 }
 
-export function AgentMonitorSlot({ index, onAdd }: Readonly<AgentMonitorSlotProps>) {
+export function AgentMonitorSlot({ index, invite = false, onAdd }: Readonly<AgentMonitorSlotProps>) {
   const { t } = useTranslation();
 
   return (
     <button
       type="button"
+      data-tour={invite ? "monitor-slot" : undefined}
       onClick={onAdd}
       aria-label={t(translation.Agents.MonitorAddPanel)}
       className={clsx(
@@ -40,8 +42,8 @@ export function AgentMonitorSlot({ index, onAdd }: Readonly<AgentMonitorSlotProp
         aria-hidden
         className={clsx(
           "absolute left-3 top-3 font-mono text-[10px] leading-none text-muted",
-          "opacity-50 transition-opacity duration-200",
-          "group-hover:opacity-0 group-focus-visible:opacity-0"
+          "transition-opacity duration-200",
+          invite ? "opacity-0" : "opacity-50 group-hover:opacity-0 group-focus-visible:opacity-0"
         )}
       >
         {String(index).padStart(2, "0")}
@@ -49,11 +51,14 @@ export function AgentMonitorSlot({ index, onAdd }: Readonly<AgentMonitorSlotProp
 
       <span
         className={clsx(
-          "flex translate-y-1 scale-95 flex-col items-center gap-2 opacity-0",
+          "flex flex-col items-center gap-2",
           "transition-all duration-200 ease-out",
-          "group-hover:translate-y-0 group-hover:scale-100 group-hover:opacity-100",
-          "group-focus-visible:translate-y-0 group-focus-visible:scale-100",
-          "group-focus-visible:opacity-100"
+          !invite && [
+            "translate-y-1 scale-95 opacity-0",
+            "group-hover:translate-y-0 group-hover:scale-100 group-hover:opacity-100",
+            "group-focus-visible:translate-y-0 group-focus-visible:scale-100",
+            "group-focus-visible:opacity-100",
+          ]
         )}
       >
         <span

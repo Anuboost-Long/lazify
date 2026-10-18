@@ -114,6 +114,7 @@ export function AgentProjectPicker({
 
   return (
     <aside
+      data-tour="agent-projects"
       className={clsx(
         "flex min-h-0 w-full flex-col rounded-3xl border border-border bg-soft",
         "transition-[width] duration-300 lg:shrink-0",

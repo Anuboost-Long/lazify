@@ -168,6 +168,7 @@ export function AgentTabBar({
 
       <button
         type="button"
+        data-tour="agent-new"
         onClick={() => setPickerOpen(true)}
         className={clsx(
           "flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5",
