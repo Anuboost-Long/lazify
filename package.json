@@ -1,5 +1,5 @@
 {
-  "name": "lazify-chain",
+  "name": "lazify",
   "private": true,
   "version": "0.1.0",
   "type": "module",
@@ -87,7 +87,7 @@
       "appleEvents": "Styles the Finder window a built .dmg mounts in."
     },
     "app": {
-      "name": "lazify-chain",
+      "name": "Lazify",
       "identifier": "dev.chain.lazify-chain"
     }
   }

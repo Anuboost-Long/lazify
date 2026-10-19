@@ -64,7 +64,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: lazify-chain-mac
+          name: lazify-mac
           path: |
             lazify-chain/.chain/native/target/universal-apple-darwin/release/bundle/dmg/*.dmg
             lazify-chain/.chain/native/target/updates/

@@ -55,7 +55,7 @@ function failureMessage(error: unknown): string {
 	const failure = error as ChainFailure;
 
 	if (failure?.code === "TOO_LARGE") {
-		return `The response is larger than Lazify Chain can download at once (over ${MAX_DOWNLOAD_BYTES / 1_000_000} MB).`;
+		return `The response is larger than Lazify can download at once (over ${MAX_DOWNLOAD_BYTES / 1_000_000} MB).`;
 	}
 
 	if (typeof failure?.message === "string") return failure.message;

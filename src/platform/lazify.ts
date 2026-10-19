@@ -29,7 +29,7 @@ const unported = {
 	pageWindow: "Opening a page in its own window",
 };
 
-const notYet = (feature: string) => new Error(`${feature} isn't available in Lazify Chain yet.`);
+const notYet = (feature: string) => new Error(`${feature} isn't available in Lazify yet.`);
 
 const rejects = (feature: string) => () => Promise.reject(notYet(feature));
 const noSubscription = () => () => undefined;
