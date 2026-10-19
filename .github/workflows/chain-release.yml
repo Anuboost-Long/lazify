@@ -1,0 +1,71 @@
+name: Chain release
+
+# Lazify Chain shares this GitHub repo with Electron Lazify, whose release.yml
+# fires on "v*" tags. Chain releases use "chain-v*" so a tag never builds the
+# wrong app. The tag has to match package.json's version.
+on:
+  push:
+    tags:
+      - "chain-v*"
+  workflow_dispatch:
+
+env:
+  # The chain-sdk commit this release is built from (10-release-readiness.md,
+  # "Pin chain-sdk"). Move it deliberately, and name it in the release notes.
+  CHAIN_SDK_REF: 41f52fb150e5ef09d5fc510b66dbb44e9383ae86
+
+jobs:
+  build-mac:
+    # macOS only, D-2. Windows and Linux users stay on Electron.
+    runs-on: macos-14
+
+    steps:
+      # package.json reaches chain-sdk as file:../chain-sdk, and the generated
+      # native project as ../../../chain-sdk, so the two sit side by side.
+      - uses: actions/checkout@v4
+        with:
+          path: lazify-chain
+
+      - uses: actions/checkout@v4
+        with:
+          repository: Anuboost-Long/chain-sdk
+          ref: ${{ env.CHAIN_SDK_REF }}
+          path: chain-sdk
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin,x86_64-apple-darwin
+
+      - name: Install chain-sdk
+        working-directory: chain-sdk
+        run: |
+          npm ci
+          npm run prepare --workspaces
+
+      - name: Install
+        working-directory: lazify-chain
+        run: npm ci
+
+      - name: Test
+        working-directory: lazify-chain
+        run: CI=true npm test
+
+      - name: Typecheck
+        working-directory: lazify-chain
+        run: npm run typecheck
+
+      - name: Build
+        working-directory: lazify-chain
+        run: npm run build:mac
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: lazify-chain-mac
+          path: |
+            lazify-chain/.chain/native/target/universal-apple-darwin/release/bundle/dmg/*.dmg
+            lazify-chain/.chain/native/target/updates/
+          if-no-files-found: error

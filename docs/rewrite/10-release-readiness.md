@@ -69,13 +69,15 @@ Apple's.
 - **Pin chain-sdk.** `@chain/sdk` and `@chain/cli` are `file:../chain-sdk`,
   and several capabilities shipped in chain-sdk's working tree. A release
   is built from a recorded chain-sdk commit, and the release notes name it.
-- **Release CI.** This repo has none. It needs: a macOS runner, the Rust
-  toolchain, chain-sdk checked out at the pinned commit next to this repo,
-  then `CI=true npm test`, `npm run typecheck`, `chain build` for arm64 and
-  x86_64, and the upload of the update files (request 22) to the feed.
-  Electron's `.github/workflows/release.yml` is the model, with
-  `LAZIFY_DIST_TOKEN` replaced by a token for the new feed repo and the
-  update signing key as a secret.
+- **Release CI.** `.github/workflows/chain-release.yml` runs on a
+  `chain-v*` tag (Electron's `release.yml` in the same GitHub repo owns
+  `v*`) or by hand. On a macOS runner it checks out chain-sdk at
+  `CHAIN_SDK_REF` next to this repo, runs `CI=true npm test` and
+  `npm run typecheck`, then `npm run build:mac` (`chain build --target
+  universal-apple-darwin`, one app for arm64 and x86_64), and keeps the
+  DMG and update files as workflow artifacts. Left: uploading the update
+  files (request 22) to the feed once it exists, with a token for the feed
+  repo and the update signing key (`CHAIN_UPDATE_KEY`) as secrets.
 - **The unported tests** (`07-test-matrix.md`, "The gap"): 83 of
   Electron's test files, mostly renderer tests of ported screens.
 - **An update from a prior release**, end to end: install release N, use
