@@ -16,11 +16,12 @@ Ordered smallest-safe-first. Each item becomes a ticket in `tickets/` (format:
 - [x] Native side verified: `npm run dev` in this repo, after the
       restructure, opened a window that reached `desktop.platform.getInfo()`
       (macOS, arm64, 2026-10-09, read through `chain inspect`)
-- [ ] Report to chain-sdk (the port part is now [request 13](../chain-sdk-requests/13-dev-server-port-in-use.md)): on the first `chain dev` run, Tauri restarted and
+- [x] Report to chain-sdk (the port part is now [request 13](../chain-sdk-requests/13-dev-server-port-in-use.md)): on the first `chain dev` run, Tauri restarted and
       ran `beforeDevCommand` a second time while the first Vite still held
       port 1420. The command exited 1 but left `chain dev`, Vite and two app
       processes running. Separately, `chain init` runs `git init` even
-      inside an existing repository
+      inside an existing repository. Sent to the chain-sdk session on
+      2026-10-21, with the double run left for them to confirm
 - [x] Owner: approved P-2 (amended) and P-3, and decided D-1, D-2, D-5 and D-8
       (`04-architecture-decisions.md`)
 

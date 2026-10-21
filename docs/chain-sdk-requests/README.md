@@ -37,6 +37,7 @@ Each request:
 | 21 | [Filter and script the pages in an embedded view](21-filter-and-script-embedded-pages.md) | Sent and shipped 2026-10-17 on `desktop.browserView` (rules, page scripts, `ask()`, `runInFrames`, `allowPictureInPicture`); used by tickets 042 (media PiP) and 043 (Lazy Shield), verified in the app |
 | 22 | [Update the app in place](22-update-the-app-in-place.md) | Sent 2026-10-17: check, download, install-and-relaunch on ad-hoc signed builds (D-4, D-6). Shipped 2026-10-17 as `desktop.updates`, verified by chain-sdk with live updates; `chain update` run; ported in ticket 044. Ad-hoc builds lose granted permissions on every update; a self-signed certificate keeps them |
 | 23 | [A page in a small window that floats above everything](23-floating-page-window.md) | Sent 2026-10-17: the browser's and preview's "keep this page on screen" window, on their sessions, with navigation decisions and Lazy Shield. Queued after 22 |
+| 24 | [A moved native project must not keep a stale build cache](24-moved-native-project-stale-build-cache.md) | Sent and shipped 2026-10-21: every prepare drops build-script runs left from before `released/` moved (124 cleaned here, `chain-inspector.json` kept), and the failure summary now repeats the Cargo `error:`, not Tauri's wrapper. `chain update` run; `npm run build:mac` verified, universal `.app` and `.dmg` built |
 
 Overlap with Mneme: request 01's read-only allow-list design fork would also
 answer Mneme's request 11 (`external-file-read`).

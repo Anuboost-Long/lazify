@@ -15,22 +15,20 @@ Apple's.
 | D-2 | macOS only. Windows and Linux users stay on Electron |
 | D-4 | The first release updates itself (check, download, install, each on the user's click) |
 | D-6 | Ad-hoc signed, as Electron is. Developer ID and notarisation come when the owner buys the Apple Developer membership |
+| D-9 | The app is called "Lazify" (2026-10-21). The Electron build is deprecated once this one proves faster, so installing it replacing Electron's `Lazify.app` is accepted; going back means reinstalling Electron's `.dmg` |
 
 ## Before the first release
 
 ### Owner decisions
 
-1. **The app's name and identifier.** The scaffold's are still in place:
-   `lazify-chain`, `dev.chain.lazify-chain`, version 0.1.0
-   (`package.json`: `chain.app.name`, `chain.app.identifier`, `version`).
+1. **The app's identifier and version.** The name is decided (D-9); the
+   scaffold's identifier is still in place: `dev.chain.lazify-chain`,
+   version 0.1.0 (`package.json`: `chain.app.identifier`, `version`).
    - The identifier names the data folder
      (`~/Library/Application Support/<identifier>/app`), so it must be
      final before anyone installs: changing it later leaves every user's
      data behind. It must also differ from Electron's `com.lazify.desktop`
      so both apps can be installed at once (`09-rollback-and-recovery.md`).
-   - The name decides the `.app` in `/Applications`. Calling it "Lazify"
-     replaces Electron's `Lazify.app` on install, which breaks going back.
-     Keep a distinct name until cutover.
    - The version: Electron is at 1.0.0. The feeds are separate, so the
      Chain app can start anywhere, but a user comparing versions will read
      them as one product.

@@ -18,13 +18,14 @@ Always possible, for every slice, because of three rules already in place:
   (`03-data-inventory.md` §3), each pinned by Electron's tests or golden
   fixtures. Electron opens a project the Chain app has used.
 
-To go back, the user opens Electron Lazify. Nothing needs undoing.
+To go back, the user reinstalls Electron Lazify from its `.dmg` and opens
+it. Nothing needs undoing.
 
-**This needs both apps installed side by side** until cutover. Today
-that holds: Electron is `Lazify.app` (`com.lazify.desktop`), and the Chain
-build is `lazify-chain.app` (`dev.chain.lazify-chain`). See "Before the
-first release" in `10-release-readiness.md`: the Chain app's final name and
-identifier must keep this true.
+**Both apps are called `Lazify.app`** (D-9), so installing the Chain app
+into `/Applications` replaces Electron's. The identifiers still differ
+(Electron's `com.lazify.desktop`, the Chain app's `dev.chain.lazify-chain`),
+so the two never share a data folder and a reinstalled Electron finds its
+profile where it left it.
 
 ## What doesn't come back
 
