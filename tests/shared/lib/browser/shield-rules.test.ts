@@ -86,6 +86,13 @@ describe("Ghostery's filters as one rule list", () => {
 		expect(skipped).toEqual({ redirect: 1, csp: 1, "regular expression": 1, removeparam: 1 });
 	});
 
+	it("leaves out a filter whose only sites are wildcards, rather than applying it everywhere but its exceptions", () => {
+		const { rules, skipped } = shieldRules(parse("*$script,1p,domain=~kat.ai|~kat.pink|kat.*|kickass.*"));
+
+		expect(rules).toHaveLength(1);
+		expect(skipped).toEqual({ "only wildcard domains": 1 });
+	});
+
 	it("drops a filter a $badfilter cancels, and the badfilter itself", () => {
 		const { rules, skipped } = shieldRules(parse("||ads.example^", "||ads.example^$badfilter"));
 

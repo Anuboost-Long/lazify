@@ -33,6 +33,19 @@ previous page, so the bar, the history entry's title and "Try again"
 all pointed at the page before. The guest now answers with the failed
 address and its host as the title, as Chromium's error page did.
 
+Found and fixed live (2026-10-21):
+
+- The tab strip's + and × didn't respond: the breadcrumb bar's drag
+  region lay under the strip and took the presses. The bar stops being a
+  drag region while the browser page shows; the strip is its own drag
+  region, with each tab cut out of it.
+- Any app menu (the sidebar's theme menu) opened behind the page:
+  `ContextMenu` now hides the views while it's open, as the toolbar's
+  dropdowns do.
+- Hidden views were placed again on every resize (the sidebar's
+  animation sent ~39 `setBounds` a toggle); a hidden view is now placed
+  when it's shown again.
+
 Lazy Shield and media picture-in-picture: [chain-sdk request
 21](../../chain-sdk-requests/21-filter-and-script-embedded-pages.md),
 sent 2026-10-17; chain-sdk plans it as two increments on

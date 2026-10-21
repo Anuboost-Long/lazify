@@ -51,6 +51,9 @@ export function GuestView({ session, url, visible, onGuest, className }: Readonl
 	const guest = useRef<Guest | null>(null);
 	const covered = useSyncExternalStore(subscribeToCovers, isCovered);
 	const shown = visible && !covered;
+	// A hidden page is placed when it is shown again, not on every resize meanwhile:
+	// placing a view lays its page out again, on the thread that draws the window.
+	const shownRef = useRef(shown);
 
 	const initial = useRef({ session, url, shown, onGuest });
 
@@ -63,7 +66,9 @@ export function GuestView({ session, url, visible, onGuest, className }: Readonl
 		guest.current = opened;
 		onGuest(opened);
 
-		const place = () => opened.place(element.getBoundingClientRect());
+		const place = () => {
+			if (shownRef.current) opened.place(element.getBoundingClientRect());
+		};
 		const observer = new ResizeObserver(place);
 		observer.observe(element);
 		observer.observe(document.documentElement);
@@ -79,6 +84,7 @@ export function GuestView({ session, url, visible, onGuest, className }: Readonl
 	}, []);
 
 	useEffect(() => {
+		shownRef.current = shown;
 		const current = guest.current;
 		const element = box.current;
 		if (!current || !element) return;

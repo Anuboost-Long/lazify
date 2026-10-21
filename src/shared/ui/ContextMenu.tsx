@@ -2,9 +2,15 @@ import clsx from "clsx";
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
 
+import { useCoverGuests } from "@/shared/ui/GuestView";
+import UiIcon, { type UiIconName } from "@/shared/ui/icons/UiIcon";
+
 export interface ContextMenuItem {
   key: string;
   label: string;
+  icon?: UiIconName;
+  /** The current choice, when the menu picks one of several. */
+  selected?: boolean;
   destructive?: boolean;
   onSelect: () => void;
 }
@@ -20,6 +26,8 @@ const ROW_HEIGHT = 32;
 const EDGE_GAP = 12;
 
 export function ContextMenu({ position, items, onClose }: Readonly<ContextMenuProps>) {
+  useCoverGuests(position !== null);
+
   useEffect(() => {
     if (!position) return;
 
@@ -63,19 +71,29 @@ export function ContextMenu({ position, items, onClose }: Readonly<ContextMenuPr
           <button
             key={item.key}
             type="button"
-            role="menuitem"
+            role={item.selected === undefined ? "menuitem" : "menuitemradio"}
+            aria-checked={item.selected}
             onClick={() => {
               onClose();
               item.onSelect();
             }}
             className={clsx(
-              "flex w-full items-center rounded-lg px-2.5 py-1.5 text-left text-xs",
+              "relative flex w-full items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-left text-xs",
               "transition-colors",
-              item.destructive
-                ? "text-error hover:bg-error/10"
-                : "text-text hover:bg-accent/10 hover:text-accent"
+              item.destructive && "text-error hover:bg-error/10",
+              !item.destructive &&
+                item.selected &&
+                "bg-bg/60 text-text before:absolute before:inset-y-1.5 before:left-0 before:w-0.75 before:rounded-full before:bg-accent",
+              !item.destructive && !item.selected && "text-text hover:bg-accent/10 hover:text-accent"
             )}
           >
+            {item.icon && (
+              <UiIcon
+                name={item.icon}
+                filled={item.selected}
+                className={clsx("h-4 w-4 shrink-0", item.selected ? "text-accent" : "text-muted")}
+              />
+            )}
             {item.label}
           </button>
         ))}

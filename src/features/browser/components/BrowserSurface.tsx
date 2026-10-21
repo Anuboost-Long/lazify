@@ -196,8 +196,11 @@ export function BrowserSurface({ visible }: Readonly<BrowserSurfaceProps>) {
       // Each guest re-checks this for itself; see the note in BrowserGuest.
       style={visible ? undefined : { visibility: "hidden" }}
     >
-      {/* Tab strip */}
-      <div className="flex items-center gap-1 overflow-x-auto border-b border-border px-2 py-1.5">
+      {/* Tab strip — it takes the covered breadcrumb bar's place as the window's handle. */}
+      <div
+        data-chain-drag-region
+        className="flex items-center gap-1 overflow-x-auto border-b border-border px-2 py-1.5"
+      >
         {tabs.map((tab, index) => {
           const isActive = tab.id === activeId;
           const isDragging = tab.id === draggingId;
@@ -209,6 +212,7 @@ export function BrowserSurface({ visible }: Readonly<BrowserSurfaceProps>) {
           return (
             <div
               key={tab.id}
+              data-chain-drag-region="false"
               draggable
               onDragStart={(event) => {
                 setDraggingId(tab.id);

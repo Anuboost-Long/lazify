@@ -17,9 +17,9 @@ filtered.
 
 Works in the app. On by default from the imported `lazy-shield.json`; the
 lists (8.3 MB) are fetched through `desktop.http`, cached for 3 days, and
-converted to one list of 120,492 rules (2,306 filters left out: 1,215
+converted to one list of 120,491 rules (2,307 filters left out: 1,215
 redirects, 249 removeparam, 231 regular expressions, 231 denyallow, 129
-cosmetic exceptions, 89 wildcard-only domains, 86 csp, 58 replace, 18
+cosmetic exceptions, 90 wildcard-only domains, 86 csp, 58 replace, 18
 alternation/braces). Verified with a local test page served under a
 real host name (`*.localtest.me` → 127.0.0.1; Ghostery hands out no
 cosmetic rules for `localhost`, in Electron too): an EasyList-named image
@@ -38,6 +38,13 @@ measured its own part at ≈ 2.6 s debug and ≈ 0.2 s release, so a release
 build should start well under this). The browser's first page
 waits up to 5 s for the shield, as Electron held early requests; past
 that it loads unfiltered and the next load is filtered.
+
+Found live and changed (2026-10-21): DuckDuckGo showed a blank page. A
+filter whose sites were all wildcards apart from its `~` exceptions
+(`*$script,1p,domain=~kat.ai|~kat.pink|kat.*|kickass.*`) kept only the
+exceptions, so it became "block every first-party script except on
+these two sites". A filter is now left out when any site it names is a
+wildcard; pinned in `shield-rules.test.ts`.
 
 ## Source-of-truth references
 

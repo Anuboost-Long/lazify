@@ -96,6 +96,8 @@ function domainsOf(filter: NetworkFilter): Pick<BrowserViewRuleTrigger, "ifDomai
 	// Only one of the two may be given; the sites it applies on matter more than
 	// the few it then spares.
 	if (included.length > 0) return { ifDomain: included };
+	// Every site it names was a wildcard: sparing only its exceptions would apply it everywhere else.
+	if (names.some((name) => !name.startsWith("~"))) return null;
 	if (excluded.length > 0) return { unlessDomain: excluded };
 	return null;
 }
