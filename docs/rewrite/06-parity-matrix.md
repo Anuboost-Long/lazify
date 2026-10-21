@@ -60,3 +60,8 @@ An untested OS is `Not tested`, never `Pass`.
   language files never had those two strings, so Electron shows the raw
   keys (`settings.diagnostics`, `settings.diagnostics_desc`). Fixed here
   2026-10-17, in all three languages.
+- Going back to the Workspace (or Tools) list makes the list the page's
+  remembered place, so the next sidebar visit starts there. Electron only
+  ever remembered the last project or tool, and kept reopening it after the
+  user had left it for the list. Requested by the owner 2026-10-21
+  (`src/shared/hooks/use-route-memory.ts`).

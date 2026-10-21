@@ -62,11 +62,14 @@ export function useRouteMemory() {
 
   const remember = useCallback(
     (pathname: string) => {
-      const pageId = pageOfSubRoute(pathname);
+      // Back on a page's own root, the next visit starts there too.
+      const leftFor = pageOfRoot(pathname);
+      const pageId = leftFor ?? pageOfSubRoute(pathname);
+      const kept = leftFor ? undefined : pathname;
 
-      if (!pageId || memory[pageId] === pathname) return;
+      if (!pageId || memory[pageId] === kept) return;
 
-      const next = { ...memory, [pageId]: pathname };
+      const next = { ...memory, [pageId]: kept };
 
       globalThis.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
       setMemory(next);
