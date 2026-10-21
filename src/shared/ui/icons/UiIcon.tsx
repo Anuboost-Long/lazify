@@ -10,6 +10,7 @@ import {
 	ClockRotateRight,
 	Code,
 	Collapse,
+	Computer,
 	Css3,
 	Database,
 	Download,
@@ -96,6 +97,7 @@ export type UiIconName =
 	| "chat-question"
 	| "check-circle"
 	| "code"
+	| "computer"
 	| "css"
 	| "database"
 	| "download"
@@ -223,6 +225,7 @@ const iconMap: Record<UiIconName, ComponentType<SVGProps<SVGSVGElement>>> = {
 	xmark: Xmark,
 	plus: Plus,
 	collapse: Collapse,
+	computer: Computer,
 	trash: Trash,
 	"stop-circle": Pause,
 	pause: Pause,

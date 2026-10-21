@@ -291,12 +291,14 @@ export const translation = {
 	Sidebar: {
 		StartNewWorkflow: "sidebar.start_new_workflow",
 		NewWorkflow: "sidebar.new_workflow",
-		ToggleTheme: "sidebar.toggle_theme",
 		Theme: "sidebar.theme",
 		Expand: "sidebar.expand",
 		Collapse: "sidebar.collapse",
 		InitProject: "sidebar.init_project",
 		InitProjectDesc: "sidebar.init_project_desc",
+		Main: "sidebar.main",
+		System: "sidebar.system",
+		RecentProjects: "sidebar.recent_projects",
 	},
 	Shortcuts: {
 		ToggleSidebar: "shortcuts.toggle_sidebar",

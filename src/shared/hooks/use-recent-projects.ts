@@ -3,19 +3,27 @@ import { useCallback } from "react";
 
 import type { SyncedWorkspaceProject } from "@/shared/types/lazify";
 
-const RECENT_PROJECTS_KEY = "lazify-recent-projects";
+/** Where a project counts as opened: its workbench, or the AI Agents page. */
+const storageKeys = {
+	workbench: "lazify-recent-projects",
+	agents: "lazify-recent-agent-projects",
+} as const;
+export type RecentList = keyof typeof storageKeys;
 const KEPT = 5;
 
-function readRecent(): string[] {
+function readRecent(list: RecentList): string[] {
 	try {
-		const stored = JSON.parse(globalThis.localStorage.getItem(RECENT_PROJECTS_KEY) ?? "[]") as unknown;
+		const stored = JSON.parse(globalThis.localStorage.getItem(storageKeys[list]) ?? "[]") as unknown;
 		return Array.isArray(stored) ? stored.filter((path) => typeof path === "string") : [];
 	} catch {
 		return [];
 	}
 }
 
-const recentAtom = atom(readRecent());
+const recentAtoms = {
+	workbench: atom(readRecent("workbench")),
+	agents: atom(readRecent("agents")),
+};
 
 /** Opened most recently first; projects never opened follow, synced most recently first. */
 export function sortByRecentlyOpened(projects: SyncedWorkspaceProject[], recent: string[]) {
@@ -27,9 +35,9 @@ export function sortByRecentlyOpened(projects: SyncedWorkspaceProject[], recent:
 	return [...projects].sort((a, b) => rank(a) - rank(b) || b.lastSyncedAt.localeCompare(a.lastSyncedAt));
 }
 
-/** Project paths whose workbench was opened, latest first. */
-export function useRecentProjects() {
-	const [recent, setRecent] = useAtom(recentAtom);
+/** Project paths opened in `list`, latest first. */
+export function useRecentProjects(list: RecentList = "workbench") {
+	const [recent, setRecent] = useAtom(recentAtoms[list]);
 
 	const rememberProject = useCallback(
 		(projectPath: string) =>
@@ -37,13 +45,13 @@ export function useRecentProjects() {
 				if (current[0] === projectPath) return current;
 				const next = [projectPath, ...current.filter((path) => path !== projectPath)].slice(0, KEPT);
 				try {
-					globalThis.localStorage.setItem(RECENT_PROJECTS_KEY, JSON.stringify(next));
+					globalThis.localStorage.setItem(storageKeys[list], JSON.stringify(next));
 				} catch {
 					// A recent list is a convenience, never a reason to fail.
 				}
 				return next;
 			}),
-		[setRecent],
+		[list, setRecent],
 	);
 
 	return { recent, rememberProject };

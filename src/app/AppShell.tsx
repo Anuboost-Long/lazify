@@ -14,9 +14,9 @@ import { useAppZoom } from "@/shared/hooks/use-app-zoom";
 import { useInterfaceSettings } from "@/shared/hooks/use-interface-settings";
 import { useLazifyStore } from "@/shared/hooks/use-lazify-store";
 import { useRouteMemory } from "@/shared/hooks/use-route-memory";
-import { useShortcut, useShortcutCombo } from "@/shared/hooks/use-shortcuts";
+import { sortByRecentlyOpened, useRecentProjects } from "@/shared/hooks/use-recent-projects";
+import { useShortcut } from "@/shared/hooks/use-shortcuts";
 import { useSetResolvedTheme, useTheme } from "@/shared/hooks/use-theme";
-import { formatCombo } from "@/shared/lib/shortcuts";
 import UiIcon from "@/shared/ui/icons/UiIcon";
 import { FailureToastHost } from "@/shared/ui/toast/FailureToastHost";
 import { Tooltip } from "@/shared/ui/Tooltip";
@@ -50,9 +50,9 @@ export function AppShell() {
 		const stored = globalThis.localStorage.getItem("lazify-sidebar-open");
 		return stored === null ? true : stored === "true";
 	});
-	const { bootstrap, bindEvents } = useLazifyStore();
+	const { bootstrap, bindEvents, syncedWorkspaceProjects, activeProjectPath } = useLazifyStore();
+	const { recent } = useRecentProjects("agents");
 	const { zoomIn, zoomOut, resetZoom } = useAppZoom();
-	const sidebarCombo = useShortcutCombo("toggle-sidebar");
 	const sidebarCollapsed = compactSidebar || !sidebarOpen;
 
 	// Sidebar links and their shortcuts both return to the sub-route last seen there.
@@ -179,6 +179,8 @@ export function AppShell() {
 	// scrolling, so they opt out of the padded, scrolling container every other
 	// route uses. Terminals are the reason: they need every pixel of width a big
 	// screen has, and a fixed max-width would leave them stranded mid-window.
+	const browserShown = location.pathname === appRoute.browser;
+
 	const fullBleed =
 		location.pathname.startsWith("/workspace/project/") ||
 		location.pathname === appRoute.agents ||
@@ -208,13 +210,22 @@ export function AppShell() {
 				<Sidebar
 					pages={pages}
 					pinnedTools={pinnedTools}
+					recentProjects={sortByRecentlyOpened(syncedWorkspaceProjects, recent).filter((project) =>
+						recent.includes(project.projectPath),
+					)}
+					openProjectPath={location.pathname === appRoute.agents ? activeProjectPath : null}
 					activePath={location.pathname}
 					activePage={activePageId}
 					collapsed={sidebarCollapsed}
 					theme={resolvedTheme}
 					onStartWorkflow={() => navigate(appRoute.initProject)}
 					onNavigate={goTo}
-					onToggleTheme={() => setThemePreference(resolvedTheme === "dark" ? "light" : "dark")}
+					onOpenProject={(projectPath) =>
+						navigate(`${appRoute.agents}?project=${encodeURIComponent(projectPath)}`)
+					}
+					themePreference={themePreference}
+					onThemeChange={setThemePreference}
+					onToggleCollapse={compactSidebar ? undefined : toggleSidebar}
 				/>
 
 				<section className="relative flex min-w-0 flex-1 flex-col">
@@ -224,30 +235,11 @@ export function AppShell() {
               the sidebar. The description rides along inline when there is
               room, and stays as the hover title when there is not. */}
 					<div
-						data-chain-drag-region
+						// Covered by the browser page, so it must stop taking presses: Chain
+						// drags the window from a region's box, whatever is drawn over it.
+						data-chain-drag-region={browserShown ? "false" : "true"}
 						className={clsx("flex h-10 shrink-0 items-center gap-2", "border-b border-border bg-bg px-4")}
 					>
-						{/* Compact mode keeps the rail collapsed, so there is nothing to toggle. */}
-						{compactSidebar ? null : (
-							<Tooltip
-								content={`${t(sidebarCollapsed ? translation.Sidebar.Expand : translation.Sidebar.Collapse)}  ${formatCombo(sidebarCombo)}`}
-								side="bottom"
-							>
-								<button
-									type="button"
-									aria-label={t(sidebarCollapsed ? translation.Sidebar.Expand : translation.Sidebar.Collapse)}
-									aria-expanded={!sidebarCollapsed}
-									onClick={toggleSidebar}
-									className={clsx(
-										"-ml-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-md",
-										"text-muted transition-colors hover:bg-text/4 hover:text-accent",
-									)}
-								>
-									<UiIcon name={sidebarCollapsed ? "sidebar-expand" : "sidebar-collapse"} className="h-4 w-4" />
-								</button>
-							</Tooltip>
-						)}
-
 						{/* Shown only where there is somewhere to go up to, so the bar
                 stays a breadcrumb rather than growing a permanent control. */}
 						{location.pathname !== activePage.path ? (
@@ -321,7 +313,7 @@ export function AppShell() {
               playing while the user works elsewhere. It covers the content
               area — including the breadcrumb bar, which a browser does not
               need — whenever the browser page is the one being shown. */}
-					<BrowserSurface visible={location.pathname === appRoute.browser} />
+					<BrowserSurface visible={browserShown} />
 
 					{/* Shell-level so a turn that ends while the user is on another page
               still announces itself, and can take them back to the tab. */}

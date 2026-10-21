@@ -291,12 +291,14 @@
   "sidebar": {
     "start_new_workflow": "Start new workflow",
     "new_workflow": "New workflow",
-    "toggle_theme": "Toggle theme",
     "theme": "Theme",
     "expand": "Expand sidebar",
     "collapse": "Collapse sidebar",
     "init_project": "Init project",
-    "init_project_desc": "Choose a stack to begin a new project."
+    "init_project_desc": "Choose a stack to begin a new project.",
+    "main": "Main",
+    "system": "System",
+    "recent_projects": "Recent projects"
   },
   "shortcuts": {
     "toggle_sidebar": "Show or hide the sidebar",

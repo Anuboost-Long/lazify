@@ -291,12 +291,14 @@
   "sidebar": {
     "start_new_workflow": "开始新工作流",
     "new_workflow": "新工作流",
-    "toggle_theme": "切换主题",
     "theme": "主题",
     "expand": "展开侧栏",
     "collapse": "折叠侧栏",
     "init_project": "初始化项目",
-    "init_project_desc": "选择技术栈以开始新项目。"
+    "init_project_desc": "选择技术栈以开始新项目。",
+    "main": "主要",
+    "system": "系统",
+    "recent_projects": "最近的项目"
   },
   "shortcuts": {
     "toggle_sidebar": "显示或隐藏侧边栏",

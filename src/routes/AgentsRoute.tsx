@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 
 import { AgentsPage } from "@/features/agents/pages/AgentsPage";
 import { useLazifyStore } from "@/shared/hooks/use-lazify-store";
+import { useRecentProjects } from "@/shared/hooks/use-recent-projects";
 
 export function AgentsRoute() {
 	const {
@@ -26,12 +27,19 @@ export function AgentsRoute() {
 		setSearchParams({}, { replace: true });
 	}, [requestedProjectPath, setActiveProjectPath, setSearchParams]);
 
+	const { rememberProject } = useRecentProjects("agents");
+	const shownProjectPath = requestedProjectPath ?? activeProjectPath;
+
+	useEffect(() => {
+		if (shownProjectPath) rememberProject(shownProjectPath);
+	}, [shownProjectPath, rememberProject]);
+
 	return (
 		<AgentsPage
 			projects={syncedWorkspaceProjects}
 			onSyncProject={syncWorkspaceProject}
 			onReorderProjects={reorderSyncedWorkspaceProjects}
-			activeProjectPath={requestedProjectPath ?? activeProjectPath}
+			activeProjectPath={shownProjectPath}
 			onActiveProjectChange={setActiveProjectPath}
 		/>
 	);
