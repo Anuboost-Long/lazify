@@ -52,12 +52,20 @@ export function SidebarPinnedTools({
                 onClick={() => onNavigate(tool.path)}
                 style={{ "--pinned-tool": tool.color } as CSSProperties}
                 className={clsx(
-                  "flex aspect-square items-center justify-center rounded-xl",
-                  "text-(--pinned-tool) transition-colors",
+                  "group flex aspect-square items-center justify-center rounded-xl",
+                  "text-(--pinned-tool)",
+                  "transition duration-150 ease-out active:scale-94 active:duration-75 motion-reduce:transition-none motion-reduce:active:scale-100",
                   active ? "bg-bg" : "hover:bg-bg/70"
                 )}
               >
-                <UiIcon name={tool.icon} filled={active} className="h-5 w-5" />
+                <UiIcon
+                  name={tool.icon}
+                  filled={active}
+                  className={clsx(
+                    "h-5 w-5",
+                    "transition-transform duration-150 ease-out group-active:scale-90 group-active:duration-75 motion-reduce:transition-none motion-reduce:group-active:scale-100"
+                  )}
+                />
               </button>
             </Tooltip>
           );
