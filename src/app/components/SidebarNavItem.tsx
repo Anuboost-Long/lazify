@@ -47,11 +47,11 @@ export function SidebarNavItem({
 				style={{ "--page": color } as CSSProperties}
 				className={clsx(
 					"group relative flex w-full items-center gap-3 rounded-lg px-3 py-2.5",
-					"transition duration-150 ease-out active:scale-98 active:duration-75 motion-reduce:transition-none motion-reduce:active:scale-100",
+					"transition duration-300 ease-spring active:scale-96 active:duration-75 active:ease-out motion-reduce:transition-none motion-reduce:active:scale-100",
 					"text-left text-sm",
 					isActive
 						? "bg-bg/60 text-text before:absolute before:inset-y-1.5 before:left-0 before:w-0.75 before:rounded-full before:bg-(--page)"
-						: "text-muted hover:bg-bg/40 hover:text-text",
+						: "text-muted hover:bg-bg/40 hover:text-text active:bg-bg/70",
 				)}
 			>
 				<UiIcon
@@ -59,7 +59,7 @@ export function SidebarNavItem({
 					filled={isActive}
 					className={clsx(
 						"h-5 w-5 shrink-0 text-(--page)",
-						"transition-transform duration-150 ease-out group-active:scale-90 group-active:duration-75 motion-reduce:transition-none motion-reduce:group-active:scale-100",
+						"transition-transform duration-300 ease-spring group-active:scale-85 group-active:duration-75 group-active:ease-out motion-reduce:transition-none motion-reduce:group-active:scale-100",
 					)}
 				/>
 				<Typography variant="body" className="min-w-0 truncate font-medium text-inherit">

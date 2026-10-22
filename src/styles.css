@@ -49,6 +49,9 @@
       transparent 1px
     );
 
+  /* A release that overshoots a little, so a press reads even on a quick click. */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
   --animate-drift: drift 14s ease-in-out infinite;
   --animate-fadeIn: fadeIn 420ms ease-out forwards;
   --animate-pulseLine: pulseLine 2.6s ease-in-out infinite;

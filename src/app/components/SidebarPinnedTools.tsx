@@ -54,8 +54,8 @@ export function SidebarPinnedTools({
                 className={clsx(
                   "group flex aspect-square items-center justify-center rounded-xl",
                   "text-(--pinned-tool)",
-                  "transition duration-150 ease-out active:scale-94 active:duration-75 motion-reduce:transition-none motion-reduce:active:scale-100",
-                  active ? "bg-bg" : "hover:bg-bg/70"
+                  "transition duration-300 ease-spring active:scale-90 active:duration-75 active:ease-out motion-reduce:transition-none motion-reduce:active:scale-100",
+                  active ? "bg-bg" : "hover:bg-bg/70 active:bg-bg"
                 )}
               >
                 <UiIcon
@@ -63,7 +63,7 @@ export function SidebarPinnedTools({
                   filled={active}
                   className={clsx(
                     "h-5 w-5",
-                    "transition-transform duration-150 ease-out group-active:scale-90 group-active:duration-75 motion-reduce:transition-none motion-reduce:group-active:scale-100"
+                    "transition-transform duration-300 ease-spring group-active:scale-85 group-active:duration-75 group-active:ease-out motion-reduce:transition-none motion-reduce:group-active:scale-100"
                   )}
                 />
               </button>
