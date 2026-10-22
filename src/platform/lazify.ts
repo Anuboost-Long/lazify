@@ -14,6 +14,7 @@ import * as git from "./git";
 import * as keepAwakeGroup from "./keep-awake";
 import * as lazyShield from "./lazy-shield";
 import * as packages from "./packages";
+import * as pageWindow from "./page-window";
 import type { LazifyApi } from "./lazify-api";
 import * as linting from "./linting";
 import * as projects from "./projects";
@@ -25,16 +26,7 @@ import * as updates from "./updates";
 import * as workflow from "./workflow";
 import * as zoom from "./zoom";
 
-const unported = {
-	pageWindow: "Opening a page in its own window",
-};
-
-const notYet = (feature: string) => new Error(`${feature} isn't available in Lazify yet.`);
-
-const rejects = (feature: string) => () => Promise.reject(notYet(feature));
 const noSubscription = () => () => undefined;
-/** Until it's ported there is never a page window, so asking about or closing one answers "closed". */
-const noPageWindow = async () => ({ open: false, url: null, source: null });
 const ignored = () => undefined;
 
 export const lazify: LazifyApi = {
@@ -187,10 +179,10 @@ export const lazify: LazifyApi = {
 	sonarScanState: linting.sonarScanState,
 	createPhaseTasks: linting.createPhaseTasks,
 	onSonarScan: linting.onSonarScan,
-	openPictureInPicture: rejects(unported.pageWindow),
-	closePictureInPicture: noPageWindow,
-	getPictureInPictureState: noPageWindow,
-	onPictureInPictureChanged: noSubscription,
+	openPictureInPicture: pageWindow.openPictureInPicture,
+	closePictureInPicture: pageWindow.closePictureInPicture,
+	getPictureInPictureState: pageWindow.getPictureInPictureState,
+	onPictureInPictureChanged: pageWindow.onPictureInPictureChanged,
 	toggleMediaPictureInPicture: browserView.toggleMediaPictureInPicture,
 	searchNpmPackages: packages.searchNpmPackages,
 	getNpmOutdated: packages.getNpmOutdated,

@@ -29,7 +29,7 @@ Read first:
 | [08-migration-ledger](08-migration-ledger.md) | Each data migration and its validation | Backup and SQLite import |
 | [09-rollback-and-recovery](09-rollback-and-recovery.md) | Fallback per slice | Written |
 | [10-release-readiness](10-release-readiness.md) | Signing, updater, cutover | Written; four owner decisions open |
-| [tickets/](tickets/README.md) | One doc per change set (merged ticket and feature-doc format) | 001–041 built |
+| [tickets/](tickets/README.md) | One doc per change set (merged ticket and feature-doc format) | 001–045 built |
 | [evidence/](evidence/README.md) | Test output, fixtures, recordings | Empty |
 
 Native features Lazify needs from Chain are requested in

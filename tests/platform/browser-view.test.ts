@@ -18,6 +18,7 @@ vi.mock("@chain/sdk", () => ({
 			onState: (listener: never) => (listeners.state = listener),
 			onLoadFailed: (listener: never) => (listeners.failed = listener),
 			onCrash: (listener: never) => (listeners.crash = listener),
+			onClose: (listener: never) => (listeners.close = listener),
 			onNavigationRequest: (listener: never) => (listeners.navigation = listener),
 			onNewWindow: (listener: never) => (listeners.newWindow = listener),
 		},

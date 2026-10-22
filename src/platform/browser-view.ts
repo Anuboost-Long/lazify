@@ -1,6 +1,7 @@
 import {
 	desktop,
 	type BrowserViewBounds,
+	type BrowserViewCreateOptions,
 	type BrowserViewLoadFailure,
 	type BrowserViewNavigationRequest,
 	type BrowserViewNewWindow,
@@ -55,6 +56,8 @@ export class Guest extends EventTarget {
 		readonly handle: number,
 		url: string,
 		id: Promise<string>,
+		/** In a window of its own above every app, where a popup has no tab to become. */
+		readonly floating = false,
 	) {
 		super();
 		this.#state = { id: "", url, title: "", loading: true, canGoBack: false, canGoForward: false };
@@ -134,6 +137,14 @@ export class Guest extends EventTarget {
 		this.#emit("crashed");
 	}
 
+	/** The user closed the floating window, or the view never came to be. */
+	receiveClose(id?: string) {
+		this.#closed = true;
+		if (id) guests.delete(id);
+		byHandle.delete(this.handle);
+		this.#emit("closed");
+	}
+
 	decideNavigation(request: BrowserViewNavigationRequest) {
 		const decision =
 			this.session === "browser" ? decideBrowserNavigation(request, this.#context()) : decidePreviewNavigation(request);
@@ -143,7 +154,11 @@ export class Guest extends EventTarget {
 	}
 
 	decideNewWindow(request: BrowserViewNewWindow) {
-		carryOut(this.session === "browser" ? decideBrowserNewWindow(request, this.#context()) : decidePreviewNewWindow(request));
+		carryOut(
+			this.session === "browser" && !this.floating
+				? decideBrowserNewWindow(request, this.#context())
+				: decidePreviewNewWindow(request),
+		);
 	}
 
 	#context(): BrowserGuestContext {
@@ -197,26 +212,43 @@ const byHandle = new Map<number, Guest>();
 let nextHandle = 1;
 
 export function openGuest(session: GuestSession, url: string, bounds: BrowserViewBounds, visible: boolean): Guest {
+	return create(session, url, { bounds, visible, decideNavigation: true, allowFullscreen: true });
+}
+
+/**
+ * The page in a small window that stays above every app. The browser page's
+ * floater goes wherever its page goes, as Electron's did; the preview's is
+ * still the preview, held to this machine.
+ */
+export function openFloatingGuest(session: GuestSession, url: string): Guest {
+	return create(session, url, { floating: {}, decideNavigation: session === "preview" });
+}
+
+function create(
+	session: GuestSession,
+	url: string,
+	placement: Pick<BrowserViewCreateOptions, "bounds" | "floating" | "visible" | "decideNavigation" | "allowFullscreen">,
+): Guest {
 	listenToViews();
 
 	const id = Promise.all([loadAllowedOpeners(), session === "browser" ? shieldFirst() : undefined]).then(() =>
 		desktop.browserView.create({
 			url,
 			session: session === "browser" ? BROWSER_SESSION : PREVIEW_SESSION,
-			bounds,
-			visible,
-			decideNavigation: true,
-			allowFullscreen: true,
+			...placement,
 			swipeNavigation: session === "browser",
 			inspectable: session === "preview",
 			allowPictureInPicture: true,
 		}),
 	);
-	const guest = new Guest(session, nextHandle++, url, id);
+	const guest = new Guest(session, nextHandle++, url, id, placement.floating !== undefined);
 	byHandle.set(guest.handle, guest);
 	id.then(
 		(viewId) => guest.attach(viewId),
-		(error) => logError("browser", "A page couldn't be placed in the window", error),
+		(error) => {
+			logError("browser", "A page couldn't be placed in the window", error);
+			guest.receiveClose();
+		},
 	);
 
 	return guest;
@@ -232,6 +264,7 @@ function listenToViews() {
 	desktop.browserView.onState((state) => guests.get(state.id)?.receiveState(state));
 	desktop.browserView.onLoadFailed((failure) => guests.get(failure.id)?.receiveFailure(failure));
 	desktop.browserView.onCrash((crash) => guests.get(crash.id)?.receiveCrash());
+	desktop.browserView.onClose(({ id }) => guests.get(id)?.receiveClose(id));
 	desktop.browserView.onNavigationRequest((request) => {
 		const guest = guests.get(request.id);
 		if (guest) guest.decideNavigation(request);

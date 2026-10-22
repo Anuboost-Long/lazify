@@ -59,8 +59,9 @@ Apple's.
   universal build and a first launch from a quarantined download, which
   chain-sdk hasn't tried, and a real update between two Lazify builds.
 - [Request 23](../chain-sdk-requests/23-floating-page-window.md), the
-  floating page window: queued after 22. Not a release blocker; the
-  button names itself as unavailable until then.
+  floating page window: built in chain-sdk's working tree and ported in
+  [ticket 045](tickets/045-page-window.md). Left: chain-sdk committing it,
+  so the release's pinned chain-sdk commit has it.
 
 ### Lazify work
 
@@ -98,6 +99,7 @@ click, a drag or a real account that `chain inspect` can't stand in for.
 | API Studio | Route Picker, Environment, Request/Response and Scripts screens; the picker members | 034–040 |
 | System | The upload picker, dragging an `.app` from Finder, the restart button | 041 |
 | Browser | The agent preview with a real dev server, staying unfiltered; Cmd-click; swipe back and forward; full-screen video; Inspect Element in the preview | 042, 043 |
+| Page window | Both toolbar buttons; closing from the title bar; staying above a full-screen app and on another Space; an outside link from a preview floater | 045 |
 | Lazy Shield | A real ad-heavy site; the preference across a relaunch | 043 |
 | DMG | A real `chain build` output turned into a disk image | 033 |
 
