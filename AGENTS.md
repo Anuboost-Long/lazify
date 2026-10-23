@@ -36,6 +36,11 @@ This is the scaffold produced by `chain init`:
   committed (it pins crate versions); git ignores the rest. `chain
   dev`/`chain build` point Tauri at it via `TAURI_APP_PATH`, so running
   `tauri dev`/`tauri build` directly won't find it.
+- `chain build` puts only what ships in `release/`: the app and its
+  installers (`.app` + `.dmg` on macOS), replaced on every build. The
+  update feed, with `chain.updates` set, goes to `release-updates/`. Its
+  build cache is `.cached/`; `"chain": { "cache": false }` in
+  `package.json` deletes that after each build. Both are git-ignored.
 - Tailwind CSS v4, wired through `@tailwindcss/vite` in `vite.config.ts`.
   `src/styles.css` is the ported Lazify renderer's stylesheet: its `@theme`
   block defines Lazify's tokens (`bg`, `soft`, `text`, `muted`, `accent`,
