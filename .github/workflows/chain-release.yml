@@ -66,6 +66,6 @@ jobs:
         with:
           name: lazify-mac
           path: |
-            lazify-chain/.chain/native/target/universal-apple-darwin/release/bundle/dmg/*.dmg
-            lazify-chain/.chain/native/target/updates/
+            lazify-chain/release/*/*.dmg
+            lazify-chain/release-updates/
           if-no-files-found: error

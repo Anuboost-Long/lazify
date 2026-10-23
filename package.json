@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "chain dev",
     "build": "chain build",
-    "build:mac": "chain build --target universal-apple-darwin",
+    "build:mac": "chain build --target macos-all",
     "preview": "vite preview",
     "tauri": "tauri",
     "dev:web": "npm run build:formatter && vite",

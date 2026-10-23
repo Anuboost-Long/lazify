@@ -36,8 +36,10 @@ This is the scaffold produced by `chain init`:
   committed (it pins crate versions); git ignores the rest. `chain
   dev`/`chain build` point Tauri at it via `TAURI_APP_PATH`, so running
   `tauri dev`/`tauri build` directly won't find it.
-- `chain build` puts only what ships in `release/`: the app and its
-  installers (`.app` + `.dmg` on macOS), replaced on every build. The
+- `chain build` puts only what ships in `release/<os>-<arch>/` (e.g.
+  `release/macos-arm64/`): the app and its installers (`.app` + `.dmg` on
+  macOS), that folder replaced on every build. `--target macos-all`
+  fills `macos-universal`, `macos-arm64` and `macos-x64` in one go. The
   update feed, with `chain.updates` set, goes to `release-updates/`. Its
   build cache is `.cached/`; `"chain": { "cache": false }` in
   `package.json` deletes that after each build. Both are git-ignored.

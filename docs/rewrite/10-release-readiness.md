@@ -73,8 +73,8 @@ Apple's.
   `v*`) or by hand. On a macOS runner it checks out chain-sdk at
   `CHAIN_SDK_REF` next to this repo, runs `CI=true npm test` and
   `npm run typecheck`, then `npm run build:mac` (`chain build --target
-  universal-apple-darwin`, one app for arm64 and x86_64), and keeps the
-  DMG and update files as workflow artifacts. Left: uploading the update
+  macos-all`: arm64, x64 and universal apps in `release/macos-<arch>/`),
+  and keeps the three DMGs and `release-updates/` as workflow artifacts. Left: uploading the update
   files (request 22) to the feed once it exists, with a token for the feed
   repo and the update signing key (`CHAIN_UPDATE_KEY`) as secrets.
 - **The unported tests** (`07-test-matrix.md`, "The gap"): 83 of
