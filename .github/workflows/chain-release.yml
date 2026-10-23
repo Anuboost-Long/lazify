@@ -12,7 +12,7 @@ on:
 env:
   # The chain-sdk commit this release is built from (10-release-readiness.md,
   # "Pin chain-sdk"). Move it deliberately, and name it in the release notes.
-  CHAIN_SDK_REF: 41f52fb150e5ef09d5fc510b66dbb44e9383ae86
+  CHAIN_SDK_REF: 1bcfbf42dce327b7516fb3b2b2f893ee7624b333
 
 jobs:
   build-mac:
