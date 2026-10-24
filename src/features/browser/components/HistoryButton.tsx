@@ -7,8 +7,9 @@ import { formatDate, formatTime, useDateTimeFormat } from "@/shared/hooks/use-da
 import { CaptionText, SmallText } from "@/shared/typography";
 import { useCoverGuests } from "@/shared/ui/GuestView";
 import { IconButton } from "@/shared/ui/IconButton";
-import { Tooltip } from "@/shared/ui/Tooltip";
 import UiIcon from "@/shared/ui/icons/UiIcon";
+import { Tooltip } from "@/shared/ui/Tooltip";
+
 import { useBrowserHistory, type HistoryEntry } from "../hooks/use-browser-history";
 import { tabLabel } from "../lib/browser-url";
 
@@ -25,9 +26,10 @@ export function HistoryButton({ onOpenUrl, onExpand }: Readonly<HistoryButtonPro
 	const { dateFormat, timeFormat } = useDateTimeFormat();
 	const { history, removeEntry, clearHistory } = useBrowserHistory();
 	const [open, setOpen] = useState(false);
-	useCoverGuests(open);
 	const [query, setQuery] = useState("");
 	const rootRef = useRef<HTMLDivElement | null>(null);
+	const panelRef = useRef<HTMLDivElement | null>(null);
+	useCoverGuests(open, panelRef);
 
 	useEffect(() => {
 		if (!open) return;
@@ -39,11 +41,16 @@ export function HistoryButton({ onOpenUrl, onExpand }: Readonly<HistoryButtonPro
 			if (event.key === "Escape") setOpen(false);
 		};
 
+		// A click in the page beside the panel never reaches this document, only takes its focus.
+		const onBlur = () => setOpen(false);
+
 		document.addEventListener("mousedown", onPointerDown);
 		document.addEventListener("keydown", onKeyDown);
+		globalThis.addEventListener("blur", onBlur);
 		return () => {
 			document.removeEventListener("mousedown", onPointerDown);
 			document.removeEventListener("keydown", onKeyDown);
+			globalThis.removeEventListener("blur", onBlur);
 		};
 	}, [open]);
 
@@ -55,8 +62,7 @@ export function HistoryButton({ onOpenUrl, onExpand }: Readonly<HistoryButtonPro
 		const needle = query.trim().toLowerCase();
 		if (!needle) return history;
 		return history.filter(
-			(entry) =>
-				entry.title.toLowerCase().includes(needle) || entry.url.toLowerCase().includes(needle),
+			(entry) => entry.title.toLowerCase().includes(needle) || entry.url.toLowerCase().includes(needle),
 		);
 	}, [history, query]);
 
@@ -93,6 +99,7 @@ export function HistoryButton({ onOpenUrl, onExpand }: Readonly<HistoryButtonPro
 
 			{open ? (
 				<div
+					ref={panelRef}
 					className={clsx(
 						"absolute left-0 top-9 z-30 w-80 overflow-hidden rounded-2xl",
 						"border border-border bg-bg shadow-panel",
@@ -121,38 +128,21 @@ export function HistoryButton({ onOpenUrl, onExpand }: Readonly<HistoryButtonPro
 							}}
 						/>
 						{history.length > 0 ? (
-							<IconButton
-								icon="trash"
-								title={t(translation.Browser.HistoryClear)}
-								onClick={clearHistory}
-							/>
+							<IconButton icon="trash" title={t(translation.Browser.HistoryClear)} onClick={clearHistory} />
 						) : null}
 					</div>
 
 					{filtered.length === 0 ? (
 						<CaptionText tone="muted" className="block px-4 py-3">
-							{t(
-								history.length === 0
-									? translation.Browser.HistoryEmpty
-									: translation.Browser.HistoryNoResults,
-							)}
+							{t(history.length === 0 ? translation.Browser.HistoryEmpty : translation.Browser.HistoryNoResults)}
 						</CaptionText>
 					) : (
 						<div className="max-h-80 overflow-y-auto py-1">
 							{filtered.map((entry) => (
-								<div
-									key={entry.id}
-									className="group flex items-center gap-2 px-3 py-1.5 hover:bg-text/6"
-								>
+								<div key={entry.id} className="group flex items-center gap-2 px-3 py-1.5 hover:bg-text/6">
 									<UiIcon name="globe" className="h-3.5 w-3.5 shrink-0 text-muted" />
-									<button
-										type="button"
-										onClick={() => openEntry(entry)}
-										className="min-w-0 flex-1 text-left"
-									>
-										<SmallText className="text-text! block truncate">
-											{entry.title || tabLabel(entry.url)}
-										</SmallText>
+									<button type="button" onClick={() => openEntry(entry)} className="min-w-0 flex-1 text-left">
+										<SmallText className="text-text! block truncate">{entry.title || tabLabel(entry.url)}</SmallText>
 										<CaptionText tone="muted" className="block truncate text-[10px]!">
 											{when(entry)} · {entry.url}
 										</CaptionText>

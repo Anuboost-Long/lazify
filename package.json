@@ -81,7 +81,8 @@
         "height": 760
       },
       "title": "Lazify",
-      "tabFocus": "all"
+      "tabFocus": "all",
+      "frameRate": "display"
     },
     "permissions": {
       "appleEvents": "Styles the Finder window a built .dmg mounts in."

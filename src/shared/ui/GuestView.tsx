@@ -1,33 +1,49 @@
-import { useEffect, useRef, useSyncExternalStore } from "react";
+import { useEffect, useRef, useSyncExternalStore, type RefObject } from "react";
 
 import { openGuest, type Guest, type GuestSession } from "@/platform/browser-view";
 
 // A page in a view draws above the app's own, whatever its z-index, so a
-// dropdown that opens over one would open underneath it. While any is open,
-// every view steps aside.
-let covers = 0;
+// dropdown that opens over one would open underneath it. A panel cuts its own
+// box out of every view and the page stays live around it; a cover without a
+// box hides every view.
+let hidingCovers = 0;
+const panels = new Set<RefObject<HTMLElement | null>>();
 const coverListeners = new Set<() => void>();
 
+const notifyCovers = () => coverListeners.forEach((listener) => listener());
 const subscribeToCovers = (listener: () => void) => {
 	coverListeners.add(listener);
 	return () => {
 		coverListeners.delete(listener);
 	};
 };
-const isCovered = () => covers > 0;
+const isCovered = () => hidingCovers > 0;
 
-/** Hides every page while `open`, so whatever opens over them can be seen. */
-export function useCoverGuests(open: boolean) {
+const panelCutouts = () =>
+	[...panels].flatMap(({ current }) => {
+		if (!current) return [];
+
+		const { x, y, width, height } = current.getBoundingClientRect();
+		return [{ x, y, width, height, radius: Number.parseFloat(getComputedStyle(current).borderTopLeftRadius) || 0 }];
+	});
+
+/**
+ * While `open`, makes room over every page: `panel`'s box is cut out of them,
+ * or, without a panel, they are hidden.
+ */
+export function useCoverGuests(open: boolean, panel?: RefObject<HTMLElement | null>) {
 	useEffect(() => {
 		if (!open) return;
 
-		covers += 1;
-		coverListeners.forEach((listener) => listener());
+		if (panel) panels.add(panel);
+		else hidingCovers += 1;
+		notifyCovers();
 		return () => {
-			covers -= 1;
-			coverListeners.forEach((listener) => listener());
+			if (panel) panels.delete(panel);
+			else hidingCovers -= 1;
+			notifyCovers();
 		};
-	}, [open]);
+	}, [open, panel]);
 }
 
 interface GuestViewProps {
@@ -66,15 +82,19 @@ export function GuestView({ session, url, visible, onGuest, className }: Readonl
 		guest.current = opened;
 		onGuest(opened);
 
+		const cutOut = () => opened.cutOut(panelCutouts());
 		const place = () => {
 			if (shownRef.current) opened.place(element.getBoundingClientRect());
+			if (panels.size > 0) cutOut();
 		};
 		const observer = new ResizeObserver(place);
 		observer.observe(element);
 		observer.observe(document.documentElement);
 		globalThis.addEventListener("resize", place);
+		const stopCutting = subscribeToCovers(cutOut);
 
 		return () => {
+			stopCutting();
 			observer.disconnect();
 			globalThis.removeEventListener("resize", place);
 			guest.current = null;

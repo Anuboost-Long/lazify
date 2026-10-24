@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type RefObject } from "react";
 import { useTranslation } from "react-i18next";
 
 import { translation } from "@/i18n/translation";
@@ -33,11 +33,18 @@ function descriptionOf(enabled: boolean, ready: boolean): string {
 }
 
 /** The popover behind the toolbar shield: the switch, the count, the caveat. */
-function ShieldCard({ enabled, ready, busy, onToggle }: Readonly<LazyShieldPanelProps>) {
+function ShieldCard({
+	ref,
+	enabled,
+	ready,
+	busy,
+	onToggle,
+}: Readonly<LazyShieldPanelProps & { ref: RefObject<HTMLDivElement | null> }>) {
 	const { t } = useTranslation();
 
 	return (
 		<div
+			ref={ref}
 			className={clsx(
 				"absolute right-0 top-9 z-30 w-72 overflow-hidden rounded-2xl",
 				"border border-border bg-bg shadow-panel",
@@ -107,17 +114,12 @@ function ShieldCard({ enabled, ready, busy, onToggle }: Readonly<LazyShieldPanel
 	);
 }
 
-export function LazyShieldPanel({
-	enabled,
-	ready,
-	blocked,
-	busy,
-	onToggle,
-}: Readonly<LazyShieldPanelProps>) {
+export function LazyShieldPanel({ enabled, ready, blocked, busy, onToggle }: Readonly<LazyShieldPanelProps>) {
 	const { t } = useTranslation();
 	const [open, setOpen] = useState(false);
-	useCoverGuests(open);
 	const rootRef = useRef<HTMLDivElement | null>(null);
+	const cardRef = useRef<HTMLDivElement | null>(null);
+	useCoverGuests(open, cardRef);
 
 	// Click-away and Escape, so the panel behaves like the popover it looks like.
 	useEffect(() => {
@@ -130,11 +132,16 @@ export function LazyShieldPanel({
 			if (event.key === "Escape") setOpen(false);
 		};
 
+		// A click in the page beside the panel never reaches this document, only takes its focus.
+		const onBlur = () => setOpen(false);
+
 		document.addEventListener("mousedown", onPointerDown);
 		document.addEventListener("keydown", onKeyDown);
+		globalThis.addEventListener("blur", onBlur);
 		return () => {
 			document.removeEventListener("mousedown", onPointerDown);
 			document.removeEventListener("keydown", onKeyDown);
+			globalThis.removeEventListener("blur", onBlur);
 		};
 	}, [open]);
 
@@ -164,7 +171,7 @@ export function LazyShieldPanel({
 			</Tooltip>
 
 			{open ? (
-				<ShieldCard enabled={enabled} ready={ready} blocked={blocked} busy={busy} onToggle={onToggle} />
+				<ShieldCard ref={cardRef} enabled={enabled} ready={ready} blocked={blocked} busy={busy} onToggle={onToggle} />
 			) : null}
 		</div>
 	);

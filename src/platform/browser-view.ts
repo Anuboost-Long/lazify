@@ -2,6 +2,7 @@ import {
 	desktop,
 	type BrowserViewBounds,
 	type BrowserViewCreateOptions,
+	type BrowserViewCutout,
 	type BrowserViewLoadFailure,
 	type BrowserViewNavigationRequest,
 	type BrowserViewNewWindow,
@@ -18,9 +19,9 @@ import {
 	type GuestDecision,
 } from "@/shared/lib/browser/guest-policy";
 import { siteOf, type BlockedPopup } from "@/shared/lib/browser/popup-policy";
-import { toggleMediaPictureInPicture as toggleIn, type MediaPipResult } from "@/shared/lib/media/media-pip";
 import { BROWSER_SESSION, PREVIEW_SESSION } from "@/shared/lib/browser/preview-guard";
 import { logError } from "@/shared/lib/diagnostics/logger";
+import { toggleMediaPictureInPicture as toggleIn, type MediaPipResult } from "@/shared/lib/media/media-pip";
 
 import { appDataPath, readTextFile, writeTextFile } from "./folders";
 import { isBlockedPopup, startLazyShield } from "./lazy-shield";
@@ -88,14 +89,17 @@ export class Guest extends EventTarget {
 
 	place = (bounds: BrowserViewBounds) => this.#drive((id) => desktop.browserView.setBounds(id, bounds));
 	show = (visible: boolean) => this.#drive((id) => desktop.browserView.setVisible(id, visible));
+	cutOut = (cutouts: BrowserViewCutout[]) => this.#drive((id) => desktop.browserView.setCutouts(id, cutouts));
 
 	close() {
 		this.#closed = true;
 		byHandle.delete(this.handle);
-		void this.#id.then((id) => {
-			guests.delete(id);
-			return desktop.browserView.close(id);
-		}).catch(() => undefined);
+		void this.#id
+			.then((id) => {
+				guests.delete(id);
+				return desktop.browserView.close(id);
+			})
+			.catch(() => undefined);
 	}
 
 	/** WebKit has no programmatic inspector; the preview's view is inspectable from its right-click menu. */
@@ -117,7 +121,8 @@ export class Guest extends EventTarget {
 			this.#emit("did-start-loading");
 		}
 		if (next.title && next.title !== previous.title) this.#emit("page-title-updated", { title: next.title });
-		if (!next.loading && (previous.loading || next.url !== previous.url)) this.#emit("did-navigate", { url: this.getURL() });
+		if (!next.loading && (previous.loading || next.url !== previous.url))
+			this.#emit("did-navigate", { url: this.getURL() });
 		if (!next.loading && previous.loading) this.#emit("did-stop-loading");
 	}
 
@@ -325,7 +330,8 @@ function loadAllowedOpeners(): Promise<void> {
 		.then(readTextFile)
 		.then((text) => {
 			const { sites } = JSON.parse(text ?? "{}") as { sites?: unknown };
-			if (Array.isArray(sites)) allowedSites = new Set(sites.filter((site): site is string => typeof site === "string"));
+			if (Array.isArray(sites))
+				allowedSites = new Set(sites.filter((site): site is string => typeof site === "string"));
 		})
 		.catch(() => undefined);
 
