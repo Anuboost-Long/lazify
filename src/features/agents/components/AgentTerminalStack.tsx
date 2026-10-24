@@ -14,6 +14,7 @@ interface AgentTerminalStackProps {
 	hidden: boolean;
 	onResolveFilePath: (printedPath: string) => Promise<string | null>;
 	onOpenFilePath: (absolutePath: string, line: number | null) => void;
+	onNewAgent: () => void;
 }
 
 export function AgentTerminalStack({
@@ -22,12 +23,13 @@ export function AgentTerminalStack({
 	hidden,
 	onResolveFilePath,
 	onOpenFilePath,
+	onNewAgent,
 }: Readonly<AgentTerminalStackProps>) {
 	const hasActive = terminals.some((terminal) => terminal.tabId === activeTabId);
 
 	return (
 		<div className={clsx("relative min-h-0 min-w-0 flex-1", hidden && "hidden")}>
-			{hasActive ? null : <AgentEmptyState />}
+			{hasActive ? null : <AgentEmptyState onNewAgent={onNewAgent} />}
 
 			{terminals.map((terminal) =>
 				terminal.runId ? (

@@ -99,8 +99,6 @@ export const AgentMonitorPanel = memo(function AgentMonitorPanel({
 				"border transition-colors duration-150",
 				allowSpan && SIZE_SPAN[panel.size],
 				dragging && "opacity-40",
-
-				waiting && "shadow-glow",
 				borderTone(),
 			)}
 		>
@@ -140,10 +138,7 @@ export const AgentMonitorPanel = memo(function AgentMonitorPanel({
 					type="button"
 					onClick={() => onRename(runId)}
 					title={t(translation.Agents.MonitorRename)}
-					className={clsx(
-						"min-w-0 flex-1 rounded-md px-1 py-0.5 text-left transition-colors",
-						"hover:bg-text/6",
-					)}
+					className={clsx("min-w-0 flex-1 rounded-md px-1 py-0.5 text-left transition-colors", "hover:bg-text/6")}
 				>
 					<SmallText className="block truncate text-text!">{panel.displayName}</SmallText>
 					<CaptionText tone="muted" className="block truncate">
@@ -152,16 +147,11 @@ export const AgentMonitorPanel = memo(function AgentMonitorPanel({
 				</button>
 
 				{waiting ? (
-					<span className="flex shrink-0 items-center gap-1.5">
-						<span aria-hidden className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" />
-						<CaptionText className="text-accent!">{t(translation.Agents.NeedsAttention)}</CaptionText>
-					</span>
+					<CaptionText className="text-accent! shrink-0">{t(translation.Agents.NeedsAttention)}</CaptionText>
 				) : null}
 
 				{selected && !waiting ? (
-					<CaptionText className="text-accent! shrink-0">
-						{t(translation.Agents.MonitorTarget)}
-					</CaptionText>
+					<CaptionText className="text-accent! shrink-0">{t(translation.Agents.MonitorTarget)}</CaptionText>
 				) : null}
 
 				{panel.exited ? (

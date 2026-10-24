@@ -3,9 +3,9 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
-import type { Task, TaskStatus } from "@/shared/lib/tasks/types";
 import { appRoute } from "@/app/app-routes";
 import { translation } from "@/i18n/translation";
+import type { Task, TaskStatus } from "@/shared/lib/tasks/types";
 import type { SyncedWorkspaceProject } from "@/shared/types/lazify";
 import { CaptionText, OverlineText, SectionTitle } from "@/shared/typography";
 import UiIcon from "@/shared/ui/icons/UiIcon";
@@ -47,12 +47,7 @@ const groupLabel: Record<TaskStatus, string> = {
  * leaving the page — this is where the work is, so it is where a task most
  * often gets added. Presets and context are the tool page's job.
  */
-export function AgentTaskPanel({
-	projectPath,
-	projects,
-	variant = "rail",
-	onClose,
-}: Readonly<AgentTaskPanelProps>) {
+export function AgentTaskPanel({ projectPath, projects, variant = "rail", onClose }: Readonly<AgentTaskPanelProps>) {
 	const { t } = useTranslation();
 	const navigate = useNavigate();
 	const { presets } = usePromptPresets();
@@ -78,10 +73,10 @@ export function AgentTaskPanel({
 			<header className="flex items-center justify-between gap-2 border-b border-border px-3 py-2">
 				<div className="flex items-center gap-2">
 					<UiIcon name="check-circle" className="h-3.5 w-3.5 text-accent" />
-					<SectionTitle>{t(translation.Tasks.Title)}</SectionTitle>
-					{sentId ? (
-						<CaptionText className="text-accent!">{t(translation.Tasks.PromptSent)}</CaptionText>
-					) : null}
+					<SectionTitle className={variant === "modal" ? "text-sm! leading-none" : undefined}>
+						{t(translation.Tasks.Title)}
+					</SectionTitle>
+					{sentId ? <CaptionText className="text-accent!">{t(translation.Tasks.PromptSent)}</CaptionText> : null}
 				</div>
 
 				<button

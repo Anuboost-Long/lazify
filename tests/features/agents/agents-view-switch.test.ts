@@ -104,11 +104,11 @@ describe("agents view switch", () => {
 
 		await userEvent.click(segment("agents.live_monitor"));
 		expect(segment("agents.live_monitor").getAttribute("aria-pressed")).toBe("true");
-		expect(screen.getByText("agents.live_monitor_desc")).toBeTruthy();
+		expect(screen.getAllByText("agents.monitor_add_panel").length).toBeGreaterThan(0);
 
 		await userEvent.click(segment("agents.view_tabs"));
 		expect(segment("agents.view_tabs").getAttribute("aria-pressed")).toBe("true");
-		expect(screen.queryByText("agents.live_monitor_desc")).toBeNull();
+		expect(screen.queryAllByText("agents.monitor_add_panel")).toHaveLength(0);
 	});
 
 	it("switches with the keyboard shortcut", async () => {

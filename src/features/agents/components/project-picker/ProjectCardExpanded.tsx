@@ -2,86 +2,63 @@ import clsx from "clsx";
 import { useTranslation } from "react-i18next";
 
 import { translation } from "@/i18n/translation";
-import { CaptionText } from "@/shared/typography";
-import { Tooltip } from "@/shared/ui/Tooltip";
 import UiIcon from "@/shared/ui/icons/UiIcon";
 import { ProjectPickerItem } from "@/shared/ui/project-picker/ProjectPickerItem";
+import { Tooltip } from "@/shared/ui/Tooltip";
+
 import type { CardShellProps } from "./types";
 
 export function ProjectCardExpanded({
-  project,
-  index,
-  active,
-  running,
-  waiting,
-  tabCount,
-  isDragging,
-  onSelect,
-  onCloseAll,
-  dragProps,
-  dropLine,
+	project,
+	active,
+	running,
+	waiting,
+	tabCount,
+	isDragging,
+	onSelect,
+	onCloseAll,
+	dragProps,
+	dropLine,
 }: Readonly<CardShellProps>) {
-  const { t } = useTranslation();
-  const action = (
-    <div className="flex shrink-0 items-center gap-1.5">
-      {tabCount > 0 ? (
-        <Tooltip content={t(translation.Agents.CloseProjectTabs)} side="top">
-          <button
-            type="button"
-            onClick={(event) => {
-              event.stopPropagation();
-              onCloseAll(project.projectPath);
-            }}
-            aria-label={t(translation.Agents.CloseProjectTabs)}
-            className="flex h-6 shrink-0 items-center gap-1 rounded-full bg-rose-500 px-2 text-white transition-colors hover:bg-rose-400"
-          >
-            <UiIcon name="xmark" className="h-3 w-3" />
-            <span className="text-[10px] font-semibold leading-none">{tabCount}</span>
-          </button>
-        </Tooltip>
-      ) : null}
-      <span
-        className={clsx(
-          "flex h-6 w-6 shrink-0 items-center justify-center rounded-full border",
-          "transition-transform duration-300 group-hover:translate-x-0.5",
-          active ? "border-accent/50 text-accent" : "border-border text-muted"
-        )}
-      >
-        <UiIcon name="arrow-right" className="h-3 w-3" />
-      </span>
-    </div>
-  );
+	const { t } = useTranslation();
 
-  return (
-    <ProjectPickerItem
-      project={project}
-      index={index}
-      active={active}
-      isDragging={isDragging}
-      before={dropLine}
-      interactionProps={dragProps}
-      onSelect={onSelect}
-      titleAccessory={
-        waiting > 0 ? (
-            <span
-              title={t(translation.Agents.NeedsAttention)}
-              className={clsx(
-                "flex h-5 w-5 shrink-0 items-center justify-center rounded-full border",
-                "animate-pulse border-accent/40 bg-accent/15 text-accent"
-              )}
-            >
-              <UiIcon name="bell" className="h-3 w-3" />
-            </span>
-          ) : null
-      }
-      detail={
-        <CaptionText tone="muted" className="truncate">
-          {running > 0
-            ? `${running} ${t(translation.Agents.Running)}`
-            : t(translation.Agents.Idle)}
-        </CaptionText>
-      }
-      action={action}
-    />
-  );
+	return (
+		<ProjectPickerItem
+			project={project}
+			active={active}
+			isDragging={isDragging}
+			before={dropLine}
+			interactionProps={dragProps}
+			onSelect={onSelect}
+			titleAccessory={
+				waiting > 0 ? (
+					<span title={t(translation.Agents.NeedsAttention)} className="flex shrink-0 text-accent">
+						<UiIcon name="bell" className="h-3.5 w-3.5 animate-pulse motion-reduce:animate-none" />
+					</span>
+				) : null
+			}
+			detail={running > 0 ? `${running} ${t(translation.Agents.Running)}` : t(translation.Agents.Idle)}
+			action={
+				tabCount > 0 ? (
+					<Tooltip content={t(translation.Agents.CloseProjectTabs)} side="top">
+						<button
+							type="button"
+							onClick={() => onCloseAll(project.projectPath)}
+							aria-label={t(translation.Agents.CloseProjectTabs)}
+							className={clsx(
+								"flex h-6 items-center gap-1 rounded-md",
+								"text-xs font-medium text-muted tabular-nums",
+								"px-1.5",
+								"opacity-0 transition-[opacity,color] group-hover:opacity-100 focus-visible:opacity-100 hover:text-error",
+								"focus-visible:outline-2 focus-visible:outline-accent",
+							)}
+						>
+							<UiIcon name="xmark" className="h-3 w-3" />
+							{tabCount}
+						</button>
+					</Tooltip>
+				) : null
+			}
+		/>
+	);
 }

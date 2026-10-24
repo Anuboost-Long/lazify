@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { savedTemplateIconOf, stackIconOf } from "@/features/init/lib/stack-icons";
+import { stackIconOf } from "@/features/init/lib/stack-icons";
+import { projectStackIconName } from "@/shared/lib/icon-map";
 
 describe("stackIconOf", () => {
 	it("shows each catalogued stack with its own logo", () => {
@@ -14,9 +15,9 @@ describe("stackIconOf", () => {
 	});
 });
 
-describe("savedTemplateIconOf", () => {
-	it("uses the logo of the stack a saved template was detected as", () => {
-		expect(savedTemplateIconOf("react-next")).toBe("nextjs-original");
-		expect(savedTemplateIconOf("react-vite")).toBe("vitejs-plain");
+describe("projectStackIconName", () => {
+	it("uses a real devicon for a detected project stack", () => {
+		expect(projectStackIconName("react-next")).toBe("nextjs-original");
+		expect(projectStackIconName("react-vite")).toBe("vitejs-plain");
 	});
 });

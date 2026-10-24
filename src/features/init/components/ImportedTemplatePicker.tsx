@@ -2,9 +2,9 @@ import clsx from "clsx";
 import { useTranslation } from "react-i18next";
 
 import { translation } from "@/i18n/translation";
+import { projectStackIconName } from "@/shared/lib/icon-map";
 import type { ImportedTemplateOption } from "@/shared/types/lazify";
 
-import { savedTemplateIconOf } from "../lib/stack-icons";
 import { SourceOptionRow } from "./SourceOptionRow";
 
 interface ImportedTemplatePickerProps {
@@ -55,7 +55,7 @@ export function ImportedTemplatePicker({
 			{templates.map((template) => (
 				<SourceOptionRow
 					key={template.id}
-					icon={savedTemplateIconOf(template.stack)}
+					icon={projectStackIconName(template.stack)}
 					title={template.name}
 					description={template.description || template.sourceProjectPath}
 					onSelect={() => onSelect(template.id)}

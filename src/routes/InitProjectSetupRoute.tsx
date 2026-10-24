@@ -2,10 +2,11 @@ import { useTranslation } from "react-i18next";
 import { Navigate, useNavigate } from "react-router-dom";
 
 import { appRoute } from "@/app/app-routes";
-import { savedTemplateIconOf, stackIconOf } from "@/features/init/lib/stack-icons";
+import { stackIconOf } from "@/features/init/lib/stack-icons";
 import { InitProjectSetupPage } from "@/features/init/pages/InitProjectSetupPage";
 import { translation } from "@/i18n/translation";
 import { useLazifyStore } from "@/shared/hooks/use-lazify-store";
+import { projectStackIconName } from "@/shared/lib/icon-map";
 
 export function InitProjectSetupRoute() {
 	const navigate = useNavigate();
@@ -43,7 +44,7 @@ export function InitProjectSetupRoute() {
 	const sourceIcon =
 		initSourceMode === "stack"
 			? stackIconOf(selectedTemplateId)
-			: savedTemplateIconOf(selectedImportedTemplate?.stackDetection.stack ?? "react-unknown");
+			: projectStackIconName(selectedImportedTemplate?.stackDetection.stack ?? "react-unknown");
 
 	return (
 		<InitProjectSetupPage

@@ -1,9 +1,9 @@
-@import '@fontsource-variable/manrope' layer(base);
-@import '@fontsource/chakra-petch/500.css' layer(base);
-@import '@fontsource/chakra-petch/600.css' layer(base);
-@import '@fontsource/chakra-petch/700.css' layer(base);
+@import "@fontsource-variable/manrope" layer(base);
+@import "@fontsource/chakra-petch/500.css" layer(base);
+@import "@fontsource/chakra-petch/600.css" layer(base);
+@import "@fontsource/chakra-petch/700.css" layer(base);
 
-@import 'tailwindcss';
+@import "tailwindcss";
 
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
@@ -11,86 +11,76 @@
    redefines --lz-accent (the Home desktop's tints) recolours its own subtree,
    as Tailwind 3 did. */
 @theme inline {
-  --color-bg: rgb(var(--lz-bg));
-  --color-soft: rgb(var(--lz-bg-soft));
-  --color-terminal: rgb(var(--lz-terminal));
-  --color-text: rgb(var(--lz-text));
-  --color-muted: rgb(var(--lz-text-muted));
-  --color-accent: rgb(var(--lz-accent));
-  --color-accentHover: rgb(var(--lz-accent-hover));
-  --color-accentSoft: var(--lz-accent-soft);
-  --color-border: var(--lz-border);
-  --color-success: rgb(var(--lz-success));
-  --color-warning: rgb(var(--lz-warning));
-  --color-error: rgb(var(--lz-error));
+	--color-bg: rgb(var(--lz-bg));
+	--color-soft: rgb(var(--lz-bg-soft));
+	--color-terminal: rgb(var(--lz-terminal));
+	--color-text: rgb(var(--lz-text));
+	--color-muted: rgb(var(--lz-text-muted));
+	--color-accent: rgb(var(--lz-accent));
+	--color-accentHover: rgb(var(--lz-accent-hover));
+	--color-accentSoft: var(--lz-accent-soft);
+	--color-border: var(--lz-border);
+	--color-success: rgb(var(--lz-success));
+	--color-warning: rgb(var(--lz-warning));
+	--color-error: rgb(var(--lz-error));
 
-  --shadow-panel: 0 2px 8px rgba(6, 24, 16, 0.08);
-  --shadow-glow:
-    0 0 0 1px rgb(var(--lz-accent) / 0.24),
-    0 4px 12px rgb(var(--lz-accent) / 0.14);
+	--shadow-panel: 0 2px 8px rgba(6, 24, 16, 0.08);
+	--shadow-glow: 0 0 0 1px rgb(var(--lz-accent) / 0.24), 0 4px 12px rgb(var(--lz-accent) / 0.14);
 
-  --radius-shell: 28px;
+	--radius-shell: 28px;
 
-  --leading-khmer: 1.75;
+	--leading-khmer: 1.75;
 
-  --font-display: var(--lz-font-display);
-  --font-body: var(--font-ui);
-  --font-mono: SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+	--font-display: var(--lz-font-display);
+	--font-body: var(--font-ui);
+	--font-mono: SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
-  --background-image-grid:
-    linear-gradient(
-      to right,
-      rgb(var(--lz-accent) / 0.08) 1px,
-      transparent 1px
-    ),
-    linear-gradient(
-      to bottom,
-      rgb(var(--lz-accent) / 0.08) 1px,
-      transparent 1px
-    );
+	--background-image-grid:
+		linear-gradient(to right, rgb(var(--lz-accent) / 0.08) 1px, transparent 1px),
+		linear-gradient(to bottom, rgb(var(--lz-accent) / 0.08) 1px, transparent 1px);
 
-  /* A release that overshoots a little, so a press reads even on a quick click. */
-  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+	/* A release that overshoots a little, so a press reads even on a quick click. */
+	--ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 
-  --animate-drift: drift 14s ease-in-out infinite;
-  --animate-fadeIn: fadeIn 420ms ease-out forwards;
-  --animate-pulseLine: pulseLine 2.6s ease-in-out infinite;
-  --animate-appear: appear 240ms ease-out 300ms both;
+	--animate-drift: drift 14s ease-in-out infinite;
+	--animate-fadeIn: fadeIn 420ms ease-out forwards;
+	--animate-pulseLine: pulseLine 2.6s ease-in-out infinite;
+	--animate-appear: appear 240ms ease-out 300ms both;
 
-  @keyframes appear {
-    from {
-      opacity: 0;
-    }
-  }
+	@keyframes appear {
+		from {
+			opacity: 0;
+		}
+	}
 
-  @keyframes fadeIn {
-    0% {
-      opacity: 0;
-      transform: translate3d(0, 12px, 0);
-    }
-    100% {
-      opacity: 1;
-      transform: translate3d(0, 0, 0);
-    }
-  }
-  @keyframes drift {
-    0%,
-    100% {
-      transform: translate3d(0, 0, 0) scale(1);
-    }
-    50% {
-      transform: translate3d(12px, -16px, 0) scale(1.03);
-    }
-  }
-  @keyframes pulseLine {
-    0%,
-    100% {
-      opacity: 0.4;
-    }
-    50% {
-      opacity: 1;
-    }
-  }
+	@keyframes fadeIn {
+		0% {
+			opacity: 0;
+			transform: translate3d(0, 12px, 0);
+		}
+		100% {
+			opacity: 1;
+			transform: translate3d(0, 0, 0);
+		}
+	}
+	@keyframes drift {
+		0%,
+		100% {
+			transform: translate3d(0, 0, 0) scale(1);
+		}
+		50% {
+			transform: translate3d(12px, -16px, 0) scale(1.03);
+		}
+	}
+	@keyframes pulseLine {
+		0%,
+		100% {
+			opacity: 0.4;
+		}
+		50% {
+			opacity: 1;
+		}
+	}
 }
 
 /*
@@ -102,13 +92,13 @@
   color utility to any element that depends on these defaults.
 */
 @layer base {
-  *,
-  ::after,
-  ::before,
-  ::backdrop,
-  ::file-selector-button {
-    border-color: var(--color-gray-200, currentcolor);
-  }
+	*,
+	::after,
+	::before,
+	::backdrop,
+	::file-selector-button {
+		border-color: var(--color-gray-200, currentcolor);
+	}
 }
 
 @keyframes toast-drain {
@@ -443,6 +433,11 @@ input[type="search"]::-webkit-search-cancel-button {
 }
 .shadow-accent-lg {
 	box-shadow: 0 3px 10px rgb(var(--lz-accent) / 0.16);
+}
+
+.modal-rail-panel > header {
+	min-height: 3rem;
+	padding: 0.5rem 0.75rem;
 }
 
 /* ─────────────────────────────────────────────

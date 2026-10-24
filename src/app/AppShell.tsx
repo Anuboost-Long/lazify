@@ -6,6 +6,7 @@ import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { AgentDoneToast } from "@/features/agents/components/AgentDoneToast";
 import { useAgentActivityRecorder } from "@/features/agents/hooks/use-agent-activity";
 import { BrowserSurface } from "@/features/browser/components/BrowserSurface";
+import { useFirstLaunchImport } from "@/features/migration/hooks/useFirstLaunchImport";
 import { availableTools } from "@/features/tools/catalog";
 import { usePinnedTools } from "@/features/tools/hooks/use-pinned-tools";
 import { translation } from "@/i18n/translation";
@@ -13,8 +14,8 @@ import { useAccentColor } from "@/shared/hooks/use-accent-color";
 import { useAppZoom } from "@/shared/hooks/use-app-zoom";
 import { useInterfaceSettings } from "@/shared/hooks/use-interface-settings";
 import { useLazifyStore } from "@/shared/hooks/use-lazify-store";
-import { useRouteMemory } from "@/shared/hooks/use-route-memory";
 import { sortByRecentlyOpened, useRecentProjects } from "@/shared/hooks/use-recent-projects";
+import { useRouteMemory } from "@/shared/hooks/use-route-memory";
 import { useShortcut } from "@/shared/hooks/use-shortcuts";
 import { useSetResolvedTheme, useTheme } from "@/shared/hooks/use-theme";
 import UiIcon from "@/shared/ui/icons/UiIcon";
@@ -23,10 +24,8 @@ import { Tooltip } from "@/shared/ui/Tooltip";
 
 import { appRoute } from "./app-routes";
 import { appSidebarPages, type AppPageId } from "./app-sidebar.constant";
-import { ContentBackdrop } from "./components/ContentBackdrop";
 import { PageChromeContext } from "./components/PageChrome";
 import { Sidebar } from "./components/Sidebar";
-import { useFirstLaunchImport } from "@/features/migration/hooks/useFirstLaunchImport";
 
 function RouteFallback() {
 	return <div className="h-full w-full" aria-busy="true" />;
@@ -57,7 +56,7 @@ export function AppShell() {
 
 	// Sidebar links and their shortcuts both return to the sub-route last seen there.
 	function goTo(path: string) {
-		navigate(rememberRoute ? recall(path) : path);
+		void navigate(rememberRoute ? recall(path) : path);
 	}
 
 	function toggleSidebar() {
@@ -83,8 +82,7 @@ export function AppShell() {
 
 	const sysPreference = systemPrefersDark ? "dark" : "light";
 
-	const resolvedTheme: "dark" | "light" =
-		themePreference === "system" ? sysPreference : themePreference;
+	const resolvedTheme: "dark" | "light" = themePreference === "system" ? sysPreference : themePreference;
 
 	useEffect(() => {
 		void bootstrap();
@@ -131,11 +129,7 @@ export function AppShell() {
 	useLayoutEffect(() => {
 		const from = previousPath.current;
 		previousPath.current = location.pathname;
-		if (
-			from === location.pathname ||
-			reduceMotion ||
-			globalThis.matchMedia("(prefers-reduced-motion: reduce)").matches
-		)
+		if (from === location.pathname || reduceMotion || globalThis.matchMedia("(prefers-reduced-motion: reduce)").matches)
 			return;
 		const animation = content.current?.animate([{ opacity: 0 }, { opacity: 1 }], {
 			duration: 160,
@@ -151,9 +145,7 @@ export function AppShell() {
 		() => appSidebarPages.filter((page) => !page.macOnly || globalThis.lazify.platform === "darwin"),
 		[],
 	);
-	const pinnedTools = availableTools(globalThis.lazify.platform).filter((tool) =>
-		pinnedToolIds.includes(tool.id),
-	);
+	const pinnedTools = availableTools(globalThis.lazify.platform).filter((tool) => pinnedToolIds.includes(tool.id));
 
 	const activePageId: AppPageId | null =
 		pages.find(
@@ -194,10 +186,7 @@ export function AppShell() {
 	// Slots pages portal their breadcrumb tail and actions into.
 	const [crumbSlot, setCrumbSlot] = useState<HTMLElement | null>(null);
 	const [actionSlot, setActionSlot] = useState<HTMLElement | null>(null);
-	const chromeSlots = useMemo(
-		() => ({ crumb: crumbSlot, actions: actionSlot }),
-		[crumbSlot, actionSlot],
-	);
+	const chromeSlots = useMemo(() => ({ crumb: crumbSlot, actions: actionSlot }), [crumbSlot, actionSlot]);
 
 	return (
 		<main className="flex h-screen bg-bg text-text">
@@ -220,9 +209,7 @@ export function AppShell() {
 					theme={resolvedTheme}
 					onStartWorkflow={() => navigate(appRoute.initProject)}
 					onNavigate={goTo}
-					onOpenProject={(projectPath) =>
-						navigate(`${appRoute.agents}?project=${encodeURIComponent(projectPath)}`)
-					}
+					onOpenProject={(projectPath) => navigate(`${appRoute.agents}?project=${encodeURIComponent(projectPath)}`)}
 					themePreference={themePreference}
 					onThemeChange={setThemePreference}
 					onToggleCollapse={compactSidebar ? undefined : toggleSidebar}
@@ -282,18 +269,10 @@ export function AppShell() {
 						<div ref={setActionSlot} className="ml-auto flex shrink-0 items-center gap-2" />
 					</div>
 
-					{/* Sits behind the scroll container rather than inside it, so the
-              art stays put while the page moves. The workbench opts out — it
-              is dense enough that anything behind it reads as noise. */}
-					{!fullBleed && <ContentBackdrop className="top-10" />}
-
 					<PageChromeContext.Provider value={chromeSlots}>
 						<div
 							ref={content}
-							className={clsx(
-								"relative min-h-0 flex-1",
-								fullBleed ? "overflow-hidden" : "overflow-y-auto",
-							)}
+							className={clsx("relative min-h-0 flex-1", fullBleed ? "overflow-hidden" : "overflow-y-auto")}
 						>
 							<div
 								className={clsx(

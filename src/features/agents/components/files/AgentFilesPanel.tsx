@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 
 import { translation } from "@/i18n/translation";
 import type { ImportedProjectIndexNode } from "@/shared/types/lazify";
-import { SmallText } from "@/shared/typography";
+import { SectionTitle, SmallText } from "@/shared/typography";
 import type { SymbolPosition } from "@/shared/ui/code/symbol-at-point";
 import { IconButton } from "@/shared/ui/IconButton";
 import UiIcon from "@/shared/ui/icons/UiIcon";
@@ -32,10 +32,7 @@ export function AgentFilesPanel({
 	variant = "rail",
 }: Readonly<AgentFilesPanelProps>) {
 	const { t } = useTranslation();
-	const { tree, loading, query, setQuery, matches, searching, refresh } = useAgentFiles(
-		projectPath,
-		true,
-	);
+	const { tree, loading, query, setQuery, matches, searching, refresh } = useAgentFiles(projectPath, true);
 	const [openFolders, setOpenFolders] = useState<string[]>([]);
 	const [selected, setSelected] = useState<ImportedProjectIndexNode | null>(null);
 
@@ -59,9 +56,7 @@ export function AgentFilesPanel({
 	}, [menu]);
 
 	const toggleFolder = (id: string) =>
-		setOpenFolders((open) =>
-			open.includes(id) ? open.filter((entry) => entry !== id) : [...open, id],
-		);
+		setOpenFolders((open) => (open.includes(id) ? open.filter((entry) => entry !== id) : [...open, id]));
 
 	const collapseAll = () => setOpenFolders([]);
 
@@ -162,9 +157,15 @@ export function AgentFilesPanel({
 		<aside className={railPanelShell(variant)}>
 			<header className="flex items-center gap-1 border-b border-border px-2 py-1.5">
 				<UiIcon name="folder" className="ml-1 h-3.5 w-3.5 text-muted" />
-				<SmallText as="span" className="text-text! truncate">
-					{t(translation.Agents.Files)}
-				</SmallText>
+				{variant === "modal" ? (
+					<SectionTitle as="span" className="text-sm! leading-none truncate">
+						{t(translation.Agents.Files)}
+					</SectionTitle>
+				) : (
+					<SmallText as="span" className="text-text! truncate">
+						{t(translation.Agents.Files)}
+					</SmallText>
+				)}
 
 				<div className="ml-auto flex items-center">
 					<IconButton

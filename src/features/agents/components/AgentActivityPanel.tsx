@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
 import { translation } from "@/i18n/translation";
-import { CaptionText, SmallText } from "@/shared/typography";
+import { CaptionText, SectionTitle, SmallText } from "@/shared/typography";
 import { IconButton } from "@/shared/ui/IconButton";
 import UiIcon from "@/shared/ui/icons/UiIcon";
 
@@ -85,9 +85,15 @@ export function AgentActivityPanel({
 			<header className="flex items-center gap-1 border-b border-border px-2 py-1.5">
 				<UiIcon name="bell" className="ml-1 h-3.5 w-3.5 text-muted" />
 
-				<SmallText as="span" className="text-text! truncate">
-					{t(translation.Agents.Activity)}
-				</SmallText>
+				{variant === "modal" ? (
+					<SectionTitle as="span" className="text-sm! leading-none truncate">
+						{t(translation.Agents.Activity)}
+					</SectionTitle>
+				) : (
+					<SmallText as="span" className="text-text! truncate">
+						{t(translation.Agents.Activity)}
+					</SmallText>
+				)}
 
 				<div className="ml-auto flex items-center">
 					{entries.length > 0 ? (
@@ -112,10 +118,7 @@ export function AgentActivityPanel({
 				<div className="flex items-center gap-2">
 					<UiIcon
 						name={autopilotProjectEnabled ? "shield-check" : "shield-off"}
-						className={clsx(
-							"h-3.5 w-3.5 shrink-0",
-							autopilotProjectEnabled ? "text-accent" : "text-muted",
-						)}
+						className={clsx("h-3.5 w-3.5 shrink-0", autopilotProjectEnabled ? "text-accent" : "text-muted")}
 					/>
 
 					<SmallText as="span" className="text-text! flex-1 truncate">
@@ -150,17 +153,10 @@ export function AgentActivityPanel({
 
 			<div className="min-h-0 flex-1 overflow-auto p-1.5">
 				{entries.length === 0 ? (
-					<SmallText className="text-muted! px-1.5 py-2">
-						{t(translation.Agents.ActivityEmpty)}
-					</SmallText>
+					<SmallText className="text-muted! px-1.5 py-2">{t(translation.Agents.ActivityEmpty)}</SmallText>
 				) : (
 					entries.map((entry) => (
-						<AgentActivityRow
-							key={entry.id}
-							entry={entry}
-							projectPath={projectPath}
-							onOpenRun={onOpenRun}
-						/>
+						<AgentActivityRow key={entry.id} entry={entry} projectPath={projectPath} onOpenRun={onOpenRun} />
 					))
 				)}
 			</div>

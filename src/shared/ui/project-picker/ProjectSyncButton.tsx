@@ -2,74 +2,41 @@ import clsx from "clsx";
 import { useTranslation } from "react-i18next";
 
 import { translation } from "@/i18n/translation";
-import { CardTitle } from "@/shared/typography";
-import { Tooltip } from "@/shared/ui/Tooltip";
 import UiIcon from "@/shared/ui/icons/UiIcon";
+import { Tooltip } from "@/shared/ui/Tooltip";
 
 interface ProjectSyncButtonProps {
-  syncing: boolean;
-  compact?: boolean;
-  onClick: () => void;
+	syncing: boolean;
+	compact?: boolean;
+	onClick: () => void;
 }
 
-export function ProjectSyncButton({
-  syncing,
-  compact = false,
-  onClick
-}: Readonly<ProjectSyncButtonProps>) {
-  const { t } = useTranslation();
+export function ProjectSyncButton({ syncing, compact = false, onClick }: Readonly<ProjectSyncButtonProps>) {
+	const { t } = useTranslation();
+	const label = t(translation.Workspace.SyncProject);
 
-  return (
-    <Tooltip
-      content={compact ? t(translation.Workspace.SyncProject) : undefined}
-      side="right"
-    >
-      <button
-        type="button"
-        disabled={syncing}
-        onClick={onClick}
-        className={clsx(
-          "group/add flex w-full items-center rounded-2xl text-left",
-          "border border-dashed border-border bg-bg/60",
-          "transition-[transform,box-shadow] duration-300",
-          "hover:-translate-y-0.5 hover:border-accent/50 hover:bg-bg hover:shadow-panel",
-          "active:scale-[0.98]",
-          "disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0",
-          compact ? "justify-center p-2" : "gap-2.5 p-3"
-        )}
-      >
-        <span
-          className={clsx(
-            "flex shrink-0 items-center justify-center rounded-xl",
-            "border border-border bg-soft text-accent",
-            "transition-transform duration-300",
-            !syncing && "group-hover/add:rotate-90",
-            compact ? "h-7 w-7" : "h-9 w-9"
-          )}
-        >
-          <UiIcon
-            name={syncing ? "refresh-circle" : "plus"}
-            className={clsx("h-4 w-4", syncing && "animate-spin")}
-          />
-        </span>
-
-        {compact ? null : (
-          <>
-            <CardTitle className="min-w-0 flex-1 truncate text-sm">
-              {t(translation.Workspace.SyncProject)}
-            </CardTitle>
-            <span
-              className={clsx(
-                "flex h-6 w-6 shrink-0 items-center justify-center rounded-full border",
-                "border-border text-muted transition-transform duration-300",
-                "group-hover/add:translate-x-0.5"
-              )}
-            >
-              <UiIcon name="arrow-right" className="h-3 w-3" />
-            </span>
-          </>
-        )}
-      </button>
-    </Tooltip>
-  );
+	return (
+		<Tooltip content={compact ? label : undefined} side="right">
+			<button
+				type="button"
+				disabled={syncing}
+				onClick={onClick}
+				aria-label={compact ? label : undefined}
+				className={clsx(
+					"flex h-9 w-full items-center gap-2 rounded-lg",
+					"text-sm font-medium text-muted",
+					compact ? "justify-center" : "px-2.5",
+					"transition-colors hover:bg-text/6 hover:text-text",
+					"focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent",
+					"disabled:cursor-not-allowed disabled:opacity-60",
+				)}
+			>
+				<UiIcon
+					name={syncing ? "refresh-circle" : "plus"}
+					className={clsx("h-4 w-4 shrink-0", syncing && "animate-spin motion-reduce:animate-none")}
+				/>
+				{compact ? null : <span className="truncate">{label}</span>}
+			</button>
+		</Tooltip>
+	);
 }

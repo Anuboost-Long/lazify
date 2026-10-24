@@ -3,16 +3,16 @@ import { useCallback, useRef, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 
 import { translation } from "@/i18n/translation";
+import type { AgentDescriptor } from "@/shared/lib/agents/agent-registry";
 import type { SyncedWorkspaceProject } from "@/shared/types/lazify";
-import { CardTitle, CaptionText } from "@/shared/typography";
 import { IconButton } from "@/shared/ui/IconButton";
 
-import type { AgentDescriptor } from "@/shared/lib/agents/agent-registry";
 import type { MonitorColumns, MonitorPanel, MonitorPanelSize } from "../hooks/use-monitor-panels";
 import { AgentMonitorPanel } from "./AgentMonitorPanel";
 import { AgentMonitorSlot } from "./AgentMonitorSlot";
 import { MonitorModals } from "./monitor/MonitorModals";
 
+/** Enough open places to show the wall has room, filling whole rows at two and three columns. */
 const MONITOR_MIN_SLOTS = 6;
 
 const COLUMN_CLASS: Record<MonitorColumns, string> = {
@@ -57,7 +57,6 @@ interface AgentMonitorGridProps {
 	availableAgents: AgentDescriptor[];
 	onCreateAgent: (input: { label: string; command: string; image?: string }) => Promise<void>;
 	onDeleteAgent: (agentId: string) => Promise<void>;
-
 }
 
 export function AgentMonitorGrid({
@@ -108,9 +107,7 @@ export function AgentMonitorGrid({
 	// every choice here is a breakpoint, so the answer belongs to the window the
 	// wall happens to be in.
 	const tidyUp = useCallback(() => {
-		const template = gridRef.current
-			? globalThis.getComputedStyle(gridRef.current).gridTemplateColumns
-			: "";
+		const template = gridRef.current ? globalThis.getComputedStyle(gridRef.current).gridTemplateColumns : "";
 
 		onTidyUp(template ? template.split(" ").filter(Boolean).length : 1);
 	}, [onTidyUp]);
@@ -148,33 +145,22 @@ export function AgentMonitorGrid({
 		[endDrag, onReorder],
 	);
 
-	const emptySlotCount = Math.max(MONITOR_MIN_SLOTS - panels.length, 1);
-	const emptySlotNumbers = Array.from(
-		{ length: emptySlotCount },
-		(_, index) => panels.length + index + 1,
-	);
+	const openSlots = Math.max(MONITOR_MIN_SLOTS - panels.length, 1);
 	const sizingPanel = panels.find((panel) => panel.runId === sizingRunId) ?? null;
 	const renamingPanel = panels.find((panel) => panel.runId === renamingRunId) ?? null;
 
 	return (
-		<div
-			className={clsx(
-				"flex min-h-0 flex-1 flex-col overflow-hidden",
-				"rounded-2xl border border-border bg-soft",
-			)}
-		>
-			<div
-				className={clsx(
-					"flex shrink-0 items-center justify-between gap-3",
-					"border-b border-border px-4 py-2.5",
-				)}
-			>
-				<div className="flex min-w-0 flex-col">
-					<CardTitle className="text-text!">{t(translation.Agents.LiveMonitor)}</CardTitle>
-					<CaptionText className="text-muted!">{t(translation.Agents.LiveMonitorDesc)}</CaptionText>
-				</div>
-
+		<div className={clsx("flex min-h-0 flex-1 flex-col overflow-hidden", "rounded-2xl border border-border bg-soft")}>
+			{/* First in the top bar, ahead of the Tabs / Live monitor switch. */}
+			<div className={clsx("flex h-11 shrink-0 items-center gap-2 overflow-x-auto", "border-b border-border", "px-2")}>
 				<div className="flex shrink-0 items-center gap-1">
+					<IconButton
+						icon="plus"
+						title={t(translation.Agents.MonitorAddPanel)}
+						aria-label={t(translation.Agents.MonitorAddPanel)}
+						onClick={openSetup}
+					/>
+
 					{panels.length > 1 ? (
 						<IconButton
 							icon="sparks"
@@ -193,7 +179,13 @@ export function AgentMonitorGrid({
 							onClick={() => setConfirmingClearAll(true)}
 						/>
 					) : null}
+				</div>
 
+				{panels.length > 0 ? (
+					<div className="flex shrink-0 items-center border-l border-border pl-2">{rail}</div>
+				) : null}
+
+				<div className="ml-auto flex shrink-0 items-center">
 					<IconButton
 						icon="multi-window"
 						data-tour="monitor-layout"
@@ -229,18 +221,11 @@ export function AgentMonitorGrid({
 							/>
 						))}
 
-						{emptySlotNumbers.map((slot) => (
-							<AgentMonitorSlot
-								key={`slot-${slot}`}
-								index={slot}
-								invite={slot === panels.length + 1}
-								onAdd={openSetup}
-							/>
+						{Array.from({ length: openSlots }, (_, slot) => (
+							<AgentMonitorSlot key={`slot-${slot}`} invite={slot === 0} onAdd={openSetup} />
 						))}
 					</div>
 				</div>
-
-				{rail}
 			</div>
 
 			<MonitorModals
