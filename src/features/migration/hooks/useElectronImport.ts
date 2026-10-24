@@ -1,7 +1,10 @@
+import { useSetAtom } from "jotai";
 import { useCallback, useEffect, useState } from "react";
 
 import { grantedFolderPaths } from "@/platform/folders";
-import { selectDirectories } from "@/platform/projects";
+import { syncedWorkspaceProjectsAtom } from "@/shared/hooks/lazify-store/atoms";
+import { readStoredWorkspaceProjects } from "@/shared/hooks/lazify-store/storage";
+import { AlreadySyncedError, useWorkspaceProjects } from "@/shared/hooks/lazify-store/use-workspace-projects";
 import {
 	offerElectronImport,
 	runElectronImport,
@@ -20,9 +23,14 @@ export type ImportState =
 const messageOf = (error: unknown) =>
 	error instanceof Error ? error.message : ((error as { message?: string } | null)?.message ?? String(error));
 
+const isInside = (folders: string[], path: string) =>
+	folders.some((folder) => path === folder || path.startsWith(`${folder}/`));
+
 export function useElectronImport() {
 	const [state, setState] = useState<ImportState>({ kind: "checking" });
 	const [granted, setGranted] = useState<string[]>([]);
+	const { syncWorkspaceProject } = useWorkspaceProjects();
+	const setSyncedWorkspaceProjects = useSetAtom(syncedWorkspaceProjectsAtom);
 
 	useEffect(() => {
 		let cancelled = false;
@@ -48,17 +56,32 @@ export function useElectronImport() {
 
 		const { offer } = state;
 		setState({ kind: "importing", offer });
+		let result: ElectronImportResult;
 		try {
-			setState({ kind: "done", result: await runElectronImport(localStorage) });
+			result = await runElectronImport(localStorage);
 		} catch (error) {
 			setState({ kind: "error", offer, message: messageOf(error) });
+			return;
 		}
-	}, [state]);
+
+		setSyncedWorkspaceProjects(readStoredWorkspaceProjects());
+		const reachable = await grantedFolderPaths();
+		await Promise.all(
+			result.projects
+				.filter((project) => project.exists && isInside(reachable, project.path))
+				.map((project) => syncWorkspaceProject(project.path).catch(() => undefined)),
+		);
+		setState({ kind: "done", result });
+	}, [state, setSyncedWorkspaceProjects, syncWorkspaceProject]);
 
 	const chooseProjectFolders = useCallback(async () => {
-		await selectDirectories();
+		try {
+			await syncWorkspaceProject();
+		} catch (error) {
+			if (!(error instanceof AlreadySyncedError)) throw error;
+		}
 		setGranted(await grantedFolderPaths());
-	}, []);
+	}, [syncWorkspaceProject]);
 
 	return { state, granted, startImport, chooseProjectFolders };
 }
