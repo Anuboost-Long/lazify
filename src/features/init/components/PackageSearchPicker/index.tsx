@@ -3,34 +3,22 @@ import { useTranslation } from "react-i18next";
 
 import { translation } from "@/i18n/translation";
 import type { PackageOption } from "@/shared/types/lazify";
-import { BodyText, OverlineText, PillText } from "@/shared/typography";
 import { TextInput } from "@/shared/ui/form/FormInput";
 
 import { SearchResultsList } from "./SearchResultsList";
 import { SelectedPackageList } from "./SelectedPackageList";
 import { TemplatePackagesPanel } from "./TemplatePackagesPanel";
 import type { PackageSearchPickerProps, TemplatePackagePreview } from "./types";
-import {
-	getFallbackPackageOption,
-	parsePackageNames,
-	resolveTemplatePackagePreviews,
-} from "./utils";
+import { getFallbackPackageOption, parsePackageNames, resolveTemplatePackagePreviews } from "./utils";
 
-export function PackageSearchPicker({
-	value,
-	selectedTemplateId,
-	busy,
-	onChange,
-}: Readonly<PackageSearchPickerProps>) {
+export function PackageSearchPicker({ value, selectedTemplateId, busy, onChange }: Readonly<PackageSearchPickerProps>) {
 	const { t } = useTranslation();
 	const selectedPackages = useMemo(() => parsePackageNames(value), [value]);
 	const [query, setQuery] = useState("");
 	const [results, setResults] = useState<PackageOption[]>([]);
 	const [loading, setLoading] = useState(false);
 	const [errorMessage, setErrorMessage] = useState("");
-	const [selectedPackageDetails, setSelectedPackageDetails] = useState<
-		Record<string, PackageOption>
-	>({});
+	const [selectedPackageDetails, setSelectedPackageDetails] = useState<Record<string, PackageOption>>({});
 	const [templatePackages, setTemplatePackages] = useState<TemplatePackagePreview[]>([]);
 	const [templatePackagesLoading, setTemplatePackagesLoading] = useState(false);
 	const [templatePackagesError, setTemplatePackagesError] = useState("");
@@ -81,9 +69,7 @@ export function PackageSearchPicker({
 			} catch (error) {
 				if (!cancelled) {
 					setResults([]);
-					setErrorMessage(
-						error instanceof Error ? error.message : t(translation.PackageSearch.NpmError),
-					);
+					setErrorMessage(error instanceof Error ? error.message : t(translation.PackageSearch.NpmError));
 				}
 			} finally {
 				if (!cancelled) setLoading(false);
@@ -118,9 +104,7 @@ export function PackageSearchPicker({
 			} catch (error) {
 				if (!cancelled) {
 					setTemplatePackages([]);
-					setTemplatePackagesError(
-						error instanceof Error ? error.message : t(translation.PackageSearch.TemplateError),
-					);
+					setTemplatePackagesError(error instanceof Error ? error.message : t(translation.PackageSearch.TemplateError));
 				}
 			} finally {
 				if (!cancelled) setTemplatePackagesLoading(false);
@@ -152,39 +136,21 @@ export function PackageSearchPicker({
 	};
 
 	return (
-		<div className="rounded-shell border border-border bg-soft p-6 shadow-panel">
-			<div className="flex flex-wrap items-start justify-between gap-3">
-				<div>
-					<OverlineText className="text-accent">{t(translation.PackageSearch.NpmPackages)}</OverlineText>
-					<BodyText className="mt-2 text-muted">{t(translation.PackageSearch.NpmDesc)}</BodyText>
-				</div>
-				<PillText className="rounded-full border border-border bg-soft px-3 py-2 text-muted">
-					{t(translation.PackageSearch.SelectedCount, {
-						count: selectedPackages.length,
-					})}
-				</PillText>
-			</div>
+		<div className="flex flex-col gap-4">
+			<TemplatePackagesPanel
+				loading={templatePackagesLoading}
+				error={templatePackagesError}
+				packages={templatePackages}
+			/>
 
-			<div className="mt-4 ">
-				<TemplatePackagesPanel
-					loading={templatePackagesLoading}
-					error={templatePackagesError}
-					packages={templatePackages}
-				/>
-
+			<div className="flex flex-col gap-2">
 				<TextInput
+					size="md"
 					value={query}
 					onChange={(event) => setQuery(event.target.value)}
 					placeholder={t(translation.PackageSearch.SearchPlaceholder)}
+					aria-label={t(translation.PackageSearch.NpmPackages)}
 					icon="search"
-					className="mt-4"
-				/>
-
-				<SelectedPackageList
-					packages={selectedPackages}
-					packageDetails={selectedPackageDetails}
-					busy={busy}
-					onRemove={removePackage}
 				/>
 
 				<SearchResultsList
@@ -197,6 +163,13 @@ export function PackageSearchPicker({
 					onAdd={addPackage}
 				/>
 			</div>
+
+			<SelectedPackageList
+				packages={selectedPackages}
+				packageDetails={selectedPackageDetails}
+				busy={busy}
+				onRemove={removePackage}
+			/>
 		</div>
 	);
 }

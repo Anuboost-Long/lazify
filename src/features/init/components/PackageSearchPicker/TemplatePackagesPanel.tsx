@@ -1,10 +1,9 @@
+import clsx from "clsx";
 import { useTranslation } from "react-i18next";
 
 import { translation } from "@/i18n/translation";
-import { OverlineText, BodyText, PillText } from "@/shared/typography";
-import UiIcon from "@/shared/ui/icons/UiIcon";
+import { SmallText } from "@/shared/typography";
 
-import { TemplatePackageCard } from "./TemplatePackageCard";
 import type { TemplatePackagePreview } from "./types";
 
 interface TemplatePackagesPanelProps {
@@ -13,53 +12,55 @@ interface TemplatePackagesPanelProps {
 	packages: TemplatePackagePreview[];
 }
 
-export function TemplatePackagesPanel({
-	loading,
-	error,
-	packages,
-}: Readonly<TemplatePackagesPanelProps>) {
+const chip = clsx(
+	"inline-flex h-7 items-center gap-1.5 rounded-lg",
+	"bg-bg",
+	"border border-border",
+	"text-xs font-medium text-text",
+	"px-2.5",
+);
+
+/** What the template installs on its own, shown so the search below isn't used to add it twice. */
+export function TemplatePackagesPanel({ loading, error, packages }: Readonly<TemplatePackagesPanelProps>) {
 	const { t } = useTranslation();
 
-	return (
-		<div className="rounded-2xl border border-border bg-bg p-4">
-			<div className="flex flex-wrap items-start justify-between gap-3">
-				<div>
-					<OverlineText className="text-accent">
-						{t(translation.PackageSearch.TemplatePackages)}
-					</OverlineText>
-					<BodyText className="mt-2 text-muted">{t(translation.PackageSearch.TemplateDesc)}</BodyText>
-				</div>
-				<PillText className="rounded-full border border-border bg-soft px-3 py-2 text-muted">
-					{t(translation.PackageSearch.QueuedCount, { count: packages.length })}
-				</PillText>
-			</div>
-
-			{loading ? (
-				<div className="mt-3 flex min-h-8 items-center gap-2 rounded-2xl border border-dashed border-border px-3 py-3 text-sm text-muted">
-					<UiIcon name="refresh-circle" className="h-4 w-4 animate-spin text-accent" />
-					{t(translation.PackageSearch.QueryingNpm)}
-				</div>
-			) : null}
-
-			{!loading && error ? (
-				<div className="mt-3 rounded-2xl border border-dashed border-border px-3 py-3 text-sm text-error">
-					{error}
-				</div>
-			) : null}
-
-			{!loading && !error && packages.length > 0 ? (
-				<div className="mt-3 grid gap-2">
-					{packages.map((pkg) => (
-						<TemplatePackageCard key={pkg.name} pkg={pkg} />
+	const body = () => {
+		if (loading) {
+			return (
+				<div className="flex flex-wrap gap-1.5">
+					<span className="sr-only">{t(translation.PackageSearch.QueryingNpm)}</span>
+					{[72, 96, 64].map((width) => (
+						<span
+							key={width}
+							aria-hidden
+							style={{ width }}
+							className={clsx("h-7 rounded-lg", "bg-text/6", "animate-pulse motion-reduce:animate-none")}
+						/>
 					))}
 				</div>
-			) : null}
+			);
+		}
+		if (error) return <SmallText tone="error">{error}</SmallText>;
+		if (packages.length === 0) return <SmallText>{t(translation.PackageSearch.NoTemplateEntries)}</SmallText>;
 
-			{!loading && !error && packages.length === 0 ? (
-				<div className="mt-3 rounded-2xl border border-dashed border-border px-3 py-3 text-sm text-muted">
-					{t(translation.PackageSearch.NoTemplateEntries)}
-				</div>
-			) : null}
+		return (
+			<ul className="flex flex-wrap gap-1.5">
+				{packages.map((pkg) => (
+					<li key={pkg.name} title={pkg.description || undefined} className={chip}>
+						{pkg.name}
+						<span className="font-mono text-muted">{pkg.version || pkg.requestedVersion}</span>
+					</li>
+				))}
+			</ul>
+		);
+	};
+
+	return (
+		<div className="flex flex-col gap-2">
+			<SmallText tone="text" className="font-medium">
+				{t(translation.PackageSearch.TemplatePackages)}
+			</SmallText>
+			{body()}
 		</div>
 	);
 }

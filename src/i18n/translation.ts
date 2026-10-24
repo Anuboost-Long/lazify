@@ -681,6 +681,7 @@ export const translation = {
 		SelectedStack: "init_project.selected_stack",
 		ChangeSelection: "init_project.change_selection",
 		NoTemplatesSaved: "init_project.no_templates_saved",
+		OpenTemplates: "init_project.open_templates",
 	},
 	WorkflowForm: {
 		Title: "workflow_form.title",
@@ -696,6 +697,11 @@ export const translation = {
 		SetupReady: "workflow_form.setup_ready",
 		SetupReadyDesc: "workflow_form.setup_ready_desc",
 		EnterBoth: "workflow_form.enter_both",
+		ProjectSection: "workflow_form.project_section",
+		CreateProject: "workflow_form.create_project",
+		NoFolder: "workflow_form.no_folder",
+		ScaffoldOptions: "workflow_form.scaffold_options",
+		ScaffoldOptionsDesc: "workflow_form.scaffold_options_desc",
 	},
 	ImportProject: {
 		Eyebrow: "import_project.eyebrow",
@@ -745,6 +751,7 @@ export const translation = {
 		SelectedForInstall: "package_search.selected_for_install",
 		NpmError: "package_search.npm_error",
 		TemplateError: "package_search.template_error",
+		RemovePackage: "package_search.remove_package",
 	},
 	GitStatus: {
 		Title: "git_status.title",

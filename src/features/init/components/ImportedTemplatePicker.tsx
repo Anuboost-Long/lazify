@@ -1,43 +1,66 @@
+import clsx from "clsx";
 import { useTranslation } from "react-i18next";
 
 import { translation } from "@/i18n/translation";
 import type { ImportedTemplateOption } from "@/shared/types/lazify";
-import { BodyText } from "@/shared/typography";
-import { ImportedTemplateCard } from "@/shared/ui/ImportedTemplateCard";
+
+import { savedTemplateIconOf } from "../lib/stack-icons";
+import { SourceOptionRow } from "./SourceOptionRow";
 
 interface ImportedTemplatePickerProps {
 	templates: ImportedTemplateOption[];
-	selectedTemplateId: string;
 	onSelect: (templateId: string) => void;
+	onOpenTemplates: () => void;
 }
 
 export function ImportedTemplatePicker({
 	templates,
-	selectedTemplateId,
 	onSelect,
+	onOpenTemplates,
 }: Readonly<ImportedTemplatePickerProps>) {
 	const { t } = useTranslation();
 
 	if (templates.length === 0) {
 		return (
-			<section className="rounded-3xl border border-border bg-soft p-6 shadow-panel">
-				<BodyText tone="muted" className="leading-6">
-					{t(translation.InitProject.NoTemplatesSaved)}
-				</BodyText>
-			</section>
+			<div
+				className={clsx(
+					"flex flex-col items-start gap-3",
+					"rounded-2xl",
+					"border border-dashed border-border",
+					"px-5 py-6",
+				)}
+			>
+				<p className="max-w-prose text-sm text-muted">{t(translation.InitProject.NoTemplatesSaved)}</p>
+				<button
+					type="button"
+					onClick={onOpenTemplates}
+					className={clsx(
+						"inline-flex h-9 items-center rounded-lg",
+						"bg-bg",
+						"border border-border",
+						"text-sm font-medium text-text",
+						"px-3.5",
+						"transition-colors hover:border-accent hover:text-accent",
+						"focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent",
+					)}
+				>
+					{t(translation.InitProject.OpenTemplates)}
+				</button>
+			</div>
 		);
 	}
 
 	return (
-		<section className="grid gap-4 lg:grid-cols-2">
+		<ul className={clsx("overflow-hidden rounded-2xl", "bg-soft", "border border-border", "divide-y divide-border")}>
 			{templates.map((template) => (
-				<ImportedTemplateCard
+				<SourceOptionRow
 					key={template.id}
-					template={template}
-					active={template.id === selectedTemplateId}
-					onSelect={onSelect}
+					icon={savedTemplateIconOf(template.stack)}
+					title={template.name}
+					description={template.description || template.sourceProjectPath}
+					onSelect={() => onSelect(template.id)}
 				/>
 			))}
-		</section>
+		</ul>
 	);
 }

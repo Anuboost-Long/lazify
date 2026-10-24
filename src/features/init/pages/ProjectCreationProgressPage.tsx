@@ -1,17 +1,17 @@
+import clsx from "clsx";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import type { CommandChoicePrompt } from "@/platform/command-runner";
-import type { StarterFailureReason } from "@/shared/lib/scaffolding/starter-provisioner";
 import { PageCrumb } from "@/app/components/PageChrome";
 import { translation } from "@/i18n/translation";
+import type { CommandChoicePrompt } from "@/platform/command-runner";
+import type { StarterFailureReason } from "@/shared/lib/scaffolding/starter-provisioner";
 import type { EnvironmentSummary, LogEntry, WorkflowStatus } from "@/shared/types/lazify";
-import { BodyText, OverlineText, PillText, SectionTitle } from "@/shared/typography";
+import { BodyText, SectionTitle, SmallText } from "@/shared/typography";
 import UiIcon, { type UiIconName } from "@/shared/ui/icons/UiIcon";
 import { LogPanel } from "@/shared/ui/LogPanel";
 import { BaseModal } from "@/shared/ui/modal/BaseModal";
 import { StarterFailureNotice } from "@/shared/ui/StarterFailureNotice";
-import { StatusStrip } from "@/shared/ui/StatusStrip";
 import { Toast } from "@/shared/ui/toast/Toast";
 
 interface ProjectCreationProgressPageProps {
@@ -24,6 +24,8 @@ interface ProjectCreationProgressPageProps {
 	workflowStatus: WorkflowStatus;
 	onChooseCommandOption: (promptId: string, optionId: string) => void;
 }
+
+const STATUS_TONE: Partial<Record<WorkflowStatus, string>> = { error: "text-error", success: "text-success" };
 
 function progressIconOf(status: WorkflowStatus): UiIconName {
 	if (status === "error") return "warning-triangle";
@@ -47,6 +49,7 @@ export function ProjectCreationProgressPage({
 	const [showErrorAlert, setShowErrorAlert] = useState(workflowStatus === "error");
 	const prevStatusRef = useRef<WorkflowStatus>(workflowStatus);
 	const progressIcon = progressIconOf(workflowStatus);
+	const statusTone = STATUS_TONE[workflowStatus] ?? "text-muted";
 
 	useEffect(() => {
 		if (prevStatusRef.current === "running" && workflowStatus === "success") {
@@ -72,81 +75,46 @@ export function ProjectCreationProgressPage({
 				<span className="text-xs font-medium text-text">{t(translation.Console.CreationStep)}</span>
 			</PageCrumb>
 
-			<section className="relative overflow-hidden rounded-shell border border-border bg-soft px-6 py-5 shadow-panel">
-				<div className="absolute inset-y-0 left-0 w-1 bg-accent" />
-				<div className="absolute -right-12 -top-16 h-40 w-40 rotate-12 rounded-[36px] border border-accent/15 bg-accent/4" />
-
-				<div className="relative grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(320px,0.72fr)] lg:items-end">
-					<div>
-						<OverlineText className="tracking-[0.24em]">
-							{t(translation.Console.FlowEyebrow)}
-						</OverlineText>
-						<SectionTitle className="mt-2 text-2xl">
-							{t(translation.Console.FlowTitle, { name: projectName })}
-						</SectionTitle>
-						<BodyText tone="muted" className="mt-2 max-w-2xl leading-6">
-							{t(translation.Console.FlowDescription)}
-						</BodyText>
-					</div>
-
-					<div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
-						<div className="rounded-2xl border border-success/25 bg-success/6 px-4 py-3">
-							<PillText className="text-success">01</PillText>
-							<BodyText className="mt-1 text-sm font-semibold">
-								{t(translation.Console.SetupStep)}
-							</BodyText>
-						</div>
-
-						<div className="h-px w-7 bg-border" />
-
-						<div className="rounded-2xl border border-accent/30 bg-accent/[0.07] px-4 py-3">
-							<div className="flex items-center justify-between gap-2">
-								<PillText className="text-accent">02</PillText>
-								<UiIcon
-									name={progressIcon}
-									className={
-										workflowStatus === "running" ? "h-4 w-4 animate-spin text-accent" : "h-4 w-4 text-accent"
-									}
-								/>
-							</div>
-							<BodyText className="mt-1 text-sm font-semibold">
-								{t(translation.Console.CreationStep)}
-							</BodyText>
-						</div>
-					</div>
+			<header className="flex flex-col gap-2">
+				<SectionTitle>{t(translation.Console.FlowTitle, { name: projectName })}</SectionTitle>
+				<div className="flex flex-wrap items-center gap-x-5 gap-y-1">
+					<p
+						aria-live="polite"
+						className={clsx("inline-flex min-w-0 items-center gap-2", "text-sm font-medium", statusTone)}
+					>
+						<UiIcon
+							name={progressIcon}
+							className={clsx(
+								"h-4 w-4 shrink-0",
+								workflowStatus === "running" && "animate-spin motion-reduce:animate-none",
+							)}
+						/>
+						<span className="min-w-0 wrap-break-word">{statusMessage || t(translation.Console.FlowDescription)}</span>
+					</p>
+					{environment ? (
+						<p className="flex gap-3 font-mono text-xs text-muted">
+							<span>Node {environment.nodeVersion}</span>
+							<span>npm {environment.npmVersion}</span>
+							<span>yarn {environment.yarnVersion}</span>
+						</p>
+					) : null}
 				</div>
-			</section>
-
-			{workflowStatus === "error" ? null : (
-				<StatusStrip
-					environment={environment}
-					label={t(translation.Console.CreationStatus)}
-					workflowStatus={workflowStatus}
-					statusMessage={statusMessage}
-				/>
-			)}
+			</header>
 
 			{starterFailureReason ? <StarterFailureNotice reason={starterFailureReason} /> : null}
 
 			{commandChoicePrompt ? (
 				<section
 					aria-labelledby="command-choice-title"
-					className="rounded-3xl border border-accent/30 bg-accent/6 p-5 shadow-panel"
+					className={clsx("rounded-2xl", "bg-soft", "border border-accent/40", "p-5")}
 				>
-					<div className="flex items-start gap-3">
-						<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-accent/25 bg-accent/10 text-accent">
-							<UiIcon name="chat-question" className="h-5 w-5" />
-						</div>
-						<div className="min-w-0">
-							<OverlineText>{t(translation.Console.InputRequired)}</OverlineText>
-							<SectionTitle id="command-choice-title" className="mt-1 text-lg">
-								{commandChoicePrompt.message}
-							</SectionTitle>
-							<BodyText tone="muted" className="mt-1 text-sm">
-								{t(translation.Console.ChooseOnlyDescription)}
-							</BodyText>
-						</div>
-					</div>
+					<SmallText tone="accent" className="font-medium">
+						{t(translation.Console.InputRequired)}
+					</SmallText>
+					<h2 id="command-choice-title" className="mt-1 text-base font-semibold text-text">
+						{commandChoicePrompt.message}
+					</h2>
+					<SmallText className="mt-1">{t(translation.Console.ChooseOnlyDescription)}</SmallText>
 
 					{/* A native group, so the choice is announced as one without a role. */}
 					<fieldset className="mt-4 flex flex-wrap gap-2" aria-label={commandChoicePrompt.message}>
@@ -155,7 +123,15 @@ export function ProjectCreationProgressPage({
 								key={option.id}
 								type="button"
 								onClick={() => onChooseCommandOption(commandChoicePrompt.id, option.id)}
-								className="rounded-xl border border-accent/30 bg-soft px-4 py-2.5 text-sm font-semibold text-text transition-colors hover:border-accent hover:bg-accent/10 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-accent/60"
+								className={clsx(
+									"inline-flex h-9 items-center rounded-lg",
+									"bg-bg",
+									"border border-border",
+									"text-sm font-medium text-text",
+									"px-3.5",
+									"transition-colors hover:border-accent hover:text-accent",
+									"focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent",
+								)}
 							>
 								{option.label}
 							</button>
@@ -192,10 +168,7 @@ export function ProjectCreationProgressPage({
 								<SectionTitle id="project-creation-error-title" className="text-lg">
 									{t(translation.Console.ProjectCreationFailed)}
 								</SectionTitle>
-								<BodyText
-									id="project-creation-error-message"
-									className="mt-2 wrap-break-word text-sm text-muted"
-								>
+								<BodyText id="project-creation-error-message" className="mt-2 wrap-break-word text-sm text-muted">
 									{statusMessage}
 								</BodyText>
 							</div>

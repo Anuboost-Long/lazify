@@ -1,10 +1,10 @@
+import clsx from "clsx";
 import { useTranslation } from "react-i18next";
 
 import { translation } from "@/i18n/translation";
 import type { PackageOption } from "@/shared/types/lazify";
+import { SmallText } from "@/shared/typography";
 import UiIcon from "@/shared/ui/icons/UiIcon";
-
-import { SearchResultCard } from "./SearchResultCard";
 
 interface SearchResultsListProps {
 	query: string;
@@ -28,44 +28,62 @@ export function SearchResultsList({
 	const { t } = useTranslation();
 	const trimmedQuery = query.trim();
 
+	if (trimmedQuery.length === 0) return null;
+	if (trimmedQuery.length < 2) return <SmallText>{t(translation.PackageSearch.MinChars)}</SmallText>;
+	if (loading) {
+		return (
+			<SmallText className="flex items-center gap-2" aria-live="polite">
+				<UiIcon name="refresh-circle" className="h-3.5 w-3.5 animate-spin motion-reduce:animate-none" />
+				{t(translation.PackageSearch.Searching)}
+			</SmallText>
+		);
+	}
+	if (error) return <SmallText tone="error">{error}</SmallText>;
+	if (results.length === 0) return <SmallText>{t(translation.PackageSearch.NoResults)}</SmallText>;
+
 	return (
-		<div className="mt-3 min-h-12 rounded-2xl border border-dashed border-border bg-bg p-2">
-			{trimmedQuery.length < 2 ? (
-				<div className="flex min-h-8 items-center px-3 text-sm text-muted">
-					{t(translation.PackageSearch.MinChars)}
-				</div>
-			) : null}
+		<ul
+			className={clsx("max-h-80 overflow-y-auto rounded-xl", "bg-bg", "border border-border", "divide-y divide-border")}
+		>
+			{results.map((pkg) => {
+				const added = selectedPackages.includes(pkg.name);
 
-			{loading ? (
-				<div className="flex min-h-8 items-center gap-2 px-3 text-sm text-muted">
-					<UiIcon name="refresh-circle" className="h-4 w-4 animate-spin text-accent" />
-					{t(translation.PackageSearch.Searching)}
-				</div>
-			) : null}
-
-			{!loading && error ? (
-				<div className="flex min-h-8 items-center px-3 text-sm text-error">{error}</div>
-			) : null}
-
-			{!loading && !error && trimmedQuery.length >= 2 && results.length === 0 ? (
-				<div className="flex min-h-8 items-center px-3 text-sm text-muted">
-					{t(translation.PackageSearch.NoResults)}
-				</div>
-			) : null}
-
-			{!loading && !error && results.length > 0 ? (
-				<div className="grid gap-2">
-					{results.map((pkg) => (
-						<SearchResultCard
-							key={pkg.name}
-							pkg={pkg}
-							selected={selectedPackages.includes(pkg.name)}
-							busy={busy}
-							onAdd={onAdd}
-						/>
-					))}
-				</div>
-			) : null}
-		</div>
+				return (
+					<li key={pkg.name}>
+						<button
+							type="button"
+							onClick={() => onAdd(pkg)}
+							disabled={busy || added}
+							className={clsx(
+								"group flex w-full items-center gap-3",
+								"text-left",
+								"px-3.5 py-2.5",
+								"transition-colors duration-150 enabled:hover:bg-text/4",
+								"focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent",
+								"disabled:cursor-default",
+							)}
+						>
+							<span className="min-w-0 flex-1">
+								<span className="flex items-baseline gap-2">
+									<span className="truncate text-sm font-medium text-text">{pkg.name}</span>
+									<span className="shrink-0 font-mono text-xs text-muted">{pkg.version}</span>
+								</span>
+								<span className="mt-0.5 block truncate text-xs text-muted">
+									{pkg.description || t(translation.PackageSearch.NoDescription)}
+								</span>
+							</span>
+							<span
+								className={clsx(
+									"shrink-0 text-xs font-medium",
+									added ? "text-muted" : "text-accent group-hover:underline",
+								)}
+							>
+								{added ? t(translation.GlobalTerm.Selected) : t(translation.GlobalTerm.Add)}
+							</span>
+						</button>
+					</li>
+				);
+			})}
+		</ul>
 	);
 }
