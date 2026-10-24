@@ -1,10 +1,11 @@
 import fs from "node:fs";
 import path from "node:path";
 
-const STRIPPABLE = /\/\*[\s\S]*?\*\/|(^|[^:"'\\])\/\/[^\n]*/g;
+// Strings are matched first and kept whole, so "@/*" isn't read as a comment opening.
+const STRIPPABLE = /("(?:[^"\\\n]|\\.)*")|\/\*[\s\S]*?\*\/|\/\/[^\n]*/g;
 
 function withoutComments(source: string): string {
-	return source.replace(STRIPPABLE, (_match, lead) => (lead === undefined ? "" : lead));
+	return source.replace(STRIPPABLE, (_match, string?: string) => string ?? "");
 }
 
 export function readAliasPrefixes(projectPath: string): string[] {

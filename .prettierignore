@@ -1,0 +1,5 @@
+# Docs are hand-wrapped; Prettier would re-pad every table a change touches.
+*.md
+# npm writes these itself, with two spaces.
+package.json
+package-lock.json
